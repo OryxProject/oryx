@@ -46,14 +46,14 @@ query operations on the result.
 4. A data transport layer, which moves data between layers and receives input from external sources
 
 Availability
-============
+------------
 
-|          | *Serving*      | *Speed*      | *Batch*      |
-| --------:| -------------- | ------------ | ------------ | ------------------------------
-| *ML app* | _no_           | _no_         | alpha        | `oryx-ml-mllib`,`oryx-ml-oryx`
-| *ML*     | _no_           | _no_         | alpha        | `oryx-ml`
-| *Lambda* | _no_           | _no_         | alpha        | `oryx-lambda`
-|          | `oryx-serving` | `oryx-speed` | `oryx-batch` |
+|          | *Serving*      | *Speed*      | *Batch*      |                                |
+| --------:| -------------- | ------------ | ------------ | ------------------------------ |
+| *ML app* | _no_           | _no_         | alpha        | `oryx-ml-mllib`,`oryx-ml-oryx` |
+| *ML*     | _no_           | _no_         | alpha        | `oryx-ml`                      |
+| *Lambda* | _no_           | _no_         | alpha        | `oryx-lambda`                  |
+|          | `oryx-serving` | `oryx-speed` | `oryx-batch` |                                |
 
 Lambda Tier Implementation
 ==========================
