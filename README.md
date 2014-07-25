@@ -118,3 +118,10 @@ model update function adapted from existing code, and a port of REST APIs from t
 implementation.
 
 Similarly for k-means++ and random decision forests, as before.
+
+
+Contributors
+------------
+
+- Sean Owen (Cloudera)
+- Suneel Marthi and Kam Kasravi (Intel)
