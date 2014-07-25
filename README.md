@@ -28,7 +28,7 @@ The project will produce three "tiers", each of which builds on the last:
 1. A generic lambda architecture tier, providing batch/speed/serving layers, which is not 
 specific to machine learning
 1. A specialization on top providing ML abstractions for hyperparameter selection, etc.
-1. A three-layer end-to-end implementation of the same standard ML algorithms 
+1. An end-to-end implementation of the same standard ML algorithms as an application
 ([ALS](labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf), 
 [random decision forests](http://en.wikipedia.org/wiki/Random_forest), 
 [k-means++](http://en.wikipedia.org/wiki/K-means_clustering)) on top
@@ -44,6 +44,16 @@ stream of new data. These updates are intended to happen on the order of seconds
 3. A Serving Layer, which receives models and updates and implements a synchronous API exposing
 query operations on the result.
 4. A data transport layer, which moves data between layers and receives input from external sources
+
+Availability
+============
+
+|          | *Serving*      | *Speed*      | *Batch*      |
+| --------:| -------------- | ------------ | ------------ | ------------------------------
+| *ML app* | _no_           | _no_         | alpha        | `oryx-ml-mllib`,`oryx-ml-oryx`
+| *ML*     | _no_           | _no_         | alpha        | `oryx-ml`
+| *Lambda* | _no_           | _no_         | alpha        | `oryx-lambda`
+|          | `oryx-serving` | `oryx-speed` | `oryx-batch` |
 
 Lambda Tier Implementation
 ==========================
@@ -109,8 +119,8 @@ It can automatically repeat this, and with different hyperparameter values, choo
 result. It manages serialization of the model via 
 [PMML](http://www.dmg.org/v4-2-1/GeneralStructure.html).
 
-End-to-end Implementation
--------------------------
+End-to-end ML Application Implementation
+----------------------------------------
 
 Implementations of a complete recommender system based on ALS will be added, for example, as before.
 This implementation will consist of the core model build in Spark, an in-memory
