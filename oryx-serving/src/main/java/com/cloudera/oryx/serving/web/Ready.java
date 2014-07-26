@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.serving.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
@@ -26,20 +29,21 @@ import javax.ws.rs.core.Response;
  * <p>Responds to a HEAD or GET request to {@code /ready} and in turn calls
  * {link com.cloudera.oryx.als.common.OryxRecommender#isReady()}. Returns "OK" or "Unavailable" status depending on
  * whether the recommender is ready.</p>
- *
  */
 @Path("/ready")
 public class Ready {
 
-    @HEAD
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response head() {
-      return get();
-    }
+  private static final Logger LOG = LoggerFactory.getLogger(Ready.class);
 
-    @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get() {
+  @HEAD
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response head() {
+    return get();
+  }
+
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get() {
 /*
     boolean isReady = getRecommender().isReady();
     if (isReady) {
@@ -48,7 +52,7 @@ public class Ready {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

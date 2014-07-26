@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.serving.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,16 +27,17 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /popularRepresentativeItems}
  * and in turn calls {link OryxRecommender#popularRepresentativeItems()}.</p>
- *
+ * <p/>
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
- *
  */
 @Path("/popularRepresentativeItems")
 public class PopularRepresentativeItems {
 
-    @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get() {
+  private static final Logger LOG = LoggerFactory.getLogger(PopularRepresentativeItems.class);
+
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -44,7 +48,7 @@ public class PopularRepresentativeItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

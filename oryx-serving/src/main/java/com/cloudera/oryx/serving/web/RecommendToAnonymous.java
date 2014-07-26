@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.serving.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -35,26 +38,27 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
- *
+ * <p/>
  * <p>This does something slightly different from {@link Similarity};
  * see {link OryxRecommender#recommendToAnonymous(String[], float[], int)}.</p>
- *
  */
 @Path("/recommendToAnonymous")
 public class RecommendToAnonymous {
 
-    @GET
-    @Path("{userId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  private static final Logger LOG = LoggerFactory.getLogger(RecommendToAnonymous.class);
+
+  @GET
+  @Path("{userId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+                      @QueryParam("offset") int offset,
+                      @QueryParam("considerKnownItems") boolean considerKnownItems,
+                      @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -94,7 +98,7 @@ public class RecommendToAnonymous {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

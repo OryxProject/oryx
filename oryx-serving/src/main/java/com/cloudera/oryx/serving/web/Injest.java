@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.serving.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -29,22 +32,23 @@ import java.util.List;
  * {link OryxRecommender#ingest(Reader)}}. The content of the request body is
  * fed to this method. Note that the content may be gzipped; if so, header "Content-Encoding"
  * must have value "gzip".</p>
- *
+ * <p/>
  * <p>Alternatively, CSV data may be POSTed here as if part of a web browser file upload. In this case
  * the "Content-Type" should be "multipart/form-data", and the payload encoded accordingly. The uploaded
  * file may be gzipped or zipped.</p>
- *
  */
 @Path("/injest")
 public class Injest {
 
-    @POST
-    @Path("{userId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response post(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  private static final Logger LOG = LoggerFactory.getLogger(Injest.class);
+
+  @POST
+  @Path("{userId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response post(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+                       @QueryParam("offset") int offset,
+                       @QueryParam("considerKnownItems") boolean considerKnownItems,
+                       @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     OryxRecommender recommender = getRecommender();
 
@@ -104,7 +108,7 @@ public class Injest {
       response.sendRedirect(new URL(referer).toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }
