@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -106,9 +106,6 @@ public final class Server implements Closeable {
     configureEngine(tomcat.getEngine());
     configureServer(tomcat.getServer());
     configureHost(tomcat.getHost());
-    Context context = makeContext(tomcat, noSuchBaseDir);
-
-    //addServlet(context, new FooServlet(), "/foo");
 
     try {
       tomcat.start();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -24,16 +24,16 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#getAllItemIDs()}.</p>
- *
+ * <p/>
  * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")
 public final class AllItemIDs {
 
-    @GET
-    @Path("/allIDs")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get() {
+  @GET
+  @Path("/allIDs")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -42,7 +42,6 @@ public final class AllItemIDs {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
  */
-        return Response.status(200).entity("").build();
-    }
-
+    return Response.status(200).entity("").build();
+  }
 }

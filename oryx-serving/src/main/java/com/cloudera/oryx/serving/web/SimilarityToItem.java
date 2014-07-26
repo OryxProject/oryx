@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -25,20 +25,19 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /similarityToItem/[toItemID]/itemID1(/[itemID2]/...)},
  * and in turn calls {link OryxRecommender#similarityToItem(String, String...)} with the supplied values.</p>
- *
+ * <p/>
  * <p>Unknown item IDs are ignored, unless all are unknown or {@code toItemID} is unknown, in which case a
  * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>The output are similarities, in the same order as the item IDs, one per line.</p>
- *
  */
 @Path("/similarityToItem")
 public class SimilarityToItem {
 
-    @GET
-    @Path("{itemID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("itemID") String itemID) {
+  @GET
+  @Path("{itemID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -76,7 +75,6 @@ public class SimilarityToItem {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
-
+    return Response.status(200).entity("").build();
+  }
 }
