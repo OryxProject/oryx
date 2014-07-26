@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,16 +15,11 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,22 +31,22 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- * <p/>
+ *
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
+ *
  */
 @Path("/recommend")
-public final class Recommend {
+public class Recommend {
+    List<RecommendResponse> list = new ArrayList<>(Arrays.asList(new RecommendResponse("1", 5)));//new ArrayList<>();
 
-  private static final Logger LOG = LoggerFactory.getLogger(Recommend.class);
-
-  @GET
-  @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                      @QueryParam("offset") int offset,
-                      @QueryParam("considerKnownItems") boolean considerKnownItems,
-                      @QueryParam("rescorerParams") List<String> rescorerParams) {
+    @GET
+    @Path("{userID}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
+                        @QueryParam("offset") int offset,
+                        @QueryParam("considerKnownItems") boolean considerKnownItems,
+                        @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -93,7 +88,7 @@ public final class Recommend {
     }
   }
   */
-    return Response.status(200).entity("").build();
-  }
+      return list;
+    }
 
 }

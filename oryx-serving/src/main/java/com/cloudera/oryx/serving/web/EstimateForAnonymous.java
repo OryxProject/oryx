@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,16 +15,12 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,24 +29,20 @@ import java.util.List;
  * and in turn calls {link OryxRecommender#estimateForAnonymous(String, String[], float[])}
  * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
  * a value or else default to 1.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
- * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
+ *
  * <p>Outputs the result of the method call as a value on one line.</p>
+ *
  */
 @Path("/estimateForAnonymous")
 public class EstimateForAnonymous {
 
-  private static final Logger LOG = LoggerFactory.getLogger(EstimateForAnonymous.class);
-
-  @GET
-  @Path("{toItemID}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("toItemID") String toItemID, @QueryParam("howMany") int howMany,
-                      @QueryParam("offset") int offset,
-                      @QueryParam("considerKnownItems") boolean considerKnownItems,
-                      @QueryParam("rescorerParams") List<String> rescorerParams) {
+    @GET
+    @Path("{toItemID}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<Float> get(@PathParam("toItemID") String toItemID, @PathParam("itemID") PathSegment items) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -87,7 +79,7 @@ public class EstimateForAnonymous {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
     }
   */
-    return Response.status(200).entity("").build();
-  }
+      return new ArrayList<Float>(Arrays.asList(1.2F, 3.4F));
+    }
 
 }

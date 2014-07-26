@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,15 +15,10 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
@@ -33,25 +28,27 @@ import javax.ws.rs.core.Response;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
- * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
+ *
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
- * <p/>
+ *
  * <p>This does something slightly different from
  * {@link RecommendToAnonymous}; see
  * {link OryxRecommender#mostSimilarItems(String, int)}.</p>
+ *
  */
 @Path("/similarity")
-public class Similarity {
+public class Similarity extends Recommend {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Similarity.class);
-
-  @GET
-  @Path("{itemID}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("itemID") String userId) {
+    @GET
+    @Path("{itemID}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<RecommendResponse> get(@PathParam("itemID") String itemID,
+                        @QueryParam("howMany") int howMany,
+                        @QueryParam("offset") int offset,
+                        @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -98,7 +95,9 @@ public class Similarity {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Response.status(200).entity("").build();
-  }
+      list.add(new RecommendResponse("1",5));
+      return list;
+
+    }
 
 }

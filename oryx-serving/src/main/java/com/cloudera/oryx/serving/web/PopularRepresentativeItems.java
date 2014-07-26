@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,29 +15,26 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /popularRepresentativeItems}
  * and in turn calls {link OryxRecommender#popularRepresentativeItems()}.</p>
- * <p/>
+ *
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
+ *
  */
 @Path("/popularRepresentativeItems")
 public class PopularRepresentativeItems {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PopularRepresentativeItems.class);
-
-  @GET
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get() {
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -48,7 +45,7 @@ public class PopularRepresentativeItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Response.status(200).entity("").build();
-  }
+      return new ArrayList<String>(Arrays.asList("1", "2"));
+    }
 
 }

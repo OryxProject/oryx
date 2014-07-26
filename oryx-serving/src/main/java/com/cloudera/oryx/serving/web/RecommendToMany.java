@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,16 +15,8 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -38,32 +30,34 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- * <p/>
+ *
  * <p>Unknown user IDs are ignored, unless all are unknown, in which case a
- * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ * {
+ *
+ * link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
+ *
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
+ *
  */
 @Path("/recommendToMany")
-public class RecommendToMany {
+public class RecommendToMany extends Recommend {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RecommendToMany.class);
-
-  @GET
-  @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                      @QueryParam("offset") int offset,
-                      @QueryParam("considerKnownItems") boolean considerKnownItems,
-                      @QueryParam("rescorerParams") List<String> rescorerParams) {
+    @GET
+    @Path("{userID}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Override
+    public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
+                        @QueryParam("offset") int offset,
+                        @QueryParam("considerKnownItems") boolean considerKnownItems,
+                        @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
       return;
     }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
+    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator1();
     Set<String> userIDSet = Sets.newHashSet();
     try {
       while (pathComponents.hasNext()) {
@@ -94,7 +88,8 @@ public class RecommendToMany {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Response.status(200).entity("").build();
-  }
+      list.add(new RecommendResponse("1",5));
+      return list;
+    }
 
 }

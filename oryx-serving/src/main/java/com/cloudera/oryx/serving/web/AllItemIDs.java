@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,30 +15,28 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#getAllItemIDs()}.</p>
- * <p/>
+ *
  * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")
-public final class AllItemIDs {
+public class AllItemIDs {
 
-  private static final Logger LOG = LoggerFactory.getLogger(AllItemIDs.class);
-
-  @GET
-  @Path("/allIDs")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get() {
+    @GET
+    @Path("/allIDs")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -47,6 +45,7 @@ public final class AllItemIDs {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
  */
-    return Response.status(200).entity("").build();
-  }
+      return new ArrayList<String>(Arrays.asList("1", "2"));
+    }
+
 }

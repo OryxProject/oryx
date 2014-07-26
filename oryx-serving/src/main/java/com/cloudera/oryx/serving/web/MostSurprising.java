@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,14 +15,10 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * <p>Responds to a GET request to
@@ -30,20 +26,19 @@ import javax.ws.rs.core.Response;
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#mostSurprising(String, int)}.
  * {@code howMany} is the desired number of results to return. If {@code howMany} is not
  * specified, defaults to {link com.cloudera.oryx.als.serving.web.AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
- * <p/>
+ *
  * <p>CSV output contains one item per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative surprise of the item.
  * Higher means more surprising</p>
+ *
  */
 @Path("/mostSurprising")
-public class MostSurprising {
+public class MostSurprising extends Recommend {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MostSurprising.class);
-
-  @GET
-  @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
-  public Response get() {
+    @GET
+    @Path("{userId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<RecommendResponse> get() {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -80,7 +75,8 @@ public class MostSurprising {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
     }
   */
-    return Response.status(200).entity("").build();
-  }
+      list.add(new RecommendResponse("1",5));
+      return list;
+    }
 
 }
