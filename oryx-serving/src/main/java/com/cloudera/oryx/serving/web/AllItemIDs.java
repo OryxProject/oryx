@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.serving.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -29,6 +32,8 @@ import javax.ws.rs.core.Response;
  */
 @Path("/item")
 public final class AllItemIDs {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AllItemIDs.class);
 
   @GET
   @Path("/allIDs")
