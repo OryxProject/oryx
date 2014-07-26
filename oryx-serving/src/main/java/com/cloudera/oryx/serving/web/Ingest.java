@@ -37,10 +37,10 @@ import java.util.List;
  * the "Content-Type" should be "multipart/form-data", and the payload encoded accordingly. The uploaded
  * file may be gzipped or zipped.</p>
  */
-@Path("/injest")
-public class Injest {
+@Path("/ingest")
+public class Ingest {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Injest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Ingest.class);
 
   @POST
   @Path("{userId}")
