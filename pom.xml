@@ -540,7 +540,7 @@
   <description>The Oryx open source project provides infrastructure for large-scale real-time computation
     using the lambda architecture. It also provides machine learning implementations built on this
     infrastructure.</description>
-  <url>https://github.com/cloudera/oryx</url>
+  <url>https://github.com/OryxProject/oryx</url>
   <inceptionYear>2013</inceptionYear>
   <licenses>
     <license>
@@ -555,11 +555,16 @@
       <organization>Cloudera</organization>
       <organizationUrl>http://cloudera.com/</organizationUrl>
     </developer>
+    <developer>
+      <id>intel</id>
+      <organization>Intel</organization>
+      <organizationUrl>http://intel.com/</organizationUrl>
+    </developer>
   </developers>
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/cloudera/oryx/issues</url>
+    <url>https://github.com/OryxProject/oryx/issues</url>
   </issueManagement>
   <mailingLists>
     <mailingList>
@@ -576,9 +581,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <connection>scm:git:https://github.com/cloudera/oryx.git</connection>
-    <url>scm:git:https://github.com/cloudera/oryx.git</url>
-    <developerConnection>scm:git:https://github.com/cloudera/oryx.git</developerConnection>
+    <connection>scm:git:https://github.com/OryxProject/oryx.git</connection>
+    <url>scm:git:https://github.com/OryxProject/oryx.git</url>
+    <developerConnection>scm:git:https://github.com/OryxProject/oryx.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
