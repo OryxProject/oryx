@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. AND Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -31,17 +31,17 @@ import javax.ws.rs.core.Response;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
  */
 @Path("/because")
 public class Because {
 
-    @GET
-    @Path("{userId}/{itemId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userId") String userId, @PathParam("itemId") String itemId,
-                        @QueryParam("howMany") int howMany, @QueryParam("offset") int offset) {
+  @GET
+  @Path("{userId}/{itemId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userId") String userId, @PathParam("itemId") String itemId,
+                      @QueryParam("howMany") int howMany, @QueryParam("offset") int offset) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -83,7 +83,7 @@ public class Because {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
     }
  */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

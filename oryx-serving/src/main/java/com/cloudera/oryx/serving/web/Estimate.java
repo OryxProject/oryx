@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -25,21 +25,20 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
  * {link OryxRecommender#estimatePreference(String, String)}.</p>
- *
+ * <p/>
  * <p>Outputs the result of the method call as a value on one line.</p>
- *
+ * <p/>
  * <p>This servlet can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
  * order as the item ID, one per line.</p>
- *
  */
 @Path("/estimate")
 public class Estimate {
 
-    @GET
-    @Path("{userID}/{itemID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
+  @GET
+  @Path("{userID}/{itemID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -71,7 +70,7 @@ public class Estimate {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

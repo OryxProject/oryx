@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -35,24 +35,23 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>Unknown user IDs are ignored, unless all are unknown, in which case a
  * {@link javax.servlet.http.HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
- *
  */
 @Path("/recommendToMany")
 public class RecommendToMany {
 
-    @GET
-    @Path("{userId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  @GET
+  @Path("{userId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+                      @QueryParam("offset") int offset,
+                      @QueryParam("considerKnownItems") boolean considerKnownItems,
+                      @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -90,7 +89,7 @@ public class RecommendToMany {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }
