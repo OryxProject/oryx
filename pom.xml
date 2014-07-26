@@ -243,7 +243,6 @@
   </properties>
 
   <build>
-    <!--
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -263,7 +262,6 @@
         <artifactId>maven-release-plugin</artifactId>
       </plugin>
     </plugins>
-    -->
     <pluginManagement>
       <plugins>
         <plugin>
@@ -487,6 +485,18 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>3.0.0</version>
+          <configuration>
+            <threshold>Normal</threshold>
+            <effort>Max</effort>
+            <xmlOutput>true</xmlOutput>
+            <xmlOutputDirectory>target/site</xmlOutputDirectory>
+            <excludeFilterFile>src/findbugs/excludes.xml</excludeFilterFile>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -532,16 +542,22 @@
           </reportSet>
         </reportSets>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+      </plugin>
     </plugins>
     <excludeDefaults>true</excludeDefaults>
   </reporting>
 
   <name>Oryx</name>
-  <description>The Oryx open source project provides infrastructure for large-scale real-time computation
-    using the lambda architecture. It also provides machine learning implementations built on this
-    infrastructure.</description>
+  <description>The Oryx open source project provides infrastructure for lambda-architecture
+    applications on top of Spark, Spark Streaming and Kafka. On this, it provides further
+    support for real-time, large scale machine learning, and end-to-end applications of
+    this support for common machine learning use cases, like recommendations, clustering,
+    classification and regression.</description>
   <url>https://github.com/OryxProject/oryx</url>
-  <inceptionYear>2013</inceptionYear>
+  <inceptionYear>2014</inceptionYear>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
