@@ -23,17 +23,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
-* <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
+ * <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
  * delimited, like "1,-4,3.0". The response body contains the distance to the nearest cluster, on one line.</p>
- *
  */
 @Path("/distanceToNearest")
 public class DistanceToNearest {
 
-    @GET
-    @Path("{datum}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response post(@MatrixParam("datum") String datum) {
+  @GET
+  @Path("{datum}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response post(@MatrixParam("datum") String datum) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -57,7 +56,7 @@ public class DistanceToNearest {
     int assignment = DistanceToNearestServlet.findClosest(generation, vec).getClosestCenterId();
     response.getWriter().write(Integer.toString(assignment));
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

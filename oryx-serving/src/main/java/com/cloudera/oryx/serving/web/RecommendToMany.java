@@ -15,7 +15,11 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -30,27 +34,26 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>Unknown user IDs are ignored, unless all are unknown, in which case a
  * {
- *
+ * <p/>
  * link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
- *
  */
 @Path("/recommendToMany")
 public class RecommendToMany extends Recommend {
 
-    @GET
-    @Path("{userID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    @Override
-    public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  @GET
+  @Path("{userID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  @Override
+  public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
+                                     @QueryParam("offset") int offset,
+                                     @QueryParam("considerKnownItems") boolean considerKnownItems,
+                                     @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -88,8 +91,8 @@ public class RecommendToMany extends Recommend {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-      list.add(new RecommendResponse("1",5));
-      return list;
-    }
+    list.add(new RecommendResponse("1", 5));
+    return list;
+  }
 
 }

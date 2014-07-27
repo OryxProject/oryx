@@ -15,7 +15,11 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -28,20 +32,19 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>Output is as in {@link Recommend}.</p>
- *
  */
 @Path("/mostPopularItems")
 public class MostPopularItems {
 
-    @GET
-    @Path("{userId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  @GET
+  @Path("{userId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+                      @QueryParam("offset") int offset,
+                      @QueryParam("considerKnownItems") boolean considerKnownItems,
+                      @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     OryxRecommender recommender = getRecommender();
     RescorerProvider rescorerProvider = getRescorerProvider();
@@ -55,7 +58,7 @@ public class MostPopularItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

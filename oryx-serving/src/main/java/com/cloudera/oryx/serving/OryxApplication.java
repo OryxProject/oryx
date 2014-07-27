@@ -22,33 +22,33 @@ import java.util.Set;
 
 @ApplicationPath("")
 public class OryxApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-      Set<Class<?>> s = new HashSet<Class<?>>();
-      s.add(com.cloudera.oryx.serving.web.Add.class);
-      s.add(com.cloudera.oryx.serving.web.AllItemIDs.class);
-      s.add(com.cloudera.oryx.serving.web.Assign.class);
-      s.add(com.cloudera.oryx.serving.web.Because.class);
-      s.add(com.cloudera.oryx.serving.web.Classify.class);
-      s.add(com.cloudera.oryx.serving.web.DistanceToNearest.class);
-      s.add(com.cloudera.oryx.serving.web.Estimate.class);
-      s.add(com.cloudera.oryx.serving.web.EstimateForAnonymous.class);
-      s.add(com.cloudera.oryx.serving.web.Ingest.class);
-      s.add(com.cloudera.oryx.serving.web.Injest.class);
-      s.add(com.cloudera.oryx.serving.web.MostPopularItems.class);
-      s.add(com.cloudera.oryx.serving.web.MostSurprising.class);
-      s.add(com.cloudera.oryx.serving.web.PopularRepresentativeItems.class);
-      s.add(com.cloudera.oryx.serving.web.Preference.class);
-      s.add(com.cloudera.oryx.serving.web.Ready.class);
-      s.add(com.cloudera.oryx.serving.web.Recommend.class);
-      s.add(com.cloudera.oryx.serving.web.RecommendResponse.class);
-      s.add(com.cloudera.oryx.serving.web.RecommendToAnonymous.class);
-      s.add(com.cloudera.oryx.serving.web.RecommendToMany.class);
-      s.add(com.cloudera.oryx.serving.web.Similarity.class);
-      s.add(com.cloudera.oryx.serving.web.SimilarityToItem.class);
-      s.add(com.cloudera.oryx.serving.web.Train.class);
-      return s;
-    }
+  @Override
+  public Set<Class<?>> getClasses() {
+    Set<Class<?>> s = new HashSet<>();
+    s.add(com.cloudera.oryx.serving.web.Add.class);
+    s.add(com.cloudera.oryx.serving.web.AllItemIDs.class);
+    s.add(com.cloudera.oryx.serving.web.Assign.class);
+    s.add(com.cloudera.oryx.serving.web.Because.class);
+    s.add(com.cloudera.oryx.serving.web.Classify.class);
+    s.add(com.cloudera.oryx.serving.web.DistanceToNearest.class);
+    s.add(com.cloudera.oryx.serving.web.Estimate.class);
+    s.add(com.cloudera.oryx.serving.web.EstimateForAnonymous.class);
+    s.add(com.cloudera.oryx.serving.web.Ingest.class);
+    s.add(com.cloudera.oryx.serving.web.Ingest.class);
+    s.add(com.cloudera.oryx.serving.web.MostPopularItems.class);
+    s.add(com.cloudera.oryx.serving.web.MostSurprising.class);
+    s.add(com.cloudera.oryx.serving.web.PopularRepresentativeItems.class);
+    s.add(com.cloudera.oryx.serving.web.Preference.class);
+    s.add(com.cloudera.oryx.serving.web.Ready.class);
+    s.add(com.cloudera.oryx.serving.web.Recommend.class);
+    s.add(com.cloudera.oryx.serving.web.RecommendResponse.class);
+    s.add(com.cloudera.oryx.serving.web.RecommendToAnonymous.class);
+    s.add(com.cloudera.oryx.serving.web.RecommendToMany.class);
+    s.add(com.cloudera.oryx.serving.web.Similarity.class);
+    s.add(com.cloudera.oryx.serving.web.SimilarityToItem.class);
+    s.add(com.cloudera.oryx.serving.web.Train.class);
+    return s;
+  }
 }
 
 

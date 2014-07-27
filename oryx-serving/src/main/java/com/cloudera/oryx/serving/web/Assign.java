@@ -25,15 +25,14 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /assign/[datum]}. The input is one data point to cluster,
  * delimited, like "1,-4,3.0". The response body contains the ID of the nearest cluster, on one line.</p>
- *
  */
 @Path("/assign")
 public class Assign {
 
-    @GET
-    @Path("{datum}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response post(@MatrixParam("datum") String datum) {
+  @GET
+  @Path("{datum}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response post(@MatrixParam("datum") String datum) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -57,7 +56,7 @@ public class Assign {
     int assignment = DistanceToNearestServlet.findClosest(generation, vec).getClosestCenterId();
     response.getWriter().write(Integer.toString(assignment));
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

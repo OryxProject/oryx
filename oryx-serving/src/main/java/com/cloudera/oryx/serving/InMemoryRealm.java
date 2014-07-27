@@ -56,7 +56,7 @@ public final class InMemoryRealm extends RealmBase {
   /**
    * The set of valid Principals for this Realm, keyed by user name.
    */
-  private final Map<String,GenericPrincipal> principals = Maps.newHashMap();
+  private final Map<String, GenericPrincipal> principals = Maps.newHashMap();
 
   @Override
   public Principal authenticate(String username, String credentials) {
@@ -75,7 +75,7 @@ public final class InMemoryRealm extends RealmBase {
 
   public void addUser(String username, String password) {
     principals.put(username,
-                   new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
+        new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
   }
 
   @Override

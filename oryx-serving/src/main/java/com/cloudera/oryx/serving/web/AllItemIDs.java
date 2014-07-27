@@ -19,7 +19,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,16 +26,16 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#getAllItemIDs()}.</p>
- *
+ * <p/>
  * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")
 public class AllItemIDs {
 
-    @GET
-    @Path("/allIDs")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<String> get() {
+  @GET
+  @Path("/allIDs")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -45,7 +44,7 @@ public class AllItemIDs {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
  */
-      return new ArrayList<String>(Arrays.asList("1", "2"));
-    }
+    return new ArrayList<>(Arrays.asList("1", "2"));
+  }
 
 }

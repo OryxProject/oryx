@@ -15,27 +15,28 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]} and in turn calls
  * {link OryxRecommender#setPreference(String, String, float)}. If the request body is empty,
  * the value is 1.0, otherwise the value in the request body's first line is used.</p>
- *
+ * <p/>
  * <p>Also responds to a DELETE request to the same path, with the same defaults. This corresponds
  * to calling {link OryxRecommender#removePreference(String, String)} instead.</p>
- *
  */
 @Path("/pref")
 public class Preference {
 
-    @GET
-    @Path("{userID}/{itemID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
+  @GET
+  @Path("{userID}/{itemID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -71,7 +72,7 @@ public class Preference {
     OryxRecommender recommender = getRecommender();
     recommender.setPreference(userID, itemID, prefValue);
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }
