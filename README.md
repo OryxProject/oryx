@@ -1,6 +1,8 @@
 Overview
 ========
 
+<img align="right" src="https://raw.github.com/wiki/OryxProject/oryx/OryxLogoSmall.png"/>
+
 This is a redesign of the [Oryx](https://github.com/cloudera/oryx) project as "Oryx 2.0". 
 The primary design goals are:
 
@@ -45,6 +47,8 @@ stream of new data. These updates are intended to happen on the order of seconds
 query operations on the result.
 4. A data transport layer, which moves data between layers and receives input from external sources
 
+<img src="https://raw.github.com/wiki/OryxProject/oryx/Architecture.png"/>
+
 Availability
 ------------
 
@@ -57,12 +61,12 @@ Availability
 Module Mapping
 --------------
 
-|                   | *Serving*               | *Speed*                        | *Batch*                        |
-| -----------------:| ----------------------- | ------------------------------ | ------------------------------ |
-| *Packaged binary* | `oryx-serving`          | `oryx-speed`                   | `oryx-batch`                   |
-| *ML app*          | `oryx-ml-oryx-serving`  | `oryx-ml-mllib`,`oryx-ml-oryx` | `oryx-ml-mllib`,`oryx-ml-oryx` |
-| *ML*              | `oryx-lambda-serving`   | `oryx-ml`                      | `oryx-ml`                      |
-| *Lambda*          | `oryx-lambda-serving`   | `oryx-lambda`                  | `oryx-lambda`                  |
+|                   | *Serving*               | *Speed*                         | *Batch*                         |
+| -----------------:| ----------------------- | ------------------------------- | ------------------------------- |
+| *Packaged binary* | `oryx-serving`          | `oryx-speed`                    | `oryx-batch`                    |
+| *ML app*          | `oryx-ml-oryx-serving`  | `oryx-ml-mllib`, `oryx-ml-oryx` | `oryx-ml-mllib`, `oryx-ml-oryx` |
+| *ML*              |                         | `oryx-ml`                       | `oryx-ml`                       |
+| *Lambda*          | `oryx-lambda-serving`   | `oryx-lambda`                   | `oryx-lambda`                   |
 
 
 Lambda Tier Implementation
