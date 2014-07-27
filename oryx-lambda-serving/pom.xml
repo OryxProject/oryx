@@ -24,18 +24,37 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>oryx-ml-oryx</artifactId>
+  <artifactId>oryx-lambda-serving</artifactId>
   <packaging>jar</packaging>
-  <name>ML Apps: Oryx</name>
-  <description>Speed and batch components of machine learning applications built from
-  algorithms implemented in this project</description>
+  <name>Lambda Serving</name>
+  <description>Framework supporting serving components of an application following
+    the lambda architecture</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-ml</artifactId>
+      <artifactId>oryx-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-catalina</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-coyote</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <scope>runtime</scope>
     </dependency>
   </dependencies>
+
 
 </project>

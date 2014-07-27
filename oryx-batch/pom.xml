@@ -26,14 +26,12 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>oryx-batch</artifactId>
   <packaging>jar</packaging>
-  <name>Batch layer</name>
+  <name>Batch Layer</name>
+  <description>Complete packaged batch layer binary, including project implementations of
+  machine learning algorithms' batch component</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-common</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda</artifactId>

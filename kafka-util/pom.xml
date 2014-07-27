@@ -26,7 +26,8 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>kafka-util</artifactId>
   <packaging>jar</packaging>
-  <name>Kafka utilities</name>
+  <name>Kafka Utilities</name>
+  <description>Kakfa-related utility code</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>

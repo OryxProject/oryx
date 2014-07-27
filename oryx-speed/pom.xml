@@ -26,14 +26,12 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>oryx-speed</artifactId>
   <packaging>jar</packaging>
-  <name>Speed layer</name>
+  <name>Speed Layer</name>
+  <description>Complete packaged speed layer binary, including project implementations of
+  machine learning algorithms' speed components</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-common</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda</artifactId>

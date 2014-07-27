@@ -48,12 +48,22 @@ query operations on the result.
 Availability
 ------------
 
-|          | *Serving*      | *Speed*      | *Batch*      |                                |
-| --------:| -------------- | ------------ | ------------ | ------------------------------ |
-| *ML app* | _no_           | _no_         | alpha        | `oryx-ml-mllib`,`oryx-ml-oryx` |
-| *ML*     | _no_           | _no_         | alpha        | `oryx-ml`                      |
-| *Lambda* | _no_           | _no_         | alpha        | `oryx-lambda`                  |
-|          | `oryx-serving` | `oryx-speed` | `oryx-batch` |                                |
+|          | *Serving*      | *Speed*      | *Batch*      |
+| --------:| -------------- | ------------ | ------------ |
+| *ML app* | _no_           | _no_         | alpha        |
+| *ML*     | _no_           | _no_         | alpha        |
+| *Lambda* | _no_           | _no_         | alpha        |
+
+Module Mapping
+--------------
+
+|                   | *Serving*               | *Speed*                        | *Batch*                        |
+| -----------------:| ----------------------- | ------------------------------ | ------------------------------ |
+| *Packaged binary* | `oryx-serving`          | `oryx-speed`                   | `oryx-batch`                   |
+| *ML app*          | `oryx-ml-oryx-serving`  | `oryx-ml-mllib`,`oryx-ml-oryx` | `oryx-ml-mllib`,`oryx-ml-oryx` |
+| *ML*              | `oryx-lambda-serving`   | `oryx-ml`                      | `oryx-ml`                      |
+| *Lambda*          | `oryx-lambda-serving`   | `oryx-lambda`                  | `oryx-lambda`                  |
+
 
 Lambda Tier Implementation
 ==========================

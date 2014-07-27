@@ -26,7 +26,8 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>zk-util</artifactId>
   <packaging>jar</packaging>
-  <name>Zookeeper utilities</name>
+  <name>Zookeeper Utilities</name>
+  <description>Zookeeper-related utility code</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>

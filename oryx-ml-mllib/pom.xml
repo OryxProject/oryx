@@ -26,14 +26,12 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>oryx-ml-mllib</artifactId>
   <packaging>jar</packaging>
-  <name>ML implementations on Spark MLlib</name>
+  <name>ML Apps: MLlib</name>
+  <description>Speed and batch components of machine learning applications built on
+  Spark MLlib</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-common</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-ml</artifactId>
@@ -41,18 +39,6 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-mllib_${scala.minor.version}</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.kafka</groupId>
-      <artifactId>kafka_${scala.minor.version}</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jpmml</groupId>
-      <artifactId>pmml-model</artifactId>
     </dependency>
 
     <dependency>

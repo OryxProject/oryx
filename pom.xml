@@ -55,6 +55,11 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-lambda-serving</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-lambda</artifactId>
         <version>${project.version}</version>
         <classifier>tests</classifier>
@@ -73,6 +78,11 @@
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-ml-oryx</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-ml-oryx-serving</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -228,9 +238,11 @@
     <module>kafka-util</module>
     <module>zk-util</module>
     <module>oryx-lambda</module>
+    <module>oryx-lambda-serving</module>
     <module>oryx-ml</module>
     <module>oryx-ml-mllib</module>
     <module>oryx-ml-oryx</module>
+    <module>oryx-ml-oryx-serving</module>
     <module>oryx-batch</module>
     <module>oryx-speed</module>
     <module>oryx-serving</module>
