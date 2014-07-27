@@ -15,9 +15,14 @@
 
 package com.cloudera.oryx.serving.web;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class RecommendResponse {
   public String itemID;
   public int strength;
+
+  public RecommendResponse() {}
 
   public RecommendResponse(String itemID, int strength) {
     this.itemID = itemID;

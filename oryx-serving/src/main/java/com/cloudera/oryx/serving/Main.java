@@ -17,8 +17,11 @@ package com.cloudera.oryx.serving;
 
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Main {
+  private static final Logger log = LoggerFactory.getLogger(Main.class);
 
   private Main() {
   }
@@ -28,6 +31,8 @@ public final class Main {
       JVMUtils.closeAtShutdown(server);
       server.start();
       server.await();
+    } catch(Exception ex) {
+      log.error("error running sever",ex);
     }
   }
 

@@ -18,6 +18,8 @@ package com.cloudera.oryx.serving.web;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,19 +28,19 @@ import java.util.List;
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#mostSurprising(String, int)}.
  * {@code howMany} is the desired number of results to return. If {@code howMany} is not
  * specified, defaults to {link com.cloudera.oryx.als.serving.web.AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
- *
+ * <p/>
  * <p>CSV output contains one item per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative surprise of the item.
  * Higher means more surprising</p>
- *
  */
 @Path("/mostSurprising")
-public class MostSurprising extends Recommend {
+public class MostSurprising {
+  List<RecommendResponse> list = new ArrayList<>(Arrays.asList(new RecommendResponse("1", 5)));//new ArrayList<>();
 
-    @GET
-    @Path("{userId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<RecommendResponse> get() {
+  @GET
+  @Path("{userId}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<RecommendResponse> get() {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -75,8 +77,7 @@ public class MostSurprising extends Recommend {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
     }
   */
-      list.add(new RecommendResponse("1",5));
-      return list;
-    }
+    return list;
+  }
 
 }
