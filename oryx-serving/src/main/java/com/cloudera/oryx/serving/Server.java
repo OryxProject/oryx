@@ -15,30 +15,23 @@
 
 package com.cloudera.oryx.serving;
 
-import javax.servlet.Servlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
 import com.typesafe.config.Config;
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.Wrapper;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
-import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
@@ -230,14 +223,15 @@ public final class Server implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    ContextConfig contextConfig = new ContextConfig();
-    context.addLifecycleListener(contextConfig);
+    //ContextConfig contextConfig = new ContextConfig();
+    //contextConfig.setDefaultWebXml();
+    //context.addLifecycleListener(contextConfig);
 
-    ResourceConfig rc = new PackagesResourceConfig("com.cloudera.oryx.serving.web");
-    Map<String,Object> config = new HashMap<>();
-    config.put("com.sun.jersey.api.json.POJOMappingFeature", true);
-    rc.setPropertiesAndFeatures(config);
-    tomcat.getHost().addChild(context);
+    //ResourceConfig rc = new PackagesResourceConfig("com.cloudera.oryx.serving.web");
+    //Map<String,Object> config = new HashMap<>();
+    //config.put("com.sun.jersey.api.json.POJOMappingFeature", true);
+    //rc.setPropertiesAndFeatures(config);
+    //tomcat.getHost().addChild(context);
 
     //context.addWelcomeFile("index.jspx");
     //addErrorPages(context);
@@ -293,6 +287,7 @@ public final class Server implements Closeable {
     context.addErrorPage(errorPage);
   }
 
+  /*
   private static Wrapper addServlet(Context context, Servlet servlet, String path) {
     String name = servlet.getClass().getSimpleName();
     Wrapper servletWrapper = Tomcat.addServlet(context, name, servlet);
@@ -300,5 +295,6 @@ public final class Server implements Closeable {
     context.addServletMapping(path, name);
     return servletWrapper;
   }
+   */
 
 }
