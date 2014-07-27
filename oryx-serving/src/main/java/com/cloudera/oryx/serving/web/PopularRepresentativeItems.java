@@ -19,7 +19,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +29,7 @@ import java.util.List;
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
  */
 @Path("/popularRepresentativeItems")
-public class PopularRepresentativeItems {
+public final class PopularRepresentativeItems {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -45,7 +44,7 @@ public class PopularRepresentativeItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return new ArrayList<>(Arrays.asList("1", "2"));
+    return Arrays.asList("1", "2");
   }
 
 }

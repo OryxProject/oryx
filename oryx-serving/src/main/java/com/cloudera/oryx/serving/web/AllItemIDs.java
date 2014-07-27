@@ -30,7 +30,7 @@ import java.util.List;
  * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")
-public class AllItemIDs {
+public final class AllItemIDs {
 
   @GET
   @Path("/allIDs")

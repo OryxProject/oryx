@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
  * The result depends on the classifier --  could be a number or a category name.</p>
  */
 @Path("/classify")
-public class Classify {
+public final class Classify {
 
   @GET
   @Path("{datum}")

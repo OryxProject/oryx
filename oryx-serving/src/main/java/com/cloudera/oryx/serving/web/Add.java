@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
  * "1,-4,3.0". The clusters update to learn in some way from the new data. The response is empty.</p>
  */
 @Path("/add")
-public class Add {
+public final class Add {
 
   @POST
   @Path("{input}")

@@ -37,12 +37,13 @@ import java.util.List;
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
 @Path("/estimateForAnonymous")
-public class EstimateForAnonymous {
+public final class EstimateForAnonymous {
 
   @GET
   @Path("{toItemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Float> get(@PathParam("toItemID") String toItemID, @PathParam("itemID") PathSegment items) {
+  public List<Float> get(@PathParam("toItemID") String toItemID,
+                         @PathParam("itemID") PathSegment items) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -79,7 +80,7 @@ public class EstimateForAnonymous {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
     }
   */
-    return Arrays.asList(1.2F, 3.4F);
+    return Arrays.asList(1.2f, 3.4f);
   }
 
 }

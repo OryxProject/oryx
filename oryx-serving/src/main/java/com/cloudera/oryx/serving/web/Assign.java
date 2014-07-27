@@ -27,7 +27,7 @@ import javax.ws.rs.core.Response;
  * delimited, like "1,-4,3.0". The response body contains the ID of the nearest cluster, on one line.</p>
  */
 @Path("/assign")
-public class Assign {
+public final class Assign {
 
   @GET
   @Path("{datum}")

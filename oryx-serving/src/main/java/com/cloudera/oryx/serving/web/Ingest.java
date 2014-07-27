@@ -15,9 +15,6 @@
 
 package com.cloudera.oryx.serving.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -38,14 +35,13 @@ import java.util.List;
  * file may be gzipped or zipped.</p>
  */
 @Path("/ingest")
-public class Ingest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Ingest.class);
+public final class Ingest {
 
   @POST
   @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response post(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+  public Response post(@PathParam("userId") String userId,
+                       @QueryParam("howMany") int howMany,
                        @QueryParam("offset") int offset,
                        @QueryParam("considerKnownItems") boolean considerKnownItems,
                        @QueryParam("rescorerParams") List<String> rescorerParams) {

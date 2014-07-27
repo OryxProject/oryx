@@ -21,6 +21,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,13 +36,15 @@ import java.util.List;
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
  */
 @Path("/because")
-public class Because extends Recommend {
+public final class Because {
 
   @GET
   @Path("{userId}/{itemId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("userId") String userId, @PathParam("itemId") String itemId,
-                                     @QueryParam("howMany") int howMany, @QueryParam("offset") int offset) {
+  public List<RecommendResponse> get(@PathParam("userId") String userId,
+                                     @PathParam("itemId") String itemId,
+                                     @QueryParam("howMany") int howMany,
+                                     @QueryParam("offset") int offset) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -83,7 +86,7 @@ public class Because extends Recommend {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
     }
  */
-    return list;
+    return Collections.emptyList();
   }
 
 }

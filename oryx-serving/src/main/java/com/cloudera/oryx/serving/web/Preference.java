@@ -31,7 +31,7 @@ import javax.ws.rs.core.Response;
  * to calling {link OryxRecommender#removePreference(String, String)} instead.</p>
  */
 @Path("/pref")
-public class Preference {
+public final class Preference {
 
   @GET
   @Path("{userID}/{itemID}")

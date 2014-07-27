@@ -21,6 +21,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,9 +45,8 @@ import java.util.List;
  * see {link OryxRecommender#recommendToAnonymous(String[], float[], int)}.</p>
  */
 @Path("/recommendToAnonymous")
-public class RecommendToAnonymous extends Recommend {
+public final class RecommendToAnonymous {
 
-  @Override
   @GET
   @Path("{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -94,8 +94,7 @@ public class RecommendToAnonymous extends Recommend {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    list.add(new RecommendResponse("1", 5));
-    return list;
+    return Arrays.asList(new RecommendResponse("1", 5));
   }
 
 }

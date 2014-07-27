@@ -18,9 +18,10 @@ package com.cloudera.oryx.serving.web;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class RecommendResponse {
-  public String itemID;
-  public int strength;
+public final class RecommendResponse {
+
+  private String itemID;
+  private int strength;
 
   public RecommendResponse() {}
 
@@ -28,4 +29,21 @@ public class RecommendResponse {
     this.itemID = itemID;
     this.strength = strength;
   }
+
+  public String getItemID() {
+    return itemID;
+  }
+
+  public void setItemID(String itemID) {
+    this.itemID = itemID;
+  }
+
+  public int getStrength() {
+    return strength;
+  }
+
+  public void setStrength(int strength) {
+    this.strength = strength;
+  }
+
 }

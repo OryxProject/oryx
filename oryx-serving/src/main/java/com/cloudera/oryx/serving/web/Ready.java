@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
  * whether the recommender is ready.</p>
  */
 @Path("/ready")
-public class Ready {
+public final class Ready {
 
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)

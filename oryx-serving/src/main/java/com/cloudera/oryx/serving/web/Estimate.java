@@ -35,7 +35,7 @@ import java.util.List;
  * order as the item ID, one per line.</p>
  */
 @Path("/estimate")
-public class Estimate {
+public final class Estimate {
 
   @GET
   @Path("{userID}/{itemID}")
@@ -72,7 +72,7 @@ public class Estimate {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-    return new ArrayList<>(Arrays.asList(1.2F, 3.4F));
+    return new ArrayList<>(Arrays.asList(1.2f, 3.4f));
   }
 
 }

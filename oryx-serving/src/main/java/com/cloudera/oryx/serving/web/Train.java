@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
  * "1,foo,3.0". The classifier updates to learn in some way from the new data. The response is empty.</p>
  */
 @Path("/train")
-public class Train {
+public final class Train {
 
   @POST
   @Path("{input}")

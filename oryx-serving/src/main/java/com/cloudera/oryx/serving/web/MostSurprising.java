@@ -19,7 +19,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,8 +34,7 @@ import java.util.List;
  * Higher means more surprising</p>
  */
 @Path("/mostSurprising")
-public class MostSurprising {
-  List<RecommendResponse> list = new ArrayList<>(Arrays.asList(new RecommendResponse("1", 5)));//new ArrayList<>();
+public final class MostSurprising {
 
   @GET
   @Path("{userId}")
@@ -78,7 +76,7 @@ public class MostSurprising {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
     }
   */
-    return list;
+    return Arrays.asList(new RecommendResponse("1", 5));
   }
 
 }

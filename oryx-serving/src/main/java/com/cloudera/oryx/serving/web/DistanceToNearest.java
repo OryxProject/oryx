@@ -27,7 +27,7 @@ import javax.ws.rs.core.Response;
  * delimited, like "1,-4,3.0". The response body contains the distance to the nearest cluster, on one line.</p>
  */
 @Path("/distanceToNearest")
-public class DistanceToNearest {
+public final class DistanceToNearest {
 
   @GET
   @Path("{datum}")

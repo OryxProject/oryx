@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
  * <p>The output are similarities, in the same order as the item IDs, one per line.</p>
  */
 @Path("/similarityToItem")
-public class SimilarityToItem {
+public final class SimilarityToItem {
 
   @GET
   @Path("{itemID}")

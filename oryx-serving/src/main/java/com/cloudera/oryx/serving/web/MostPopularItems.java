@@ -36,12 +36,13 @@ import java.util.List;
  * <p>Output is as in {@link Recommend}.</p>
  */
 @Path("/mostPopularItems")
-public class MostPopularItems {
+public final class MostPopularItems {
 
   @GET
   @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
+  public Response get(@PathParam("userId") String userId,
+                      @QueryParam("howMany") int howMany,
                       @QueryParam("offset") int offset,
                       @QueryParam("considerKnownItems") boolean considerKnownItems,
                       @QueryParam("rescorerParams") List<String> rescorerParams) {
