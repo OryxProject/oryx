@@ -31,22 +31,21 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- *
+ * <p/>
  * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
- *
  */
 @Path("/recommend")
 public class Recommend {
-    List<RecommendResponse> list = new ArrayList<>(Arrays.asList(new RecommendResponse("1", 5)));//new ArrayList<>();
+  List<RecommendResponse> list = new ArrayList<>(Arrays.asList(new RecommendResponse("1", 5)));//new ArrayList<>();
 
-    @GET
-    @Path("{userID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
-                        @QueryParam("offset") int offset,
-                        @QueryParam("considerKnownItems") boolean considerKnownItems,
-                        @QueryParam("rescorerParams") List<String> rescorerParams) {
+  @GET
+  @Path("{userID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
+                                     @QueryParam("offset") int offset,
+                                     @QueryParam("considerKnownItems") boolean considerKnownItems,
+                                     @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -88,7 +87,7 @@ public class Recommend {
     }
   }
   */
-      return list;
-    }
+    return list;
+  }
 
 }

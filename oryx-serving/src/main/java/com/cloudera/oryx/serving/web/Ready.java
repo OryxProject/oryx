@@ -15,29 +15,30 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready} and in turn calls
  * {link com.cloudera.oryx.als.common.OryxRecommender#isReady()}. Returns "OK" or "Unavailable" status depending on
  * whether the recommender is ready.</p>
- *
  */
 @Path("/ready")
 public class Ready {
 
-    @HEAD
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response head() {
-      return get();
-    }
+  @HEAD
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response head() {
+    return get();
+  }
 
-    @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get() {
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get() {
 /*
     boolean isReady = getRecommender().isReady();
     if (isReady) {
@@ -46,7 +47,7 @@ public class Ready {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

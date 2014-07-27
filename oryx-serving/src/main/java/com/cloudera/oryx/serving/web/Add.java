@@ -15,26 +15,25 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.MatrixParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>Responds to POST request to {@code /add}. The input is one or more data points
  * to add to the clustering, one for each line of the request body. Each data point is a delimited line of input like
  * "1,-4,3.0". The clusters update to learn in some way from the new data. The response is empty.</p>
- *
  */
 @Path("/add")
 public class Add {
 
-    @POST
-    @Path("{input}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@MatrixParam("input") String input) {
+  @POST
+  @Path("{input}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@MatrixParam("input") String input) {
 /*
     KMeansGenerationManager generationManager = getGenerationManager();
     Generation generation = generationManager.getCurrentGeneration();
@@ -55,7 +54,7 @@ public class Add {
       // TODO update the centers, along the lines of Meyerson et al.
     }
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

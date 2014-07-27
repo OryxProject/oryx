@@ -26,15 +26,14 @@ import javax.ws.rs.core.Response;
  * <p>Responds to POST request to {@code /train}. The input is one or more data points
  * to train, one for each line of the request body. Each data point is a delimited line of input like
  * "1,foo,3.0". The classifier updates to learn in some way from the new data. The response is empty.</p>
- *
  */
 @Path("/train")
 public class Train {
 
-    @POST
-    @Path("{input}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response post(@MatrixParam("input") String input) {
+  @POST
+  @Path("{input}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response post(@MatrixParam("input") String input) {
 /*
     RDFGenerationManager generationManager = getGenerationManager();
     Generation generation = generationManager.getCurrentGeneration();
@@ -83,7 +82,7 @@ public class Train {
 
       forest.update(example);
   */
-      return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }

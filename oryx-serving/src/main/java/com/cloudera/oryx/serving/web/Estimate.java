@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,21 +27,20 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
  * {link OryxRecommender#estimatePreference(String, String)}.</p>
- *
+ * <p/>
  * <p>Outputs the result of the method call as a value on one line.</p>
- *
+ * <p/>
  * <p>This servlet can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
  * order as the item ID, one per line.</p>
- *
  */
 @Path("/estimate")
 public class Estimate {
 
-    @GET
-    @Path("{userID}/{itemID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<Float> get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
+  @GET
+  @Path("{userID}/{itemID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<Float> get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -71,7 +72,7 @@ public class Estimate {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-      return new ArrayList<Float>(Arrays.asList(1.2F, 3.4F));
-    }
+    return new ArrayList<Float>(Arrays.asList(1.2F, 3.4F));
+  }
 
 }

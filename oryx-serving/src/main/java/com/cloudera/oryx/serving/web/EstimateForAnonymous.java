@@ -29,20 +29,19 @@ import java.util.List;
  * and in turn calls {link OryxRecommender#estimateForAnonymous(String, String[], float[])}
  * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
  * a value or else default to 1.</p>
- *
+ * <p/>
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>Outputs the result of the method call as a value on one line.</p>
- *
  */
 @Path("/estimateForAnonymous")
 public class EstimateForAnonymous {
 
-    @GET
-    @Path("{toItemID}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<Float> get(@PathParam("toItemID") String toItemID, @PathParam("itemID") PathSegment items) {
+  @GET
+  @Path("{toItemID}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<Float> get(@PathParam("toItemID") String toItemID, @PathParam("itemID") PathSegment items) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -79,7 +78,7 @@ public class EstimateForAnonymous {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
     }
   */
-      return new ArrayList<Float>(Arrays.asList(1.2F, 3.4F));
-    }
+    return Arrays.asList(1.2F, 3.4F);
+  }
 
 }

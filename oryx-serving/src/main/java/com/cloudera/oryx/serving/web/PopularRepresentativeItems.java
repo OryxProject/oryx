@@ -25,16 +25,15 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /popularRepresentativeItems}
  * and in turn calls {link OryxRecommender#popularRepresentativeItems()}.</p>
- *
+ * <p/>
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
- *
  */
 @Path("/popularRepresentativeItems")
 public class PopularRepresentativeItems {
 
-    @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public List<String> get() {
+  @GET
+  @Produces({MediaType.APPLICATION_JSON})
+  public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();
     try {
@@ -45,7 +44,7 @@ public class PopularRepresentativeItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-      return new ArrayList<String>(Arrays.asList("1", "2"));
-    }
+    return new ArrayList<String>(Arrays.asList("1", "2"));
+  }
 
 }

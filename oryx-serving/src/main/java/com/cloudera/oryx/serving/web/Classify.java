@@ -15,26 +15,25 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /classify/[datum]}. The input is one data point to classify,
  * delimited, like "1,foo,3.0". The response body contains the result of classification on one line.
  * The result depends on the classifier --  could be a number or a category name.</p>
- *
  */
 @Path("/classify")
 public class Classify {
 
-    @GET
-    @Path("{datum}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response get(@PathParam("datum") String datum) {
+  @GET
+  @Path("{datum}")
+  @Produces({MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("datum") String datum) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -93,7 +92,7 @@ public class Classify {
     }
     out.write("\n");
   */
-        return Response.status(200).entity("").build();
-    }
+    return Response.status(200).entity("").build();
+  }
 
 }
