@@ -14,15 +14,13 @@
  */
 package com.cloudera.oryx.serving.common;
 
-public class OryxException extends Exception {
+public final class OryxException extends Exception {
 
-  public OryxException(String aMessage,
-                                  Throwable aThrowable) {
+  public OryxException(String aMessage, Throwable aThrowable) {
     super(aMessage, aThrowable);
   }
 
-  public OryxException(String aMessage, int aErrorCode,
-                                  Throwable aThrowable) {
+  public OryxException(String aMessage, int aErrorCode, Throwable aThrowable) {
     super(aMessage + ", Error Code : " + aErrorCode, aThrowable);
   }
 }

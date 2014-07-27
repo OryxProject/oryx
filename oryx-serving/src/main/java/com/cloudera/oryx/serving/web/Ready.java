@@ -31,13 +31,13 @@ import javax.ws.rs.core.Response;
 public class Ready {
 
   @HEAD
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response head() {
     return get();
   }
 
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
 /*
     boolean isReady = getRecommender().isReady();

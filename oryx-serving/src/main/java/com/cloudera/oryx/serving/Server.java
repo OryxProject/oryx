@@ -233,8 +233,8 @@ public final class Server implements Closeable {
     ContextConfig contextConfig = new ContextConfig();
     context.addLifecycleListener(contextConfig);
 
-    final ResourceConfig rc = new PackagesResourceConfig("com.cloudera.oryx.serving.web");
-    final Map<String, Object> config = new HashMap<String, Object>();
+    ResourceConfig rc = new PackagesResourceConfig("com.cloudera.oryx.serving.web");
+    Map<String,Object> config = new HashMap<>();
     config.put("com.sun.jersey.api.json.POJOMappingFeature", true);
     rc.setPropertiesAndFeatures(config);
     tomcat.getHost().addChild(context);

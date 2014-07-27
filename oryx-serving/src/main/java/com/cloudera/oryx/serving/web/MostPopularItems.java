@@ -40,7 +40,7 @@ public class MostPopularItems {
 
   @GET
   @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response get(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
                       @QueryParam("offset") int offset,
                       @QueryParam("considerKnownItems") boolean considerKnownItems,

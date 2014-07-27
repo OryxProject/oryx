@@ -32,7 +32,7 @@ public class Classify {
 
   @GET
   @Path("{datum}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response get(@PathParam("datum") String datum) {
 /*
     CharSequence pathInfo = request.getPathInfo();

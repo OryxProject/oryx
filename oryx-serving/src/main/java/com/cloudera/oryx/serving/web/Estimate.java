@@ -39,7 +39,7 @@ public class Estimate {
 
   @GET
   @Path("{userID}/{itemID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<Float> get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
@@ -72,7 +72,7 @@ public class Estimate {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-    return new ArrayList<Float>(Arrays.asList(1.2F, 3.4F));
+    return new ArrayList<>(Arrays.asList(1.2F, 3.4F));
   }
 
 }

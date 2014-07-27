@@ -46,9 +46,10 @@ import java.util.List;
 @Path("/recommendToAnonymous")
 public class RecommendToAnonymous extends Recommend {
 
+  @Override
   @GET
   @Path("{itemID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get(@PathParam("itemID") String itemID,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,

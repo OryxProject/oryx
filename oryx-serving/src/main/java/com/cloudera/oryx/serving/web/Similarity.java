@@ -49,7 +49,7 @@ public class Similarity {
 
   @GET
   @Path("{itemID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get(@PathParam("itemID") String itemID,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,

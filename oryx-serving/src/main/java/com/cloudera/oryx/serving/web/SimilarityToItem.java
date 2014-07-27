@@ -36,7 +36,7 @@ public class SimilarityToItem {
 
   @GET
   @Path("{itemID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response get(@PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();

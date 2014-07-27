@@ -40,7 +40,7 @@ public class MostSurprising {
 
   @GET
   @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get() {
 /*
     CharSequence pathInfo = request.getPathInfo();

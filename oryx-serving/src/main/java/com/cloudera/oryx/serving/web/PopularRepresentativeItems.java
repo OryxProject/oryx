@@ -15,9 +15,10 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
 public class PopularRepresentativeItems {
 
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();
@@ -44,7 +45,7 @@ public class PopularRepresentativeItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return new ArrayList<String>(Arrays.asList("1", "2"));
+    return new ArrayList<>(Arrays.asList("1", "2"));
   }
 
 }

@@ -48,7 +48,7 @@ public class RecommendToMany extends Recommend {
 
   @GET
   @Path("{userID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   @Override
   public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,

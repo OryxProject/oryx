@@ -32,7 +32,7 @@ public class Add {
 
   @POST
   @Path("{input}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response get(@MatrixParam("input") String input) {
 /*
     KMeansGenerationManager generationManager = getGenerationManager();
@@ -51,7 +51,6 @@ public class Add {
       }
       generationManager.append(line);
 
-      // TODO update the centers, along the lines of Meyerson et al.
     }
   */
     return Response.status(200).entity("").build();

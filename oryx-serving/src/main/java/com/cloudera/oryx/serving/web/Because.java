@@ -39,7 +39,7 @@ public class Because extends Recommend {
 
   @GET
   @Path("{userId}/{itemId}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get(@PathParam("userId") String userId, @PathParam("itemId") String itemId,
                                      @QueryParam("howMany") int howMany, @QueryParam("offset") int offset) {
 /*

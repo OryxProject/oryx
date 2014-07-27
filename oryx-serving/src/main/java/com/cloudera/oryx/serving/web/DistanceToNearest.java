@@ -31,7 +31,7 @@ public class DistanceToNearest {
 
   @GET
   @Path("{datum}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response post(@MatrixParam("datum") String datum) {
 /*
     CharSequence pathInfo = request.getPathInfo();

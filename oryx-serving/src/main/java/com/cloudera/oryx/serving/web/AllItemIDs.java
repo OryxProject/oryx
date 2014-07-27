@@ -34,7 +34,7 @@ public class AllItemIDs {
 
   @GET
   @Path("/allIDs")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<String> get() {
 /*
     OryxRecommender recommender = getRecommender();

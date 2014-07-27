@@ -44,7 +44,7 @@ public class Ingest {
 
   @POST
   @Path("{userId}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response post(@PathParam("userId") String userId, @QueryParam("howMany") int howMany,
                        @QueryParam("offset") int offset,
                        @QueryParam("considerKnownItems") boolean considerKnownItems,

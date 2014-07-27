@@ -32,7 +32,7 @@ public class Train {
 
   @POST
   @Path("{input}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public Response post(@MatrixParam("input") String input) {
 /*
     RDFGenerationManager generationManager = getGenerationManager();

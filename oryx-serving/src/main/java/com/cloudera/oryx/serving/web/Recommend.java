@@ -15,9 +15,12 @@
 
 package com.cloudera.oryx.serving.web;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +44,7 @@ public class Recommend {
 
   @GET
   @Path("{userID}")
-  @Produces({MediaType.APPLICATION_JSON})
+  @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get(@PathParam("userID") String userID, @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("considerKnownItems") boolean considerKnownItems,
