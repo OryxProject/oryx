@@ -30,11 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractLambdaIT;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.pmml.PMMLUtils;
 
-public final class HyperParamTuningIT extends AbstractLambdaIT {
+public final class HyperParamTuningIT extends AbstractALSIT {
 
   private static final Logger log = LoggerFactory.getLogger(HyperParamTuningIT.class);
 
@@ -62,13 +61,13 @@ public final class HyperParamTuningIT extends AbstractLambdaIT {
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
     // Choose pairs of values where the best is predictable
-    overlayConfig.put("als.hyperparams.implicit", Boolean.TRUE.toString());
+    overlayConfig.put("als.hyperparams.implicit", "true");
     overlayConfig.put("als.hyperparams.features", "[1," + TEST_FEATURES + "]");
     overlayConfig.put("als.hyperparams.lambda", "0.001");
     overlayConfig.put("als.hyperparams.alpha", "1.0");
     overlayConfig.put("ml.eval.candidates", "2");
     overlayConfig.put("ml.eval.parallelism", "2");
-    Config config = ConfigUtils.overlayOnDefault(overlayConfig);
+    Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
 

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 import com.cloudera.oryx.kafka.util.LocalKafkaBroker;
@@ -75,6 +76,10 @@ public abstract class AbstractLambdaIT extends OryxTest {
       IOUtils.closeQuietly(localZKServer);
       localZKServer = null;
     }
+  }
+
+  protected Config getConfig() {
+    return ConfigUtils.getDefault();
   }
 
   protected static void startServerAndSendData(Config config, int howMany, int intervalMsec)

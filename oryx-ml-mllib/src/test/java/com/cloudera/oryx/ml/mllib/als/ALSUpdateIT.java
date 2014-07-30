@@ -32,10 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractLambdaIT;
 import com.cloudera.oryx.ml.MLUpdate;
 
-public final class ALSUpdateIT extends AbstractLambdaIT {
+public final class ALSUpdateIT extends AbstractALSIT {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdateIT.class);
 
@@ -61,9 +60,9 @@ public final class ALSUpdateIT extends AbstractLambdaIT {
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("als.hyperparams.implicit", Boolean.FALSE.toString());
+    overlayConfig.put("als.hyperparams.implicit", "false");
     overlayConfig.put("als.hyperparams.features", Integer.toString(FEATURES));
-    Config config = ConfigUtils.overlayOnDefault(overlayConfig);
+    Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
 
