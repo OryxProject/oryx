@@ -15,15 +15,18 @@
 
 package com.cloudera.oryx.serving.als;
 
+import org.glassfish.jersey.server.ResourceConfig;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
-@ApplicationPath("")
-public final class ALSApplication extends Application {
-  @Override
-  public Set<Class<?>> getClasses() {
+//@ApplicationPath("")
+public  class ALSApplication extends ResourceConfig {
+  public ALSApplication() {
+    packages("com.cloudera.oryx.serving.als");
+    /*
     Set<Class<?>> s = new HashSet<>();
     s.add(AllItemIDs.class);
     s.add(Because.class);
@@ -42,6 +45,7 @@ public final class ALSApplication extends Application {
     s.add(Similarity.class);
     s.add(SimilarityToItem.class);
     return s;
+    */
   }
 }
 

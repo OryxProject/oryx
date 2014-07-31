@@ -15,12 +15,16 @@
 
 package com.cloudera.oryx.serving.als;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,12 +42,15 @@ import java.util.List;
  */
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous {
+  private static final Logger log = LoggerFactory.getLogger(EstimateForAnonymous.class);
 
   @GET
-  @Path("{toItemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Float> get(@PathParam("toItemID") String toItemID,
-                         @PathParam("itemID") PathSegment items) {
+  public List<Float> get(@Context UriInfo ui) {
+    MultivaluedMap<String, String> pathParams = ui.getPathParameters();
+    for(String path: pathParams.keySet()) {
+      log.info("path=",path);
+    }
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
