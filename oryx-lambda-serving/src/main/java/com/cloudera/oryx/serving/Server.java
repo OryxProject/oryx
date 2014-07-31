@@ -15,36 +15,33 @@
 
 package com.cloudera.oryx.serving;
 
-import javax.servlet.Servlet;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.ApplicationPath;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import org.apache.catalina.*;
+import org.apache.catalina.Context;
+import org.apache.catalina.Engine;
+import org.apache.catalina.Host;
+import org.apache.catalina.LifecycleException;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
-import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
+import javax.servlet.http.HttpServletResponse;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class Server implements Closeable {
 
@@ -61,6 +58,7 @@ public final class Server implements Closeable {
   };
 
   private final int port;
+  private final Config config;
   private final int securePort;
   private final String userName;
   private final String password;
@@ -92,6 +90,7 @@ public final class Server implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
+    this.config = config;
   }
 
   public synchronized void start() throws IOException {
@@ -226,26 +225,11 @@ public final class Server implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    ContextConfig contextConfig = new ContextConfig();
-    String webxml = "oryx-common/src/main/resources/web.xml";
-    if(new File(webxml).exists()) {
-      contextConfig.setDefaultWebXml(webxml);
-    } else {
-      log.info("Could not read %s",webxml);
-    }
-    context.addLifecycleListener(contextConfig);
+    ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
+    Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
+    context.addServletMapping("/*", "jersey-container-servlet");
 
-    //ResourceConfig rc = new ResourceConfig().packages("com.cloudera.oryx.serving.als");
-    //ResourceConfig rc = new ResourceConfig().register(clazz);
-    //ServletContainer servletContainer = new ServletContainer(rc);
-    //Map<String,Object> config = new HashMap<>();
-    //config.put("com.sun.jersey.api.json.POJOMappingFeature", true);
-    //rc.setPropertiesAndFeatures(config);
-    //tomcat.getHost().addChild(context);
-    //addServlet(context, servletContainer, "/");
-
-    //context.addWelcomeFile("index.jspx");
-    //addErrorPages(context);
+    addErrorPages(context);
 
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;
@@ -296,15 +280,6 @@ public final class Server implements Closeable {
     errorPage.setExceptionType(Throwable.class.getName());
     errorPage.setLocation("/error.jspx");
     context.addErrorPage(errorPage);
-  }
-
-
-  private static Wrapper addServlet(Context context, Servlet servlet, String path) {
-    String name = servlet.getClass().getSimpleName();
-    Wrapper servletWrapper = Tomcat.addServlet(context, name, servlet);
-    servletWrapper.setLoadOnStartup(1);
-    context.addServletMapping(path, name);
-    return servletWrapper;
   }
 
 

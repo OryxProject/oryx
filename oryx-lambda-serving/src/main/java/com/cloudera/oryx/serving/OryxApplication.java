@@ -27,10 +27,8 @@ import javax.ws.rs.ApplicationPath;
 public final class OryxApplication extends ResourceConfig {
   private static final Logger log = LoggerFactory.getLogger(OryxApplication.class);
 
-  public OryxApplication() {
-    Config config = ConfigUtils.getDefault();
+  public OryxApplication(Config config) {
     String contextPackage = config.getString("serving-layer.api.context-package");
-    log.info("context-package %s", contextPackage);
     packages(contextPackage);
   }
 }
