@@ -55,7 +55,7 @@ public final class ServerIT extends AbstractLambdaIT {
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
     overlayConfig.put("batch.storage.partitions", "2");
-    Config config = ConfigUtils.overlayOnDefault(overlayConfig);
+    Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
 

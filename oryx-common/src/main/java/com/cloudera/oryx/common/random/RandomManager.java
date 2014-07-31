@@ -44,7 +44,7 @@ public final class RandomManager {
     }
     RandomGenerator random = new MersenneTwister();
     synchronized (INSTANCES) {
-      INSTANCES.put(random, Boolean.TRUE);
+      INSTANCES.put(random, Boolean.TRUE); // Value does not matter
     }
     return random;
   }

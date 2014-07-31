@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.SequenceFile;
@@ -30,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 import com.cloudera.oryx.kafka.util.LocalKafkaBroker;
@@ -77,17 +80,26 @@ public abstract class AbstractLambdaIT extends OryxTest {
     }
   }
 
-  protected static void startServerAndSendData(Config config, int howMany, int intervalMsec)
+  protected Config getConfig() {
+    return ConfigUtils.getDefault();
+  }
+
+  protected void startServerAndSendData(Config config, int howMany, int intervalMsec)
       throws InterruptedException {
     startServerAndSendData(config, new DefaultCSVDatumGenerator(), howMany, intervalMsec);
   }
 
-  protected static void startServerAndSendData(Config config,
-                                               RandomDatumGenerator<String> datumGenerator,
-                                               int howMany,
-                                               int intervalMsec) throws InterruptedException {
+  protected void startServerAndSendData(Config config,
+                                        RandomDatumGenerator<String> datumGenerator,
+                                        int howMany,
+                                        int intervalMsec) throws InterruptedException {
     int bufferMS = WAIT_BUFFER_IN_WRITES * intervalMsec;
-    ProduceData produce = new ProduceData(datumGenerator, howMany, intervalMsec);
+    ProduceData produce = new ProduceData(datumGenerator,
+                                          localZKServer.getPort(),
+                                          localKafkaBroker.getPort(),
+                                          "OryxInput",
+                                          howMany,
+                                          intervalMsec);
     try (Server<?,?,?> server = new Server<>(config)) {
       log.info("Starting server");
       server.start();
@@ -100,6 +112,10 @@ public abstract class AbstractLambdaIT extends OryxTest {
     } finally {
       produce.deleteTopic();
     }
+  }
+
+  protected List<String[]> readUpdateQueue() {
+    return Lists.newArrayList(new ConsumeData("OryxUpdate", localZKServer.getPort()));
   }
 
   protected static void checkOutputData(Path dataDir, int expectedCount) throws IOException {

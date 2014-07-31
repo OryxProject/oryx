@@ -62,7 +62,7 @@ public final class SimpleMLUpdateIT extends AbstractLambdaIT {
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
     overlayConfig.put("ml.eval.test-fraction", Double.toString(TEST_FRACTION));
-    Config config = ConfigUtils.overlayOnDefault(overlayConfig);
+    Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
 

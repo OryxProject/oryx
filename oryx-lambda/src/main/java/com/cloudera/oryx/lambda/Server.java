@@ -49,7 +49,6 @@ public final class Server<K,M,O> implements Closeable {
   private final Config config;
   private final String streamingMaster;
   private final String queueLockMaster;
-  private final String messageGroupBase;
   private final String messageTopic;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
@@ -68,7 +67,6 @@ public final class Server<K,M,O> implements Closeable {
     this.config = config;
     this.streamingMaster = config.getString("batch.streaming.master");
     this.queueLockMaster = config.getString("input-queue.lock.master");
-    this.messageGroupBase = config.getString("input-queue.message.group-base");
     this.messageTopic = config.getString("input-queue.message.topic");
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
@@ -159,7 +157,8 @@ public final class Server<K,M,O> implements Closeable {
     JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
         KafkaUtils.createStream(streamingContext,
                                 queueLockMaster,
-                                messageGroupBase + "-BatchLayer",
+                                // group should be unique
+                                "OryxGroup-BatchLayer-" + System.currentTimeMillis(),
                                 Collections.singletonMap(messageTopic, 1));
     return dStream;
 
@@ -169,7 +168,7 @@ public final class Server<K,M,O> implements Closeable {
     /*
     Map<String,String> kafkaParams = new HashMap<>();
     kafkaParams.put("zookeeper.connect", queueLockMaster);
-    kafkaParams.put("group.id", messageGroupBase + "-BatchLayer");
+    kafkaParams.put("group.id", "OryxGroup-BatchLayer-" + System.currentTimeMillis());
     return KafkaUtils.createStream(streamingContext,
                                    Object.class,
                                    messageClass,

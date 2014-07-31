@@ -46,16 +46,17 @@ public final class ConfigUtils {
   /**
    * @param overlay map of key-value pairs to add to default config. The map is converted
    *  to a string representation, as it were from a config file, and parsed accordingly.
+   * @param underlying underlying config to overlay new settings on top of
    * @return default config but with key-value pairs added
    */
-  public static Config overlayOnDefault(Map<String,String> overlay) {
+  public static Config overlayOn(Map<String,String> overlay, Config underlying) {
     StringBuilder configFileString = new StringBuilder();
     for (Map.Entry<String,String> entry : overlay.entrySet()) {
       configFileString.append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
     }
     String configFile = configFileString.toString();
     log.info("Overlaid config: \n{}", configFile);
-    return ConfigFactory.parseString(configFile).resolve().withFallback(DEFAULT_CONFIG);
+    return ConfigFactory.parseString(configFile).resolve().withFallback(underlying);
   }
 
   /**
