@@ -36,7 +36,7 @@ public final class ProduceData {
   private static final Logger log = LoggerFactory.getLogger(ProduceData.class);
 
   public static final String DEFAULT_TOPIC = "OryxInput";
-  public static final int DEFAULT_HOW_MANY = 10000;
+  public static final int DEFAULT_HOW_MANY = 100;
   public static final int DEFAULT_INTERVAL_MSEC = 100;
 
   private final RandomDatumGenerator<String> datumGenerator;
@@ -48,6 +48,13 @@ public final class ProduceData {
 
   public ProduceData() {
     this(new DefaultCSVDatumGenerator(), DEFAULT_HOW_MANY, DEFAULT_INTERVAL_MSEC);
+  }
+
+  public ProduceData(int zkPort, int kafkaPort, String topic) {
+    this(new DefaultCSVDatumGenerator(),
+         zkPort, kafkaPort,
+         topic,
+         DEFAULT_HOW_MANY, DEFAULT_INTERVAL_MSEC);
   }
 
   public ProduceData(RandomDatumGenerator<String> datumGenerator, int howMany, int intervalMsec) {
