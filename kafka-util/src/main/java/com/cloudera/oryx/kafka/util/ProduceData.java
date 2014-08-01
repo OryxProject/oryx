@@ -35,29 +35,12 @@ public final class ProduceData {
 
   private static final Logger log = LoggerFactory.getLogger(ProduceData.class);
 
-  public static final String DEFAULT_TOPIC = "OryxInput";
-  public static final int DEFAULT_HOW_MANY = 10000;
-  public static final int DEFAULT_INTERVAL_MSEC = 100;
-
   private final RandomDatumGenerator<String> datumGenerator;
   private final int zkPort;
   private final int kafkaPort;
   private final String topic;
   private final int howMany;
   private final int intervalMsec;
-
-  public ProduceData() {
-    this(new DefaultCSVDatumGenerator(), DEFAULT_HOW_MANY, DEFAULT_INTERVAL_MSEC);
-  }
-
-  public ProduceData(RandomDatumGenerator<String> datumGenerator, int howMany, int intervalMsec) {
-    this(datumGenerator,
-         LocalKafkaBroker.DEFAULT_ZK_PORT,
-         LocalKafkaBroker.DEFAULT_PORT,
-         DEFAULT_TOPIC,
-         howMany,
-         intervalMsec);
-  }
 
   public ProduceData(RandomDatumGenerator<String> datumGenerator,
                      int zkPort,
@@ -80,7 +63,18 @@ public final class ProduceData {
   }
 
   public static void main(String[] args) throws Exception {
-    ProduceData producer = new ProduceData();
+    int howMany = Integer.parseInt(args[0]);
+    int intervalMsec = Integer.parseInt(args[1]);
+    String topic = args[2];
+    int zkPort = Integer.parseInt(args[3]);
+    int kafkaPort = Integer.parseInt(args[4]);
+
+    ProduceData producer = new ProduceData(new DefaultCSVDatumGenerator(),
+                                           zkPort,
+                                           kafkaPort,
+                                           topic,
+                                           howMany,
+                                           intervalMsec);
     producer.start();
   }
 

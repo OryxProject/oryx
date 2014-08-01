@@ -74,16 +74,16 @@ public final class Server implements Closeable {
    * @param config configuration for the serving layer
    */
   public Server(Config config) {
-    this.port = config.getInt("serving-layer.api.port");
-    this.securePort = config.getInt("serving-layer.api.secure-port");
-    this.userName = ConfigUtils.getOptionalString(config, "serving-layer.api.user-name");
-    this.password = ConfigUtils.getOptionalString(config, "serving-layer.api.password");
+    this.port = config.getInt("serving.api.port");
+    this.securePort = config.getInt("serving.api.secure-port");
+    this.userName = ConfigUtils.getOptionalString(config, "serving.api.user-name");
+    this.password = ConfigUtils.getOptionalString(config, "serving.api.password");
     String keystoreFileString =
-        ConfigUtils.getOptionalString(config, "serving-layer.api.password");
+        ConfigUtils.getOptionalString(config, "serving.api.password");
     this.keystoreFile = keystoreFileString == null ? null : Paths.get(keystoreFileString);
     this.keystorePassword =
-        ConfigUtils.getOptionalString(config, "serving-layer.api.keystore-password");
-    String contextPathString = config.getString("serving-layer.api.context-path");
+        ConfigUtils.getOptionalString(config, "serving.api.keystore-password");
+    String contextPathString = config.getString("serving.api.context-path");
     if (contextPathString == null ||
         contextPathString.isEmpty() ||
         "/".equals(contextPathString)) {

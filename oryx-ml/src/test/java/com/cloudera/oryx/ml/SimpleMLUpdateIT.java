@@ -71,7 +71,7 @@ public final class SimpleMLUpdateIT extends AbstractLambdaIT {
 
     MockMLUpdate.setCountHolders(trainCounts, testCounts);
 
-    startServerAndSendData(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 
     // If lists are unequal at this point, there must have been an empty test set
     // which yielded no call to evaluate(). Fill in the blank

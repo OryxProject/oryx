@@ -71,12 +71,12 @@ public final class HyperParamTuningIT extends AbstractALSIT {
 
     startMessageQueue();
 
-    startServerAndSendData(config,
-                           new FeaturesALSDataGenerator(TEST_ELEMENTS,
-                                                        TEST_ELEMENTS,
-                                                        TEST_FEATURES),
-                           DATA_TO_WRITE,
-                           WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeQueues(config,
+                                    new FeaturesALSDataGenerator(TEST_ELEMENTS,
+                                                                 TEST_ELEMENTS,
+                                                                 TEST_FEATURES),
+                                    DATA_TO_WRITE,
+                                    WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
     log.info("Model instance dirs: {}", modelInstanceDirs);

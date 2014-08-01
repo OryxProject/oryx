@@ -62,7 +62,7 @@ public final class ServerIT extends AbstractLambdaIT {
     List<IntervalData<String,String>> intervalData = new ArrayList<>();
     MockUpdate.setIntervalDataHolder(intervalData);
 
-    startServerAndSendData(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 
     int numIntervals = intervalData.size();
     log.info("{} intervals: {}", numIntervals, intervalData);

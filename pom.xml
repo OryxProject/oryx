@@ -488,7 +488,7 @@
               <exclude>**/gen/**</exclude>
               <exclude>**/target/**</exclude>
               <exclude>**/dependency-reduced-pom.xml</exclude>
-              <excludeSubProjects>false</excludeSubProjects>
+              <exclude>.travis.yml</exclude>
             </excludes>
           </configuration>
         </plugin>
