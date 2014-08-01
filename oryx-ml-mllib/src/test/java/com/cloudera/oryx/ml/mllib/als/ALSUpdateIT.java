@@ -66,10 +66,10 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
     startMessageQueue();
 
-    startServerAndSendData(config,
-                           new RandomALSDataGenerator(1000, 1000, 1, 5),
-                           DATA_TO_WRITE,
-                           WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeQueues(config,
+                                    new RandomALSDataGenerator(1000, 1000, 1, 5),
+                                    DATA_TO_WRITE,
+                                    WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
     log.info("Model instance dirs: {}", modelInstanceDirs);

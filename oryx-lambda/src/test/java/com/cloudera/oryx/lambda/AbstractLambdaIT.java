@@ -17,9 +17,9 @@ package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.SequenceFile;
@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
@@ -49,6 +50,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
   private static final Logger log = LoggerFactory.getLogger(AbstractLambdaIT.class);
 
   private static final int WAIT_BUFFER_IN_WRITES = 250;
+  private static final String INPUT_TOPIC = "OryxInput";
+  private static final String UPDATE_TOPIC = "OryxUpdate";
 
   private LocalZKServer localZKServer;
   private LocalKafkaBroker localKafkaBroker;
@@ -60,20 +63,26 @@ public abstract class AbstractLambdaIT extends OryxTest {
     log.info("Starting local Kafka broker");
     localKafkaBroker = new LocalKafkaBroker();
     localKafkaBroker.start();
-    KafkaUtils.maybeCreateTopic("localhost", localZKServer.getPort(), "OryxInput");
-    KafkaUtils.maybeCreateTopic("localhost", localZKServer.getPort(), "OryxUpdate");
+    int zkPort = localZKServer.getPort();
+    KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);
+    KafkaUtils.deleteTopic("localhost", zkPort, UPDATE_TOPIC);
+    KafkaUtils.maybeCreateTopic("localhost", zkPort, INPUT_TOPIC);
+    KafkaUtils.maybeCreateTopic("localhost", zkPort, UPDATE_TOPIC);
   }
 
   @After
   public void tearDownTestState() {
+    if (localZKServer != null) {
+      int zkPort = localZKServer.getPort();
+      KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);
+      KafkaUtils.deleteTopic("localhost", zkPort, UPDATE_TOPIC);
+    }
     if (localKafkaBroker != null) {
       log.info("Stopping Kafka");
       IOUtils.closeQuietly(localKafkaBroker);
       localKafkaBroker = null;
     }
     if (localZKServer != null) {
-      //KafkaUtils.deleteTopic("localhost", localZKServer.getPort(), "OryxInput");
-      //KafkaUtils.deleteTopic("localhost", localZKServer.getPort(), "OryxUpdate");
       log.info("Stopping Zookeeper");
       IOUtils.closeQuietly(localZKServer);
       localZKServer = null;
@@ -84,39 +93,68 @@ public abstract class AbstractLambdaIT extends OryxTest {
     return ConfigUtils.getDefault();
   }
 
-  protected void startServerAndSendData(Config config, int howMany, int intervalMsec)
-      throws InterruptedException {
-    startServerAndSendData(config, new DefaultCSVDatumGenerator(), howMany, intervalMsec);
+  protected List<String[]> startServerProduceConsumeQueues(
+      Config config,
+      int howMany,
+      int intervalMsec) throws IOException, InterruptedException {
+    return startServerProduceConsumeQueues(config,
+                                           new DefaultCSVDatumGenerator(),
+                                           howMany,
+                                           intervalMsec);
   }
 
-  protected void startServerAndSendData(Config config,
-                                        RandomDatumGenerator<String> datumGenerator,
-                                        int howMany,
-                                        int intervalMsec) throws InterruptedException {
+  protected List<String[]> startServerProduceConsumeQueues(
+      Config config,
+      RandomDatumGenerator<String> datumGenerator,
+      int howMany,
+      int intervalMsec) throws IOException, InterruptedException {
+
+    int zkPort = localZKServer.getPort();
+
     int bufferMS = WAIT_BUFFER_IN_WRITES * intervalMsec;
     ProduceData produce = new ProduceData(datumGenerator,
-                                          localZKServer.getPort(),
+                                          zkPort,
                                           localKafkaBroker.getPort(),
-                                          "OryxInput",
+                                          INPUT_TOPIC,
                                           howMany,
                                           intervalMsec);
-    try (Server<?,?,?> server = new Server<>(config)) {
+
+    final List<String[]> keyMessages = new ArrayList<>();
+
+    Thread.sleep(bufferMS);
+
+    try (CloseableIterator<String[]> data = new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
+         Server<?,?,?> server = new Server<>(config)) {
+
+      log.info("Starting consumer thread");
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          while (data.hasNext()) {
+            keyMessages.add(data.next());
+          }
+        }
+      }).start();
+
       log.info("Starting server");
       server.start();
+
       // Sleep for a while after starting server to let it init
       Thread.sleep(bufferMS);
+
       log.info("Producing data");
       produce.start();
+
       // Sleep for a while before shutting down server to let it finish
       Thread.sleep(bufferMS);
+
     } finally {
       produce.deleteTopic();
     }
+
+    return keyMessages;
   }
 
-  protected List<String[]> readUpdateQueue() {
-    return Lists.newArrayList(new ConsumeData("OryxUpdate", localZKServer.getPort()));
-  }
 
   protected static void checkOutputData(Path dataDir, int expectedCount) throws IOException {
     List<Path> dataFiles = IOUtils.listFiles(dataDir, "*/part-*");

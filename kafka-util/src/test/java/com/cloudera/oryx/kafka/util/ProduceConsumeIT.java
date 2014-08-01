@@ -19,38 +19,71 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.zk.LocalZKServer;
 
+/**
+ * Tests {@link ProduceData} and {@link ConsumeData} together.
+ */
 public final class ProduceConsumeIT extends OryxTest {
 
+  private static final Logger log = LoggerFactory.getLogger(ProduceConsumeIT.class);
+
   private static final String TOPIC = "OryxTest";
+  private static final int NUM_DATA = 100;
 
   @Test
   public void testProduceConsume() throws Exception {
     try (LocalZKServer localZKServer = new LocalZKServer();
          LocalKafkaBroker localKafkaBroker = new LocalKafkaBroker()) {
+
       localZKServer.start();
       localKafkaBroker.start();
-      KafkaUtils.deleteTopic("localhost", localZKServer.getPort(), TOPIC);
-      KafkaUtils.maybeCreateTopic("localhost", localZKServer.getPort(), TOPIC);
-      try {
-        final Collection<Integer> count = new HashSet<>();
+
+      int zkPort = localZKServer.getPort();
+      KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
+      KafkaUtils.maybeCreateTopic("localhost", zkPort, TOPIC);
+
+      ProduceData produce = new ProduceData(new DefaultCSVDatumGenerator(),
+                                            zkPort,
+                                            localKafkaBroker.getPort(),
+                                            TOPIC,
+                                            NUM_DATA,
+                                            50);
+
+      final Collection<Integer> keys = new HashSet<>();
+
+      try (CloseableIterator<String[]> data = new ConsumeData(TOPIC, zkPort).iterator()) {
+
         new Thread(new Runnable() {
           @Override
           public void run() {
-            for (String[] km : new ConsumeData(TOPIC, localZKServer.getPort())) {
-              count.add(Integer.valueOf(km[0]));
+            while (data.hasNext()) {
+              keys.add(Integer.valueOf(data.next()[0]));
             }
           }
         }).start();
-        Thread.sleep(2000L);
-        new ProduceData(localZKServer.getPort(), localKafkaBroker.getPort(), TOPIC).start();
-        Thread.sleep(2000L);
-        assertEquals(ProduceData.DEFAULT_HOW_MANY, count.size());
+
+        // Sleep for a while after starting consumer to let it init
+        Thread.sleep(1000L);
+
+        log.info("Producing data");
+        produce.start();
+
+        // Sleep for a while before shutting down producer to let both finish
+        Thread.sleep(1000L);
+
       } finally {
-        KafkaUtils.deleteTopic("localhost", localZKServer.getPort(), TOPIC);
+        KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
+      }
+
+      assertEquals(NUM_DATA, keys.size());
+      for (int i = 0; i < NUM_DATA; i++) {
+        assertTrue(keys.contains(i));
       }
     }
   }

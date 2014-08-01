@@ -22,6 +22,7 @@ import kafka.admin.AdminUtils;
 import kafka.common.TopicExistsException;
 import kafka.utils.ZKStringSerializer$;
 import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +60,8 @@ public final class KafkaUtils {
       try {
         AdminUtils.deleteTopic(zkClient, topic);
         log.info("Deleted Zookeeper topic {}", topic);
+      } catch (ZkNodeExistsException nee) {
+        log.info("Delete was already scheduled for Zookeeper topic {}", topic);
       } finally {
         zkClient.close();
       }
