@@ -48,10 +48,6 @@
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_${scala.minor.version}</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.jpmml</groupId>
-      <artifactId>pmml-model</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
