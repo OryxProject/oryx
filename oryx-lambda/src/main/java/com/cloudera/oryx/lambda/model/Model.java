@@ -13,16 +13,13 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
-
-import org.dmg.pmml.PMML;
+package com.cloudera.oryx.lambda.model;
 
 /**
- * Applications whose model includes a PMML representations may further subclass this
- * instead to provide access to the PMML model in memory.
+ * Marker interface for application's in-memory model representation in the speed layer.
  */
-public interface ModelWithPMML extends Model {
+public interface Model {
 
-  PMML getPMML();
+  // Nothing here
 
 }

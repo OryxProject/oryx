@@ -13,10 +13,10 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
+package com.cloudera.oryx.serving.model;
 
 /**
- * Marker interface for application's in-memory model representation.
+ * Marker interface for application's in-memory model representation in the serving layer.
  */
 public interface Model {
 

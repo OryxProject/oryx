@@ -13,17 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
+package com.cloudera.oryx.serving.model;
 
 import java.io.Closeable;
 
 import kafka.consumer.ConsumerIterator;
 
 /**
- * Implementations of this interface maintain, in memory, the current state of a model.
- * It is given a reference to a Kafka queue during initialization, and consumes
+ * Implementations of this interface maintain, in memory, the current state of a model in the
+ * serving layer. It is given a reference to a Kafka queue during initialization, and consumes
+ * models and updates from it, and updates in-memory state accordingly.
  */
-public interface ModelManager<K,M> extends Closeable {
+public interface ModelManager extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading from the queue
@@ -31,7 +32,7 @@ public interface ModelManager<K,M> extends Closeable {
    *
    * @param updateIterator stream of updates to read
    */
-  void start(ConsumerIterator<K,M> updateIterator);
+  void start(ConsumerIterator<String,String> updateIterator);
 
   /**
    * @return a reference to the current state of the model in memory. Note that the model state
