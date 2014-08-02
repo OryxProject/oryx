@@ -114,7 +114,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       String type = km[0];
       String value = km[1];
 
-      log.info("{} = {}", type, value);
+      log.debug("{} = {}", type, value);
 
       boolean isModel = "MODEL".equals(type);
       boolean isUpdate = "UP".equals(type);
@@ -130,6 +130,10 @@ public final class ALSUpdateIT extends AbstractALSIT {
           seenUsers.add(id);
         } else {
           seenProducts.add(id);
+        }
+        for (String dimensionString : tokens[2].split(",")) {
+          float f = Float.parseFloat(dimensionString);
+          assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
       } else {
         PMML pmml = PMMLUtils.fromString(value);

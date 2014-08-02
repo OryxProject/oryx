@@ -278,7 +278,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     // Joiner needs a Object[], so go ahead and make strings:
     String[] objVector = new String[vector.length];
     for (int i = 0; i < vector.length; i++) {
-      objVector[i] = Double.toString(vector[i]);
+      // Only need floats
+      objVector[i] = Float.toString((float) vector[i]);
     }
     return keyAndVector._1().toString() + '\t' + Joiner.on(',').join(objVector);
   }
