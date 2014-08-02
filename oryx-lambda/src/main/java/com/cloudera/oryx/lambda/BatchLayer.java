@@ -36,7 +36,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
 
 /**
- * Main entry point for Oryx Computation Layer.
+ * Main entry point for Oryx Batch Layer.
  *
  * @param <K> type of key read from input queue
  * @param <M> type of message read from input queue
