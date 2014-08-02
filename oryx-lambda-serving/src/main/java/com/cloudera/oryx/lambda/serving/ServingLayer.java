@@ -28,6 +28,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Server;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
@@ -43,9 +44,9 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
-public final class Server implements Closeable {
+public final class ServingLayer implements Closeable {
 
-  private static final Logger log = LoggerFactory.getLogger(Server.class);
+  private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);
 
   private static final int[] ERROR_PAGE_STATUSES = {
       HttpServletResponse.SC_BAD_REQUEST,
@@ -72,7 +73,7 @@ public final class Server implements Closeable {
    *
    * @param config configuration for the serving layer
    */
-  public Server(Config config) {
+  public ServingLayer(Config config) {
     this.port = config.getInt("serving.api.port");
     this.securePort = config.getInt("serving.api.secure-port");
     this.userName = ConfigUtils.getOptionalString(config, "serving.api.user-name");
@@ -154,7 +155,7 @@ public final class Server implements Closeable {
     }
   }
 
-  private static void configureServer(org.apache.catalina.Server server) {
+  private static void configureServer(Server server) {
     // Needed later if deploying JSPX files:
     /*
     LifecycleListener jasperListener = new JasperListener();

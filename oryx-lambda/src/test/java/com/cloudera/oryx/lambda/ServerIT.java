@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
- * Tests {@link Server}.
+ * Tests {@link BatchLayer}.
  */
 public final class ServerIT extends AbstractLambdaIT {
 

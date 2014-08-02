@@ -13,22 +13,10 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
+package com.cloudera.oryx.lambda;
 
-import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.serving.ServingLayer;
+public final class SpeedLayer {
 
-public final class Main {
+  // TODO
 
-  private Main() {
-  }
-
-  public static void main(String[] args) throws Exception {
-    try (ServingLayer servingLayer = new ServingLayer(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(servingLayer);
-      servingLayer.start();
-      servingLayer.await();
-    }
-  }
 }

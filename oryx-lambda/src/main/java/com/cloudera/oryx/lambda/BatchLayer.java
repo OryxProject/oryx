@@ -42,9 +42,9 @@ import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
  * @param <M> type of message read from input queue
  * @param <O> type of model message written
  */
-public final class Server<K,M,O> implements Closeable {
+public final class BatchLayer<K,M,O> implements Closeable {
 
-  private static final Logger log = LoggerFactory.getLogger(Server.class);
+  private static final Logger log = LoggerFactory.getLogger(BatchLayer.class);
 
   private final Config config;
   private final String streamingMaster;
@@ -62,7 +62,7 @@ public final class Server<K,M,O> implements Closeable {
   private JavaStreamingContext streamingContext;
 
   @SuppressWarnings("unchecked")
-  public Server(Config config) {
+  public BatchLayer(Config config) {
     Preconditions.checkNotNull(config);
     this.config = config;
     this.streamingMaster = config.getString("batch.streaming.master");

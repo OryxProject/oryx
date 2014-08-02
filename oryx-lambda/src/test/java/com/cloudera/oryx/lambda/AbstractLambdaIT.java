@@ -124,7 +124,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
     Thread.sleep(bufferMS);
 
     try (CloseableIterator<String[]> data = new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
-         Server<?,?,?> server = new Server<>(config)) {
+         BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
 
       log.info("Starting consumer thread");
       new Thread(new Runnable() {
@@ -137,7 +137,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
       }).start();
 
       log.info("Starting server");
-      server.start();
+      batchLayer.start();
 
       // Sleep for a while after starting server to let it init
       Thread.sleep(bufferMS);
