@@ -13,22 +13,25 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
+package com.cloudera.oryx.ml.speed.als;
 
-import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.serving.Server;
+import kafka.consumer.ConsumerIterator;
+import kafka.javaapi.producer.Producer;
 
-public final class Main {
+import com.cloudera.oryx.lambda.model.SpeedModelManager;
 
-  private Main() {
+public final class ALSSpeedModelManager implements SpeedModelManager<String,String> {
+
+  @Override
+  public void start(ConsumerIterator<String,String> inputIterator,
+                    ConsumerIterator<String,String> updateIterator,
+                    Producer<String,String> updateProducer) {
+
   }
 
-  public static void main(String[] args) throws Exception {
-    try (Server server = new Server(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(server);
-      server.start();
-      server.await();
-    }
+  @Override
+  public void close() {
+
   }
+
 }

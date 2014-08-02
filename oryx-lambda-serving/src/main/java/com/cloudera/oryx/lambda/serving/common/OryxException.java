@@ -12,23 +12,15 @@
  * the specific language governing permissions and limitations under the
  * License.
  */
+package com.cloudera.oryx.lambda.serving.common;
 
-package com.cloudera.oryx.serving;
+public final class OryxException extends Exception {
 
-import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.serving.Server;
-
-public final class Main {
-
-  private Main() {
+  public OryxException(String aMessage, Throwable aThrowable) {
+    super(aMessage, aThrowable);
   }
 
-  public static void main(String[] args) throws Exception {
-    try (Server server = new Server(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(server);
-      server.start();
-      server.await();
-    }
+  public OryxException(String aMessage, int aErrorCode, Throwable aThrowable) {
+    super(aMessage + ", Error Code : " + aErrorCode, aThrowable);
   }
 }
