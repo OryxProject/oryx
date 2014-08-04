@@ -139,14 +139,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
         PMML pmml = PMMLUtils.fromString(value);
         List<Extension> extensions = pmml.getExtensions();
         assertEquals(5, extensions.size());
-        Map<String,String> extensionKeyValues = new HashMap<>();
-        for (Extension extension : extensions) {
-          extensionKeyValues.put(extension.getName(), extension.getValue());
-        }
-        assertEquals(Integer.toString(FEATURES), extensionKeyValues.get("features"));
-        assertEquals(Double.toString(LAMBDA), extensionKeyValues.get("lambda"));
-        assertEquals("false", extensionKeyValues.get("implicit"));
-
+        assertEquals(Integer.toString(FEATURES), PMMLUtils.getExtensionValue(pmml, "features"));
+        assertEquals(Double.toString(LAMBDA),PMMLUtils.getExtensionValue(pmml, "lambda"));
+        assertEquals("false", PMMLUtils.getExtensionValue(pmml, "implicit"));
         assertEquals(expectedUsers, seenUsers);
         assertEquals(expectedProducts, seenProducts);
         whichGeneration++;

@@ -129,13 +129,13 @@ public final class ALSUpdate extends MLUpdate<String> {
                            Path modelParentPath,
                            QueueProducer<String,String> modelUpdateQueue) {
     log.info("Sending user / X data as model updates");
-    String xPathString = getExtensionValueByName(pmml, "X");
+    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
     JavaPairRDD<Object,double[]> userRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
     userRDD.foreachPartition(new EnqueuePartitionFunction("X", modelUpdateQueue));
 
     log.info("Sending item / Y data as model updates");
-    String yPathString = getExtensionValueByName(pmml, "Y");
+    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
     JavaPairRDD<Object,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
     productRDD.foreachPartition(new EnqueuePartitionFunction("Y", modelUpdateQueue));
@@ -221,8 +221,8 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static MatrixFactorizationModel pmmlToMFModel(JavaSparkContext sparkContext,
                                                         PMML pmml,
                                                         Path modelParentPath) {
-    String xPathString = getExtensionValueByName(pmml, "X");
-    String yPathString = getExtensionValueByName(pmml, "Y");
+    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
+    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
 
     RDD<Tuple2<Object,double[]>> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
@@ -234,18 +234,6 @@ public final class ALSUpdate extends MLUpdate<String> {
     Tuple2<Object,double[]> first = (Tuple2<Object,double[]>) ((Object[]) userRDD.take(1))[0];
     int rank = first._2().length;
     return new MatrixFactorizationModel(rank, userRDD, productRDD);
-  }
-
-  private static String getExtensionValueByName(PMML pmml, String name) {
-    String value = null;
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        value = extension.getValue();
-        break;
-      }
-    }
-    Preconditions.checkNotNull(value, "No extension named %s", name);
-    return value;
   }
 
   private static RDD<Tuple2<Object,double[]>> readFeaturesRDD(JavaSparkContext sparkContext,

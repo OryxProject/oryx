@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.model;
+package com.cloudera.oryx.lambda.speed;
 
 /**
  * Marker interface for application's in-memory model representation in the speed layer.

@@ -37,8 +37,12 @@
       <artifactId>oryx-ml</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
+      <groupId>com.carrotsearch</groupId>
+      <artifactId>hppc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>

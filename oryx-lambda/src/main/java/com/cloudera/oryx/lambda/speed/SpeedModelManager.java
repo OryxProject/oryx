@@ -13,9 +13,11 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.model;
+package com.cloudera.oryx.lambda.speed;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.util.Collection;
 
 import kafka.consumer.ConsumerIterator;
 import kafka.javaapi.producer.Producer;
@@ -25,22 +27,25 @@ import kafka.javaapi.producer.Producer;
  * speed layer. It is given a reference to a Kafka queue during initialization, and consumes
  * models and new input, updates in-memory state, and produces updates accordingly.
  *
- * @param <K> input key type
  * @param <M> input message type
  */
-public interface SpeedModelManager<K,M> extends Closeable {
+public interface SpeedModelManager<M> extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
    * from the input queue and updating model state in memory, and issuing updates to the
    * update queue. This will be executed asynchronously and may block.
-   *
-   * @param inputIterator stream of input to read
-   * @param updateIterator queue to read models from
+   *  @param updateIterator queue to read models from
    * @param updateProducer queue to write updates to
    */
-  void start(ConsumerIterator<K,M> inputIterator,
-             ConsumerIterator<String,String> updateIterator,
-             Producer<String,String> updateProducer);
+  void start(ConsumerIterator<String,String> updateIterator,
+             Producer<String,String> updateProducer) throws IOException;
+
+  void onInput(Collection<M> input);
+
+  /**
+   * @return reference to current model in memory
+   */
+  SpeedModel getModel();
 
 }

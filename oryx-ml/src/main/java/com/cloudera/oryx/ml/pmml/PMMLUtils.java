@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.dmg.pmml.Application;
+import org.dmg.pmml.Extension;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
@@ -127,6 +128,15 @@ public final class PMMLUtils {
     } catch (JAXBException e) {
       throw new IOException(e);
     }
+  }
+
+  public static String getExtensionValue(PMML pmml, String name) {
+    for (Extension extension : pmml.getExtensions()) {
+      if (name.equals(extension.getName())) {
+        return extension.getValue();
+      }
+    }
+    return null;
   }
 
 }

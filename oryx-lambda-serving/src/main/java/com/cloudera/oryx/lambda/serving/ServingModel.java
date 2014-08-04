@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.serving.model;
+package com.cloudera.oryx.lambda.serving;
 
 /**
  * Marker interface for application's in-memory model representation in the serving layer.

@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.serving.model;
+package com.cloudera.oryx.lambda.serving;
 
 import java.io.Closeable;
 

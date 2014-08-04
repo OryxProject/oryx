@@ -17,8 +17,8 @@ package com.cloudera.oryx.ml.serving.als;
 
 import kafka.consumer.ConsumerIterator;
 
-import com.cloudera.oryx.lambda.serving.model.ServingModel;
-import com.cloudera.oryx.lambda.serving.model.ServingModelManager;
+import com.cloudera.oryx.lambda.serving.ServingModel;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class ALSServingModelManager implements ServingModelManager {
 
