@@ -106,6 +106,10 @@ state in memory. It exposes an HTTP
 [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) API on top of methods 
 that query the model in memory. There will be many of these deployed for scale. Each may 
 also accept new data and write it to Kafka where it can be seen by all Speed layers.
+The serving layer defaults are provided by a reference.conf. Applications are expected to provide their 
+own conf file to provide properties which determine what application resources are required. This can be provided 
+using an application.conf available in the classpath (which typesafe's Config will load automatically) or 
+by providing a command line argument which specifies what package to look update application resources eg: -Dserving.application-resources=com.cloudera.oryx.ml.serving.als.
 
 Usage and Deployment
 --------------------
