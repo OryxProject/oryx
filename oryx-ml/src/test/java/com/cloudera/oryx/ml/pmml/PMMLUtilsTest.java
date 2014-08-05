@@ -17,8 +17,10 @@ package com.cloudera.oryx.ml.pmml;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
+import org.dmg.pmml.Extension;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.Node;
@@ -59,6 +61,24 @@ public final class PMMLUtilsTest extends OryxTest {
     TreeModel treeModel = (TreeModel) models.get(0);
     assertEquals(123.0, treeModel.getNode().getRecordCount().doubleValue());
     assertEquals(MiningFunctionType.CLASSIFICATION, treeModel.getFunctionName());
+  }
+
+  @Test
+  public void testExtensionValue() {
+    PMML model = buildDummyModel();
+    assertNull(PMMLUtils.getExtensionValue(model, "foo"));
+    model.getExtensions().add(new Extension().withName("foo").withValue("bar"));
+    assertEquals("bar", PMMLUtils.getExtensionValue(model, "foo"));
+  }
+
+  @Test
+  public void testExtensionContent() {
+    PMML model = buildDummyModel();
+    assertNull(PMMLUtils.getExtensionContent(model, "foo"));
+    Extension extension = new Extension().withName("foo");
+    extension.getContent().addAll(Arrays.asList("bar", "baz"));
+    model.getExtensions().add(extension);
+    assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
   }
 
 }

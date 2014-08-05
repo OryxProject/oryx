@@ -48,4 +48,9 @@ public final class FunctionsTest extends OryxTest {
                  Functions.SUM_DOUBLE.call(Double.NEGATIVE_INFINITY, 0.0).doubleValue());
   }
 
+  @Test
+  public void testToString() throws Exception {
+    assertEquals("1.0", Functions.TO_STRING.call(1.0));
+  }
+
 }

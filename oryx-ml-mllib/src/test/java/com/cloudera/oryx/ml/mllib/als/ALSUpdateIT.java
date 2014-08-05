@@ -108,6 +108,8 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Collection<Integer> expectedProducts = null;
     Collection<Integer> seenUsers = null;
     Collection<Integer> seenProducts = null;
+    Collection<Integer> lastModelUsers = null;
+    Collection<Integer> lastModelProducts = null;
     int whichGeneration = -1;
     for (String[] km : updates) {
 
@@ -121,9 +123,12 @@ public final class ALSUpdateIT extends AbstractALSIT {
       assertTrue(isModel || isUpdate);
 
       if (isUpdate) {
+
         String[] tokens = value.split("\t");
+        // First field is X or Y, depending on whether it's a user or item vector
         boolean isUser = "X".equals(tokens[0]);
         boolean isProduct = "Y".equals(tokens[0]);
+        // Next is user/item ID
         Integer id = Integer.valueOf(tokens[1]);
         assertTrue(isUser || isProduct);
         if (isUser) {
@@ -131,27 +136,51 @@ public final class ALSUpdateIT extends AbstractALSIT {
         } else {
           seenProducts.add(id);
         }
+        // Verify that feature vector are valid floats
         for (String dimensionString : tokens[2].split(",")) {
           float f = Float.parseFloat(dimensionString);
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
+
       } else {
+
         PMML pmml = PMMLUtils.fromString(value);
         List<Extension> extensions = pmml.getExtensions();
-        assertEquals(5, extensions.size());
+        assertEquals(7, extensions.size());
+        // Basic hyperparameters should match
         assertEquals(Integer.toString(FEATURES), PMMLUtils.getExtensionValue(pmml, "features"));
         assertEquals(Double.toString(LAMBDA),PMMLUtils.getExtensionValue(pmml, "lambda"));
         assertEquals("false", PMMLUtils.getExtensionValue(pmml, "implicit"));
+
+        // See if users/item sets seen in updates match what was expected from output
         assertEquals(expectedUsers, seenUsers);
         assertEquals(expectedProducts, seenProducts);
+
+        // Also check key sets reported in model
+        assertEquals(expectedUsers, lastModelUsers);
+        assertEquals(expectedProducts, lastModelProducts);
+
+        // Update for next round
         whichGeneration++;
         expectedUsers = userIDs.get(whichGeneration);
         expectedProducts = productIDs.get(whichGeneration);
         seenUsers = new HashSet<>();
         seenProducts = new HashSet<>();
+        lastModelUsers = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+        lastModelProducts = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+
       }
     }
 
+  }
+
+  private static Collection<Integer> parseIDsFromContent(List<?> content) {
+    String[] tokens = content.get(0).toString().split(" ");
+    Collection<Integer> result = new HashSet<>(content.size());
+    for (String s : tokens) {
+      result.add(Integer.valueOf(s));
+    }
+    return result;
   }
 
   private static Collection<Integer> checkFeatures(Path path, Collection<Integer> previousIDs)

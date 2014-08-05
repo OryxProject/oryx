@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.dmg.pmml.Application;
@@ -134,6 +135,15 @@ public final class PMMLUtils {
     for (Extension extension : pmml.getExtensions()) {
       if (name.equals(extension.getName())) {
         return extension.getValue();
+      }
+    }
+    return null;
+  }
+
+  public static List<Object> getExtensionContent(PMML pmml, String name) {
+    for (Extension extension : pmml.getExtensions()) {
+      if (name.equals(extension.getName())) {
+        return extension.getContent();
       }
     }
     return null;

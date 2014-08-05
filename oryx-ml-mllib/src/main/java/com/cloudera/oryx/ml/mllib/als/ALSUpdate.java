@@ -198,6 +198,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       addExtension(pmml, "alpha", Double.toString(alpha));
     }
+    addIDsExtension(pmml, "XIDs", model.userFeatures());
+    addIDsExtension(pmml, "YIDs", model.productFeatures());
     return pmml;
   }
 
@@ -205,6 +207,16 @@ public final class ALSUpdate extends MLUpdate<String> {
     Extension extension = new Extension();
     extension.setName(key);
     extension.setValue(value);
+    pmml.getExtensions().add(extension);
+  }
+
+  private static void addIDsExtension(PMML pmml,
+                                      String key,
+                                      RDD<Tuple2<Object,double[]>> features) {
+    List<String> ids = fromRDD(features).keys().map(Functions.TO_STRING).collect();
+    Extension extension = new Extension();
+    extension.setName(key);
+    extension.getContent().addAll(ids);
     pmml.getExtensions().add(extension);
   }
 

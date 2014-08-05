@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.fn;
 
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 
 /**
@@ -45,6 +46,14 @@ public final class Functions {
         @Override
         public Double call(Double a, Double b) {
           return a + b;
+        }
+      };
+
+  public static final Function<Object,String> TO_STRING =
+      new Function<Object,String>() {
+        @Override
+        public String call(Object o) {
+          return o.toString();
         }
       };
 
