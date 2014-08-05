@@ -24,7 +24,6 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.message.MessageAndMetadata;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,14 +50,16 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
   }
 
   @Override
-  public void start(Iterator<MessageAndMetadata<String,String>> updateIterator) throws IOException {
+  public void start(Iterator<String[]> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      MessageAndMetadata<String,String> mam = updateIterator.next();
-      switch (mam.key()) {
+      String[] km = updateIterator.next();
+      String key = km[0];
+      String message = km[1];
+      switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
           // Update
-          String[] tokens = mam.message().split("\t");
+          String[] tokens = message.split("\t");
           int id = Integer.parseInt(tokens[1]);
           String[] vectorTokens = tokens[2].split(",");
           float[] vector = new float[vectorTokens.length];
@@ -73,13 +74,13 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
               model.setItemVector(id, vector);
               break;
             default:
-              throw new IllegalStateException("Bad update " + mam.message());
+              throw new IllegalStateException("Bad update " + message);
           }
           break;
 
         case "MODEL":
           // New model
-          PMML pmml = PMMLUtils.fromString(mam.message());
+          PMML pmml = PMMLUtils.fromString(message);
           int features = Integer.parseInt(PMMLUtils.getExtensionValue(pmml, "features"));
           if (model == null) {
 
@@ -105,7 +106,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
           break;
 
         default:
-          throw new IllegalStateException("Bad model " + mam.message());
+          throw new IllegalStateException("Bad model " + message);
       }
     }
   }
