@@ -1,5 +1,6 @@
 package com.cloudera.oryx.serving.als;
 
+import com.cloudera.oryx.ml.serving.als.Recommend;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Test;
