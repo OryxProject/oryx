@@ -16,13 +16,12 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.io.Closeable;
-
-import kafka.consumer.ConsumerIterator;
+import java.util.Iterator;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
- * serving layer. It is given a reference to a Kafka queue during initialization, and consumes
- * models and updates from it, and updates in-memory state accordingly.
+ * serving layer. It is given a reference to a stream of updates during initialization,
+ * and consumes models and updates from it, and updates in-memory state accordingly.
  */
 public interface ServingModelManager extends Closeable {
 
@@ -30,9 +29,10 @@ public interface ServingModelManager extends Closeable {
    * Called by the framework to initiate a continuous process of reading from the queue
    * and updating model state in memory. This will be executed asynchronously and may block.
    *
-   * @param updateIterator stream of updates to read
+   * @param updateIterator queue to read models from. Values are arrays of 2 stings, the
+   *  key and message
    */
-  void start(ConsumerIterator<String,String> updateIterator);
+  void start(Iterator<String[]> updateIterator);
 
   /**
    * @return a reference to the current state of the model in memory. Note that the model state

@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
-import kafka.message.MessageAndMetadata;
-
 import com.cloudera.oryx.lambda.QueueProducer;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
- * speed layer. It is given a reference to a Kafka queue during initialization, and consumes
+ * speed layer. It is given a reference to stream of updates during initialization, and consumes
  * models and new input, updates in-memory state, and produces updates accordingly.
  *
  * @param <M> input message type
@@ -38,9 +36,10 @@ public interface SpeedModelManager<M> extends Closeable {
    * from the input queue and updating model state in memory, and issuing updates to the
    * update queue. This will be executed asynchronously and may block.
    *
-   * @param updateIterator queue to read models from
+   * @param updateIterator queue to read models from. Values are arrays of 2 stings, the
+   *  key and message
    */
-  void start(Iterator<MessageAndMetadata<String,String>> updateIterator) throws IOException;
+  void start(Iterator<String[]> updateIterator) throws IOException;
 
   /**
    * @param input small batch of recent input
