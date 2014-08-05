@@ -91,7 +91,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(alpha > 0.0);
 
     JavaRDD<Rating> trainData = csvToRatingRDD(csvTrainData);
-    trainData = sumScores(trainData);
+    trainData = aggregateScores(trainData);
     MatrixFactorizationModel model;
     if (implicit) {
       model = ALS.trainImplicit(trainData.rdd(), features, iterations, lambda, alpha);
@@ -108,7 +108,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                          JavaRDD<String> csvTestData) {
     log.info("Evaluating model");
     JavaRDD<Rating> testData = csvToRatingRDD(csvTestData);
-    testData = sumScores(testData);
+    testData = aggregateScores(testData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
     if (implicit) {
@@ -161,12 +161,29 @@ public final class ALSUpdate extends MLUpdate<String> {
    * Combines {@link Rating}s with the same user/item into one, with score as the sum of
    * all of the scores.
    */
-  private static JavaRDD<Rating> sumScores(JavaRDD<Rating> original) {
-    return original.mapToPair(
-        new RatingToTupleDouble()
-    ).reduceByKey(
-        Functions.SUM_DOUBLE
-    ).map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {
+  private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original) {
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples =
+        original.mapToPair(new RatingToTupleDouble());
+
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
+    if (implicit) {
+      // For implicit, values are scores to be summed
+      aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
+    } else {
+      // For non-implicit, last wins.
+      aggregated = tuples.groupByKey().mapValues(new Function<Iterable<Double>,Double>() {
+        @Override
+        public Double call(Iterable<Double> values) {
+          Double finalValue = null;
+          for (Double value : values) {
+            finalValue = value;
+          }
+          return finalValue;
+        }
+      });
+    }
+
+    return aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {
       @Override
       public Rating call(Tuple2<Tuple2<Integer,Integer>, Double> userProductScore) {
         Tuple2<Integer,Integer> userProduct = userProductScore._1();
