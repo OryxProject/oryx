@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.als.speed;
 
+import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,6 +23,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.carrotsearch.hppc.cursors.IntObjectCursor;
+import com.carrotsearch.hppc.predicates.IntPredicate;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -93,6 +95,27 @@ public final class ALSSpeedModel implements SpeedModel {
     }
   }
 
+  public void retainAllUsers(Collection<Integer> users) {
+    Lock lock = xLock.writeLock();
+    lock.lock();
+    try {
+      X.removeAll(new NotContainsPredicate(users));
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  public void retainAllItems(Collection<Integer> items) {
+    Lock lock = yLock.writeLock();
+    lock.lock();
+    try {
+      Y.removeAll(new NotContainsPredicate(items));
+    } finally {
+      lock.unlock();
+    }
+  }
+
+
   public Solver getXTXSolver() {
     RealMatrix XTX;
     Lock lock = xLock.readLock();
@@ -136,6 +159,17 @@ public final class ALSSpeedModel implements SpeedModel {
       }
     }
     return result;
+  }
+
+  private static final class NotContainsPredicate implements IntPredicate {
+    private final Collection<Integer> values;
+    private NotContainsPredicate(Collection<Integer> values) {
+      this.values = values;
+    }
+    @Override
+    public boolean apply(int value) {
+      return !values.contains(value);
+    }
   }
 
 }

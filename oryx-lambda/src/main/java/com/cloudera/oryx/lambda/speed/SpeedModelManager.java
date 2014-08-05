@@ -18,9 +18,11 @@ package com.cloudera.oryx.lambda.speed;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 
-import kafka.consumer.ConsumerIterator;
-import kafka.javaapi.producer.Producer;
+import kafka.message.MessageAndMetadata;
+
+import com.cloudera.oryx.lambda.QueueProducer;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
@@ -35,13 +37,16 @@ public interface SpeedModelManager<M> extends Closeable {
    * Called by the framework to initiate a continuous process of reading models, and reading
    * from the input queue and updating model state in memory, and issuing updates to the
    * update queue. This will be executed asynchronously and may block.
-   *  @param updateIterator queue to read models from
+   *
+   * @param updateIterator queue to read models from
+   */
+  void start(Iterator<MessageAndMetadata<String,String>> updateIterator) throws IOException;
+
+  /**
+   * @param input small batch of recent input
    * @param updateProducer queue to write updates to
    */
-  void start(ConsumerIterator<String,String> updateIterator,
-             Producer<String,String> updateProducer) throws IOException;
-
-  void onInput(Collection<M> input);
+  void onInput(Collection<M> input, QueueProducer<String,String> updateProducer);
 
   /**
    * @return reference to current model in memory
