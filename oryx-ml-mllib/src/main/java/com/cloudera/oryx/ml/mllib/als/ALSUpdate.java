@@ -91,7 +91,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(alpha > 0.0);
 
     JavaRDD<Rating> trainData = csvToRatingRDD(csvTrainData);
-    trainData = sumScores(trainData);
+    trainData = aggregateScores(trainData);
     MatrixFactorizationModel model;
     if (implicit) {
       model = ALS.trainImplicit(trainData.rdd(), features, iterations, lambda, alpha);
@@ -108,7 +108,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                          JavaRDD<String> csvTestData) {
     log.info("Evaluating model");
     JavaRDD<Rating> testData = csvToRatingRDD(csvTestData);
-    testData = sumScores(testData);
+    testData = aggregateScores(testData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
     if (implicit) {
@@ -129,13 +129,13 @@ public final class ALSUpdate extends MLUpdate<String> {
                            Path modelParentPath,
                            QueueProducer<String,String> modelUpdateQueue) {
     log.info("Sending user / X data as model updates");
-    String xPathString = getExtensionValueByName(pmml, "X");
+    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
     JavaPairRDD<Object,double[]> userRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
     userRDD.foreachPartition(new EnqueuePartitionFunction("X", modelUpdateQueue));
 
     log.info("Sending item / Y data as model updates");
-    String yPathString = getExtensionValueByName(pmml, "Y");
+    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
     JavaPairRDD<Object,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
     productRDD.foreachPartition(new EnqueuePartitionFunction("Y", modelUpdateQueue));
@@ -161,12 +161,29 @@ public final class ALSUpdate extends MLUpdate<String> {
    * Combines {@link Rating}s with the same user/item into one, with score as the sum of
    * all of the scores.
    */
-  private static JavaRDD<Rating> sumScores(JavaRDD<Rating> original) {
-    return original.mapToPair(
-        new RatingToTupleDouble()
-    ).reduceByKey(
-        Functions.SUM_DOUBLE
-    ).map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {
+  private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original) {
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples =
+        original.mapToPair(new RatingToTupleDouble());
+
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
+    if (implicit) {
+      // For implicit, values are scores to be summed
+      aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
+    } else {
+      // For non-implicit, last wins.
+      aggregated = tuples.groupByKey().mapValues(new Function<Iterable<Double>,Double>() {
+        @Override
+        public Double call(Iterable<Double> values) {
+          Double finalValue = null;
+          for (Double value : values) {
+            finalValue = value;
+          }
+          return finalValue;
+        }
+      });
+    }
+
+    return aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {
       @Override
       public Rating call(Tuple2<Tuple2<Integer,Integer>, Double> userProductScore) {
         Tuple2<Integer,Integer> userProduct = userProductScore._1();
@@ -198,6 +215,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       addExtension(pmml, "alpha", Double.toString(alpha));
     }
+    addIDsExtension(pmml, "XIDs", model.userFeatures());
+    addIDsExtension(pmml, "YIDs", model.productFeatures());
     return pmml;
   }
 
@@ -205,6 +224,16 @@ public final class ALSUpdate extends MLUpdate<String> {
     Extension extension = new Extension();
     extension.setName(key);
     extension.setValue(value);
+    pmml.getExtensions().add(extension);
+  }
+
+  private static void addIDsExtension(PMML pmml,
+                                      String key,
+                                      RDD<Tuple2<Object,double[]>> features) {
+    List<String> ids = fromRDD(features).keys().map(Functions.TO_STRING).collect();
+    Extension extension = new Extension();
+    extension.setName(key);
+    extension.getContent().addAll(ids);
     pmml.getExtensions().add(extension);
   }
 
@@ -221,8 +250,8 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static MatrixFactorizationModel pmmlToMFModel(JavaSparkContext sparkContext,
                                                         PMML pmml,
                                                         Path modelParentPath) {
-    String xPathString = getExtensionValueByName(pmml, "X");
-    String yPathString = getExtensionValueByName(pmml, "Y");
+    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
+    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
 
     RDD<Tuple2<Object,double[]>> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
@@ -234,18 +263,6 @@ public final class ALSUpdate extends MLUpdate<String> {
     Tuple2<Object,double[]> first = (Tuple2<Object,double[]>) ((Object[]) userRDD.take(1))[0];
     int rank = first._2().length;
     return new MatrixFactorizationModel(rank, userRDD, productRDD);
-  }
-
-  private static String getExtensionValueByName(PMML pmml, String name) {
-    String value = null;
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        value = extension.getValue();
-        break;
-      }
-    }
-    Preconditions.checkNotNull(value, "No extension named %s", name);
-    return value;
   }
 
   private static RDD<Tuple2<Object,double[]>> readFeaturesRDD(JavaSparkContext sparkContext,
@@ -278,7 +295,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     // Joiner needs a Object[], so go ahead and make strings:
     String[] objVector = new String[vector.length];
     for (int i = 0; i < vector.length; i++) {
-      objVector[i] = Double.toString(vector[i]);
+      // Only need floats
+      objVector[i] = Float.toString((float) vector[i]);
     }
     return keyAndVector._1().toString() + '\t' + Joiner.on(',').join(objVector);
   }

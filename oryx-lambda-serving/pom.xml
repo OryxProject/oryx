@@ -37,10 +37,6 @@
       <artifactId>oryx-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jpmml</groupId>
-      <artifactId>pmml-model</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_${scala.minor.version}</artifactId>
     </dependency>

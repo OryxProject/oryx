@@ -13,22 +13,23 @@
  * License.
  */
 
-package com.cloudera.oryx.serving;
+package com.cloudera.oryx.ml.serving.kmeans;
 
-import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.serving.ServingLayer;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import java.util.HashSet;
+import java.util.Set;
 
-public final class Main {
-
-  private Main() {
-  }
-
-  public static void main(String[] args) throws Exception {
-    try (ServingLayer servingLayer = new ServingLayer(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(servingLayer);
-      servingLayer.start();
-      servingLayer.await();
-    }
+//@ApplicationPath("")
+public final class KMeansApplication extends Application {
+  @Override
+  public Set<Class<?>> getClasses() {
+    Set<Class<?>> s = new HashSet<>();
+    s.add(Add.class);
+    s.add(Assign.class);
+    s.add(DistanceToNearest.class);
+    return s;
   }
 }
+
+

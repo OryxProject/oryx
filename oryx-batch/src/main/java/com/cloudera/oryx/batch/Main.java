@@ -17,10 +17,10 @@ package com.cloudera.oryx.batch;
 
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.Server;
+import com.cloudera.oryx.lambda.BatchLayer;
 
 /**
- * Runs {@link Server} from the command line. It will use configuration as loaded
+ * Runs {@link com.cloudera.oryx.lambda.BatchLayer} from the command line. It will use configuration as loaded
  * by TypeSafe Config's {@code ConfigFactory}.
  */
 public final class Main {
@@ -29,10 +29,10 @@ public final class Main {
   }
 
   public static void main(String[] args) {
-    try (Server<?,?,?> server = new Server<>(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(server);
-      server.start();
-      server.await();
+    try (BatchLayer<?,?,?> batchLayer = new BatchLayer<>(ConfigUtils.getDefault())) {
+      JVMUtils.closeAtShutdown(batchLayer);
+      batchLayer.start();
+      batchLayer.await();
     }
   }
 
