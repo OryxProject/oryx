@@ -109,7 +109,7 @@ also accept new data and write it to Kafka where it can be seen by all Speed lay
 The serving layer defaults are provided by a reference.conf. Applications are expected to provide their 
 own conf file to provide properties which determine what application resources are required. This can be provided 
 using an application.conf available in the classpath (which typesafe's Config will load automatically) or 
-by providing a command line argument which specifies a config file to load (eg -Dconfig.file=<path>/cfg.conf) or even by specifying individual properties on the command line (eg: -Dserving.application-resources=com.cloudera.oryx.ml.serving.als).
+by providing a command line argument which specifies a config file to load (eg -Dconfig.file=<path>/cfg.conf) or even by specifying individual properties on the command line (eg: -D<property>=<value>).
 
 Usage and Deployment
 --------------------

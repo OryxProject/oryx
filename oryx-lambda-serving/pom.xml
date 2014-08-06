@@ -52,7 +52,6 @@
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>${jersey.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
@@ -62,12 +61,10 @@
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-moxy</artifactId>
-        <version>${jersey.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.test-framework.providers</groupId>
         <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
-        <version>${jersey.version}</version>
       </dependency>
   </dependencies>
 
