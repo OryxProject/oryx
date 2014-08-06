@@ -17,10 +17,10 @@ package com.cloudera.oryx.batch;
 
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.speed.SpeedLayer;
+import com.cloudera.oryx.lambda.BatchLayer;
 
 /**
- * Runs {@link SpeedLayer} from the command line. It will use configuration as loaded
+ * Runs {@link BatchLayer} from the command line. It will use configuration as loaded
  * by TypeSafe Config's {@code ConfigFactory}.
  */
 public final class Main {
@@ -29,10 +29,10 @@ public final class Main {
   }
 
   public static void main(String[] args) {
-    try (SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(speedLayer);
-      speedLayer.start();
-      speedLayer.await();
+    try (BatchLayer<?,?,?> batchLayer = new BatchLayer<>(ConfigUtils.getDefault())) {
+      JVMUtils.closeAtShutdown(batchLayer);
+      batchLayer.start();
+      batchLayer.await();
     }
   }
 
