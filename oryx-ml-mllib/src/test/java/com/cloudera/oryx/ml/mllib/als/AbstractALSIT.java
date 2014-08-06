@@ -21,9 +21,9 @@ import java.util.Map;
 import com.typesafe.config.Config;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractLambdaIT;
+import com.cloudera.oryx.lambda.AbstractBatchIT;
 
-public abstract class AbstractALSIT extends AbstractLambdaIT {
+public abstract class AbstractALSIT extends AbstractBatchIT {
 
   @Override
   protected Config getConfig() {

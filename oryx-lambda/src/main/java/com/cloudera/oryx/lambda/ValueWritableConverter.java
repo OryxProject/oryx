@@ -18,6 +18,8 @@ package com.cloudera.oryx.lambda;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.io.Writable;
@@ -28,6 +30,19 @@ import org.apache.hadoop.io.Writable;
  * {@link org.apache.hadoop.io.Text}.
  */
 final class ValueWritableConverter<V> {
+
+  private static final Map<Class<?>,Class<?>> WRAPPER_TO_PRIMITIVE;
+  static {
+    WRAPPER_TO_PRIMITIVE = new HashMap<>();
+    WRAPPER_TO_PRIMITIVE.put(Byte.class, byte.class);
+    WRAPPER_TO_PRIMITIVE.put(Short.class, short.class);
+    WRAPPER_TO_PRIMITIVE.put(Integer.class, int.class);
+    WRAPPER_TO_PRIMITIVE.put(Long.class, long.class);
+    WRAPPER_TO_PRIMITIVE.put(Float.class, float.class);
+    WRAPPER_TO_PRIMITIVE.put(Double.class, double.class);
+    WRAPPER_TO_PRIMITIVE.put(Boolean.class, boolean.class);
+    WRAPPER_TO_PRIMITIVE.put(Character.class, char.class);
+  }
 
   private final Method fromWritableMethod;
   private final Constructor<? extends Writable> writableConstructor;
@@ -40,12 +55,16 @@ final class ValueWritableConverter<V> {
    *  {@link #toString()} method will be used if not present. Must also have a constructor
    *  with a single argument whose type is the value class, and a no-arg constructor.
    */
-  ValueWritableConverter(Class<V> valueClass, Class<? extends Writable> writableClass) {
+  <W extends Writable> ValueWritableConverter(Class<V> valueClass, Class<W> writableClass) {
     Method fromWritableMethod = null;
     for (Method method : writableClass.getMethods()) {
-      if (method.getName().startsWith("get") && method.getReturnType().equals(valueClass)) {
-        fromWritableMethod = method;
-        break;
+      if (method.getName().startsWith("get")) {
+        Class<?> returnType = method.getReturnType();
+        if (returnType.equals(valueClass) ||
+            returnType.equals(WRAPPER_TO_PRIMITIVE.get(valueClass))) {
+          fromWritableMethod = method;
+          break;
+        }
       }
     }
     if (fromWritableMethod == null && String.class.equals(valueClass)) {
@@ -60,13 +79,31 @@ final class ValueWritableConverter<V> {
                                "%s has no method returning %s", writableClass, valueClass);
     this.fromWritableMethod = fromWritableMethod;
 
-    try {
-      writableConstructor = writableClass.getConstructor(valueClass);
-      writableNoArgConstructor = writableClass.getConstructor();
-    } catch (NoSuchMethodException e) {
-      throw new IllegalArgumentException(e);
+    Constructor<W> theNoArgConstructor = null;
+    Constructor<W> theOneArgConstructor = null;
+    @SuppressWarnings("unchecked")
+    Constructor<W>[] constructors = (Constructor<W>[]) writableClass.getConstructors();
+    for (Constructor<W> constructor : constructors) {
+      Class<?>[] parameterTypes = constructor.getParameterTypes();
+      if (parameterTypes.length == 0) {
+        theNoArgConstructor = constructor;
+      } else if (parameterTypes.length == 1) {
+        Class<?> paramType = parameterTypes[0];
+        if (paramType.equals(valueClass) ||
+            paramType.equals(WRAPPER_TO_PRIMITIVE.get(valueClass))) {
+          theOneArgConstructor = constructor;
+        }
+      }
+      if (theNoArgConstructor != null && theOneArgConstructor != null) {
+        break;
+      }
     }
 
+    Preconditions.checkNotNull(theNoArgConstructor, "%s has no no-arg constructor", writableClass);
+    Preconditions.checkNotNull(theOneArgConstructor,
+                               "%s has no constructor accepting %s", writableClass, valueClass);
+    writableNoArgConstructor =theNoArgConstructor;
+    writableConstructor = theOneArgConstructor;
   }
 
   V fromWritable(Writable writable) {

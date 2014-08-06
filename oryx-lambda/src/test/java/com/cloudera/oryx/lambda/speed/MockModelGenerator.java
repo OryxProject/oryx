@@ -15,11 +15,16 @@
 
 package com.cloudera.oryx.lambda.speed;
 
-/**
- * Marker interface for application's in-memory model representation in the speed layer.
- */
-public interface SpeedModel {
+import org.apache.commons.math3.random.RandomGenerator;
 
-  // Nothing here
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+
+final class MockModelGenerator implements RandomDatumGenerator<String,String> {
+
+  @Override
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    return new Pair<>((id % 10 == 0) ? "MODEL" : "UP", Integer.toString(id));
+  }
 
 }

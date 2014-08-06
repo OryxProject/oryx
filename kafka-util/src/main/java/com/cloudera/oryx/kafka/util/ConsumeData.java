@@ -24,12 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
+import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * A iterator that consumes data from a Kafka queue. When run on the command line, logs
  * the results to the console.
  */
-public final class ConsumeData implements Iterable<String[]> {
+public final class ConsumeData implements Iterable<Pair<String,String>> {
 
   private static final Logger log = LoggerFactory.getLogger(ConsumeData.class);
 
@@ -44,13 +45,13 @@ public final class ConsumeData implements Iterable<String[]> {
   public static void main(String[] args) {
     String topic = args[0];
     int zkPort = Integer.parseInt(args[1]);
-    for (String[] km : new ConsumeData(topic, zkPort)) {
-      log.info("{} = {}", km[0], km[1]);
+    for (Pair<String,String> km : new ConsumeData(topic, zkPort)) {
+      log.info("{} = {}", km.getFirst(), km.getSecond());
     }
   }
 
   @Override
-  public CloseableIterator<String[]> iterator() {
+  public CloseableIterator<Pair<String,String>> iterator() {
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-ConsumeData");
     consumerProps.setProperty("zookeeper.connect", "localhost:" + zkPort);

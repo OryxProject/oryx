@@ -17,17 +17,20 @@ package com.cloudera.oryx.kafka.util;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.common.collection.Pair;
+
 /**
  * Interface which generates one random datum.
  */
-public final class DefaultCSVDatumGenerator implements RandomDatumGenerator<String> {
+public final class DefaultCSVDatumGenerator implements RandomDatumGenerator<String,String> {
 
   @Override
-  public String generate(int id, RandomGenerator random) {
-    return id + "," +
-        random.nextInt(100) + ',' +
-        random.nextBoolean() + ',' +
-        random.nextGaussian();
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    return new Pair<>(Integer.toString(id),
+                      id + "," +
+                      random.nextInt(100) + ',' +
+                      random.nextBoolean() + ',' +
+                      random.nextGaussian());
   }
 
 }

@@ -284,7 +284,7 @@
     <jersey.version>2.11</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
-    <spark.version>1.0.1</spark.version>
+    <spark.version>1.0.2</spark.version>
     <tomcat.version>8.0.9</tomcat.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
@@ -440,7 +440,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.4</version>
+          <version>2.4.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -654,8 +654,15 @@
     <maven>3.2.1</maven>
   </prerequisites>
 
-  <!--
   <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <!--
     <repository>
       <id>oryx.repo</id>
       <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
@@ -678,8 +685,17 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    -->
   </repositories>
-   -->
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
 
   <!--
     <distributionManagement>

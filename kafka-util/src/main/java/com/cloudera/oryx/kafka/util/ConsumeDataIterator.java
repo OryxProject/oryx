@@ -15,21 +15,20 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import com.google.common.collect.AbstractIterator;
-import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.StringDecoder;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
+import com.cloudera.oryx.common.collection.Pair;
 
 final class ConsumeDataIterator
-    extends AbstractIterator<String[]> implements CloseableIterator<String[]> {
+    extends AbstractIterator<Pair<String,String>>
+    implements CloseableIterator<Pair<String,String>> {
 
   private final ConsumerConnector consumer;
   private final Iterator<MessageAndMetadata<String,String>> iterator;
@@ -37,22 +36,17 @@ final class ConsumeDataIterator
 
   ConsumeDataIterator(String topic, ConsumerConnector consumer) {
     this.consumer = consumer;
-    Map<String,Integer> topicCountMap = new HashMap<>();
-    topicCountMap.put(topic, 1);
-
-    Map<String,List<KafkaStream<String,String>>> consumerMap =
-        consumer.createMessageStreams(topicCountMap,
+    this.iterator =
+        consumer.createMessageStreams(Collections.singletonMap(topic, 1),
                                       new StringDecoder(null),
-                                      new StringDecoder(null));
-    KafkaStream<String,String> stream = consumerMap.get(topic).get(0);
-    this.iterator = stream.iterator();
+                                      new StringDecoder(null)).get(topic).get(0).iterator();
   }
 
   @Override
-  protected String[] computeNext() {
+  protected Pair<String,String> computeNext() {
     if (iterator.hasNext()) {
       MessageAndMetadata<String,String> mm = iterator.next();
-      return new String[] { mm.key(), mm.message() };
+      return new Pair<>(mm.key(), mm.message());
     } else {
       close();
       return endOfData();

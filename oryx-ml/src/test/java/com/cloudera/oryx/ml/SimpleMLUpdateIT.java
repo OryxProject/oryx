@@ -31,12 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractLambdaIT;
+import com.cloudera.oryx.lambda.AbstractBatchIT;
 
 /**
  * Tests {@link MLUpdate}.
  */
-public final class SimpleMLUpdateIT extends AbstractLambdaIT {
+public final class SimpleMLUpdateIT extends AbstractBatchIT {
 
   private static final Logger log = LoggerFactory.getLogger(SimpleMLUpdateIT.class);
 

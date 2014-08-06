@@ -171,16 +171,7 @@ public final class ALSUpdate extends MLUpdate<String> {
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.groupByKey().mapValues(new Function<Iterable<Double>,Double>() {
-        @Override
-        public Double call(Iterable<Double> values) {
-          Double finalValue = null;
-          for (Double value : values) {
-            finalValue = value;
-          }
-          return finalValue;
-        }
-      });
+      aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
     }
 
     return aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {

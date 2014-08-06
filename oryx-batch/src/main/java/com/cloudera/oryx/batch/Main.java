@@ -20,7 +20,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.BatchLayer;
 
 /**
- * Runs {@link com.cloudera.oryx.lambda.BatchLayer} from the command line. It will use configuration as loaded
+ * Runs {@link BatchLayer} from the command line. It will use configuration as loaded
  * by TypeSafe Config's {@code ConfigFactory}.
  */
 public final class Main {

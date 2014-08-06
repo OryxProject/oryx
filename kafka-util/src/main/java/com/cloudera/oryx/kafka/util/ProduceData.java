@@ -25,6 +25,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.random.RandomManager;
 
 /**
@@ -35,14 +36,14 @@ public final class ProduceData {
 
   private static final Logger log = LoggerFactory.getLogger(ProduceData.class);
 
-  private final RandomDatumGenerator<String> datumGenerator;
+  private final RandomDatumGenerator<String,String> datumGenerator;
   private final int zkPort;
   private final int kafkaPort;
   private final String topic;
   private final int howMany;
   private final int intervalMsec;
 
-  public ProduceData(RandomDatumGenerator<String> datumGenerator,
+  public ProduceData(RandomDatumGenerator<String,String> datumGenerator,
                      int zkPort,
                      int kafkaPort,
                      String topic,
@@ -90,9 +91,9 @@ public final class ProduceData {
     Producer<String,String> producer = new Producer<>(new ProducerConfig(producerProps));
     try {
       for (int i = 0; i < howMany; i++) {
-        String datum = datumGenerator.generate(i, random);
+        Pair<String,String> datum = datumGenerator.generate(i, random);
         KeyedMessage<String,String> keyedMessage =
-            new KeyedMessage<>(topic, Integer.toString(i), datum);
+            new KeyedMessage<>(topic, datum.getFirst(), datum.getSecond());
         producer.send(keyedMessage);
         log.debug("Sent datum {} = {}", keyedMessage.key(), keyedMessage.message());
         Thread.sleep(intervalMsec);

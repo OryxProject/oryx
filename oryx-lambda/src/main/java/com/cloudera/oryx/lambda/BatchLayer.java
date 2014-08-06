@@ -40,9 +40,9 @@ import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
  *
  * @param <K> type of key read from input queue
  * @param <M> type of message read from input queue
- * @param <O> type of model message written
+ * @param <U> type of model message written
  */
-public final class BatchLayer<K,M,O> implements Closeable {
+public final class BatchLayer<K,M,U> implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(BatchLayer.class);
 
@@ -52,7 +52,7 @@ public final class BatchLayer<K,M,O> implements Closeable {
   private final String messageTopic;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final Class<BatchLayerUpdate<K,M,O>> updateClass;
+  private final Class<BatchLayerUpdate<K,M,U>> updateClass;
   private final String dataDirString;
   private final String modelDirString;
   private final int generationIntervalSec;
@@ -70,7 +70,7 @@ public final class BatchLayer<K,M,O> implements Closeable {
     this.messageTopic = config.getString("input-queue.message.topic");
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
-    this.updateClass = (Class<BatchLayerUpdate<K,M,O>>) ClassUtils.loadClass(
+    this.updateClass = (Class<BatchLayerUpdate<K,M,U>>) ClassUtils.loadClass(
         config.getString("batch.update-class"), BatchLayerUpdate.class);
     this.dataDirString = config.getString("batch.storage.data-dir");
     this.modelDirString = config.getString("batch.storage.model-dir");
@@ -106,14 +106,14 @@ public final class BatchLayer<K,M,O> implements Closeable {
     JavaPairDStream<K,M> dStream = buildDStream();
 
     dStream.foreachRDD(
-        new UpdateWithNewDataFunction<>(config,
-                                        keyClass,
-                                        messageClass,
-                                        dataDirString,
-                                        modelDirString,
-                                        batchSerializationConfig,
-                                        loadUpdateInstance(),
-                                        streamingContext));
+        new BatchUpdateFunction<>(config,
+                                  keyClass,
+                                  messageClass,
+                                  dataDirString,
+                                  modelDirString,
+                                  batchSerializationConfig,
+                                  loadUpdateInstance(),
+                                  streamingContext));
 
     // Save data to HDFS. Write the original message type, not transformed.
     JavaPairDStream<Writable,Writable> writableDStream =
@@ -180,7 +180,7 @@ public final class BatchLayer<K,M,O> implements Closeable {
      */
   }
 
-  private BatchLayerUpdate<K,M,O> loadUpdateInstance() {
+  private BatchLayerUpdate<K,M,U> loadUpdateInstance() {
     try {
       return ClassUtils.loadInstanceOf(updateClass.getName(),
                                        updateClass,

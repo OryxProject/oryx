@@ -15,24 +15,28 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
+
+import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
  * serving layer. It is given a reference to a stream of updates during initialization,
  * and consumes models and updates from it, and updates in-memory state accordingly.
+ *
+ * @param <U> type of update message read/written
  */
-public interface ServingModelManager extends Closeable {
+public interface ServingModelManager<U> {
 
   /**
-   * Called by the framework to initiate a continuous process of reading from the queue
-   * and updating model state in memory. This will be executed asynchronously and may block.
+   * Called by the framework to initiate a continuous process of reading models, and reading
+   * from the input queue and updating model state in memory, and issuing updates to the
+   * update queue. This will be executed asynchronously and may block.
    *
-   * @param updateIterator queue to read models from. Values are arrays of 2 stings, the
-   *  key and message
+   * @param updateIterator iterator to read models from
    */
-  void start(Iterator<String[]> updateIterator);
+  void consume(Iterator<Pair<String,U>> updateIterator) throws IOException;
 
   /**
    * @return a reference to the current state of the model in memory. Note that the model state

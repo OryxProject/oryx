@@ -13,24 +13,35 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.lambda.speed;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
+import org.apache.spark.api.java.JavaPairRDD;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.serving.ServingModel;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
-public final class ALSServingModelManager implements ServingModelManager<String> {
+public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) {
+  private static List<Pair<String,String>> holder;
 
+  static void setIntervalDataHolder(List<Pair<String,String>> holder) {
+    MockSpeedModelManager.holder = holder;
   }
 
   @Override
-  public ServingModel getModel() {
-    return null;
+  public void consume(Iterator<Pair<String,String>> updateIterator) {
+    while (updateIterator.hasNext()) {
+      Pair<String,String> update = updateIterator.next();
+      holder.add(new Pair<>(update.getFirst(), update.getSecond()));
+    }
+  }
+
+  @Override
+  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+    return newData.values().collect();
   }
 
 }

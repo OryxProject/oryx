@@ -35,8 +35,8 @@ public abstract class OryxTest extends Assert {
 
   private static final Logger log = LoggerFactory.getLogger(OryxTest.class);
 
-  private static final float FLOAT_EPSILON = 1.0e-6f;
-  private static final double DOUBLE_EPSILON = 1.0e-12;
+  protected static final float FLOAT_EPSILON = 1.0e-6f;
+  protected static final double DOUBLE_EPSILON = 1.0e-12;
 
   private Path tempDir;
 
@@ -50,12 +50,12 @@ public abstract class OryxTest extends Assert {
   }
 
   @Before
-  public void setUp() {
+  public final void setUp() {
     RandomManager.useTestSeed();
   }
 
   @After
-  public void tearDown() throws IOException {
+  public final void tearDown() throws IOException {
     if (tempDir != null) {
       IOUtils.deleteRecursively(tempDir);
       tempDir = null;
@@ -73,10 +73,6 @@ public abstract class OryxTest extends Assert {
     Assert.assertEquals(expected, actual, FLOAT_EPSILON);
   }
 
-  protected static void assertArrayEquals(float[] expecteds, float[] actuals) {
-    Assert.assertArrayEquals(expecteds, actuals, FLOAT_EPSILON);
-  }
-
   /**
    * Asserts that two {@code double} values are equal or very close -- that the absolute value of their
    * difference is at most {@link #DOUBLE_EPSILON}.
@@ -92,27 +88,4 @@ public abstract class OryxTest extends Assert {
   protected static void assertArrayEquals(double[] expecteds, double[] actuals) {
     Assert.assertArrayEquals(expecteds, actuals, DOUBLE_EPSILON);
   }
-
-  protected static void assertArrayEquals(float[] expecteds, double[] actuals) {
-    float[] actualFloats = new float[actuals.length];
-    for (int i = 0; i < actuals.length; i++) {
-      actualFloats[i] = (float) actuals[i];
-    }
-    assertArrayEquals(expecteds, actualFloats);
-  }
-
-  /**
-   * Asserts that a {@code double} is {@link Double#NaN}.
-   */
-  protected static void assertNaN(double d) {
-    assertTrue("Expected NaN but got " + d, Double.isNaN(d));
-  }
-
-  /**
-   * Asserts that a {@code float} is {@link Float#NaN}.
-   */
-  protected static void assertNaN(float f) {
-    assertTrue("Expected NaN but got " + f, Float.isNaN(f));
-  }
-
 }

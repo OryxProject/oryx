@@ -17,11 +17,13 @@ package com.cloudera.oryx.kafka.util;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.common.collection.Pair;
+
 /**
  * Interface which generates one random datum.
  */
-public interface RandomDatumGenerator<T> {
+public interface RandomDatumGenerator<K,M> {
 
-  T generate(int id, RandomGenerator random);
+  Pair<K,M> generate(int id, RandomGenerator random);
 
 }

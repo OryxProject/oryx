@@ -90,14 +90,9 @@ public final class HyperParamTuningIT extends AbstractALSIT {
 
     PMML pmml = PMMLUtils.read(modelFile);
     List<Extension> extensions = pmml.getExtensions();
-    assertEquals(6, extensions.size());
-    Map<String,String> extensionKeyValues = new HashMap<>();
-    for (Extension extension : extensions) {
-      extensionKeyValues.put(extension.getName(), extension.getValue());
-    }
+    assertEquals(8, extensions.size());
     assertNotNull(PMMLUtils.getExtensionValue(pmml, "X"));
     assertNotNull(PMMLUtils.getExtensionValue(pmml, "Y"));
-
     assertTrue(Boolean.parseBoolean(PMMLUtils.getExtensionValue(pmml, "implicit")));
     assertEquals(0.001, Double.parseDouble(PMMLUtils.getExtensionValue(pmml, "lambda")));
     assertEquals(1.0, Double.parseDouble(PMMLUtils.getExtensionValue(pmml, "alpha")));
