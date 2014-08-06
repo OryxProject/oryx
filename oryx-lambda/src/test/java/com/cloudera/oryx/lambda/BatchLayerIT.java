@@ -31,9 +31,9 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 /**
  * Tests {@link BatchLayer}.
  */
-public final class ServerIT extends AbstractLambdaIT {
+public final class BatchLayerIT extends AbstractBatchIT {
 
-  private static final Logger log = LoggerFactory.getLogger(ServerIT.class);
+  private static final Logger log = LoggerFactory.getLogger(BatchLayerIT.class);
 
   private static final int DATA_TO_WRITE = 600;
   private static final int WRITE_INTERVAL_MSEC = 100;
@@ -45,7 +45,7 @@ public final class ServerIT extends AbstractLambdaIT {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("batch.update-class", MockUpdate.class.getName());
+    overlayConfig.put("batch.update-class", MockBatchUpdate.class.getName());
     overlayConfig.put("batch.storage.data-dir",
                       "\"" + dataDir.toUri() + "\"");
     overlayConfig.put("batch.storage.model-dir",
@@ -60,7 +60,7 @@ public final class ServerIT extends AbstractLambdaIT {
     startMessageQueue();
 
     List<IntervalData<String,String>> intervalData = new ArrayList<>();
-    MockUpdate.setIntervalDataHolder(intervalData);
+    MockBatchUpdate.setIntervalDataHolder(intervalData);
 
     startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 

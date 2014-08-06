@@ -29,12 +29,12 @@ import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
  * A dummy {@link com.cloudera.oryx.lambda.update.BatchLayerUpdate} that collects data seen by the
  * framework in a given {@link List}. Assists testing.
  */
-public final class MockUpdate implements BatchLayerUpdate<String,String,String> {
+public final class MockBatchUpdate implements BatchLayerUpdate<String,String,String> {
 
   private static List<IntervalData<String,String>> holder;
 
   static void setIntervalDataHolder(List<IntervalData<String,String>> holder) {
-    MockUpdate.holder = holder;
+    MockBatchUpdate.holder = holder;
   }
 
   @Override
