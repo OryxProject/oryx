@@ -36,14 +36,14 @@ import com.cloudera.oryx.lambda.fn.Functions;
 
 final class AUC {
 
-  private static Function<Rating,Integer> RATING_TO_USER = new Function<Rating,Integer>() {
+  private static final Function<Rating,Integer> RATING_TO_USER = new Function<Rating,Integer>() {
     @Override
     public Integer call(Rating r) {
       return r.user();
     }
   };
 
-  private static Function<Rating,Integer> RATING_TO_PRODUCT = new Function<Rating,Integer>() {
+  private static final Function<Rating,Integer> RATING_TO_PRODUCT = new Function<Rating,Integer>() {
     @Override
     public Integer call(Rating r) {
       return r.product();
