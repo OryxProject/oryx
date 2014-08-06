@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
@@ -39,8 +40,6 @@ import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractBatchIT.class);
-
-  private static final int WAIT_BUFFER_IN_WRITES = 250;
 
   protected List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
@@ -54,7 +53,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   protected List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
-      RandomDatumGenerator<String> datumGenerator,
+      RandomDatumGenerator<String,String> datumGenerator,
       int howMany,
       int intervalMsec) throws IOException, InterruptedException {
 
@@ -77,16 +76,16 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
          BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
 
       log.info("Starting consumer thread");
-      new Thread(new Runnable() {
+      new Thread(new LoggingRunnable() {
         @Override
-        public void run() {
+        public void doRun() {
           while (data.hasNext()) {
             keyMessages.add(data.next());
           }
         }
       }).start();
 
-      log.info("Starting server");
+      log.info("Starting batch layer");
       batchLayer.start();
 
       // Sleep for a while after starting server to let it init

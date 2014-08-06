@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.zk.LocalZKServer;
 
 /**
@@ -60,9 +61,9 @@ public final class ProduceConsumeIT extends OryxTest {
 
       try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
-        new Thread(new Runnable() {
+        new Thread(new LoggingRunnable() {
           @Override
-          public void run() {
+          public void doRun() {
             while (data.hasNext()) {
               keys.add(Integer.valueOf(data.next().getFirst()));
             }

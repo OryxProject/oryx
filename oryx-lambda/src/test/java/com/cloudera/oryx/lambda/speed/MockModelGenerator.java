@@ -13,24 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.kafka.util;
+package com.cloudera.oryx.lambda.speed;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-/**
- * Interface which generates one random datum.
- */
-public final class DefaultCSVDatumGenerator implements RandomDatumGenerator<String,String> {
+final class MockModelGenerator implements RandomDatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
-    return new Pair<>(Integer.toString(id),
-                      id + "," +
-                      random.nextInt(100) + ',' +
-                      random.nextBoolean() + ',' +
-                      random.nextGaussian());
+    return new Pair<>((id % 10 == 0) ? "MODEL" : "UP", Integer.toString(id));
   }
 
 }

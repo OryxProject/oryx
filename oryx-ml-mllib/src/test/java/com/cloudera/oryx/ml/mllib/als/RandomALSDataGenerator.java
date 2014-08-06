@@ -17,9 +17,10 @@ package com.cloudera.oryx.ml.mllib.als;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-final class RandomALSDataGenerator implements RandomDatumGenerator<String> {
+final class RandomALSDataGenerator implements RandomDatumGenerator<String,String> {
 
   private final int numUsers;
   private final int numProducts;
@@ -37,11 +38,11 @@ final class RandomALSDataGenerator implements RandomDatumGenerator<String> {
   }
 
   @Override
-  public String generate(int id, RandomGenerator random) {
-    return
-        random.nextInt(numUsers) + "," +
-        random.nextInt(numProducts) + "," +
-        (random.nextInt(maxRating - minRating) + minRating);
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    return new Pair<>(Integer.toString(id),
+                      random.nextInt(numUsers) + "," +
+                      random.nextInt(numProducts) + "," +
+                      (random.nextInt(maxRating - minRating) + minRating));
   }
 
 }

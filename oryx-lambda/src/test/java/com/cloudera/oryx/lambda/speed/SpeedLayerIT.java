@@ -16,11 +16,13 @@
 package com.cloudera.oryx.lambda.speed;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
 import org.junit.Test;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
@@ -32,14 +34,17 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
   private static final int BLOCK_INTERVAL_SEC = 1;
 
   @Test
-  public void testSpeedLayer() {
+  public void testSpeedLayer() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("speed.model-manager-class", MockSpeedModelManager.class.getName());
-    overlayConfig.put("speed.generation-interval-sec",
-                      Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("speed.block-interval-sec",
-                      Integer.toString(BLOCK_INTERVAL_SEC));
+    overlayConfig.put("speed.generation-interval-sec", Integer.toString(GEN_INTERVAL_SEC));
+    overlayConfig.put("speed.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
+
+    //startMessageQueue();
+    //List<Pair<String,String>> messages =
+    //    startServerProduceConsumeQueues(config, 1000, 100, 10, 1);
+    //System.out.println(messages);
   }
 
 }

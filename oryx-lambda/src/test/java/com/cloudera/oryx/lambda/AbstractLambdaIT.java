@@ -37,8 +37,9 @@ public abstract class AbstractLambdaIT extends OryxTest {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractLambdaIT.class);
 
-  static final String INPUT_TOPIC = "OryxInput";
-  static final String UPDATE_TOPIC = "OryxUpdate";
+  protected static final String INPUT_TOPIC = "OryxInput";
+  protected static final String UPDATE_TOPIC = "OryxUpdate";
+  protected static final int WAIT_BUFFER_IN_WRITES = 250;
 
   private LocalZKServer localZKServer;
   private LocalKafkaBroker localKafkaBroker;
@@ -58,7 +59,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
   }
 
   @After
-  public void tearDownTestState() {
+  public final void tearDownTestState() {
     if (localZKServer != null) {
       int zkPort = localZKServer.getPort();
       KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);
@@ -80,11 +81,11 @@ public abstract class AbstractLambdaIT extends OryxTest {
     return ConfigUtils.getDefault();
   }
 
-  int getZKPort() {
+  protected final int getZKPort() {
     return localZKServer.getPort();
   }
 
-  int getKafkaBrokerPort() {
+  protected final int getKafkaBrokerPort() {
     return localKafkaBroker.getPort();
   }
 

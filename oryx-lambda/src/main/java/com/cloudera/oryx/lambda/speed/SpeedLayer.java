@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda.speed;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Properties;
@@ -32,6 +33,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
+import kafka.utils.VerifiableProperties;
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
+import com.cloudera.oryx.common.lang.LoggingRunnable;
 
 /**
  * Main entry point for Oryx Speed Layer.
@@ -112,7 +115,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),
-                                      ClassUtils.loadInstanceOf(updateDecoderClass))
+                                      loadDecoderInstance())
             .get(updateTopic).get(0);
     final Iterator<Pair<String,U>> transformed = Iterators.transform(stream.iterator(),
         new Function<MessageAndMetadata<String,U>, Pair<String,U>>() {
@@ -124,14 +127,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
     final SpeedModelManager<K,M,U> modelManager = loadManagerInstance();
 
-    new Thread(new Runnable() {
+    new Thread(new LoggingRunnable() {
       @Override
-      public void run() {
-        try {
-          modelManager.consume(transformed);
-        } catch (Throwable t) {
-          log.error("Model manager thread failed", t);
-        }
+      public void doRun() throws IOException {
+        modelManager.consume(transformed);
       }
     }).start();
 
@@ -183,6 +182,19 @@ public final class SpeedLayer<K,M,U> implements Closeable {
       log.info("{} lacks a constructor with Config arg, using no-arg constructor",
                modelManagerClass);
       return ClassUtils.loadInstanceOf(modelManagerClass);
+    }
+  }
+
+  private Decoder<U> loadDecoderInstance() {
+    try {
+      return ClassUtils.loadInstanceOf(updateDecoderClass);
+    } catch (IllegalArgumentException iae) {
+      log.warn("No no-arg constructor for {}; trying nullable one-arg", updateDecoderClass);
+      // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
+      return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
+                                       updateDecoderClass,
+                                       new Class<?>[] { VerifiableProperties.class },
+                                       new Object[] { null });
     }
   }
 
