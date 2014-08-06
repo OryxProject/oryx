@@ -16,24 +16,30 @@
 package com.cloudera.oryx.ml.als.speed;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
-import com.cloudera.oryx.lambda.QueueProducer;
-import com.cloudera.oryx.lambda.speed.SpeedModel;
+import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 import com.cloudera.oryx.ml.pmml.PMMLUtils;
 
-public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStrength> {
+public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
 
@@ -45,16 +51,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
   }
 
   @Override
-  public SpeedModel getModel() {
-    return model;
-  }
-
-  @Override
-  public void start(Iterator<String[]> updateIterator) throws IOException {
+  public void consume(Iterator<Tuple2<String,String>> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      String[] km = updateIterator.next();
-      String key = km[0];
-      String message = km[1];
+      Tuple2<String,String> km = updateIterator.next();
+      String key = km._1();
+      String message = km._2();
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
@@ -121,13 +122,50 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
   }
 
   @Override
-  public void onInput(Collection<UserItemStrength> input,
-                      QueueProducer<String,String> updateProducer) {
+  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
     if (model == null) {
-      return;
+      return Collections.emptyList();
     }
+
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples = newData.mapToPair(
+        new PairFunction<Tuple2<String,String>,Tuple2<Integer,Integer>,Double>() {
+          private final Pattern comma = Pattern.compile(",");
+          @Override
+          public Tuple2<Tuple2<Integer,Integer>,Double> call(Tuple2<String,String> km) {
+            String[] tokens = comma.split(km._2());
+            int numTokens = tokens.length;
+            Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3);
+            int user = Integer.parseInt(tokens[0]);
+            int item = Integer.parseInt(tokens[1]);
+            double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;
+            return new Tuple2<>(new Tuple2<>(user, item), value);
+          }
+        });
+
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
+    if (implicit) {
+      // For implicit, values are scores to be summed
+      aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
+    } else {
+      // For non-implicit, last wins.
+      aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
+    }
+
+    Collection<UserItemStrength> input =
+        aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>,UserItemStrength>() {
+          @Override
+          public UserItemStrength call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
+            Tuple2<Integer,Integer> userProduct = userProductScore._1();
+            return new UserItemStrength(userProduct._1(),
+                                        userProduct._2(),
+                                        userProductScore._2().floatValue());
+          }
+        }).collect();
+
     Solver XTXsolver = model.getXTXSolver();
     Solver YTYsolver = model.getYTYSolver();
+
+    Collection<String> result = new ArrayList<>();
     for (UserItemStrength uis : input) {
       int user = uis.getUser();
       int item = uis.getItem();
@@ -172,14 +210,14 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
         }
       }
 
-
       if (newXu != null) {
-        updateProducer.send("UP", "X\t" + formatKeyAndVector(user, newXu));
+        result.add("X	" + formatKeyAndVector(user, newXu));
       }
       if (newYi != null) {
-        updateProducer.send("UP", "Y\t" + formatKeyAndVector(item, newYi));
+        result.add("Y\t" + formatKeyAndVector(item, newYi));
       }
     }
+    return result;
   }
 
   private double computeTargetQui(double value, double currentValue) {
@@ -228,11 +266,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<UserItemStr
       objVector[i] = Float.toString(vector[i]);
     }
     return id + '\t' + Joiner.on(',').join(objVector);
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

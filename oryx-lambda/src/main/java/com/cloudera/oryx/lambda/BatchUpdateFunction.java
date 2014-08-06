@@ -38,37 +38,36 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
 
 /**
- * Framework for executing the computation layer update, and storing data to persistent storage,
+ * Framework for executing the batch layer update, and storing data to persistent storage,
  * in the context of a streaming framework.
  *
  * @param <K> type of key read from input queue
  * @param <M> type of message read from input queue
- * @param <O> type of model message written
+ * @param <U> type of model message written
  */
-final class UpdateWithNewDataFunction<K,M,O> implements Function2<JavaPairRDD<K,M>,Time,Void> {
+final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Time,Void> {
 
-  private static final Logger log = LoggerFactory.getLogger(UpdateWithNewDataFunction.class);
+  private static final Logger log = LoggerFactory.getLogger(BatchUpdateFunction.class);
 
   private final Class<K> keyClass;
   private final Class<M> messageClass;
   private final String dataDirString;
   private final String modelDirString;
   private final BatchSerializationConfig batchSerializationConfig;
-  private final BatchLayerUpdate<K,M,O> updateInstance;
+  private final BatchLayerUpdate<K,M,U> updateInstance;
   private final String updateBroker;
   private final String updateTopic;
-
   // Can't be serialized, but shouldn't need to be (?)
   private final transient JavaSparkContext sparkContext;
 
-  UpdateWithNewDataFunction(Config config,
-                            Class<K> keyClass,
-                            Class<M> messageClass,
-                            String dataDirString,
-                            String modelDirString,
-                            BatchSerializationConfig batchSerializationConfig,
-                            BatchLayerUpdate<K,M,O> updateInstance,
-                            JavaStreamingContext streamingContext) {
+  BatchUpdateFunction(Config config,
+                      Class<K> keyClass,
+                      Class<M> messageClass,
+                      String dataDirString,
+                      String modelDirString,
+                      BatchSerializationConfig batchSerializationConfig,
+                      BatchLayerUpdate<K,M,U> updateInstance,
+                      JavaStreamingContext streamingContext) {
     this.keyClass = keyClass;
     this.messageClass = messageClass;
     this.dataDirString = dataDirString;
@@ -115,7 +114,7 @@ final class UpdateWithNewDataFunction<K,M,O> implements Function2<JavaPairRDD<K,
                                         batchSerializationConfig));
     }
 
-    try (QueueProducer<String,O> producer = new QueueProducer<>(updateBroker, updateTopic)) {
+    try (QueueProducer<String,U> producer = new QueueProducer<>(updateBroker, updateTopic)) {
       updateInstance.configureUpdate(sparkContext,
                                      timestamp.milliseconds(),
                                      newData,

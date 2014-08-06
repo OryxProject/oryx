@@ -28,9 +28,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import com.cloudera.oryx.lambda.speed.SpeedModel;
-
-public final class ALSSpeedModel implements SpeedModel {
+public final class ALSSpeedModel {
 
   private final IntObjectMap<float[]> X;
   private final IntObjectMap<float[]> Y;

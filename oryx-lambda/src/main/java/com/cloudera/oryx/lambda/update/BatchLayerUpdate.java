@@ -31,9 +31,9 @@ import com.cloudera.oryx.lambda.QueueProducer;
  *
  * @param <K> type of key read from input queue
  * @param <M> type of message read from input queue
- * @param <O> type of model message written
+ * @param <U> type of model message written
  */
-public interface BatchLayerUpdate<K,M,O> extends Serializable {
+public interface BatchLayerUpdate<K,M,U> extends Serializable {
 
   /**
    * @param sparkContext Spark context
@@ -51,7 +51,7 @@ public interface BatchLayerUpdate<K,M,O> extends Serializable {
                        JavaPairRDD<K,M> newData,
                        JavaPairRDD<K,M> pastData,
                        String modelDirString,
-                       QueueProducer<String,O> modelUpdateQueue)
+                       QueueProducer<String,U> modelUpdateQueue)
       throws IOException, InterruptedException;
 
 }

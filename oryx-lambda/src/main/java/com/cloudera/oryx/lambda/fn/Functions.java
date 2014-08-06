@@ -25,6 +25,9 @@ public final class Functions {
 
   private Functions() {}
 
+  /**
+   * A function that sums its (int) arguments.
+   */
   public static final Function2<Integer,Integer,Integer> SUM_INT =
       new Function2<Integer,Integer,Integer>() {
         @Override
@@ -33,6 +36,9 @@ public final class Functions {
         }
       };
 
+  /**
+   * A function that sums its (long) arguments.
+   */
   public static final Function2<Long,Long,Long> SUM_LONG =
       new Function2<Long,Long,Long>() {
         @Override
@@ -41,6 +47,9 @@ public final class Functions {
         }
       };
 
+  /**
+   * A function that sums its (double) arguments.
+   */
   public static final Function2<Double,Double,Double> SUM_DOUBLE =
       new Function2<Double,Double,Double>() {
         @Override
@@ -49,12 +58,31 @@ public final class Functions {
         }
       };
 
+  /**
+   * A function that maps objects to their {@link #toString()} representation.
+   */
   public static final Function<Object,String> TO_STRING =
       new Function<Object,String>() {
         @Override
         public String call(Object o) {
-          return o.toString();
+          return o == null ? null : o.toString();
         }
       };
+
+  /**
+   * @return a function that returns the last element in a stream of values
+   */
+  public static <T> Function<Iterable<T>,T> last() {
+    return new Function<Iterable<T>,T>() {
+      @Override
+      public T call(Iterable<T> values) {
+        T last = null;
+        for (T t : values) {
+          last = t;
+        }
+        return last;
+      }
+    };
+  }
 
 }

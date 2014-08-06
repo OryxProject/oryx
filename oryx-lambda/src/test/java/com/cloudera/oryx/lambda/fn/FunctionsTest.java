@@ -15,6 +15,10 @@
 
 package com.cloudera.oryx.lambda.fn;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.apache.spark.api.java.function.Function;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -51,6 +55,14 @@ public final class FunctionsTest extends OryxTest {
   @Test
   public void testToString() throws Exception {
     assertEquals("1.0", Functions.TO_STRING.call(1.0));
+    assertNull(Functions.TO_STRING.call(null));
+  }
+
+  @Test
+  public void testLast() throws Exception {
+    Function<Iterable<Double>,Double> fn = Functions.last();
+    assertEquals(3.0, fn.call(Arrays.asList(7.0, 0.0, 3.0)).doubleValue());
+    assertNull(fn.call(Collections.<Double>emptyList()));
   }
 
 }

@@ -15,13 +15,10 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import com.google.common.collect.AbstractIterator;
-import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.StringDecoder;
@@ -37,15 +34,10 @@ final class ConsumeDataIterator
 
   ConsumeDataIterator(String topic, ConsumerConnector consumer) {
     this.consumer = consumer;
-    Map<String,Integer> topicCountMap = new HashMap<>();
-    topicCountMap.put(topic, 1);
-
-    Map<String,List<KafkaStream<String,String>>> consumerMap =
-        consumer.createMessageStreams(topicCountMap,
+    this.iterator =
+        consumer.createMessageStreams(Collections.singletonMap(topic, 1),
                                       new StringDecoder(null),
-                                      new StringDecoder(null));
-    KafkaStream<String,String> stream = consumerMap.get(topic).get(0);
-    this.iterator = stream.iterator();
+                                      new StringDecoder(null)).get(topic).get(0).iterator();
   }
 
   @Override

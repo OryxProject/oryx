@@ -15,13 +15,21 @@
 
 package com.cloudera.oryx.speed;
 
+import com.cloudera.oryx.common.lang.JVMUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.lambda.speed.SpeedLayer;
+
 public final class Main {
 
   private Main() {
   }
 
   public static void main(String[] args) {
-    //TODO
+    try (SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(ConfigUtils.getDefault())) {
+      JVMUtils.closeAtShutdown(speedLayer);
+      speedLayer.start();
+      speedLayer.await();
+    }
   }
 
 }

@@ -36,6 +36,20 @@ import com.cloudera.oryx.lambda.fn.Functions;
 
 final class AUC {
 
+  private static Function<Rating,Integer> RATING_TO_USER = new Function<Rating,Integer>() {
+    @Override
+    public Integer call(Rating r) {
+      return r.user();
+    }
+  };
+
+  private static Function<Rating,Integer> RATING_TO_PRODUCT = new Function<Rating,Integer>() {
+    @Override
+    public Integer call(Rating r) {
+      return r.product();
+    }
+  };
+
   private AUC() {
   }
 
@@ -55,22 +69,10 @@ final class AUC {
     RDD<Tuple2<Object,Object>> testUserProductsRDD =
         (RDD<Tuple2<Object,Object>>) (RDD<?>) testUserProducts.rdd();
     JavaPairRDD<Integer,Iterable<Rating>> testPredictions =
-        testData.wrapRDD(mfModel.predict(testUserProductsRDD)).groupBy(
-            new Function<Rating, Integer>() {
-              @Override
-              public Integer call(Rating r) {
-                return r.user();
-              }
-            }
-        );
+        testData.wrapRDD(mfModel.predict(testUserProductsRDD)).groupBy(RATING_TO_USER);
 
     // All distinct item IDs, to be broadcast
-    final List<Integer> allItemIDs = testData.map(new Function<Rating,Integer>() {
-      @Override
-      public Integer call(Rating r) {
-        return r.product();
-      }
-    }).distinct().collect();
+    final List<Integer> allItemIDs = testData.map(RATING_TO_PRODUCT).distinct().collect();
 
     // Create some predictions for randomly-chosen items
     JavaRDD<Integer> userIDs = testUserProducts.keys().distinct();
@@ -103,14 +105,7 @@ final class AUC {
     RDD<Tuple2<Object,Object>> trainUserProductsRDD =
         (RDD<Tuple2<Object,Object>>) (RDD<?>) trainUserProducts.rdd();
     JavaPairRDD<Integer,Iterable<Rating>> trainPredictions =
-        testData.wrapRDD(mfModel.predict(trainUserProductsRDD)).groupBy(
-            new Function<Rating, Integer>() {
-              @Override
-              public Integer call(Rating r) {
-                return r.user();
-              }
-            }
-        );
+        testData.wrapRDD(mfModel.predict(trainUserProductsRDD)).groupBy(RATING_TO_USER);
 
     // Join test and train predictions
     JavaPairRDD<Long,Long> correctIncorrect = testPredictions.join(trainPredictions).mapToPair(
