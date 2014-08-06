@@ -637,8 +637,15 @@
     <maven>3.2.1</maven>
   </prerequisites>
 
-  <!--
   <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <!--
     <repository>
       <id>oryx.repo</id>
       <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
@@ -661,8 +668,17 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    -->
   </repositories>
-   -->
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
 
   <!--
     <distributionManagement>
