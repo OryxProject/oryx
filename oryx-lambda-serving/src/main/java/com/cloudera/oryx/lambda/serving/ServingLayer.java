@@ -15,20 +15,16 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.serving.OryxApplication;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.catalina.Context;
-import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
-import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Engine;
 import org.apache.catalina.Server;
+import org.apache.catalina.LifecycleException;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
@@ -38,11 +34,16 @@ import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
+import javax.servlet.http.HttpServletResponse;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class ServingLayer implements Closeable {
 
@@ -59,6 +60,7 @@ public final class ServingLayer implements Closeable {
   };
 
   private final int port;
+  private final Config config;
   private final int securePort;
   private final String userName;
   private final String password;
@@ -90,6 +92,7 @@ public final class ServingLayer implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
+    this.config = config;
   }
 
   public synchronized void start() throws IOException {
@@ -224,18 +227,11 @@ public final class ServingLayer implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    //ContextConfig contextConfig = new ContextConfig();
-    //contextConfig.setDefaultWebXml();
-    //context.addLifecycleListener(contextConfig);
+    ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
+    Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
+    context.addServletMapping("/*", "jersey-container-servlet");
 
-    //ResourceConfig rc = new PackagesResourceConfig("com.cloudera.oryx.serving.web");
-    //Map<String,Object> config = new HashMap<>();
-    //config.put("com.sun.jersey.api.json.POJOMappingFeature", true);
-    //rc.setPropertiesAndFeatures(config);
-    //tomcat.getHost().addChild(context);
-
-    //context.addWelcomeFile("index.jspx");
-    //addErrorPages(context);
+    addErrorPages(context);
 
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;
@@ -288,14 +284,6 @@ public final class ServingLayer implements Closeable {
     context.addErrorPage(errorPage);
   }
 
-  /*
-  private static Wrapper addServlet(Context context, Servlet servlet, String path) {
-    String name = servlet.getClass().getSimpleName();
-    Wrapper servletWrapper = Tomcat.addServlet(context, name, servlet);
-    servletWrapper.setLoadOnStartup(1);
-    context.addServletMapping(path, name);
-    return servletWrapper;
-  }
-   */
 
 }
+
