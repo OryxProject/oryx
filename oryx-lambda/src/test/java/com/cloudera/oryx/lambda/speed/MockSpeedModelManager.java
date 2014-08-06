@@ -13,10 +13,25 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.speed;
 
-public abstract class AbstractSpeedIT extends AbstractLambdaIT {
+import java.util.Collection;
+import java.util.Iterator;
 
-  // TODO
+import org.apache.spark.api.java.JavaPairRDD;
+
+import com.cloudera.oryx.common.collection.Pair;
+
+public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
+
+  @Override
+  public void consume(Iterator<Pair<String,String>> updateIterator) {
+
+  }
+
+  @Override
+  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+    return null;
+  }
 
 }

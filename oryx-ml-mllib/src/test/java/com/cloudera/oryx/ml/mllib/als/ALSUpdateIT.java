@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.ml.MLUpdate;
@@ -72,7 +73,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
     startMessageQueue();
 
-    List<String[]> updates =
+    List<Pair<String,String>> updates =
         startServerProduceConsumeQueues(config,
                                         new RandomALSDataGenerator(1000, 1000, 1, 5),
                                         DATA_TO_WRITE,
@@ -111,10 +112,10 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Collection<Integer> lastModelUsers = null;
     Collection<Integer> lastModelProducts = null;
     int whichGeneration = -1;
-    for (String[] km : updates) {
+    for (Pair<String,String> km : updates) {
 
-      String type = km[0];
-      String value = km[1];
+      String type = km.getFirst();
+      String value = km.getSecond();
 
       log.debug("{} = {}", type, value);
 

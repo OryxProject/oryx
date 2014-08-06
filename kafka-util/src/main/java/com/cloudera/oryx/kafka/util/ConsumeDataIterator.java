@@ -24,9 +24,11 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.StringDecoder;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
+import com.cloudera.oryx.common.collection.Pair;
 
 final class ConsumeDataIterator
-    extends AbstractIterator<String[]> implements CloseableIterator<String[]> {
+    extends AbstractIterator<Pair<String,String>>
+    implements CloseableIterator<Pair<String,String>> {
 
   private final ConsumerConnector consumer;
   private final Iterator<MessageAndMetadata<String,String>> iterator;
@@ -41,10 +43,10 @@ final class ConsumeDataIterator
   }
 
   @Override
-  protected String[] computeNext() {
+  protected Pair<String,String> computeNext() {
     if (iterator.hasNext()) {
       MessageAndMetadata<String,String> mm = iterator.next();
-      return new String[] { mm.key(), mm.message() };
+      return new Pair<>(mm.key(), mm.message());
     } else {
       close();
       return endOfData();

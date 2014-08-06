@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
@@ -41,7 +42,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   private static final int WAIT_BUFFER_IN_WRITES = 250;
 
-  protected List<String[]> startServerProduceConsumeQueues(
+  protected List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       int howMany,
       int intervalMsec) throws IOException, InterruptedException {
@@ -51,7 +52,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                            intervalMsec);
   }
 
-  protected List<String[]> startServerProduceConsumeQueues(
+  protected List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       RandomDatumGenerator<String> datumGenerator,
       int howMany,
@@ -67,11 +68,12 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                           howMany,
                                           intervalMsec);
 
-    final List<String[]> keyMessages = new ArrayList<>();
+    final List<Pair<String,String>> keyMessages = new ArrayList<>();
 
     Thread.sleep(bufferMS);
 
-    try (CloseableIterator<String[]> data = new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
+    try (CloseableIterator<Pair<String,String>> data =
+             new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
          BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
 
       log.info("Starting consumer thread");

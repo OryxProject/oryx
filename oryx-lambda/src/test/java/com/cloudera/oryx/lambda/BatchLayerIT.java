@@ -41,7 +41,7 @@ public final class BatchLayerIT extends AbstractBatchIT {
   private static final int BLOCK_INTERVAL_SEC = 3;
 
   @Test
-  public void testServer() throws Exception {
+  public void testBatchLayer() throws Exception {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Map<String,String> overlayConfig = new HashMap<>();
