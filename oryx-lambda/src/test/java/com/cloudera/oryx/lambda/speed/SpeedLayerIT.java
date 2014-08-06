@@ -21,6 +21,8 @@ import java.util.Map;
 
 import com.typesafe.config.Config;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -29,6 +31,8 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
  * Tests {@link SpeedLayer}.
  */
 public final class SpeedLayerIT extends AbstractSpeedIT {
+
+  private static final Logger log = LoggerFactory.getLogger(SpeedLayerIT.class);
 
   private static final int GEN_INTERVAL_SEC = 3;
   private static final int BLOCK_INTERVAL_SEC = 1;
@@ -41,10 +45,39 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
     overlayConfig.put("speed.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    //startMessageQueue();
-    //List<Pair<String,String>> messages =
-    //    startServerProduceConsumeQueues(config, 1000, 100, 10, 1);
-    //System.out.println(messages);
+    startMessageQueue();
+
+    List<Pair<String,String>> updates =
+        startServerProduceConsumeQueues(config, 1000, 100, 10, 1);
+
+    int inputToUpdate = 0;
+    int receivedUpdates = 0;
+    int models = 0;
+    for (Pair<String,String> update : updates) {
+      String key = update.getFirst();
+      String message = update.getSecond();
+      if (message.contains(",")) {
+        // it's an input converted to update
+        assertEquals("UP", update.getFirst());
+        inputToUpdate++;
+      } else {
+        // Else should be just an int
+        boolean shouldBeModel = Integer.parseInt(message) % 10 == 0;
+        assertEquals(shouldBeModel ? "MODEL" : "UP", key);
+        if (shouldBeModel) {
+          models++;
+        } else {
+          receivedUpdates++;
+        }
+      }
+    }
+
+    log.info("Received {} models, {} inputs converted to updates, and {} other updates",
+             models, inputToUpdate, receivedUpdates);
+
+    assertEquals(1, models);
+    assertEquals(9, receivedUpdates);
+    assertEquals(1000, inputToUpdate);
   }
 
 }

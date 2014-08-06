@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.speed;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.spark.api.java.JavaPairRDD;
 
@@ -24,14 +25,23 @@ import com.cloudera.oryx.common.collection.Pair;
 
 public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
+  private static List<Pair<String,String>> holder;
+
+  static void setIntervalDataHolder(List<Pair<String,String>> holder) {
+    MockSpeedModelManager.holder = holder;
+  }
+
   @Override
   public void consume(Iterator<Pair<String,String>> updateIterator) {
-
+    while (updateIterator.hasNext()) {
+      Pair<String,String> update = updateIterator.next();
+      holder.add(new Pair<>(update.getFirst(), update.getSecond()));
+    }
   }
 
   @Override
   public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    return null;
+    return newData.values().collect();
   }
 
 }
