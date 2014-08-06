@@ -17,24 +17,20 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Iterator;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
-public final class ALSServingModelManager implements ServingModelManager {
+public final class ALSServingModelManager implements ServingModelManager<String> {
 
   @Override
-  public void start(Iterator<String[]> updateIterator) {
+  public void consume(Iterator<Pair<String,String>> updateIterator) {
 
   }
 
   @Override
   public ServingModel getModel() {
     return null;
-  }
-
-  @Override
-  public void close() {
-
   }
 
 }

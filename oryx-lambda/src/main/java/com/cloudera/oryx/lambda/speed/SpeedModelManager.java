@@ -20,7 +20,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.apache.spark.api.java.JavaPairRDD;
-import scala.Tuple2;
+
+import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
@@ -40,7 +41,7 @@ public interface SpeedModelManager<K,M,U> {
    *
    * @param updateIterator iterator to read models from
    */
-  void consume(Iterator<Tuple2<String,U>> updateIterator) throws IOException;
+  void consume(Iterator<Pair<String,U>> updateIterator) throws IOException;
 
   /**
    * @param newData RDD of raw new data from the queue

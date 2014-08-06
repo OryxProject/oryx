@@ -39,8 +39,8 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 
 /**
@@ -114,11 +114,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
                                       new StringDecoder(null),
                                       ClassUtils.loadInstanceOf(updateDecoderClass))
             .get(updateTopic).get(0);
-    final Iterator<Tuple2<String,U>> transformed = Iterators.transform(stream.iterator(),
-        new Function<MessageAndMetadata<String,U>, Tuple2<String,U>>() {
+    final Iterator<Pair<String,U>> transformed = Iterators.transform(stream.iterator(),
+        new Function<MessageAndMetadata<String,U>, Pair<String,U>>() {
           @Override
-          public Tuple2<String,U> apply(MessageAndMetadata<String,U> input) {
-            return new Tuple2<>(input.key(), input.message());
+          public Pair<String,U> apply(MessageAndMetadata<String,U> input) {
+            return new Pair<>(input.key(), input.message());
           }
         });
 

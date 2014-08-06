@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 import com.cloudera.oryx.ml.pmml.PMMLUtils;
@@ -51,11 +52,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<Tuple2<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<Pair<String,String>> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      Tuple2<String,String> km = updateIterator.next();
-      String key = km._1();
-      String message = km._2();
+      Pair<String,String> km = updateIterator.next();
+      String key = km.getFirst();
+      String message = km.getSecond();
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
