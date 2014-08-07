@@ -15,9 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public final class RecommendResponse {
 
   private String itemID;
