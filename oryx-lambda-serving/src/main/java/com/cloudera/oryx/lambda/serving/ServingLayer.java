@@ -15,6 +15,13 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import javax.servlet.http.HttpServletResponse;
+
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.serving.OryxApplication;
@@ -37,13 +44,6 @@ import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public final class ServingLayer implements Closeable {
 
