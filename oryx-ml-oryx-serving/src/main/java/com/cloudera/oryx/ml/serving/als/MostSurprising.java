@@ -28,7 +28,7 @@ import java.util.List;
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#mostSurprising(String, int)}.
  * {@code howMany} is the desired number of results to return. If {@code howMany} is not
  * specified, defaults to {link com.cloudera.oryx.als.serving.web.AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
- * <p/>
+ *
  * <p>CSV output contains one item per line, and each line is of the form {@code itemID, strength},
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative surprise of the item.
  * Higher means more surprising</p>

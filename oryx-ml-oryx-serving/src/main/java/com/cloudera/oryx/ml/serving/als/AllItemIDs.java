@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
  * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#getAllItemIDs()}.</p>
- * <p/>
+ *
  * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")

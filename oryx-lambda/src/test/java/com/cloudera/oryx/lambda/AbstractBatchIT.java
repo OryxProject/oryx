@@ -41,6 +41,8 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractBatchIT.class);
 
+  protected static final int WAIT_BUFFER_IN_WRITES = 250;
+
   protected List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       int howMany,
