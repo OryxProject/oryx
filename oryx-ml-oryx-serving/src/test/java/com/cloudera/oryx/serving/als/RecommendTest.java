@@ -16,24 +16,24 @@
 package com.cloudera.oryx.serving.als;
 
 import com.cloudera.oryx.ml.serving.als.Recommend;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.ws.rs.core.Application;
 
-import static junit.framework.TestCase.assertNotNull;
+public final class RecommendTest extends JerseyTest {
+ 
+  @Override
+  protected Application configure() {
+    return new ResourceConfig(Recommend.class);
+  }
 
-public class RecommendTest extends JerseyTest {
- 
-    @Override
-    protected Application configure() {
-        return new ResourceConfig(Recommend.class);
-    }
- 
-    @Test
-    public void test() {
-        final String recommend = target("recommend/foo").request().get(String.class);
-        assertNotNull(recommend);
-    }
+  @Test
+  public void test() {
+    String recommend = target("recommend/foo").request().get(String.class);
+    Assert.assertNotNull(recommend);
+  }
 }

@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.serving.als.ErrorResponse;
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
