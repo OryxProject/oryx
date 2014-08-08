@@ -40,6 +40,7 @@ public interface SpeedModelManager<K,M,U> {
    * update queue. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
+   * @throws IOException if an error occurs while reading updates
    */
   void consume(Iterator<Pair<String,U>> updateIterator) throws IOException;
 

@@ -71,6 +71,7 @@ public final class Functions {
 
   /**
    * @return a function that returns the last element in a stream of values
+   * @param <T> element type
    */
   public static <T> Function<Iterable<T>,T> last() {
     return new Function<Iterable<T>,T>() {
