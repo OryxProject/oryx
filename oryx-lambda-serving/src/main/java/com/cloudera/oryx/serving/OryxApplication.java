@@ -13,22 +13,25 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.rdf;
+package com.cloudera.oryx.serving;
+
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.typesafe.config.Config;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.util.HashSet;
-import java.util.Set;
 
-//@ApplicationPath("")
-public final class RDFApplication extends Application {
-  @Override
-  public Set<Class<?>> getClasses() {
-    Set<Class<?>> s = new HashSet<>();
-    s.add(Classify.class);
-    s.add(Train.class);
-    return s;
+@ApplicationPath("")
+public final class OryxApplication extends ResourceConfig {
+  private static final Logger log = LoggerFactory.getLogger(OryxApplication.class);
+
+  public OryxApplication(Config config) {
+    String contextPackage = config.getString("serving.application-resources");
+    packages(contextPackage);
   }
 }
+
 
 
