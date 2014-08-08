@@ -34,10 +34,10 @@ import java.util.List;
  * and in turn calls {link OryxRecommender#estimateForAnonymous(String, String[], float[])}
  * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
  * a value or else default to 1.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ *
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
 @Path("/estimateForAnonymous")

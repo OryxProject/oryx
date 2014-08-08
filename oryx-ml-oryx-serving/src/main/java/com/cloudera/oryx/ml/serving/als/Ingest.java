@@ -29,7 +29,7 @@ import java.util.List;
  * {link OryxRecommender#ingest(Reader)}}. The content of the request body is
  * fed to this method. Note that the content may be gzipped; if so, header "Content-Encoding"
  * must have value "gzip".</p>
- * <p/>
+ *
  * <p>Alternatively, CSV data may be POSTed here as if part of a web browser file upload. In this case
  * the "Content-Type" should be "multipart/form-data", and the payload encoded accordingly. The uploaded
  * file may be gzipped or zipped.</p>

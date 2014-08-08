@@ -26,7 +26,7 @@ import javax.ws.rs.core.Response;
  * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]} and in turn calls
  * {link OryxRecommender#setPreference(String, String, float)}. If the request body is empty,
  * the value is 1.0, otherwise the value in the request body's first line is used.</p>
- * <p/>
+ *
  * <p>Also responds to a DELETE request to the same path, with the same defaults. This corresponds
  * to calling {link OryxRecommender#removePreference(String, String)} instead.</p>
  */
