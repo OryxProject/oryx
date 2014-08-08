@@ -34,21 +34,17 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(SpeedLayerIT.class);
 
-  private static final int GEN_INTERVAL_SEC = 3;
-  private static final int BLOCK_INTERVAL_SEC = 1;
-
   @Test
   public void testSpeedLayer() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("speed.model-manager-class", MockSpeedModelManager.class.getName());
-    overlayConfig.put("speed.generation-interval-sec", Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("speed.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
+    overlayConfig.put("speed.generation-interval-sec", "3");
+    overlayConfig.put("speed.block-interval-sec", "1");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
 
-    List<Pair<String,String>> updates =
-        startServerProduceConsumeQueues(config, 1000, 100, 10, 1);
+    List<Pair<String,String>> updates = startServerProduceConsumeQueues(config, 1000, 10);
 
     int inputToUpdate = 0;
     int receivedUpdates = 0;

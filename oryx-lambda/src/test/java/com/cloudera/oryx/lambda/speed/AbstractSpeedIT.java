@@ -17,10 +17,7 @@ package com.cloudera.oryx.lambda.speed;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
@@ -29,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
@@ -40,19 +36,17 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
+  protected static final int WAIT_BUFFER_IN_WRITES = 25;
+
   protected final List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       int howMany,
-      int intervalMsec,
-      int howManyUpdate,
-      int updateIntervalMsec) throws IOException, InterruptedException {
+      int howManyUpdate) throws IOException, InterruptedException {
     return startServerProduceConsumeQueues(config,
                                            new DefaultCSVDatumGenerator(),
                                            new MockModelGenerator(),
                                            howMany,
-                                           intervalMsec,
-                                           howManyUpdate,
-                                           updateIntervalMsec);
+                                           howManyUpdate);
   }
 
   protected final List<Pair<String,String>> startServerProduceConsumeQueues(
@@ -60,27 +54,25 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       RandomDatumGenerator<String,String> inputGenerator,
       RandomDatumGenerator<String,String> updateGenerator,
       int howManyInput,
-      int inputIntervalMsec,
-      int howManyUpdate,
-      int updateIntervalMsec) throws IOException, InterruptedException {
+      int howManyUpdate) throws IOException, InterruptedException {
 
     int zkPort = getZKPort();
     int kakfaPort = getKafkaBrokerPort();
 
-    int bufferMS = WAIT_BUFFER_IN_WRITES * inputIntervalMsec;
+    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
 
-    final ProduceData inputProducer = new ProduceData(inputGenerator,
-                                                      zkPort,
-                                                      kakfaPort,
-                                                      INPUT_TOPIC,
-                                                      howManyInput,
-                                                      inputIntervalMsec);
-    final ProduceData updateProducer = new ProduceData(updateGenerator,
-                                                       zkPort,
-                                                       kakfaPort,
-                                                       UPDATE_TOPIC,
-                                                       howManyUpdate,
-                                                       updateIntervalMsec);
+    ProduceData inputProducer = new ProduceData(inputGenerator,
+                                                zkPort,
+                                                kakfaPort,
+                                                INPUT_TOPIC,
+                                                howManyInput,
+                                                10);
+    ProduceData updateProducer = new ProduceData(updateGenerator,
+                                                 zkPort,
+                                                 kakfaPort,
+                                                 UPDATE_TOPIC,
+                                                 howManyUpdate,
+                                                 10);
 
     final List<Pair<String,String>> keyMessages = new ArrayList<>();
 
@@ -103,26 +95,17 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       log.info("Starting speed layer");
       speedLayer.start();
 
+      Thread.sleep(bufferMS);
+
+      // Load all updates first
+      log.info("Producing updates");
+      updateProducer.start();
+
       // Sleep for a while after starting server to let it init
       Thread.sleep(bufferMS);
 
-      ExecutorService executor = Executors.newFixedThreadPool(2);
-      executor.invokeAll(Arrays.asList(
-          new LoggingVoidCallable() {
-            @Override
-            public void doCall() throws InterruptedException {
-              log.info("Producing input");
-              inputProducer.start();
-            }
-          },
-          new LoggingVoidCallable() {
-            @Override
-            public void doCall() throws InterruptedException {
-              log.info("Producing updates");
-              updateProducer.start();
-            }
-          }));
-      executor.shutdown();
+      log.info("Producing input");
+      inputProducer.start();
 
       // Sleep for a while before shutting down server to let it finish
       Thread.sleep(bufferMS);
