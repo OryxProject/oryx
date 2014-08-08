@@ -41,7 +41,6 @@ import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,9 +226,9 @@ public final class ServingLayer implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
-    Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
-    context.addServletMapping("/*", "jersey-container-servlet");
+
+    String jaxRSApplicationClass = config.getString("serving.application-class");
+    Tomcat.addServlet(context, "serving-layer", jaxRSApplicationClass);
 
     addErrorPages(context);
 
