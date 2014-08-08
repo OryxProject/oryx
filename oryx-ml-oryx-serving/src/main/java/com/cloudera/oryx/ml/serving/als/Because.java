@@ -32,7 +32,7 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- * <p/>
+ *
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
  */
 @Path("/because")

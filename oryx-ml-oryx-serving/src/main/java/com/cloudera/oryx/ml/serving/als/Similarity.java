@@ -32,12 +32,12 @@ import java.util.List;
  * will cause the implementation to retrieve 35 results internally and output the last 5.
  * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
  * {@code offset} defaults to 0.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ *
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
- * <p/>
+ *
  * <p>This does something slightly different from
  * {@link RecommendToAnonymous}; see
  * {link OryxRecommender#mostSimilarItems(String, int)}.</p>

@@ -25,10 +25,10 @@ import javax.ws.rs.core.Response;
 /**
  * <p>Responds to a GET request to {@code /similarityToItem/[toItemID]/itemID1(/[itemID2]/...)},
  * and in turn calls {link OryxRecommender#similarityToItem(String, String...)} with the supplied values.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown or {@code toItemID} is unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ *
  * <p>The output are similarities, in the same order as the item IDs, one per line.</p>
  */
 @Path("/similarityToItem")

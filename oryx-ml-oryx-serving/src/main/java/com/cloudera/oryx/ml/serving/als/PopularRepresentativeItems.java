@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /popularRepresentativeItems}
  * and in turn calls {link OryxRecommender#popularRepresentativeItems()}.</p>
- * <p/>
+ *
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
  */
 @Path("/popularRepresentativeItems")

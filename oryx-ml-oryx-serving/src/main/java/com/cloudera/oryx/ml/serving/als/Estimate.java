@@ -27,9 +27,9 @@ import java.util.List;
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
  * {link OryxRecommender#estimatePreference(String, String)}.</p>
- * <p/>
+ *
  * <p>Outputs the result of the method call as a value on one line.</p>
- * <p/>
+ *
  * <p>This servlet can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
  * order as the item ID, one per line.</p>
