@@ -22,7 +22,7 @@ import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
-//@ApplicationPath("")
+@ApplicationPath("")
 public  class ALSApplication extends ResourceConfig {
   public ALSApplication() {
     packages("com.cloudera.oryx.serving.als");
