@@ -25,7 +25,7 @@ import java.util.Set;
 @ApplicationPath("")
 public  class ALSApplication extends ResourceConfig {
   public ALSApplication() {
-    packages("com.cloudera.oryx.serving.als");
+    packages("com.cloudera.oryx.ml.serving.als");
     /*
     Set<Class<?>> s = new HashSet<>();
     s.add(AllItemIDs.class);

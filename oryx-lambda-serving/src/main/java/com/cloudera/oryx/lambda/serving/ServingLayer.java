@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +37,7 @@ import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
+import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
@@ -227,9 +229,18 @@ public final class ServingLayer implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
-    Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
-    context.addServletMapping("/*", "jersey-container-servlet");
+
+    //ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
+    //Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
+    //context.addServletMapping("/*", "jersey-container-servlet");
+    ContextConfig contextConfig = new ContextConfig();
+    String webxml = "oryx-serving/src/main/resources/web.xml";
+    if(new File(webxml).exists()) {
+      contextConfig.setDefaultWebXml(webxml);
+    } else {
+      log.info("Could not read %s",webxml);
+    }
+    context.addLifecycleListener(contextConfig);
 
     addErrorPages(context);
 
