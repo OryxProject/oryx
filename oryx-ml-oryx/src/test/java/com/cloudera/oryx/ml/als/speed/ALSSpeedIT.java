@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.mllib.als;
+package com.cloudera.oryx.ml.als.speed;
 
 import org.junit.Test;
 
