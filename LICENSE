@@ -70,3 +70,20 @@ To apply the Apache License to your work, attach the following boilerplate notic
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+
+========================================================================
+BSD-style licenses
+========================================================================
+
+The following components are provided under a BSD-style license. See project link for details.
+
+JPMML (https://github.com/jpmml)
+
+========================================================================
+MIT licenses
+========================================================================
+
+The following components are provided under the MIT License. See project link for details.
+
+SLF4J (http://www.slf4j.org/)

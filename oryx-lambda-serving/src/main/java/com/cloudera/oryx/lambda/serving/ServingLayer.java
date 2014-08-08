@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.serving.OryxApplication;
+
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.catalina.Context;
@@ -43,7 +43,6 @@ import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
