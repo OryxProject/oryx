@@ -50,6 +50,11 @@
       <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-moxy</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>
