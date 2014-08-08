@@ -211,11 +211,13 @@
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-moxy</artifactId>
         <version>${jersey.version}</version>
+        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.test-framework.providers</groupId>
         <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
         <version>${jersey.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>

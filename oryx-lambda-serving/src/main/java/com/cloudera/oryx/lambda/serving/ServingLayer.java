@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.serving.OryxApplication;
+
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.catalina.Context;
