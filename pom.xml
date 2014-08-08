@@ -692,8 +692,8 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <!--
-    <distributionManagement>
+  <distributionManagement>
+    <!--
     <repository>
       <id>oryx.repo</id>
       <url>https://repository.cloudera.com/artifactory/libs-release-local</url>
@@ -702,13 +702,13 @@
       <id>oryx.snapshots.repo</id>
       <url>https://repository.cloudera.com/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
+    -->
     <site>
       <id>oryx.website</id>
       <name>Oryx documentation</name>
-      <url>http://cloudera.github.io/oryx/</url>
+      <url>http://oryxproject.github.io/oryx/</url>
     </site>
   </distributionManagement>
-  -->
 
   <!--
   <profiles>
