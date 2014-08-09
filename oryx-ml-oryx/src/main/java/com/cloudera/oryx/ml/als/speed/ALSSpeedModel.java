@@ -142,7 +142,7 @@ public final class ALSSpeedModel {
    * @param M tall, skinny matrix
    * @return MT * M as a dense matrix
    */
-  private RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
+  RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }

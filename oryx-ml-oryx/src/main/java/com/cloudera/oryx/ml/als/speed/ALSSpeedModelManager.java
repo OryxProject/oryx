@@ -253,7 +253,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
    * @param x one array
    * @param y the other array
    */
-  public static double dot(float[] x, float[] y) {
+  static double dot(float[] x, float[] y) {
     int length = x.length;
     double dot = 0.0;
     for (int i = 0; i < length; i++) {

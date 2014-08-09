@@ -45,28 +45,4 @@ public final class Solver {
     return result;
   }
 
-  /*
-  public float[] solveDToF(double[] b) {
-    RealVector vec = solver.solve(new ArrayRealVector(b, false));
-    float[] result = new float[b.length];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = (float) vec.getEntry(i);
-    }
-    return result;
-  }
-
-  public double[] solveFToD(float[] b) {
-    RealVector bVec = new ArrayRealVector(b.length);
-    for (int i = 0; i < b.length; i++) {
-      bVec.setEntry(i, b[i]);
-    }
-    RealVector vec = solver.solve(bVec);
-    double[] result = new double[b.length];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = vec.getEntry(i);
-    }
-    return result;
-  }
-   */
-
 }
