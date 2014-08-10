@@ -13,13 +13,15 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.als.speed;
+package com.cloudera.oryx.ml.speed.als;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.ml.speed.als.LinearSystemSolver;
+import com.cloudera.oryx.ml.speed.als.Solver;
 
 public final class LinearSystemSolverTest extends OryxTest {
 

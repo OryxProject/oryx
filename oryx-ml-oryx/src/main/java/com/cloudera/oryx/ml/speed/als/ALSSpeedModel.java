@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.als.speed;
+package com.cloudera.oryx.ml.speed.als;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;

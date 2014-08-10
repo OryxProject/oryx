@@ -13,19 +13,17 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.als.speed;
+package com.cloudera.oryx.ml.speed.als;
 
 import org.junit.Test;
 
-import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
-public final class ALSSpeedModelManagerTest extends OryxTest {
+public final class ALSSpeedIT extends AbstractSpeedIT {
 
   @Test
-  public void testDot() {
-    float[] a = { 1.0f, 0.5f, -3.5f };
-    float[] b = { 0.0f, -10.3f, -3.0f };
-    assertEquals(5.35, ALSSpeedModelManager.dot(a, b), FLOAT_EPSILON);
+  public void testALSSpeed() throws Exception {
+
   }
 
 }

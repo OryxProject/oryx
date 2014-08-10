@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.als.speed;
+package com.cloudera.oryx.ml.speed.als;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DecompositionSolver;
