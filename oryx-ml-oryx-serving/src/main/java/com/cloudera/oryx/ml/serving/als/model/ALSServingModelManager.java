@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.Iterator;
 
