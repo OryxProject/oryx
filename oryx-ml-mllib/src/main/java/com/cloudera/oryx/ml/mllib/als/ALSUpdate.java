@@ -46,7 +46,7 @@ import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
-import com.cloudera.oryx.ml.pmml.PMMLUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
  * A specialization of {@link MLUpdate} that creates a matrix factorization model of its

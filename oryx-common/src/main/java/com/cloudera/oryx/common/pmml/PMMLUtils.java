@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.pmml;
+package com.cloudera.oryx.common.pmml;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.transform.stream.StreamResult;

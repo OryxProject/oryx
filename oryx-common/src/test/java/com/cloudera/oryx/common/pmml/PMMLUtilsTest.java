@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.pmml;
+package com.cloudera.oryx.common.pmml;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

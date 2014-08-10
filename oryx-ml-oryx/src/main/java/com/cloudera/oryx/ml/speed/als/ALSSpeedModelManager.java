@@ -38,7 +38,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
-import com.cloudera.oryx.ml.pmml.PMMLUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
