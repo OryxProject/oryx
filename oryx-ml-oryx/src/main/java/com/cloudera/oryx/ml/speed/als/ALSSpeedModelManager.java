@@ -221,6 +221,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return result;
   }
 
+  @Override
+  public void close() {
+    // do nothing
+  }
+
   private double computeTargetQui(double value, double currentValue) {
     // We want Qui to change based on value. What's the target value, Qui'?
     // Then we find a new vector Xu' such that Qui' = Xu' * (Yi)^t

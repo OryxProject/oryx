@@ -70,6 +70,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final Class<? extends Decoder<U>> updateDecoderClass;
   private JavaStreamingContext streamingContext;
   private ConsumerConnector consumer;
+  private SpeedModelManager<K,M,U> modelManager;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -125,8 +126,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
           }
         });
 
-    final SpeedModelManager<K,M,U> modelManager = loadManagerInstance();
-
+    modelManager = loadManagerInstance();
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
@@ -147,6 +147,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
   @Override
   public synchronized void close() {
+    if (modelManager != null) {
+      log.info("Shutting down model manager");
+      modelManager.close();
+      modelManager = null;
+    }
     if (consumer != null) {
       log.info("Shutting down consumer");
       consumer.shutdown();

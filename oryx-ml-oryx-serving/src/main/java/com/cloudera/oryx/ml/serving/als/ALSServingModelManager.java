@@ -33,4 +33,9 @@ public final class ALSServingModelManager implements ServingModelManager<String>
     return null;
   }
 
+  @Override
+  public void close() {
+    // do nothing
+  }
+
 }

@@ -44,4 +44,9 @@ public final class MockSpeedModelManager implements SpeedModelManager<String,Str
     return newData.values().collect();
   }
 
+  @Override
+  public void close() {
+    // do nothing
+  }
+
 }
