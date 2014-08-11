@@ -137,8 +137,14 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
     Collection<UserItemStrength> input = aggregated.map(new TupleToUserItemStrength()).collect();
 
-    Solver XTXsolver = model.getXTXSolver();
-    Solver YTYsolver = model.getYTYSolver();
+    Solver XTXsolver;
+    Solver YTYsolver;
+    try {
+      XTXsolver = model.getXTXSolver();
+      YTYsolver = model.getYTYSolver();
+    } catch (SingularMatrixSolverException smse) {
+      return Collections.emptyList();
+    }
 
     Collection<String> result = new ArrayList<>();
     for (UserItemStrength uis : input) {
