@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.serving;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,6 +43,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
+@WebListener
 public final class ModelManagerListener<U> implements ServletContextListener {
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
