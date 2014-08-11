@@ -230,8 +230,6 @@ public final class ServingLayer implements Closeable {
     String jaxRSApplicationClass = config.getString("serving.application-class");
     Tomcat.addServlet(context, "serving-layer", jaxRSApplicationClass);
 
-    context.addApplicationListener(ModelManagerListener.class.getName());
-
     addErrorPages(context);
 
     boolean needHTTPS = keystoreFile != null;
