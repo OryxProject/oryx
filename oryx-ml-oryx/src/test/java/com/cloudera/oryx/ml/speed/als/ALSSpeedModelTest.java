@@ -22,7 +22,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.ml.speed.als.ALSSpeedModel;
 
 public final class ALSSpeedModelTest extends OryxTest {
 

@@ -20,8 +20,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.ml.speed.als.LinearSystemSolver;
-import com.cloudera.oryx.ml.speed.als.Solver;
 
 public final class LinearSystemSolverTest extends OryxTest {
 
@@ -35,7 +33,7 @@ public final class LinearSystemSolverTest extends OryxTest {
     Solver solver = new LinearSystemSolver().getSolver(a);
     assertNotNull(solver);
     float[] y = solver.solveFToF(new float[] {1.0f, 2.0f, 6.5f});
-    assertArrayEquals(new float[] {-1.9560440f,0.0021978f,1.182417f}, y, FLOAT_EPSILON);
+    assertArrayEquals(new float[] {-1.9560440f,0.0021978f,1.182417f}, y);
   }
 
   @Test

@@ -15,15 +15,43 @@
 
 package com.cloudera.oryx.ml.speed.als;
 
-import org.junit.Test;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.typesafe.config.Config;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
 public final class ALSSpeedIT extends AbstractSpeedIT {
 
+  private static final Logger log = LoggerFactory.getLogger(ALSSpeedIT.class);
+
   @Test
   public void testALSSpeed() throws Exception {
+    int features = 2;
+    Map<String,String> overlayConfig = new HashMap<>();
+    overlayConfig.put("speed.model-manager-class", ALSSpeedModelManager.class.getName());
+    overlayConfig.put("speed.generation-interval-sec", "3");
+    overlayConfig.put("speed.block-interval-sec", "1");
+    overlayConfig.put("als.hyperparams.implicit", "true");
+    overlayConfig.put("als.hyperparams.features", Integer.toString(features));
+    Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
+    startMessageQueue();
+
+    List<Pair<String,String>> updates =
+        startServerProduceConsumeQueues(config,
+                                        new MockInputGenerator(),
+                                        new MockModelUpdateGenerator(features),
+                                        1000, 10);
+
+    log.info("{}", updates);
   }
 
 }
