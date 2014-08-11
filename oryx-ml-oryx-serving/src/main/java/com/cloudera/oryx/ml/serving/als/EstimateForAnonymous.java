@@ -49,7 +49,7 @@ public final class EstimateForAnonymous {
   public List<Float> get(@Context UriInfo ui) {
     MultivaluedMap<String, String> pathParams = ui.getPathParameters();
     for(String path: pathParams.keySet()) {
-      log.info("path=",path);
+      log.info("path={}",path);
     }
 /*
     CharSequence pathInfo = request.getPathInfo();

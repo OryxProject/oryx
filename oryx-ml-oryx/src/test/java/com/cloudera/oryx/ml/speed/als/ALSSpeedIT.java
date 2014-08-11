@@ -34,12 +34,12 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
   @Test
   public void testALSSpeed() throws Exception {
-    int features = 2;
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("speed.model-manager-class", ALSSpeedModelManager.class.getName());
     overlayConfig.put("speed.generation-interval-sec", "3");
     overlayConfig.put("speed.block-interval-sec", "1");
     overlayConfig.put("als.hyperparams.implicit", "true");
+    int features = 2;
     overlayConfig.put("als.hyperparams.features", Integer.toString(features));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
