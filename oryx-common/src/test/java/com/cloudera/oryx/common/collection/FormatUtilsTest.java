@@ -13,19 +13,26 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.common.collection;
 
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
 
-public final class ALSSpeedModelManagerTest extends OryxTest {
+public final class FormatUtilsTest extends OryxTest {
 
   @Test
-  public void testDot() {
-    float[] a = { 1.0f, 0.5f, -3.5f };
-    float[] b = { 0.0f, -10.3f, -3.0f };
-    assertEquals(5.35, ALSSpeedModelManager.dot(a, b), FLOAT_EPSILON);
+  public void testFormat() {
+    assertEquals("", FormatUtils.formatFloatVec());
+    assertEquals("-1.0,2.5,3.05", FormatUtils.formatFloatVec(-1.0f, 2.5f, 3.05f));
+    assertEquals("", FormatUtils.formatDoubleVec());
+    assertEquals("-1.0,2.5,3.05", FormatUtils.formatDoubleVec(-1.0, 2.5, 3.05));
+  }
+
+  @Test
+  public void testParse() {
+    assertArrayEquals(new float[] {-1.0f, 2.5f, 3.05f}, FormatUtils.parseFloatVec("-1.0,2.5,3.05"));
+    assertArrayEquals(new double[] {-1.0, 2.5, 3.05}, FormatUtils.parseDoubleVec("-1.0,2.5,3.05"));
   }
 
 }

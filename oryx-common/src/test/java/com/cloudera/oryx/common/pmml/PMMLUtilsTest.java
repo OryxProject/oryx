@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-import org.dmg.pmml.Extension;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.Node;
@@ -67,7 +66,7 @@ public final class PMMLUtilsTest extends OryxTest {
   public void testExtensionValue() {
     PMML model = buildDummyModel();
     assertNull(PMMLUtils.getExtensionValue(model, "foo"));
-    model.getExtensions().add(new Extension().withName("foo").withValue("bar"));
+    PMMLUtils.addExtension(model, "foo", "bar");
     assertEquals("bar", PMMLUtils.getExtensionValue(model, "foo"));
   }
 
@@ -75,9 +74,7 @@ public final class PMMLUtilsTest extends OryxTest {
   public void testExtensionContent() {
     PMML model = buildDummyModel();
     assertNull(PMMLUtils.getExtensionContent(model, "foo"));
-    Extension extension = new Extension().withName("foo");
-    extension.getContent().addAll(Arrays.asList("bar", "baz"));
-    model.getExtensions().add(extension);
+    PMMLUtils.addExtensionContent(model, "foo", Arrays.asList("bar", "baz"));
     assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
   }
 

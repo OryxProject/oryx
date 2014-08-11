@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -138,8 +139,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           seenProducts.add(id);
         }
         // Verify that feature vector are valid floats
-        for (String dimensionString : tokens[2].split(",")) {
-          float f = Float.parseFloat(dimensionString);
+        for (float f : FormatUtils.parseFloatVec(tokens[2])) {
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
 
@@ -191,7 +191,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       for (String line : IOUtils.readLines(file)) {
         String[] idVector = line.split("\t");
         seenIDs.add(Integer.valueOf(idVector[0]));
-        assertEquals(FEATURES, idVector[1].split(",").length);
+        assertEquals(FEATURES, FormatUtils.parseFloatVec(idVector[1]).length);
       }
     }
     assertFalse(seenIDs.isEmpty());

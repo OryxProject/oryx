@@ -15,17 +15,18 @@
 
 package com.cloudera.oryx.ml.speed.als;
 
-import org.junit.Test;
+import org.apache.commons.math3.random.RandomGenerator;
 
-import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-public final class ALSSpeedModelManagerTest extends OryxTest {
+final class MockInputGenerator implements RandomDatumGenerator<String,String> {
 
-  @Test
-  public void testDot() {
-    float[] a = { 1.0f, 0.5f, -3.5f };
-    float[] b = { 0.0f, -10.3f, -3.0f };
-    assertEquals(5.35, ALSSpeedModelManager.dot(a, b), FLOAT_EPSILON);
+  @Override
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    int itemID = 1 + (id % 5);
+    int userID = 6 + (id % 4);
+    return new Pair<>("", userID + "," + itemID);
   }
 
 }

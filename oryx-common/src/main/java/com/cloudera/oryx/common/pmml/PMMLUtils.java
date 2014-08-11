@@ -25,6 +25,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -147,6 +149,27 @@ public final class PMMLUtils {
       }
     }
     return null;
+  }
+
+  public static void addExtension(PMML pmml, String key, String value) {
+    Extension extension = new Extension();
+    extension.setName(key);
+    extension.setValue(value);
+    pmml.getExtensions().add(extension);
+  }
+
+  public static void addExtensionContent(PMML pmml, String key, Collection<?> content) {
+    if (content.isEmpty()) {
+      return;
+    }
+    Collection<String> stringContent = new ArrayList<>(content.size());
+    for (Object o : content) {
+      stringContent.add(o.toString());
+    }
+    Extension extension = new Extension();
+    extension.setName(key);
+    extension.getContent().addAll(stringContent);
+    pmml.getExtensions().add(extension);
   }
 
 }

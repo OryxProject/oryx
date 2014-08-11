@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.kafka.util;
 
+import java.io.IOException;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
@@ -24,6 +26,6 @@ import com.cloudera.oryx.common.collection.Pair;
  */
 public interface RandomDatumGenerator<K,M> {
 
-  Pair<K,M> generate(int id, RandomGenerator random);
+  Pair<K,M> generate(int id, RandomGenerator random) throws IOException;
 
 }
