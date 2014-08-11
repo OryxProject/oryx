@@ -61,9 +61,24 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda</artifactId>
       <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>kafka-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>zk-util</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

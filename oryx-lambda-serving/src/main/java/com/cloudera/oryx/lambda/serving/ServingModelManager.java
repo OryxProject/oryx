@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -27,7 +28,7 @@ import com.cloudera.oryx.common.collection.Pair;
  *
  * @param <U> type of update message read/written
  */
-public interface ServingModelManager<U> {
+public interface ServingModelManager<U> extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
@@ -45,5 +46,8 @@ public interface ServingModelManager<U> {
    *  be treated. May be {@code null} if no model is available.
    */
   ServingModel getModel();
+
+  @Override
+  void close();
 
 }

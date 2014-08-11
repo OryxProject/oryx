@@ -85,7 +85,12 @@ public abstract class OryxTest extends Assert {
     Assert.assertEquals(expected, actual, DOUBLE_EPSILON);
   }
 
+  protected static void assertArrayEquals(float[] expecteds, float[] actuals) {
+    Assert.assertArrayEquals(expecteds, actuals, FLOAT_EPSILON);
+  }
+
   protected static void assertArrayEquals(double[] expecteds, double[] actuals) {
     Assert.assertArrayEquals(expecteds, actuals, DOUBLE_EPSILON);
   }
+
 }

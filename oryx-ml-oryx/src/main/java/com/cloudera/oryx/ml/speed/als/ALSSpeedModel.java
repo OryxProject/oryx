@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.als.speed;
+package com.cloudera.oryx.ml.speed.als;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
@@ -142,7 +142,7 @@ public final class ALSSpeedModel {
    * @param M tall, skinny matrix
    * @return MT * M as a dense matrix
    */
-  private RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
+  RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }

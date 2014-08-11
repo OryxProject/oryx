@@ -13,24 +13,22 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.ml.speed.als;
 
-import java.util.Iterator;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.serving.ServingModel;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-public final class ALSServingModelManager implements ServingModelManager<String> {
-
-  @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) {
-
-  }
+final class MockInputGenerator implements RandomDatumGenerator<String,String> {
 
   @Override
-  public ServingModel getModel() {
-    return null;
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    if (id < 5) {
+      return new Pair<>("", (100 + id) + "," + (1 + id));
+    } else {
+      return new Pair<>("", (1 + id) + "," + (100 + id));
+    }
   }
 
 }

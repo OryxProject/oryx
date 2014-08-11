@@ -25,7 +25,7 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.ml.pmml.PMMLUtilsTest;
+import com.cloudera.oryx.common.pmml.PMMLUtilsTest;
 
 /**
  * A dummy {@link MLUpdate} that collects data seen by the framework in given {@link List}s.

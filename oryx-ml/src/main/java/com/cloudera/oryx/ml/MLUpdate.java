@@ -50,7 +50,7 @@ import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
-import com.cloudera.oryx.ml.pmml.PMMLUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
  * A specialization of {@link com.cloudera.oryx.lambda.update.BatchLayerUpdate} for machine learning-oriented

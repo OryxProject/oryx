@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
@@ -68,7 +68,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public void setUserVector(int user, float[] vector) {
+  void setUserVector(int user, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = xLock.writeLock();
@@ -80,7 +80,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public void setItemVector(int item, float[] vector) {
+  void setItemVector(int item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = yLock.writeLock();
@@ -92,7 +92,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public void retainAllUsers(Collection<Integer> users) {
+  void retainAllUsers(Collection<Integer> users) {
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
@@ -102,7 +102,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public void retainAllItems(Collection<Integer> items) {
+  void retainAllItems(Collection<Integer> items) {
     Lock lock = yLock.writeLock();
     lock.lock();
     try {

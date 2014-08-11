@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.kafka.util;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import com.google.common.base.Preconditions;
@@ -79,7 +80,7 @@ public final class ProduceData {
     producer.start();
   }
 
-  public void start() throws InterruptedException {
+  public void start() throws InterruptedException, IOException {
     KafkaUtils.maybeCreateTopic("localhost", zkPort, topic);
     RandomGenerator random = RandomManager.getRandom();
 

@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
@@ -34,19 +33,19 @@ import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
 import org.apache.spark.rdd.RDD;
-import org.dmg.pmml.Extension;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 import scala.reflect.ClassTag$;
 
+import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
-import com.cloudera.oryx.ml.pmml.PMMLUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
  * A specialization of {@link MLUpdate} that creates a matrix factorization model of its
@@ -198,34 +197,26 @@ public final class ALSUpdate extends MLUpdate<String> {
     saveFeaturesRDD(model.productFeatures(), new Path(candidatePath, "Y"));
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    addExtension(pmml, "X", "X/");
-    addExtension(pmml, "Y", "Y/");
-    addExtension(pmml, "features", Integer.toString(features));
-    addExtension(pmml, "lambda", Double.toString(lambda));
-    addExtension(pmml, "implicit", Boolean.toString(implicit));
+    PMMLUtils.addExtension(pmml, "X", "X/");
+    PMMLUtils.addExtension(pmml, "Y", "Y/");
+    PMMLUtils.addExtension(pmml, "features", Integer.toString(features));
+    PMMLUtils.addExtension(pmml, "lambda", Double.toString(lambda));
+    PMMLUtils.addExtension(pmml, "implicit", Boolean.toString(implicit));
     if (implicit) {
-      addExtension(pmml, "alpha", Double.toString(alpha));
+      PMMLUtils.addExtension(pmml, "alpha", Double.toString(alpha));
     }
     addIDsExtension(pmml, "XIDs", model.userFeatures());
     addIDsExtension(pmml, "YIDs", model.productFeatures());
     return pmml;
   }
 
-  private static void addExtension(PMML pmml, String key, String value) {
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.setValue(value);
-    pmml.getExtensions().add(extension);
-  }
+
 
   private static void addIDsExtension(PMML pmml,
                                       String key,
                                       RDD<Tuple2<Object,double[]>> features) {
     List<String> ids = fromRDD(features).keys().map(Functions.TO_STRING).collect();
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.getContent().addAll(ids);
-    pmml.getExtensions().add(extension);
+    PMMLUtils.addExtensionContent(pmml, key, ids);
   }
 
   private static void saveFeaturesRDD(RDD<Tuple2<Object,double[]>> features, Path path) {
@@ -265,12 +256,8 @@ public final class ALSUpdate extends MLUpdate<String> {
       public Tuple2<Object,double[]> call(String line) {
         int tab = line.indexOf('\t');
         Integer key = Integer.valueOf(line.substring(0, tab));
-        String[] tokens = line.substring(tab + 1).split(",");
-        double[] features = new double[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-          features[i] = Double.parseDouble(tokens[i]);
-        }
-        return new Tuple2<Object,double[]>(key, features);
+        double[] vector = FormatUtils.parseDoubleVec(line.substring(tab + 1));
+        return new Tuple2<Object,double[]>(key, vector);
       }
     }).rdd();
   }
@@ -282,14 +269,7 @@ public final class ALSUpdate extends MLUpdate<String> {
   }
 
   private static String formatKeyAndVector(Tuple2<Object,double[]> keyAndVector) {
-    double[] vector = keyAndVector._2();
-    // Joiner needs a Object[], so go ahead and make strings:
-    String[] objVector = new String[vector.length];
-    for (int i = 0; i < vector.length; i++) {
-      // Only need floats
-      objVector[i] = Float.toString((float) vector[i]);
-    }
-    return keyAndVector._1().toString() + '\t' + Joiner.on(',').join(objVector);
+    return keyAndVector._1().toString() + '\t' + FormatUtils.formatDoubleVec(keyAndVector._2());
   }
 
   static class EnqueuePartitionFunction implements VoidFunction<Iterator<Tuple2<Object,double[]>>> {

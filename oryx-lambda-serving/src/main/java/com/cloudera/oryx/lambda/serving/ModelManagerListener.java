@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,17 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.speed;
+package com.cloudera.oryx.lambda.serving;
 
-import java.io.Closeable;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
@@ -34,79 +35,40 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
-import org.apache.spark.SparkConf;
-import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
-/**
- * Main entry point for Oryx Speed Layer.
- *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
- * @param <U> type of update message read/written
- */
-public final class SpeedLayer<K,M,U> implements Closeable {
+@WebListener
+public final class ModelManagerListener<U> implements ServletContextListener {
 
-  private static final Logger log = LoggerFactory.getLogger(SpeedLayer.class);
+  private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
   private final Config config;
-  private final String streamingMaster;
-  private final String inputQueueLockMaster;
-  private final String messageTopic;
-  private final String updateBroker;
   private final String updateTopic;
   private final String updateQueueLockMaster;
-  private final Class<SpeedModelManager<K,M,U>> modelManagerClass;
-  private final int generationIntervalSec;
-  private final int blockIntervalSec;
+  private final Class<ServingModelManager<U>> modelManagerClass;
   private final Class<? extends Decoder<U>> updateDecoderClass;
-  private JavaStreamingContext streamingContext;
   private ConsumerConnector consumer;
-  private SpeedModelManager<K,M,U> modelManager;
+  private ServingModelManager<U> modelManager;
 
   @SuppressWarnings("unchecked")
-  public SpeedLayer(Config config) {
-    Preconditions.checkNotNull(config);
-    this.config = config;
-    this.streamingMaster = config.getString("speed.streaming.master");
-    this.inputQueueLockMaster = config.getString("input-queue.lock.master");
-    this.messageTopic = config.getString("input-queue.message.topic");
-    this.updateBroker = config.getString("update-queue.broker");
+  public ModelManagerListener() {
+    this.config = ConfigUtils.getDefault();
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateQueueLockMaster = config.getString("update-queue.lock.master");
-
-    this.modelManagerClass = (Class<SpeedModelManager<K,M,U>>) ClassUtils.loadClass(
-        config.getString("speed.model-manager-class"), SpeedModelManager.class);
-    this.generationIntervalSec = config.getInt("speed.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("speed.block-interval-sec");
+    this.modelManagerClass = (Class<ServingModelManager<U>>) ClassUtils.loadClass(
+        config.getString("serving.model-manager-class"), ServingModelManager.class);
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("update-queue.message.decoder-class"), Decoder.class);
   }
 
-  public synchronized void start() {
-    log.info("Starting SparkContext for master {}, interval {} seconds",
-             streamingMaster, generationIntervalSec);
-
-    long blockIntervalMS = TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS);
-
-    SparkConf sparkConf = new SparkConf();
-    sparkConf.setIfMissing("spark.streaming.blockInterval", Long.toString(blockIntervalMS));
-    sparkConf.setMaster(streamingMaster);
-    sparkConf.setAppName("OryxSpeedLayer");
-    long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    streamingContext = new JavaStreamingContext(sparkConf, new Duration(batchDurationMS));
-
-    log.info("Creating message queue stream");
-
-    JavaPairDStream<K,M> dStream = buildDStream();
+  @Override
+  public void contextInitialized(ServletContextEvent sce) {
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
@@ -133,20 +95,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         modelManager.consume(transformed);
       }
     }).start();
-
-    dStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
-
-    streamingContext.start();
-  }
-
-  public void await() {
-    Preconditions.checkState(streamingContext != null);
-    log.info("Waiting for streaming...");
-    streamingContext.awaitTermination();
   }
 
   @Override
-  public synchronized void close() {
+  public void contextDestroyed(ServletContextEvent sce) {
     if (modelManager != null) {
       log.info("Shutting down model manager");
       modelManager.close();
@@ -157,26 +109,9 @@ public final class SpeedLayer<K,M,U> implements Closeable {
       consumer.shutdown();
       consumer = null;
     }
-    if (streamingContext != null) {
-      log.info("Shutting down streaming context");
-      streamingContext.stop(true, true);
-      streamingContext = null;
-    }
   }
 
-  private JavaPairDStream<K,M> buildDStream() {
-    // TODO for now we can only support default of Strings
-    @SuppressWarnings("unchecked")
-    JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
-        KafkaUtils.createStream(streamingContext,
-                                inputQueueLockMaster,
-                                // group should be unique
-                                "OryxGroup-SpeedLayer-" + System.currentTimeMillis(),
-                                Collections.singletonMap(messageTopic, 1));
-    return dStream;
-  }
-
-  private SpeedModelManager<K,M,U> loadManagerInstance() {
+  private ServingModelManager<U> loadManagerInstance() {
     try {
       return ClassUtils.loadInstanceOf(modelManagerClass.getName(),
                                        modelManagerClass,

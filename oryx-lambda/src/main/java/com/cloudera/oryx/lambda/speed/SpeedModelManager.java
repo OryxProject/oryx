@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.speed;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,7 +33,7 @@ import com.cloudera.oryx.common.collection.Pair;
  * @param <M> type of message read from input queue
  * @param <U> type of update message read/written
  */
-public interface SpeedModelManager<K,M,U> {
+public interface SpeedModelManager<K,M,U> extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
@@ -49,5 +50,8 @@ public interface SpeedModelManager<K,M,U> {
    * @return updates to publish on the update queue
    */
   Collection<U> buildUpdates(JavaPairRDD<K,M> newData);
+
+  @Override
+  void close();
 
 }
