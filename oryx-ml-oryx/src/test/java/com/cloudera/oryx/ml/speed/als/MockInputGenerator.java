@@ -24,9 +24,11 @@ final class MockInputGenerator implements RandomDatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
-    int itemID = 1 + (id % 5);
-    int userID = 6 + (id % 4);
-    return new Pair<>("", userID + "," + itemID);
+    if (id < 5) {
+      return new Pair<>("", (100 + id) + "," + (1 + id));
+    } else {
+      return new Pair<>("", (1 + id) + "," + (100 + id));
+    }
   }
 
 }
