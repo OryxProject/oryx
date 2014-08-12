@@ -20,7 +20,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-final class MockInputGenerator implements RandomDatumGenerator<String,String> {
+public final class MockInputGenerator implements RandomDatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {

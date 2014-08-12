@@ -58,7 +58,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
   }
 
   @After
-  public final void tearDownTestState() {
+  public final void tearDownKafkaZK() {
     if (localZKServer != null) {
       int zkPort = localZKServer.getPort();
       KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);

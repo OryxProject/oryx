@@ -13,9 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.serving.als;
-
-import com.cloudera.oryx.ml.serving.als.Recommend;
+package com.cloudera.oryx.ml.serving.als;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
