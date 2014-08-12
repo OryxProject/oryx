@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -213,13 +212,8 @@ public final class ServingLayer implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
+
     ContextConfig contextConfig = new ContextConfig();
-    String webxml = "oryx-ml-oryx-serving/src/main/resources/web.xml";
-    if(new File(webxml).exists()) {
-      contextConfig.setDefaultWebXml(webxml);
-    } else {
-      log.info("Could not read %s",webxml);
-    }
     context.addLifecycleListener(contextConfig);
 
     boolean needHTTPS = keystoreFile != null;
