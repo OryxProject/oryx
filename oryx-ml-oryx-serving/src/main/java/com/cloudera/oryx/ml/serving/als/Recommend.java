@@ -49,7 +49,7 @@ public final class Recommend {
     return Response.status(400).entity(new ErrorResponse(400, "userID required")).build();
   }
 
-    @GET
+  @GET
   @Path("{userID}")
   @Produces(MediaType.APPLICATION_JSON)
   public List<RecommendResponse> get(@PathParam("userID") String userID,

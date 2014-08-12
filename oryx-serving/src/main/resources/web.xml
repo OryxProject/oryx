@@ -1,0 +1,7 @@
+<web-app version="3.0"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <servlet>
+        <servlet-name>com.cloudera.oryx.lambda.serving.OryxApplication</servlet-name>
+    </servlet>
+</web-app>
