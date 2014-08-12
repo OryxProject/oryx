@@ -229,13 +229,8 @@ public final class ServingLayer implements Closeable {
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");
-    /*
-    ServletContainer servletContainer = new ServletContainer(new OryxApplication(config));
-    Tomcat.addServlet(context, "jersey-container-servlet", servletContainer);
-    context.addServletMapping("/*", "jersey-container-servlet");
-    */
     ContextConfig contextConfig = new ContextConfig();
-    String webxml = "oryx-serving/src/main/resources/web.xml";
+    String webxml = "oryx-ml-oryx-serving/src/main/resources/web.xml";
     if(new File(webxml).exists()) {
       contextConfig.setDefaultWebXml(webxml);
     } else {
