@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als.model;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ public final class MockALSServingModelManager implements ServingModelManager<Str
   }
 
   @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
     delegate.consume(updateIterator);
   }
 

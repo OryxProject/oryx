@@ -45,15 +45,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
+import com.cloudera.oryx.lambda.BatchLayerUpdate;
 import com.cloudera.oryx.lambda.QueueProducer;
-import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
- * A specialization of {@link com.cloudera.oryx.lambda.update.BatchLayerUpdate} for machine learning-oriented
+ * A specialization of {@link BatchLayerUpdate} for machine learning-oriented
  * update processes. This implementation contains the framework for test/train split
  * for example, parameter optimization, and so on. Subclasses instead implement
  * methods like {@link #buildModel(JavaSparkContext,JavaRDD,List,Path)} to create a PMML model and

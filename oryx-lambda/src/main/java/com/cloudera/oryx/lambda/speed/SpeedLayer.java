@@ -42,9 +42,9 @@ import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
  * Main entry point for Oryx Speed Layer.
@@ -118,11 +118,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
                                       new StringDecoder(null),
                                       loadDecoderInstance())
             .get(updateTopic).get(0);
-    final Iterator<Pair<String,U>> transformed = Iterators.transform(stream.iterator(),
-        new Function<MessageAndMetadata<String,U>, Pair<String,U>>() {
+    final Iterator<KeyMessage<String,U>> transformed = Iterators.transform(stream.iterator(),
+        new Function<MessageAndMetadata<String,U>, KeyMessage<String,U>>() {
           @Override
-          public Pair<String,U> apply(MessageAndMetadata<String,U> input) {
-            return new Pair<>(input.key(), input.message());
+          public KeyMessage<String,U> apply(MessageAndMetadata<String,U> input) {
+            return new KeyMessage<>(input.key(), input.message());
           }
         });
 

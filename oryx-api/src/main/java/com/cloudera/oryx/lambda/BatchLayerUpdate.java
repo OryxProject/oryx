@@ -13,15 +13,13 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.update;
+package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
 import java.io.Serializable;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-
-import com.cloudera.oryx.lambda.QueueProducer;
 
 /**
  * Implementations of this interface define the update process for an instance of

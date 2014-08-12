@@ -22,21 +22,21 @@ import java.util.List;
 
 import org.apache.spark.api.java.JavaPairRDD;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.KeyMessage;
 
 public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  private static final List<Pair<String,String>> holder = new ArrayList<>();
+  private static final List<KeyMessage<String,String>> holder = new ArrayList<>();
 
-  static List<Pair<String,String>> getIntervalDataHolder() {
+  static List<KeyMessage<String,String>> getIntervalDataHolder() {
     return holder;
   }
 
   @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator) {
     while (updateIterator.hasNext()) {
-      Pair<String,String> update = updateIterator.next();
-      holder.add(new Pair<>(update.getFirst(), update.getSecond()));
+      KeyMessage<String,String> update = updateIterator.next();
+      holder.add(new KeyMessage<>(update.getKey(), update.getMessage()));
     }
   }
 
