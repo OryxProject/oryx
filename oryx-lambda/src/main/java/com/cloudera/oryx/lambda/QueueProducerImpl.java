@@ -15,10 +15,8 @@
 
 package com.cloudera.oryx.lambda;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
@@ -31,13 +29,13 @@ import kafka.serializer.StringEncoder;
  * object. This is a wrapper that can be serialized and re-create the {@link Producer}
  * remotely.
  */
-public final class QueueProducer<K, M> implements Serializable, Closeable {
+public final class QueueProducerImpl<K,M> implements QueueProducer<K,M> {
 
   private final String updateBroker;
   private final String topic;
   private transient Producer<K,M> producer;
 
-  public QueueProducer(String updateBroker, String topic) {
+  public QueueProducerImpl(String updateBroker, String topic) {
     this.updateBroker = updateBroker;
     this.topic = topic;
     initProducer();
@@ -55,10 +53,12 @@ public final class QueueProducer<K, M> implements Serializable, Closeable {
     initProducer();
   }
 
+  @Override
   public void send(K key, M message) {
     producer.send(new KeyedMessage<>(topic, key, message));
   }
 
+  @Override
   public void send(M message) {
     producer.send(new KeyedMessage<K, M>(topic, message));
   }

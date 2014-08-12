@@ -35,8 +35,6 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
-
 /**
  * Framework for executing the batch layer update, and storing data to persistent storage,
  * in the context of a streaming framework.
@@ -114,7 +112,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                                         batchSerializationConfig));
     }
 
-    try (QueueProducer<String,U> producer = new QueueProducer<>(updateBroker, updateTopic)) {
+    try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
       updateInstance.configureUpdate(sparkContext,
                                      timestamp.milliseconds(),
                                      newData,

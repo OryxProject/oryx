@@ -24,10 +24,8 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
-import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
-
 /**
- * A dummy {@link com.cloudera.oryx.lambda.update.BatchLayerUpdate} that collects data seen by the
+ * A dummy {@link BatchLayerUpdate} that collects data seen by the
  * framework in a given {@link List}. Assists testing.
  */
 public final class MockBatchUpdate implements BatchLayerUpdate<String,String,String> {

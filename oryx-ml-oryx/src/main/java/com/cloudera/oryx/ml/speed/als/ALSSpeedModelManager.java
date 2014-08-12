@@ -35,10 +35,10 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.common.collection.FormatUtils;
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
@@ -52,11 +52,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      Pair<String,String> km = updateIterator.next();
-      String key = km.getFirst();
-      String message = km.getSecond();
+      KeyMessage<String,String> km = updateIterator.next();
+      String key = km.getKey();
+      String message = km.getMessage();
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
