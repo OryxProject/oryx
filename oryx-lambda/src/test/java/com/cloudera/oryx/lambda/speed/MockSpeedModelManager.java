@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.speed;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -25,10 +26,10 @@ import com.cloudera.oryx.common.collection.Pair;
 
 public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  private static List<Pair<String,String>> holder;
+  private static final List<Pair<String,String>> holder = new ArrayList<>();
 
-  static void setIntervalDataHolder(List<Pair<String,String>> holder) {
-    MockSpeedModelManager.holder = holder;
+  static List<Pair<String,String>> getIntervalDataHolder() {
+    return holder;
   }
 
   @Override
