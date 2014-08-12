@@ -48,10 +48,7 @@
       <groupId>org.jpmml</groupId>
       <artifactId>pmml-model</artifactId>
     </dependency>
-<<<<<<< HEAD
-=======
-<!--
->>>>>>> kam
+
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
@@ -70,7 +67,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
--->
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-ml-oryx</artifactId>
