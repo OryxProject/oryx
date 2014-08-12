@@ -36,8 +36,6 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
-  protected static final int WAIT_BUFFER_IN_WRITES = 25;
-
   protected final List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       int howMany,
