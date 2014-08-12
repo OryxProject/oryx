@@ -247,6 +247,5 @@ public final class ServingLayer implements Closeable {
 
     return context;
   }
-
 }
 
