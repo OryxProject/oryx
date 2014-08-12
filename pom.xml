@@ -66,6 +66,20 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-lambda-serving</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-ml-oryx</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-ml</artifactId>
         <version>${project.version}</version>
       </dependency>

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class ALSServingModelManager implements ServingModelManager<String> {
@@ -106,7 +105,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   }
 
   @Override
-  public ServingModel getModel() {
+  public ALSServingModel getModel() {
     return model;
   }
 
