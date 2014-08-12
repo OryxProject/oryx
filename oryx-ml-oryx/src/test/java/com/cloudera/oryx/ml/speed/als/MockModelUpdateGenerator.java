@@ -16,7 +16,6 @@
 package com.cloudera.oryx.ml.speed.als;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +27,10 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
-final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
+public final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
 
-  static final Map<Integer,float[]> X;
-  static final Map<Integer,float[]> Y;
+  public static final Map<Integer,float[]> X;
+  public static final Map<Integer,float[]> Y;
   static {
     /*
      * Octave:
