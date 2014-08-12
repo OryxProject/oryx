@@ -16,7 +16,6 @@
 package com.cloudera.oryx.lambda;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +58,7 @@ public final class BatchLayerIT extends AbstractBatchIT {
 
     startMessageQueue();
 
-    List<IntervalData<String,String>> intervalData = new ArrayList<>();
-    MockBatchUpdate.setIntervalDataHolder(intervalData);
+    List<IntervalData<String,String>> intervalData = MockBatchUpdate.getIntervalDataHolder();
 
     startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 

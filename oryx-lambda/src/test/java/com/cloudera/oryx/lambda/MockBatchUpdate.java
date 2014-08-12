@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -31,10 +32,10 @@ import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
  */
 public final class MockBatchUpdate implements BatchLayerUpdate<String,String,String> {
 
-  private static List<IntervalData<String,String>> holder;
+  private static final List<IntervalData<String,String>> holder = new ArrayList<>();
 
-  static void setIntervalDataHolder(List<IntervalData<String,String>> holder) {
-    MockBatchUpdate.holder = holder;
+  static List<IntervalData<String,String>> getIntervalDataHolder() {
+    return holder;
   }
 
   @Override
