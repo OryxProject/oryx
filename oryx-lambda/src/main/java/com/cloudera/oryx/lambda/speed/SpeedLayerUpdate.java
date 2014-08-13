@@ -19,6 +19,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
 
 import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.QueueProducerImpl;
 
 /**
  * Main Spark Streaming function for the speed layer that collects and publishes update to
@@ -40,7 +41,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
 
   @Override
   public Void call(JavaPairRDD<K,M> newData) {
-    try (QueueProducer<String,U> producer = new QueueProducer<>(updateBroker, updateTopic)) {
+    try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
       for (U update : modelManager.buildUpdates(newData)) {
         producer.send("UP", update);
       }

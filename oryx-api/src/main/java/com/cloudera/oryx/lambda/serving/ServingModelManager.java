@@ -13,27 +13,22 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.speed;
+package com.cloudera.oryx.lambda.serving;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.spark.api.java.JavaPairRDD;
-
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
  * Implementations of this interface maintain, in memory, the current state of a model in the
- * speed layer. It is given a reference to stream of updates during initialization, and consumes
- * models and new input, updates in-memory state, and produces updates accordingly.
+ * serving layer. It is given a reference to a stream of updates during initialization,
+ * and consumes models and updates from it, and updates in-memory state accordingly.
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
  * @param <U> type of update message read/written
  */
-public interface SpeedModelManager<K,M,U> extends Closeable {
+public interface ServingModelManager<U> extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
@@ -43,13 +38,14 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
    * @param updateIterator iterator to read models from
    * @throws IOException if an error occurs while reading updates
    */
-  void consume(Iterator<Pair<String,U>> updateIterator) throws IOException;
+  void consume(Iterator<KeyMessage<String,U>> updateIterator) throws IOException;
 
   /**
-   * @param newData RDD of raw new data from the queue
-   * @return updates to publish on the update queue
+   * @return a reference to the current state of the model in memory. Note that the model state
+   *  may be updated asynchronously from another thread and so access to the data structure must
+   *  be treated. May be {@code null} if no model is available.
    */
-  Collection<U> buildUpdates(JavaPairRDD<K,M> newData);
+  ServingModel getModel();
 
   @Override
   void close();

@@ -29,8 +29,6 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractServingIT.class);
 
-  protected static final int WAIT_BUFFER_IN_WRITES = 25;
-
   private ServingLayer servingLayer;
   private ProduceData updateProducer;
 

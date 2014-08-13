@@ -13,28 +13,16 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.example;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.cloudera.oryx.lambda.BatchLayerUpdate;
+import com.cloudera.oryx.lambda.QueueProducer;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import scala.Tuple2;
 
-/**
- * A dummy {@link BatchLayerUpdate} that collects data seen by the
- * framework in a given {@link List}. Assists testing.
- */
-public final class MockBatchUpdate implements BatchLayerUpdate<String,String,String> {
+import java.io.IOException;
 
-  private static final List<IntervalData<String,String>> holder = new ArrayList<>();
-
-  static List<IntervalData<String,String>> getIntervalDataHolder() {
-    return holder;
-  }
+public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,String,String> {
 
   @Override
   public void configureUpdate(JavaSparkContext sparkContext,
@@ -42,16 +30,9 @@ public final class MockBatchUpdate implements BatchLayerUpdate<String,String,Str
                               JavaPairRDD<String,String> newData,
                               JavaPairRDD<String,String> pastData,
                               String modelDirString,
-                              QueueProducer<String,String> modelUpdateQueue) {
-    holder.add(new IntervalData<>(timestamp, collect(newData), collect(pastData)));
-  }
+                              QueueProducer<String,String> modelUpdateQueue)
+      throws IOException, InterruptedException {
 
-  private static Collection<Tuple2<String,String>> collect(JavaPairRDD<String,String> rdd) {
-    if (rdd == null) {
-      return Collections.emptyList();
-    } else {
-      return rdd.collect();
-    }
   }
 
 }

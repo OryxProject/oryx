@@ -13,42 +13,30 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als.model;
+package com.cloudera.oryx.example;
 
 import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 import java.io.IOException;
 import java.util.Iterator;
 
-public final class MockALSServingModelManager implements ServingModelManager<String> {
-
-  private static MockALSServingModelManager INSTANCE = null;
-
-  public static MockALSServingModelManager getInstance() {
-    return INSTANCE;
-  }
-
-  private final ALSServingModelManager delegate;
-
-  public MockALSServingModelManager() {
-    delegate = new ALSServingModelManager();
-    INSTANCE = this;
-  }
+public final class ExampleServingModelManager implements ServingModelManager<String> {
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
-    delegate.consume(updateIterator);
+
   }
 
   @Override
-  public ALSServingModel getModel() {
-    return delegate.getModel();
+  public ServingModel getModel() {
+    return null;
   }
 
   @Override
   public void close() {
-    delegate.close();
+
   }
 
 }
