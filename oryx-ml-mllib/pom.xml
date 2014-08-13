@@ -34,6 +34,10 @@
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-ml</artifactId>
     </dependency>
     <dependency>
