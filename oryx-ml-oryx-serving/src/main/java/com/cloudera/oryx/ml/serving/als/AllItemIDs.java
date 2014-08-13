@@ -31,20 +31,20 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 /**
  * <p>Responds to a GET request to {@code /items}
  * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
- *
+ * <p/>
  * <p>JSON output is an array of item IDs.</p>
  */
 @Path("/items")
 public final class AllItemIDs {
 
-	@Context
-	private ServletContext servletContext;
+  @Context
+  private ServletContext servletContext;
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<Integer> get() {
-		ALSServingModelManager alsServingModelManager = (ALSServingModelManager) servletContext.getAttribute("ModelManager");
-		ALSServingModel alsServingModel = alsServingModelManager.getModel();
-		return alsServingModel.getAllItemIDs();
+    ALSServingModelManager alsServingModelManager = (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+    return alsServingModel.getAllItemIDs();
   }
 }

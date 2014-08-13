@@ -26,15 +26,16 @@ import org.junit.Test;
 
 public class AllItemIDsTest extends JerseyTest {
 
-	@Override
-	protected Application configure() {
-		return new ResourceConfig(AllItemIDs.class);
-	}
+  @Override
+  protected Application configure() {
+    return new ResourceConfig(AllItemIDs.class);
+  }
 
-	@Test
-	public void test() {
-		GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() {};
-		List<Integer> itemsList = target("items").request().get(genericList);
-		Assert.assertTrue(itemsList.size() > 0);
-	}
+  @Test
+  public void test() {
+    GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() {
+    };
+    List<Integer> itemsList = target("items").request().get(genericList);
+    Assert.assertTrue(itemsList.size() > 0);
+  }
 }
