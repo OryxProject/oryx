@@ -29,6 +29,8 @@
         <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-api</artifactId>
         <version>${project.version}</version>
+        <!-- See comments in child. Makes sure spark-core doesn't inherit everywhere in project -->
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
@@ -284,6 +286,7 @@
     <module>oryx-batch</module>
     <module>oryx-speed</module>
     <module>oryx-serving</module>
+    <module>example</module>
   </modules>
 
   <properties>
