@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -95,10 +96,16 @@ public final class ModelManagerListener<U> implements ServletContextListener {
         modelManager.consume(transformed);
       }
     }).start();
+
+		ServletContext servletContext = sce.getServletContext();
+		servletContext.setAttribute("ModelManager", modelManager);
   }
 
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
+		//Remove the Model Manager from Application scope
+		sce.getServletContext().removeAttribute("ModelManager");
+
     if (modelManager != null) {
       log.info("Shutting down model manager");
       modelManager.close();

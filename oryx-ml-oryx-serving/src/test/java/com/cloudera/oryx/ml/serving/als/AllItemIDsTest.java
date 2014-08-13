@@ -19,7 +19,6 @@ import java.util.List;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 
-import com.cloudera.oryx.ml.serving.als.AllItemIDs;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
@@ -36,6 +35,6 @@ public class AllItemIDsTest extends JerseyTest {
 	public void test() {
 		GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() {};
 		List<Integer> itemsList = target("items").request().get(genericList);
-		Assert.assertNotNull(itemsList);
+		Assert.assertTrue(itemsList.size() > 0);
 	}
 }
