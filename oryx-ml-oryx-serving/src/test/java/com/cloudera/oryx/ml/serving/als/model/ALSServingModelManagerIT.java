@@ -17,7 +17,6 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
-import com.cloudera.oryx.ml.serving.als.ALSApplication;
 import com.cloudera.oryx.ml.speed.als.MockModelUpdateGenerator;
 import com.typesafe.config.Config;
 import org.junit.Test;
@@ -26,11 +25,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class ALSServingModelManagerIT extends AbstractServingIT {
+  final static String ALS_RESOURCES = "com.cloudera.oryx.ml.serving.als";
 
   @Test
   public void testALS() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("serving.application-class", ALSApplication.class.getName());
+    overlayConfig.put("serving.application-resources", ALS_RESOURCES);
     overlayConfig.put("serving.model-manager-class", MockALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 

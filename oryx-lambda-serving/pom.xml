@@ -66,6 +66,7 @@
       <groupId>org.glassfish.jersey.containers</groupId>
       <artifactId>jersey-container-servlet</artifactId>
     </dependency>
+<!--
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-moxy</artifactId>
@@ -74,7 +75,7 @@
       <groupId>org.glassfish.jersey.test-framework.providers</groupId>
       <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
     </dependency>
-
+-->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

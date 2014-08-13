@@ -144,12 +144,6 @@ public final class ServingLayer implements Closeable {
   }
 
   private static void configureServer(Server server) {
-    // Needed later if deploying JSPX files:
-    /*
-    LifecycleListener jasperListener = new JasperListener();
-    server.addLifecycleListener(jasperListener);
-    jasperListener.lifecycleEvent(new LifecycleEvent(server, Lifecycle.BEFORE_INIT_EVENT, null));
-     */
     server.addLifecycleListener(new JreMemoryLeakPreventionListener());
     server.addLifecycleListener(new ThreadLocalLeakPreventionListener());
   }
