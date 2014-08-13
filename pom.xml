@@ -222,7 +222,11 @@
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
-        <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet</artifactId>
+        <version>${jersey.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>

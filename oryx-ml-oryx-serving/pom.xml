@@ -52,7 +52,6 @@
       <groupId>org.jpmml</groupId>
       <artifactId>pmml-model</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
@@ -87,6 +86,7 @@
       <artifactId>zk-util</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.glassfish.jersey.test-framework.providers</groupId>
       <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
@@ -95,8 +95,9 @@
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-moxy</artifactId>
-      <scope>test</scope>
+      <scope>runtime</scope>
     </dependency>
+
   </dependencies>
 
   <build>
