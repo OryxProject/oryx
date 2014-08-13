@@ -33,8 +33,7 @@ public class AllItemIDsTest extends JerseyTest {
 
   @Test
   public void test() {
-    GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() {
-    };
+    GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() { };
     List<Integer> itemsList = target("items").request().get(genericList);
     Assert.assertTrue(itemsList.size() > 0);
   }

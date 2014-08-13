@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -76,15 +75,15 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
     consumer = Consumer.createJavaConsumerConnector(consumerConfig);
-    KafkaStream<String, U> stream =
+    KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
-            new StringDecoder(null),
-            loadDecoderInstance())
+                                      new StringDecoder(null),
+                                      loadDecoderInstance())
             .get(updateTopic).get(0);
-    final Iterator<KeyMessage<String, U>> transformed = Iterators.transform(stream.iterator(),
-        new Function<MessageAndMetadata<String, U>, KeyMessage<String, U>>() {
+    final Iterator<KeyMessage<String,U>> transformed = Iterators.transform(stream.iterator(),
+        new Function<MessageAndMetadata<String,U>, KeyMessage<String,U>>() {
           @Override
-          public KeyMessage<String, U> apply(MessageAndMetadata<String, U> input) {
+          public KeyMessage<String,U> apply(MessageAndMetadata<String,U> input) {
             return new KeyMessage<>(input.key(), input.message());
           }
         });
@@ -97,8 +96,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
       }
     }).start();
 
-    ServletContext servletContext = sce.getServletContext();
-    servletContext.setAttribute("ModelManager", modelManager);
+    sce.getServletContext().setAttribute("ModelManager", modelManager);
   }
 
   @Override
@@ -121,13 +119,13 @@ public final class ModelManagerListener<U> implements ServletContextListener {
   private ServingModelManager<U> loadManagerInstance() {
     try {
       return ClassUtils.loadInstanceOf(modelManagerClass.getName(),
-          modelManagerClass,
-          new Class<?>[]{Config.class},
-          new Object[]{config});
+                                       modelManagerClass,
+                                       new Class<?>[] { Config.class },
+                                       new Object[] { config });
 
     } catch (IllegalArgumentException iae) {
       log.info("{} lacks a constructor with Config arg, using no-arg constructor",
-          modelManagerClass);
+               modelManagerClass);
       return ClassUtils.loadInstanceOf(modelManagerClass);
     }
   }
@@ -139,9 +137,9 @@ public final class ModelManagerListener<U> implements ServletContextListener {
       log.warn("No no-arg constructor for {}; trying nullable one-arg", updateDecoderClass);
       // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
       return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
-          updateDecoderClass,
-          new Class<?>[]{VerifiableProperties.class},
-          new Object[]{null});
+                                       updateDecoderClass,
+                                       new Class<?>[] { VerifiableProperties.class },
+                                       new Object[] { null });
     }
   }
 
