@@ -15,51 +15,38 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import javax.servlet.http.HttpServletResponse;
-
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.catalina.Context;
-import org.apache.catalina.Host;
 import org.apache.catalina.Engine;
-import org.apache.catalina.Server;
+import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Server;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
+import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public final class ServingLayer implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);
 
-  private static final int[] ERROR_PAGE_STATUSES = {
-      HttpServletResponse.SC_BAD_REQUEST,
-      HttpServletResponse.SC_UNAUTHORIZED,
-      HttpServletResponse.SC_NOT_FOUND,
-      HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-      HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-      HttpServletResponse.SC_NOT_IMPLEMENTED,
-      HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-  };
-
   private final int port;
-  private final Config config;
   private final int securePort;
   private final String userName;
   private final String password;
@@ -91,7 +78,6 @@ public final class ServingLayer implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
-    this.config = config;
   }
 
   public synchronized void start() throws IOException {
@@ -158,12 +144,6 @@ public final class ServingLayer implements Closeable {
   }
 
   private static void configureServer(Server server) {
-    // Needed later if deploying JSPX files:
-    /*
-    LifecycleListener jasperListener = new JasperListener();
-    server.addLifecycleListener(jasperListener);
-    jasperListener.lifecycleEvent(new LifecycleEvent(server, Lifecycle.BEFORE_INIT_EVENT, null));
-     */
     server.addLifecycleListener(new JreMemoryLeakPreventionListener());
     server.addLifecycleListener(new ThreadLocalLeakPreventionListener());
   }
@@ -227,10 +207,8 @@ public final class ServingLayer implements Closeable {
     context.setWebappVersion("3.1");
     context.setName("Oryx");
 
-    String jaxRSApplicationClass = config.getString("serving.application-class");
-    Tomcat.addServlet(context, "serving-layer", jaxRSApplicationClass);
-
-    addErrorPages(context);
+    ContextConfig contextConfig = new ContextConfig();
+    context.addLifecycleListener(contextConfig);
 
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;
@@ -269,20 +247,5 @@ public final class ServingLayer implements Closeable {
 
     return context;
   }
-
-  private static void addErrorPages(Context context) {
-    for (int errorCode : ERROR_PAGE_STATUSES) {
-      ErrorPage errorPage = new ErrorPage();
-      errorPage.setErrorCode(errorCode);
-      errorPage.setLocation("/error.jspx");
-      context.addErrorPage(errorPage);
-    }
-    ErrorPage errorPage = new ErrorPage();
-    errorPage.setExceptionType(Throwable.class.getName());
-    errorPage.setLocation("/error.jspx");
-    context.addErrorPage(errorPage);
-  }
-
-
 }
 
