@@ -15,36 +15,33 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
- * <p>Responds to a GET request to {@code /item/allIDs}
- * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#getAllItemIDs()}.</p>
- *
- * <p>CSV output is one item ID per line. JSON output is an array of item IDs.</p>
+ * <p>Responds to a GET request to {@code /items}
+ * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
+ * <p/>
+ * <p>JSON output is an array of item IDs.</p>
  */
-@Path("/item")
+@Path("/items")
 public final class AllItemIDs {
 
-  @GET
-  @Path("/allIDs")
-  @Produces(MediaType.APPLICATION_JSON)
-  public List<String> get() {
-/*
-    OryxRecommender recommender = getRecommender();
-    try {
-      output(request, response, recommender.getAllItemIDs());
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    }
- */
-    return new ArrayList<>(Arrays.asList("1", "2"));
-  }
+  @Context
+  private ServletContext servletContext;
 
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Iterable<Integer> get() {
+    ALSServingModelManager alsServingModelManager = (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+    return alsServingModel.getAllItemIDs();
+  }
 }
