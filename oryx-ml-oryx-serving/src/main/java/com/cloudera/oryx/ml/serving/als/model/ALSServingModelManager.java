@@ -26,9 +26,9 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.lambda.serving.ServingModel;
+import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class ALSServingModelManager implements ServingModelManager<String> {
@@ -38,22 +38,18 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   private ALSServingModel model;
 
   @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      Pair<String,String> km = updateIterator.next();
-      String key = km.getFirst();
-      String message = km.getSecond();
+      KeyMessage<String,String> km = updateIterator.next();
+      String key = km.getKey();
+      String message = km.getMessage();
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
           // Update
           String[] tokens = message.split("\t");
           int id = Integer.parseInt(tokens[1]);
-          String[] vectorTokens = tokens[2].split(",");
-          float[] vector = new float[vectorTokens.length];
-          for (int i = 0; i < vectorTokens.length; i++) {
-            vector[i] = Float.parseFloat(vectorTokens[i]);
-          }
+          float[] vector = FormatUtils.parseFloatVec(tokens[2]);
           switch (tokens[0]) {
             case "X":
               model.setUserVector(id, vector);
@@ -109,7 +105,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   }
 
   @Override
-  public ServingModel getModel() {
+  public ALSServingModel getModel() {
     return model;
   }
 

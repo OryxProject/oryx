@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,18 +24,16 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
-import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
-
 /**
- * A dummy {@link com.cloudera.oryx.lambda.update.BatchLayerUpdate} that collects data seen by the
+ * A dummy {@link BatchLayerUpdate} that collects data seen by the
  * framework in a given {@link List}. Assists testing.
  */
 public final class MockBatchUpdate implements BatchLayerUpdate<String,String,String> {
 
-  private static List<IntervalData<String,String>> holder;
+  private static final List<IntervalData<String,String>> holder = new ArrayList<>();
 
-  static void setIntervalDataHolder(List<IntervalData<String,String>> holder) {
-    MockBatchUpdate.holder = holder;
+  static List<IntervalData<String,String>> getIntervalDataHolder() {
+    return holder;
   }
 
   @Override

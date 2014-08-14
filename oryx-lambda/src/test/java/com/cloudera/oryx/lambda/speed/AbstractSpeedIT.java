@@ -36,8 +36,6 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
-  protected static final int WAIT_BUFFER_IN_WRITES = 25;
-
   protected final List<Pair<String,String>> startServerProduceConsumeQueues(
       Config config,
       int howMany,
@@ -57,19 +55,19 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       int howManyUpdate) throws IOException, InterruptedException {
 
     int zkPort = getZKPort();
-    int kakfaPort = getKafkaBrokerPort();
+    int kafkaPort = getKafkaBrokerPort();
 
     int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
 
     ProduceData inputProducer = new ProduceData(inputGenerator,
                                                 zkPort,
-                                                kakfaPort,
+                                                kafkaPort,
                                                 INPUT_TOPIC,
                                                 howManyInput,
                                                 10);
     ProduceData updateProducer = new ProduceData(updateGenerator,
                                                  zkPort,
-                                                 kakfaPort,
+                                                 kafkaPort,
                                                  UPDATE_TOPIC,
                                                  howManyUpdate,
                                                  10);

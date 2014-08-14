@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
-import com.cloudera.oryx.lambda.update.BatchLayerUpdate;
 
 /**
  * Main entry point for Oryx Batch Layer.

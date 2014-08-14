@@ -34,6 +34,10 @@
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda-serving</artifactId>
     </dependency>
     <dependency>
@@ -50,6 +54,40 @@
     </dependency>
 
     <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-common</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-lambda</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-lambda-serving</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-ml-oryx</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>kafka-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>zk-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.test-framework.providers</groupId>
       <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
       <scope>test</scope>
@@ -60,5 +98,14 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

@@ -48,7 +48,7 @@ public final class LinearSystemSolver {
     // Otherwise try to report apparent rank
     int apparentRank = decomposition.getRank(0.01); // Better value?
     log.warn("{} x {} matrix is near-singular (threshold {}). Add more data or decrease the " +
-             "value of model.features, to <= about {}",
+             "value of als.hyperparams.features, to <= about {}",
              M.getRowDimension(), 
              M.getColumnDimension(), 
              SINGULARITY_THRESHOLD,

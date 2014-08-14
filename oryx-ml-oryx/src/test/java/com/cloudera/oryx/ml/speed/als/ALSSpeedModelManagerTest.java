@@ -18,7 +18,6 @@ package com.cloudera.oryx.ml.speed.als;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.ml.speed.als.ALSSpeedModelManager;
 
 public final class ALSSpeedModelManagerTest extends OryxTest {
 

@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -35,10 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.FormatUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
@@ -52,22 +52,18 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<Pair<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
     while (updateIterator.hasNext()) {
-      Pair<String,String> km = updateIterator.next();
-      String key = km.getFirst();
-      String message = km.getSecond();
+      KeyMessage<String,String> km = updateIterator.next();
+      String key = km.getKey();
+      String message = km.getMessage();
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
           // Update
           String[] tokens = message.split("\t");
           int id = Integer.parseInt(tokens[1]);
-          String[] vectorTokens = tokens[2].split(",");
-          float[] vector = new float[vectorTokens.length];
-          for (int i = 0; i < vectorTokens.length; i++) {
-            vector[i] = Float.parseFloat(vectorTokens[i]);
-          }
+          float[] vector = FormatUtils.parseFloatVec(tokens[2]);
           switch (tokens[0]) {
             case "X":
               model.setUserVector(id, vector);
@@ -128,20 +124,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples = newData.mapToPair(
-        new PairFunction<Tuple2<String,String>,Tuple2<Integer,Integer>,Double>() {
-          private final Pattern comma = Pattern.compile(",");
-          @Override
-          public Tuple2<Tuple2<Integer,Integer>,Double> call(Tuple2<String,String> km) {
-            String[] tokens = comma.split(km._2());
-            int numTokens = tokens.length;
-            Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3);
-            int user = Integer.parseInt(tokens[0]);
-            int item = Integer.parseInt(tokens[1]);
-            double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;
-            return new Tuple2<>(new Tuple2<>(user, item), value);
-          }
-        });
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples = newData.mapToPair(new UpdatesToTuple());
 
     JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
     if (implicit) {
@@ -152,19 +135,16 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
     }
 
-    Collection<UserItemStrength> input =
-        aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>,UserItemStrength>() {
-          @Override
-          public UserItemStrength call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
-            Tuple2<Integer,Integer> userProduct = userProductScore._1();
-            return new UserItemStrength(userProduct._1(),
-                                        userProduct._2(),
-                                        userProductScore._2().floatValue());
-          }
-        }).collect();
+    Collection<UserItemStrength> input = aggregated.map(new TupleToUserItemStrength()).collect();
 
-    Solver XTXsolver = model.getXTXSolver();
-    Solver YTYsolver = model.getYTYSolver();
+    Solver XTXsolver;
+    Solver YTYsolver;
+    try {
+      XTXsolver = model.getXTXSolver();
+      YTYsolver = model.getYTYSolver();
+    } catch (SingularMatrixSolverException smse) {
+      return Collections.emptyList();
+    }
 
     Collection<String> result = new ArrayList<>();
     for (UserItemStrength uis : input) {
@@ -212,10 +192,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       }
 
       if (newXu != null) {
-        result.add("X	" + formatKeyAndVector(user, newXu));
+        result.add("X\t" + user + '\t' + FormatUtils.formatFloatVec(newXu));
       }
       if (newYi != null) {
-        result.add("Y\t" + formatKeyAndVector(item, newYi));
+        result.add("Y\t" + item + '\t' + FormatUtils.formatFloatVec(newYi));
       }
     }
     return result;
@@ -267,13 +247,33 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return dot;
   }
 
-  private static String formatKeyAndVector(int id, float[] vector) {
-    // Joiner needs a Object[], so go ahead and make strings:
-    String[] objVector = new String[vector.length];
-    for (int i = 0; i < vector.length; i++) {
-      objVector[i] = Float.toString(vector[i]);
+  private static class UpdatesToTuple
+      implements PairFunction<Tuple2<String,String>,Tuple2<Integer,Integer>,Double> {
+
+    private static final Pattern COMMA = Pattern.compile(",");
+
+    @Override
+    public Tuple2<Tuple2<Integer,Integer>,Double> call(Tuple2<String,String> km) {
+      String[] tokens = COMMA.split(km._2());
+      int numTokens = tokens.length;
+      Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3, "Bad update: %s", km._2());
+      int user = Integer.parseInt(tokens[0]);
+      int item = Integer.parseInt(tokens[1]);
+      double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;
+      return new Tuple2<>(new Tuple2<>(user, item), value);
     }
-    return id + '\t' + Joiner.on(',').join(objVector);
+
+  }
+
+  private static class TupleToUserItemStrength
+      implements Function<Tuple2<Tuple2<Integer,Integer>,Double>,UserItemStrength> {
+    @Override
+    public UserItemStrength call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
+      Tuple2<Integer,Integer> userProduct = userProductScore._1();
+      return new UserItemStrength(userProduct._1(),
+                                  userProduct._2(),
+                                  userProductScore._2().floatValue());
+    }
   }
 
 }

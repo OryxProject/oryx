@@ -34,6 +34,10 @@
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-ml</artifactId>
     </dependency>
     <dependency>
@@ -58,6 +62,11 @@
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
       <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

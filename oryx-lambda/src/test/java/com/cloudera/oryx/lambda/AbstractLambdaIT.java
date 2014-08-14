@@ -39,6 +39,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
 
   protected static final String INPUT_TOPIC = "OryxInput";
   protected static final String UPDATE_TOPIC = "OryxUpdate";
+  protected static final int WAIT_BUFFER_IN_WRITES = 250;
 
   private LocalZKServer localZKServer;
   private LocalKafkaBroker localKafkaBroker;
@@ -58,7 +59,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
   }
 
   @After
-  public final void tearDownTestState() {
+  public final void tearDownKafkaZK() {
     if (localZKServer != null) {
       int zkPort = localZKServer.getPort();
       KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);

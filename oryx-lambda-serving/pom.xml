@@ -37,6 +37,10 @@
       <artifactId>oryx-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_${scala.minor.version}</artifactId>
     </dependency>
@@ -52,6 +56,34 @@
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-common</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-lambda</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>kafka-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>zk-util</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

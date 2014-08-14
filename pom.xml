@@ -27,6 +27,13 @@
     <dependencies>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-api</artifactId>
+        <version>${project.version}</version>
+        <!-- See comments in child. Makes sure spark-core doesn't inherit everywhere in project -->
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-common</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -60,6 +67,20 @@
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-lambda</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-lambda-serving</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-ml-oryx</artifactId>
         <version>${project.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
@@ -252,6 +273,7 @@
   </dependencyManagement>
 
   <modules>
+    <module>oryx-api</module>
     <module>oryx-common</module>
     <module>kafka-util</module>
     <module>zk-util</module>
@@ -264,6 +286,7 @@
     <module>oryx-batch</module>
     <module>oryx-speed</module>
     <module>oryx-serving</module>
+    <module>example</module>
   </modules>
 
   <properties>
