@@ -43,7 +43,7 @@ public final class AllItemIDs {
   @Path("/allIDs")
   public List<Integer> get() {
     ALSServingModelManager alsServingModelManager = (ALSServingModelManager) servletContext.getAttribute("ModelManager");
-    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
+    ALSServingModel alsServingModel = alsServingModelManager.getModel();
     return alsServingModel.getAllItemIDs();
   }
 }
