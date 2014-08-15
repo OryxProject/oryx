@@ -15,17 +15,22 @@
 
 package com.cloudera.oryx.ml.serving.als.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
+import com.carrotsearch.hppc.cursors.IntCursor;
 import com.carrotsearch.hppc.predicates.IntPredicate;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.lambda.serving.ServingModel;
+import com.google.common.collect.Iterables;
 
 public final class ALSServingModel implements ServingModel {
 
@@ -75,6 +80,26 @@ public final class ALSServingModel implements ServingModel {
     lock.lock();
     try {
       X.put(user, vector);
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  public List<Integer> getAllItemIDs() {
+    Lock lock = yLock.readLock();
+    lock.lock();
+    try {
+      Iterable<Integer> iterable = Iterables.transform(Y.keys(),
+          new Function<IntCursor, Integer>() {
+            @Override
+            public Integer apply(IntCursor input) {
+              return input.value;
+            }
+          });
+
+      List<Integer> itemsList = new ArrayList<>();
+      Iterables.addAll(itemsList, iterable);
+      return itemsList;
     } finally {
       lock.unlock();
     }
