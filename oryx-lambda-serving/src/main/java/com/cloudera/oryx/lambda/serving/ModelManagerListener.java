@@ -95,10 +95,16 @@ public final class ModelManagerListener<U> implements ServletContextListener {
         modelManager.consume(transformed);
       }
     }).start();
+
+    // Set the Model Manager in the Application scope
+    sce.getServletContext().setAttribute("ModelManager", modelManager);
   }
 
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
+    // Remove the Model Manager from Application scope
+    sce.getServletContext().removeAttribute("ModelManager");
+
     if (modelManager != null) {
       log.info("Shutting down model manager");
       modelManager.close();
