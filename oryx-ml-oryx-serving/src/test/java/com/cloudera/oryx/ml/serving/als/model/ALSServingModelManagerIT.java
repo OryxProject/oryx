@@ -25,12 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class ALSServingModelManagerIT extends AbstractServingIT {
-  final static String ALS_RESOURCES = "com.cloudera.oryx.ml.serving.als";
 
   @Test
   public void testALS() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("serving.application-resources", ALS_RESOURCES);
+    overlayConfig.put("serving.application-resources", "com.cloudera.oryx.ml.serving.als");
     overlayConfig.put("serving.model-manager-class", MockALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
