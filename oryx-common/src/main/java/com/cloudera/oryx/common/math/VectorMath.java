@@ -13,12 +13,28 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.common.math;
 
-import com.cloudera.oryx.common.OryxTest;
+/**
+ * Utility class with simple vector-related operations.
+ */
+public final class VectorMath {
 
-public final class ALSSpeedModelManagerTest extends OryxTest {
+  private VectorMath() {
+  }
 
-  // Nothing here at the moment
+  /**
+   * @return dot product of the two given arrays
+   * @param x one array
+   * @param y the other array
+   */
+  public static double dot(float[] x, float[] y) {
+    int length = x.length;
+    double dot = 0.0;
+    for (int i = 0; i < length; i++) {
+      dot += x[i] * y[i];
+    }
+    return dot;
+  }
 
 }

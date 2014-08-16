@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.common.collection.FormatUtils;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.fn.Functions;
@@ -161,7 +162,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       if (Yi != null) {
         // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction
         // in Q = X * Y^t
-        double currentValue = Xu == null ? 0.0 : dot(Xu, Yi);
+        double currentValue = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         // The entire vector Qu' is just 0, with Qui' in position i
         // More generally we are looking for Qu' = Xu' * Y^t
@@ -180,7 +181,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Similarly for Y vs X
       float[] newYi = null;
       if (Xu != null) {
-        double currentValue = Yi == null ? 0.0 : dot(Xu, Yi);
+        double currentValue = Yi == null ? 0.0 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         if (!Double.isNaN(targetQui)) {
           float[] QuiXu = Xu.clone();
@@ -231,20 +232,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       targetQui = value;
     }
     return targetQui;
-  }
-
-  /**
-   * @return dot product of the two given arrays
-   * @param x one array
-   * @param y the other array
-   */
-  static double dot(float[] x, float[] y) {
-    int length = x.length;
-    double dot = 0.0;
-    for (int i = 0; i < length; i++) {
-      dot += x[i] * y[i];
-    }
-    return dot;
   }
 
   private static class UpdatesToTuple
