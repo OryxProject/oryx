@@ -36,8 +36,11 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     startMessageQueue();
     startServerUpdateQueues(config, new MockModelUpdateGenerator(), 10);
 
-    //ALSServingModel model = MockALSServingModelManager.getInstance().getModel();
-    //assertNotNull(model);
+    MockALSServingModelManager manager = MockALSServingModelManager.getInstance();
+    assertNotNull("Manager must initialize in web context", manager);
+
+    ALSServingModel model = manager.getModel();
+    assertNotNull(model);
     //assertEquals(2, model.getFeatures());
   }
 

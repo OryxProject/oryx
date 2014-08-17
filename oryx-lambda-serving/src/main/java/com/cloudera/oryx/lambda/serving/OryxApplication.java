@@ -16,7 +16,6 @@
 package com.cloudera.oryx.lambda.serving;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.typesafe.config.ConfigException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +23,14 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.ApplicationPath;
 
 @ApplicationPath("")
-public class OryxApplication extends ResourceConfig {
-  private static final String APPLICATION_RESOURCES = "serving.application-resources";
-  private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);
+public final class OryxApplication extends ResourceConfig {
+
+  private static final Logger log = LoggerFactory.getLogger(OryxApplication.class);
 
   public OryxApplication() {
-    try {
-      packages(ConfigUtils.getDefault().getString(APPLICATION_RESOURCES));
-    } catch(ConfigException ex) {
-      log.error("no valid "+APPLICATION_RESOURCES+" set.", ex);
-    }
+    String packages = ConfigUtils.getDefault().getString("serving.application-resources");
+    log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
+    packages(packages);
   }
+
 }
