@@ -16,6 +16,7 @@
 package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -26,6 +27,7 @@ import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.carrotsearch.hppc.cursors.IntCursor;
 import com.carrotsearch.hppc.predicates.IntPredicate;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.lambda.serving.ServingModel;
@@ -95,6 +97,21 @@ public final class ALSServingModel implements ServingModel {
     } finally {
       lock.unlock();
     }
+  }
+
+  public List<Float> estimatePreference(int user, List<Integer> items) {
+    float[] userFeatures = getUserVector(user);
+    Float[] results = new Float[items.size()];
+
+    for (int i=0; i < items.size(); i++) {
+      float[] itemFeatures = getItemVector(items.get(i));
+      if (itemFeatures != null) {
+        float value = (float) VectorMath.dot(itemFeatures, userFeatures);
+        Preconditions.checkState(!(Float.isInfinite(value) || Float.isNaN(value)), "Bad estimate");
+        results[i] = value;
+      }
+    }
+    return Arrays.asList(results);
   }
 
   void setItemVector(int item, float[] vector) {

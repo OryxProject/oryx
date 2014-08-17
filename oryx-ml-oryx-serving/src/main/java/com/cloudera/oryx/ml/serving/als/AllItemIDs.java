@@ -41,7 +41,7 @@ public final class AllItemIDs {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
-  public List<Integer> get() {
+  public List<Integer> getAllItems() {
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute("ModelManager");
     ALSServingModel alsServingModel = alsServingModelManager.getModel();

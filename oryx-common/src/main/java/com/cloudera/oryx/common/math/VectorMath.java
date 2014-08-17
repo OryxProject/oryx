@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.common.math;
 
+import org.apache.commons.math3.util.FastMath;
+
 /**
  * Utility class with simple vector-related operations.
  */
@@ -35,6 +37,27 @@ public final class VectorMath {
       dot += x[i] * y[i];
     }
     return dot;
+  }
+
+  /**
+   * @return the L2 norm of vector x
+   */
+  public static double norm(float[] x) {
+    double total = 0.0;
+    for (float f : x) {
+      total += f * f;
+    }
+    return FastMath.sqrt(total);
+  }
+
+  /**
+   * @param x vector that will modified to have unit length
+   */
+  public static void normalize(float[] x) {
+    double norm = norm(x);
+    for (int i = 0; i < x.length; i++) {
+      x[i] /= norm;
+    }
   }
 
 }
