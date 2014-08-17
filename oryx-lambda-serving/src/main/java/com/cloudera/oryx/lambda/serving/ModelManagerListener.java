@@ -89,6 +89,10 @@ public final class ModelManagerListener<U> implements ServletContextListener {
         });
 
     modelManager = loadManagerInstance();
+
+    // Set the Model Manager in the Application scope
+    sce.getServletContext().setAttribute("ModelManager", modelManager);
+
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
@@ -96,8 +100,6 @@ public final class ModelManagerListener<U> implements ServletContextListener {
       }
     }).start();
 
-    // Set the Model Manager in the Application scope
-    sce.getServletContext().setAttribute("ModelManager", modelManager);
   }
 
   @Override

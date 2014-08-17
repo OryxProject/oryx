@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.math;
 
+import com.google.common.base.Preconditions;
+import org.apache.commons.math3.util.FastMath;
+
 /**
  * Utility class with simple vector-related operations.
  */
@@ -24,17 +27,45 @@ public final class VectorMath {
   }
 
   /**
-   * @return dot product of the two given arrays
    * @param x one array
    * @param y the other array
+   * @return dot product of the two given arrays
+   * @throws IllegalArgumentException if x and y are empty or of different length
    */
   public static double dot(float[] x, float[] y) {
     int length = x.length;
+    Preconditions.checkArgument(length > 0 && length == y.length);
     double dot = 0.0;
     for (int i = 0; i < length; i++) {
-      dot += x[i] * y[i];
+      dot += (double) x[i] * (double) y[i];
     }
     return dot;
+  }
+
+  /**
+   * @param x vector for whom norm to be calculated
+   * @return the L2 norm of vector x
+   * @throws IllegalArgumentException if x is of 0 length
+   */
+  public static double norm(float[] x) {
+    Preconditions.checkArgument(x.length > 0);
+    double total = 0.0;
+    for (float f : x) {
+      total += (double) f * (double) f;
+    }
+    return FastMath.sqrt(total);
+  }
+
+  /**
+   * @param x vector that will modified to have unit length
+   * @throws IllegalArgumentException if x is of 0 length
+   */
+  public static void normalize(float[] x) {
+    Preconditions.checkArgument(x.length > 0);
+    double norm = norm(x);
+    for (int i = 0; i < x.length; i++) {
+      x[i] /= norm;
+    }
   }
 
 }

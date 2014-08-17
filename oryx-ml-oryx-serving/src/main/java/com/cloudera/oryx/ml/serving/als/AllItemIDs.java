@@ -29,7 +29,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
  * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
- *
+ * <p/>
  * <p>JSON output is an array of item IDs.</p>
  */
 @Path("/item")
@@ -41,7 +41,7 @@ public final class AllItemIDs {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
-  public List<Integer> get() {
+  public List<Integer> getAllItemIDs() {
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute("ModelManager");
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
