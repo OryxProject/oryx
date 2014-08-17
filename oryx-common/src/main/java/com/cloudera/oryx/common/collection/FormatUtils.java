@@ -18,6 +18,7 @@ package com.cloudera.oryx.common.collection;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 
 /**
  * Simple formatting-related utility methods.
@@ -49,20 +50,34 @@ public final class FormatUtils {
     return COMMA_JOINER.join(objVector);
   }
 
+  /**
+   * @param s comma-separated floats
+   * @return array of floats
+   * @throws IllegalArgumentException if any value is infinite or NaN
+   */
   public static float[] parseFloatVec(String s) {
     String[] vectorTokens = COMMA_SPLIT.split(s);
     float[] vector = new float[vectorTokens.length];
     for (int i = 0; i < vectorTokens.length; i++) {
-      vector[i] = Float.parseFloat(vectorTokens[i]);
+      float f = Float.parseFloat(vectorTokens[i]);
+      Preconditions.checkArgument(!Float.isInfinite(f) && !Float.isNaN(f));
+      vector[i] = f;
     }
     return vector;
   }
 
+  /**
+   * @param s comma-separated doubles
+   * @return array of doubles
+   * @throws IllegalArgumentException if any value is infinite or NaN
+   */
   public static double[] parseDoubleVec(String s) {
     String[] vectorTokens = COMMA_SPLIT.split(s);
     double[] vector = new double[vectorTokens.length];
     for (int i = 0; i < vectorTokens.length; i++) {
-      vector[i] = Double.parseDouble(vectorTokens[i]);
+      double d = Double.parseDouble(vectorTokens[i]);
+      Preconditions.checkArgument(!Double.isInfinite(d) && !Double.isNaN(d));
+      vector[i] = d;
     }
     return vector;
   }

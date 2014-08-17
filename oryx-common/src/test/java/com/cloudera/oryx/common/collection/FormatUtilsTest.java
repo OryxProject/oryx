@@ -35,4 +35,34 @@ public final class FormatUtilsTest extends OryxTest {
     assertArrayEquals(new double[] {-1.0, 2.5, 3.05}, FormatUtils.parseDoubleVec("-1.0,2.5,3.05"));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testPosInfinityF() {
+    FormatUtils.parseFloatVec("Infinity");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testPosInfinityD() {
+    FormatUtils.parseDoubleVec("Infinity");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNegInfinityF() {
+    FormatUtils.parseFloatVec("-Infinity");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNegInfinityD() {
+    FormatUtils.parseDoubleVec("-Infinity");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNanF() {
+    FormatUtils.parseFloatVec("NaN");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNanD() {
+    FormatUtils.parseDoubleVec("NaN");
+  }
+
 }
