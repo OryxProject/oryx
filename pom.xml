@@ -222,11 +222,13 @@
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
+        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-servlet</artifactId>
         <version>${jersey.version}</version>
+        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
@@ -239,6 +241,12 @@
         <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
         <version>${jersey.version}</version>
         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>0.9.9-RC2</version>
       </dependency>
 
       <dependency>

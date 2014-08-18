@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
@@ -48,17 +50,19 @@ public final class ModelManagerListener<U> implements ServletContextListener {
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
-  private final Config config;
-  private final String updateTopic;
-  private final String updateQueueLockMaster;
-  private final Class<ServingModelManager<U>> modelManagerClass;
-  private final Class<? extends Decoder<U>> updateDecoderClass;
+  private Config config;
+  private String updateTopic;
+  private String updateQueueLockMaster;
+  private Class<ServingModelManager<U>> modelManagerClass;
+  private Class<? extends Decoder<U>> updateDecoderClass;
   private ConsumerConnector consumer;
   private ServingModelManager<U> modelManager;
 
   @SuppressWarnings("unchecked")
-  public ModelManagerListener() {
-    this.config = ConfigUtils.getDefault();
+  public void init(ServletContext context) {
+    String serializedConfig = context.getInitParameter(ConfigUtils.class.getName() + ".serialized");
+    Preconditions.checkNotNull(serializedConfig);
+    this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateQueueLockMaster = config.getString("update-queue.lock.master");
     this.modelManagerClass = (Class<ServingModelManager<U>>) ClassUtils.loadClass(
@@ -69,6 +73,8 @@ public final class ModelManagerListener<U> implements ServletContextListener {
 
   @Override
   public void contextInitialized(ServletContextEvent sce) {
+    log.info("ModelManagerListener initializing");
+    init(sce.getServletContext());
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
@@ -102,6 +108,8 @@ public final class ModelManagerListener<U> implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
+    log.info("ModelManagerListener destroying");
+
     // Remove the Model Manager from Application scope
     sce.getServletContext().removeAttribute("ModelManager");
 

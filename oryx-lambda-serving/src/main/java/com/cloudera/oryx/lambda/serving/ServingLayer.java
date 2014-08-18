@@ -24,11 +24,11 @@ import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Server;
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.authenticator.DigestAuthenticator;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
-import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
@@ -46,6 +46,7 @@ public final class ServingLayer implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);
 
+  private final Config config;
   private final int port;
   private final int securePort;
   private final String userName;
@@ -53,6 +54,7 @@ public final class ServingLayer implements Closeable {
   private final Path keystoreFile;
   private final String keystorePassword;
   private final String contextPathURIBase;
+  private final String appResourcesPackage;
   private Tomcat tomcat;
   private Path noSuchBaseDir;
 
@@ -62,6 +64,7 @@ public final class ServingLayer implements Closeable {
    * @param config configuration for the serving layer
    */
   public ServingLayer(Config config) {
+    this.config = config;
     this.port = config.getInt("serving.api.port");
     this.securePort = config.getInt("serving.api.secure-port");
     this.userName = ConfigUtils.getOptionalString(config, "serving.api.user-name");
@@ -78,6 +81,7 @@ public final class ServingLayer implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
+    this.appResourcesPackage = config.getString("serving.application-resources");
   }
 
   public synchronized void start() throws IOException {
@@ -207,8 +211,20 @@ public final class ServingLayer implements Closeable {
     context.setWebappVersion("3.1");
     context.setName("Oryx");
 
-    ContextConfig contextConfig = new ContextConfig();
-    context.addLifecycleListener(contextConfig);
+    // OryxApplication only needs one config value, so just pass it
+    context.addParameter(OryxApplication.class.getName() + ".packages", appResourcesPackage);
+    // ModelManagerListener will need whole config
+    String serializedConfig = ConfigUtils.serialize(config);
+    context.addParameter(ConfigUtils.class.getName() + ".serialized", serializedConfig);
+
+    Wrapper wrapper =
+        Tomcat.addServlet(context, "Jersey", "org.glassfish.jersey.servlet.ServletContainer");
+    wrapper.addInitParameter("javax.ws.rs.Application", OryxApplication.class.getName());
+    //wrapper.addInitParameter(OryxApplication.class.getName() + ".packages", appResourcesPackage);
+    wrapper.addMapping("/*");
+    wrapper.setLoadOnStartup(1);
+
+    context.addApplicationListener(ModelManagerListener.class.getName());
 
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;

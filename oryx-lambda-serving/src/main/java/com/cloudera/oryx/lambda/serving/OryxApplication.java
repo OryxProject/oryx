@@ -15,22 +15,48 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import org.glassfish.jersey.server.ResourceConfig;
+import com.google.common.base.Preconditions;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.util.Set;
 
+/**
+ * The single JAX-RS app for the serving-layer.
+ */
 @ApplicationPath("")
-public final class OryxApplication extends ResourceConfig {
+public final class OryxApplication extends Application {
 
   private static final Logger log = LoggerFactory.getLogger(OryxApplication.class);
 
-  public OryxApplication() {
-    String packages = ConfigUtils.getDefault().getString("serving.application-resources");
+  @Context
+  private ServletContext servletContext;
+  private String packages;
+
+  @PostConstruct
+  public void init() {
+    packages = servletContext.getInitParameter(OryxApplication.class.getName() + ".packages");
+    Preconditions.checkNotNull(packages);
+  }
+
+  /**
+   * @return  user endpoint implementations from the package named in init param
+   *  {@code com.cloudera.oryx.lambda.serving.OryxApplication.packages}.
+   */
+  @Override
+  public Set<Class<?>> getClasses() {
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
-    packages(packages);
+    Reflections reflections = new Reflections(packages);
+    Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
+    log.info("Found JAX-RS resources: {}", classes);
+    return classes;
   }
 
 }
