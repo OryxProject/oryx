@@ -16,6 +16,7 @@
 package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -28,6 +29,7 @@ import com.carrotsearch.hppc.cursors.IntCursor;
 import com.carrotsearch.hppc.predicates.IntPredicate;
 import com.google.common.base.Preconditions;
 
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.lambda.serving.ServingModel;
 
 public final class ALSServingModel implements ServingModel {
@@ -97,6 +99,21 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
+  public List<Double> estimatePreference(int user, List<Integer> items) {
+    float[] userFeatures = getUserVector(user);
+    Double[] results = new Double[items.size()];
+
+    for (int i = 0; i < items.size(); i++) {
+      float[] itemFeatures = getItemVector(items.get(i));
+      if (itemFeatures != null) {
+        double value = VectorMath.dot(itemFeatures, userFeatures);
+        Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad estimate");
+        results[i] = value;
+      }
+    }
+    return Arrays.asList(results);
+  }
+
   void setItemVector(int item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
@@ -131,9 +148,11 @@ public final class ALSServingModel implements ServingModel {
 
   private static final class NotContainsPredicate implements IntPredicate {
     private final Collection<Integer> values;
+
     private NotContainsPredicate(Collection<Integer> values) {
       this.values = values;
     }
+
     @Override
     public boolean apply(int value) {
       return !values.contains(value);

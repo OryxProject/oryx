@@ -23,11 +23,12 @@ import org.junit.Test;
  */
 public final class VectorMathTest extends OryxTest {
 
+  private static final float[] VEC1 = { 1.0f, 0.5f, -3.5f };
+  private static final float[] VEC2 = { 0.0f, -10.3f, -3.0f };
+
   @Test
   public void testDot() {
-    float[] a = { 1.0f, 0.5f, -3.5f };
-    float[] b = { 0.0f, -10.3f, -3.0f };
-    assertEquals(5.35, VectorMath.dot(a, b), FLOAT_EPSILON);
+    assertEquals(5.35, VectorMath.dot(VEC1, VEC2), FLOAT_EPSILON);
   }
 
   @Test
@@ -52,4 +53,9 @@ public final class VectorMathTest extends OryxTest {
     VectorMath.dot(new float[1], new float[0]);
   }
 
+  @Test
+  public void testNorm() {
+    assertEquals(3.674235, VectorMath.norm(VEC1), FLOAT_EPSILON);
+    assertEquals(10.728, VectorMath.norm(VEC2), FLOAT_EPSILON);
+  }
 }
