@@ -16,7 +16,6 @@
 package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -101,19 +100,23 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public List<Double> estimatePreference(int user, List<Integer> items) {
+  /**
+   * @param user user ID
+   * @param items one or more item IDs
+   * @return dot product between user vector and one or more item vectors
+   */
+  public double[] dotProduct(int user, int... items) {
     float[] userFeatures = getUserVector(user);
-    Double[] results = new Double[items.size()];
-
-    for (int i = 0; i < items.size(); i++) {
-      float[] itemFeatures = getItemVector(items.get(i));
+    double[] results = new double[items.length];
+    for (int i = 0; i < items.length; i++) {
+      float[] itemFeatures = getItemVector(items[i]);
       if (itemFeatures != null) {
         double value = VectorMath.dot(itemFeatures, userFeatures);
         Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad estimate");
         results[i] = value;
       }
     }
-    return Arrays.asList(results);
+    return results;
   }
 
   public Solver getYTYSolver() {
