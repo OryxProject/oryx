@@ -31,4 +31,14 @@ public final class ConfigUtilsTest extends OryxTest {
     assertEquals("local[2]", config.getString("batch.streaming.master"));
   }
 
+  @Test
+  public void testSerialize() {
+    String serialized = ConfigUtils.serialize(ConfigUtils.getDefault());
+    assertTrue(serialized.contains("update-class"));
+    Config deserialized = ConfigUtils.deserialize(serialized);
+    assertEquals(
+        ConfigUtils.getDefault().getString("serving.api.port"),
+        deserialized.getString("serving.api.port"));
+  }
+
 }

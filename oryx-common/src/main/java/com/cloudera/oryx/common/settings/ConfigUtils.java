@@ -19,6 +19,7 @@ import java.util.Map;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +67,37 @@ public final class ConfigUtils {
    */
   public static String getOptionalString(Config config, String key) {
     return config.hasPath(key) ? config.getString(key) : null;
+  }
+
+  /**
+   * @param config {@link Config} to serialize to a String
+   * @return JSON-like representation of properties in the configuration, excluding those
+   *  inherited from the local JVM environment
+   */
+  public static String serialize(Config config) {
+    return config.root()
+        .withoutKey("awt")
+        .withoutKey("file")
+        .withoutKey("ftp")
+        .withoutKey("gopherProxySet")
+        .withoutKey("http")
+        .withoutKey("idea")
+        .withoutKey("java")
+        .withoutKey("line")
+        .withoutKey("os")
+        .withoutKey("path")
+        .withoutKey("socksNonProxyHosts")
+        .withoutKey("sun")
+        .withoutKey("user")
+        .render(ConfigRenderOptions.concise());
+  }
+
+  /**
+   * @param serialized serialized form of configuration as JSON-like data
+   * @return {@link Config} from the serialized config
+   */
+  public static Config deserialize(String serialized) {
+    return ConfigFactory.parseString(serialized).resolve().withFallback(DEFAULT_CONFIG);
   }
 
 }
