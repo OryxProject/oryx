@@ -39,6 +39,12 @@
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-core_${scala.minor.version}</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -58,23 +64,9 @@
       <artifactId>javax.ws.rs-api</artifactId>
     </dependency>
 
-    <!-- Include this directly to excludes javax.servlet only here -->
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_${scala.minor.version}</artifactId>
-      <version>${spark.version}</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.eclipse.jetty.orbit</groupId>
-          <artifactId>javax.servlet</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
     <dependency>
       <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-servlet</artifactId>
+      <artifactId>jersey-container-servlet-core</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>

@@ -35,6 +35,12 @@
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-core_${scala.minor.version}</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
