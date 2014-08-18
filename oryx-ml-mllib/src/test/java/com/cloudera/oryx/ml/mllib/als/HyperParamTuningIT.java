@@ -39,7 +39,7 @@ public final class HyperParamTuningIT extends AbstractALSIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
-  private static final int GEN_INTERVAL_SEC = 60;
+  private static final int GEN_INTERVAL_SEC = 30;
   private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int TEST_FEATURES = 7;
   private static final int TEST_ELEMENTS = 1000;
@@ -84,8 +84,7 @@ public final class HyperParamTuningIT extends AbstractALSIT {
 
     checkIntervals(modelInstanceDirs.size(), DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
-    Path modelFile =
-        modelInstanceDirs.get(modelInstanceDirs.size() - 1).resolve(MLUpdate.MODEL_FILE_NAME);
+    Path modelFile = modelInstanceDirs.get(0).resolve(MLUpdate.MODEL_FILE_NAME);
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
