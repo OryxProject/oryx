@@ -21,8 +21,6 @@ import org.apache.commons.math3.linear.RealVector;
 
 /**
  * Encapsulates a {@link DecompositionSolver} from Commons Math.
- * 
- * @author Sean Owen
  */
 public final class Solver {
   

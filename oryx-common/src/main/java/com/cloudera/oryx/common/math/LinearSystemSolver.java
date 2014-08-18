@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * An implementation based on {@link RRQRDecomposition} from Commons Math.
- * 
- * @author Sean Owen
  */
 public final class LinearSystemSolver {
   

@@ -15,9 +15,6 @@
 
 package com.cloudera.oryx.common.math;
 
-/**
- * @author Sean Owen
- */
 public final class SingularMatrixSolverException extends RuntimeException {
   
   private final int apparentRank;
