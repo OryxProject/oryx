@@ -172,4 +172,12 @@ public final class PMMLUtils {
     pmml.getExtensions().add(extension);
   }
 
+  /**
+   * @param pmmlArrayContent the content of a node that serializes an array PMML-style
+   * @return array values in order
+   */
+  public static String[] parseArray(List<?> pmmlArrayContent) {
+    return pmmlArrayContent.get(0).toString().split(" ");
+  }
+
 }

@@ -25,14 +25,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.google.common.primitives.Doubles;
+
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
-import com.google.common.primitives.Doubles;
 
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
- * {@link ALSServingModel#dotProduct(int, int[])}.</p>
+ * {@link ALSServingModel#dotProduct(String,String[])}.</p>
  *
  * <p>This REST endpoint can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
@@ -47,19 +48,17 @@ public final class Estimate {
   @GET
   @Path("{userID}/{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Double> getEstimatePreferences(@PathParam("userID") Integer userID,
+  public List<Double> getEstimatePreferences(@PathParam("userID") String userID,
                                              @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
 
-    int[] itemIDs = new int[pathSegmentsList.size()];
+    String[] itemIDs = new String[pathSegmentsList.size()];
     for (int i = 0; i < itemIDs.length; i++) {
-      PathSegment pathSegment = pathSegmentsList.get(i);
-      itemIDs[i] =  Integer.parseInt(pathSegment.getPath());
+      itemIDs[i] =  pathSegmentsList.get(i).getPath();
     }
-
     return Doubles.asList(alsServingModel.dotProduct(userID, itemIDs));
   }
 }

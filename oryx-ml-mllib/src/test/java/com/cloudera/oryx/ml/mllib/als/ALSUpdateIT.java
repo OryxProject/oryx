@@ -176,9 +176,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
   }
 
   private static Collection<Integer> parseIDsFromContent(List<?> content) {
-    String[] tokens = content.get(0).toString().split(" ");
-    Collection<Integer> result = new HashSet<>(content.size());
-    for (String s : tokens) {
+    String[] values = PMMLUtils.parseArray(content);
+    Collection<Integer> result = new HashSet<>(values.length);
+    for (String s : values) {
       result.add(Integer.valueOf(s));
     }
     return result;

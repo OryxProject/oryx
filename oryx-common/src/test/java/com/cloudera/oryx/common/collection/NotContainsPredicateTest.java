@@ -13,19 +13,23 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.mllib.als;
+package com.cloudera.oryx.common.collection;
 
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.mllib.recommendation.Rating;
-import scala.Tuple2;
+import java.util.Arrays;
+import java.util.Collection;
 
-/**
-* Created by srowen on 7/20/14.
-*/
-final class RatingToTupleDouble
-    implements PairFunction<Rating,Tuple2<Integer,Integer>,Double> {
-  @Override
-  public Tuple2<Tuple2<Integer,Integer>,Double> call(Rating rating) {
-    return new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating());
+import org.junit.Test;
+
+import com.cloudera.oryx.common.OryxTest;
+
+public final class NotContainsPredicateTest extends OryxTest {
+
+  @Test
+  public void testPredicate() {
+    Collection<Integer> contains = Arrays.asList(1, 3, 5);
+    NotContainsPredicate<Integer> predicate = new NotContainsPredicate<>(contains);
+    assertTrue(predicate.apply(2));
+    assertFalse(predicate.apply(5));
   }
+
 }

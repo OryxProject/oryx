@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.ServletContext;
@@ -51,21 +50,13 @@ public final class EstimateForAnonymous {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
-  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") int toItemID,
+  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") String toItemID,
                                                @PathParam("itemID") List<PathSegment> pathSegmentList) {
 
     // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
-
-    List<Integer> itemIdList = new ArrayList<>(pathSegmentList.size());
-    for (PathSegment pathSegment : pathSegmentList) {
-      itemIdList.add(Integer.valueOf(pathSegment.getPath()));
-    }
-
-    // TODO: fill in the real meat
-    { /* add code here following the next power restore */ }
 
     return Arrays.asList(1.2, 3.4);
   }
