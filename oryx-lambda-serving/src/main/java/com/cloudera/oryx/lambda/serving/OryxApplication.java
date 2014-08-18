@@ -15,18 +15,19 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import com.google.common.base.Preconditions;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
-import java.util.Set;
+import javax.ws.rs.ext.Provider;
+
+import com.google.common.base.Preconditions;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The single JAX-RS app for the serving-layer.
@@ -55,6 +56,8 @@ public final class OryxApplication extends Application {
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
     Reflections reflections = new Reflections(packages);
     Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
+    Set<Class<?>> providerClasses = reflections.getTypesAnnotatedWith(Provider.class);
+    classes.addAll(providerClasses);
     log.info("Found JAX-RS resources: {}", classes);
     return classes;
   }
