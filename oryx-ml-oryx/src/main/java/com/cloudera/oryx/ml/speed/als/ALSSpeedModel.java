@@ -23,6 +23,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.carrotsearch.hppc.predicates.IntPredicate;
+import com.cloudera.oryx.common.math.LinearSystemSolver;
+import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.RealMatrix;

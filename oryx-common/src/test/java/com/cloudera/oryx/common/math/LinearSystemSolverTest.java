@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.common.math;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;

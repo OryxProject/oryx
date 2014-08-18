@@ -40,6 +40,8 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
+import com.cloudera.oryx.common.math.SingularMatrixSolverException;
+import com.cloudera.oryx.common.math.Solver;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 

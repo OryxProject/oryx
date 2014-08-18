@@ -27,10 +27,12 @@ import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.carrotsearch.hppc.cursors.IntCursor;
 import com.carrotsearch.hppc.predicates.IntPredicate;
-import com.google.common.base.Preconditions;
-
+import com.cloudera.oryx.common.math.LinearSystemSolver;
+import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.lambda.serving.ServingModel;
+import com.google.common.base.Preconditions;
+import org.apache.commons.math3.linear.RealMatrix;
 
 public final class ALSServingModel implements ServingModel {
 
@@ -112,6 +114,18 @@ public final class ALSServingModel implements ServingModel {
       }
     }
     return Arrays.asList(results);
+  }
+
+  public Solver getYTYSolver() {
+    RealMatrix YTY;
+    Lock lock = yLock.readLock();
+    lock.lock();
+    try {
+      YTY = VectorMath.transposeTimesSelf(Y);
+    } finally {
+      lock.unlock();
+    }
+    return new LinearSystemSolver().getSolver(YTY);
   }
 
   void setItemVector(int item, float[] vector) {

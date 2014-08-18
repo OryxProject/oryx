@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.common.math;
 
 /**
  * @author Sean Owen
