@@ -31,7 +31,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
- * {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#estimatePreference(int, List<int>)}.</p>
+ * {@link ALSServingModel#estimatePreference(int, List)}.</p>
  *
  * <p>This REST endpoint can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
@@ -46,8 +46,8 @@ public final class Estimate {
   @GET
   @Path("{userID}/{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Double> getEstimatePreferences(@PathParam("userID") final Integer userID,
-                                             @PathParam("itemID") final List<PathSegment> pathSegmentsList) {
+  public List<Double> getEstimatePreferences(@PathParam("userID") Integer userID,
+                                             @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute("ModelManager");

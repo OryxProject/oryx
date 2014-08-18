@@ -32,14 +32,13 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to
- * {@code /estimateForAnonymous/[toItemID]/[itemID1(=value1)](/[itemID2(=value2)]/...)},
- * and in turn calls {link ALSServingModel#estimateForAnonymous(String, String[], float[])}
- * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
+ * {@code /estimateForAnonymous/[toItemID]/[itemID1(=value1)](/[itemID2(=value2)]/...)}.
+ * That is, 1 or more item IDs are supplied, which may each optionally correspond to
  * a value or else default to 1.</p>
- * <p/>
+ *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- * <p/>
+ *
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
 @Path("/estimateForAnonymous")
@@ -51,8 +50,8 @@ public final class EstimateForAnonymous {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
-  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") final int toItemID,
-                                               @PathParam("itemID") final List<PathSegment> pathSegmentList) {
+  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") int toItemID,
+                                               @PathParam("itemID") List<PathSegment> pathSegmentList) {
 
     // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
     ALSServingModelManager alsServingModelManager =
