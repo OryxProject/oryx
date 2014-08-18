@@ -15,79 +15,59 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-import java.util.Arrays;
-import java.util.List;
+import javax.ws.rs.core.PathSegment;
+
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to
  * {@code /estimateForAnonymous/[toItemID]/[itemID1(=value1)](/[itemID2(=value2)]/...)},
- * and in turn calls {link OryxRecommender#estimateForAnonymous(String, String[], float[])}
+ * and in turn calls {link ALSServingModel#estimateForAnonymous(String, String[], float[])}
  * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
  * a value or else default to 1.</p>
- *
+ * <p/>
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
  * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
- *
+ * <p/>
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous {
-  private static final Logger log = LoggerFactory.getLogger(EstimateForAnonymous.class);
+
+  @Context
+  private ServletContext servletContext;
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Float> get(@Context UriInfo ui) {
-    MultivaluedMap<String, String> pathParams = ui.getPathParameters();
-    for(String path: pathParams.keySet()) {
-      log.info("path={}",path);
-    }
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
-    String toItemID;
-    Pair<String[],float[]> itemIDsAndValue;
-    try {
-      toItemID = pathComponents.next();
-      itemIDsAndValue = RecommendToAnonymousServlet.parseItemValuePairs(pathComponents);
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
+  @Path("{toItemID}/{itemID : .+}")
+  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") final int toItemID,
+                                               @PathParam("itemID") final List<PathSegment> pathSegmentList) {
+
+    // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
+    ALSServingModelManager alsServingModelManager =
+        (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+
+    List<Integer> itemIdList = new ArrayList<>(pathSegmentList.size());
+    for (PathSegment pathSegment : pathSegmentList) {
+      itemIdList.add(Integer.valueOf(pathSegment.getPath()));
     }
 
-    if (itemIDsAndValue.getFirst().length == 0) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No items");
-      return;
-    }
+    // TODO: fill in the real meat
+    { /* add code here following the next power restore */ }
 
-    String[] itemIDs = itemIDsAndValue.getFirst();
-    unescapeSlashHack(itemIDs);
-    float[] values = itemIDsAndValue.getSecond();
-
-    OryxRecommender recommender = getRecommender();
-    try {
-      float estimate = recommender.estimateForAnonymous(toItemID, itemIDs, values);
-      output(request, response, new float[] { estimate });
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (NoSuchItemException nsie) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
-    }
-  */
-    return Arrays.asList(1.2f, 3.4f);
+    return Arrays.asList(1.2, 3.4);
   }
 
 }

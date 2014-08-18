@@ -16,6 +16,7 @@
 package com.cloudera.oryx.common.math;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.math3.util.FastMath;
 
 /**
  * Utility class with simple vector-related operations.
@@ -41,4 +42,17 @@ public final class VectorMath {
     return dot;
   }
 
+  /**
+   * @param x vector for whom norm to be calculated
+   * @return the L2 norm of vector x
+   * @throws IllegalArgumentException if x is of 0 length
+   */
+  public static double norm(float[] x) {
+    Preconditions.checkArgument(x.length > 0);
+    double total = 0.0;
+    for (float f : x) {
+      total += (double) f * (double) f;
+    }
+    return FastMath.sqrt(total);
+  }
 }
