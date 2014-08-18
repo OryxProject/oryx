@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
+import java.util.Collection;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -29,7 +29,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
- * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
+ * and in turn calls {link ALSServingModel#getAllItemIDs()}.</p>
  *
  * <p>JSON output is an array of item IDs.</p>
  */
@@ -42,7 +42,7 @@ public final class AllItemIDs {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
-  public List<Integer> get() {
+  public Collection<String> get() {
     ALSServingModelManager alsServingModelManager =
         (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();

@@ -29,8 +29,8 @@ import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
 public final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
 
-  public static final Map<Integer,float[]> X;
-  public static final Map<Integer,float[]> Y;
+  public static final Map<String,float[]> X;
+  public static final Map<String,float[]> Y;
   static {
     /*
      * Octave:
@@ -55,16 +55,16 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
      *   -0.31787  -0.67801
      */
     X = new HashMap<>();
-    X.put(6, new float[] {-0.67900f,  0.17323f});
-    X.put(7, new float[] {-0.82324f, -0.92009f});
-    X.put(8, new float[] {-1.18653f,  0.44632f});
-    X.put(9, new float[] {-0.20790f,  0.53035f});
+    X.put("6", new float[] {-0.67900f,  0.17323f});
+    X.put("7", new float[] {-0.82324f, -0.92009f});
+    X.put("8", new float[] {-1.18653f,  0.44632f});
+    X.put("9", new float[] {-0.20790f,  0.53035f});
     Y = new HashMap<>();
-    Y.put(1, new float[] {-0.72032f,  0.45655f});
-    Y.put(2, new float[] {-0.77602f, -0.34912f});
-    Y.put(3, new float[] {-0.53842f,  0.71971f});
-    Y.put(4, new float[] {-1.03820f, -0.22146f});
-    Y.put(5, new float[] {-0.31787f, -0.67801f});
+    Y.put("1", new float[] {-0.72032f,  0.45655f});
+    Y.put("2", new float[] {-0.77602f, -0.34912f});
+    Y.put("3", new float[] {-0.53842f,  0.71971f});
+    Y.put("4", new float[] {-1.03820f, -0.22146f});
+    Y.put("5", new float[] {-0.31787f, -0.67801f});
   }
 
   @Override
@@ -77,11 +77,12 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
       int xOrYID = id % 10;
+      String xOrYIDString = Integer.toString(xOrYID);
       boolean isX = xOrYID >= 6;
       if (isX) {
-        return new Pair<>( "UP", "X\t" + xOrYID + "\t" + FormatUtils.formatFloatVec(X.get(xOrYID)));
+        return new Pair<>( "UP", "X\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(X.get(xOrYIDString)));
       } else {
-        return new Pair<>( "UP", "Y\t" + xOrYID + "\t" + FormatUtils.formatFloatVec(Y.get(xOrYID)));
+        return new Pair<>( "UP", "Y\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(Y.get(xOrYIDString)));
       }
 
     }

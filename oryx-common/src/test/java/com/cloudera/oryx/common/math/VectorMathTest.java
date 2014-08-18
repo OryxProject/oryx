@@ -20,7 +20,6 @@ import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.cloudera.oryx.common.OryxTest;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.util.FastMath;
 import org.junit.Test;
 
 /**
@@ -70,7 +69,7 @@ public final class VectorMathTest extends OryxTest {
     a.put(-1, new float[] {1.3f, -2.0f, 3.0f});
     a.put(1, new float[] {2.0f, 0.0f, 5.0f});
     a.put(3, new float[] {0.0f, -1.5f, 5.5f});
-    RealMatrix ata = VectorMath.transposeTimesSelf(a);
+    RealMatrix ata = VectorMath.transposeTimesSelf(a.values());
     RealMatrix expected = new Array2DRowRealMatrix(new double[][] {
         {5.69, -2.6, 13.9},
         {-2.6, 6.25, -14.25},

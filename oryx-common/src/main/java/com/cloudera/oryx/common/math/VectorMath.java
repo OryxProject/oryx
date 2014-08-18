@@ -15,12 +15,11 @@
 
 package com.cloudera.oryx.common.math;
 
-import com.carrotsearch.hppc.IntObjectMap;
-import com.carrotsearch.hppc.cursors.IntObjectCursor;
+import com.carrotsearch.hppc.ObjectContainer;
+import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.util.FastMath;
 
 /**
  * Utility class with simple vector-related operations.
@@ -57,20 +56,20 @@ public final class VectorMath {
     for (float f : x) {
       total += (double) f * (double) f;
     }
-    return FastMath.sqrt(total);
+    return Math.sqrt(total);
   }
 
   /**
    * @param M tall, skinny matrix
    * @return MT * M as a dense matrix
    */
-  public static RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
+  public static RealMatrix transposeTimesSelf(ObjectContainer<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }
     int features = 0;
     RealMatrix result = null;
-    for (IntObjectCursor<float[]> entry : M) {
+    for (ObjectCursor<float[]> entry : M) {
       float[] vector = entry.value;
       if (result == null) {
         features = vector.length;

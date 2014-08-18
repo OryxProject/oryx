@@ -18,6 +18,7 @@ package com.cloudera.oryx.common.pmml;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.dmg.pmml.MiningFunctionType;
@@ -76,6 +77,14 @@ public final class PMMLUtilsTest extends OryxTest {
     assertNull(PMMLUtils.getExtensionContent(model, "foo"));
     PMMLUtils.addExtensionContent(model, "foo", Arrays.asList("bar", "baz"));
     assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
+  }
+
+  @Test
+  public void testParseArray() {
+    assertArrayEquals(new String[]{"foo", "bar", "baz"},
+        PMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
+    assertArrayEquals(new String[] {""},
+        PMMLUtils.parseArray(Collections.singletonList("")));
   }
 
 }

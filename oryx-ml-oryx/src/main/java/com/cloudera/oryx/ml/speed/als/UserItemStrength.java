@@ -22,21 +22,21 @@ import java.io.Serializable;
  */
 final class UserItemStrength implements Serializable {
 
-  private final int user;
-  private final int item;
+  private final String user;
+  private final String item;
   private final float strength;
 
-  UserItemStrength(int user, int item, float strength) {
+  UserItemStrength(String user, String item, float strength) {
     this.user = user;
     this.item = item;
     this.strength = strength;
   }
 
-  public int getUser() {
+  public String getUser() {
     return user;
   }
 
-  public int getItem() {
+  public String getItem() {
     return item;
   }
 

@@ -16,10 +16,8 @@
 package com.cloudera.oryx.ml.serving.als.model;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.PMML;
@@ -48,7 +46,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           Preconditions.checkNotNull(model);
           // Update
           String[] tokens = message.split("\t");
-          int id = Integer.parseInt(tokens[1]);
+          String id = tokens[1];
           float[] vector = FormatUtils.parseFloatVec(tokens[2]);
           switch (tokens[0]) {
             case "X":
@@ -79,12 +77,10 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           } else {
 
             // First, remove users/items no longer in the model
-            Collection<Integer> XIDs =
-                parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            Collection<Integer> YIDs =
-                parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(XIDs);
-            model.retainAllItems(YIDs);
+            String[] XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+            String[] YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainAllUsers(Arrays.asList(XIDs));
+            model.retainAllItems(Arrays.asList(YIDs));
 
           }
           break;
@@ -93,15 +89,6 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           throw new IllegalStateException("Bad model " + message);
       }
     }
-  }
-
-  private static Collection<Integer> parseIDsFromContent(List<?> content) {
-    String[] tokens = content.get(0).toString().split(" ");
-    Collection<Integer> result = new HashSet<>(content.size());
-    for (String s : tokens) {
-      result.add(Integer.valueOf(s));
-    }
-    return result;
   }
 
   @Override

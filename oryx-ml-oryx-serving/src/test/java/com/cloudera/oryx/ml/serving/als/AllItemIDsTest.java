@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
+import java.util.Collection;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
@@ -36,9 +36,9 @@ public final class AllItemIDsTest extends JerseyTest {
   @Test
   @Ignore
   public void test() {
-    GenericType<List<Integer>> genericList = new GenericType<List<Integer>>() {
+    GenericType<Collection<String>> genericList = new GenericType<Collection<String>>() {
     };
-    List<Integer> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
+    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
     Assert.assertTrue(items.size() > 0);
   }
 }

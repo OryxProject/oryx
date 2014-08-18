@@ -66,7 +66,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
       assertEquals("UP", updates.get(i).getFirst());
       String[] tokens = updates.get(i).getSecond().split("\t");
       boolean isX = "X".equals(tokens[0]);
-      int id = Integer.parseInt(tokens[1]);
+      String id = tokens[1];
       float[] expected = (isX ? MockModelUpdateGenerator.X : MockModelUpdateGenerator.Y).get(id);
       assertArrayEquals(expected, FormatUtils.parseFloatVec(tokens[2]));
     }
@@ -87,23 +87,23 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
      *  -0.040136   0.195407
      */
 
-    Map<Integer,float[]> X = new HashMap<>();
-    X.put(100, new float[] {-0.139066f,  0.168214f});
-    X.put(101, new float[] {-0.149819f, -0.128632f});
-    X.put(102, new float[] {-0.103948f,  0.265175f});
-    X.put(103, new float[] {-0.200435f, -0.081598f});
-    X.put(104, new float[] {-0.061369f, -0.249812f});
-    Map<Integer,float[]> Y = new HashMap<>();
-    Y.put(105, new float[] {-0.131089f,  0.063827f});
-    Y.put(106, new float[] {-0.158936f, -0.339005f});
-    Y.put(107, new float[] {-0.229073f,  0.164446f});
-    Y.put(108, new float[] {-0.040136f,  0.195407f});
+    Map<String,float[]> X = new HashMap<>();
+    X.put("100", new float[] {-0.139066f,  0.168214f});
+    X.put("101", new float[] {-0.149819f, -0.128632f});
+    X.put("102", new float[] {-0.103948f,  0.265175f});
+    X.put("103", new float[] {-0.200435f, -0.081598f});
+    X.put("104", new float[] {-0.061369f, -0.249812f});
+    Map<String,float[]> Y = new HashMap<>();
+    Y.put("105", new float[] {-0.131089f,  0.063827f});
+    Y.put("106", new float[] {-0.158936f, -0.339005f});
+    Y.put("107", new float[] {-0.229073f,  0.164446f});
+    Y.put("108", new float[] {-0.040136f,  0.195407f});
 
     for (int i = 10; i <= 18; i++) {
       assertEquals("UP", updates.get(i).getFirst());
       String[] tokens = updates.get(i).getSecond().split("\t");
       boolean isX = "X".equals(tokens[0]);
-      int id = Integer.parseInt(tokens[1]);
+      String id = tokens[1];
       float[] expected = (isX ? X : Y).get(id);
       assertArrayEquals(expected, FormatUtils.parseFloatVec(tokens[2]), 1.0e-5f);
     }

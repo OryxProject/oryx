@@ -17,34 +17,34 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.carrotsearch.hppc.IntObjectMap;
-import com.carrotsearch.hppc.IntObjectOpenHashMap;
-import com.carrotsearch.hppc.cursors.IntCursor;
-import com.carrotsearch.hppc.predicates.IntPredicate;
+import com.carrotsearch.hppc.ObjectObjectMap;
+import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
+import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.google.common.base.Preconditions;
+import org.apache.commons.math3.linear.RealMatrix;
+
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.lambda.serving.ServingModel;
-import com.google.common.base.Preconditions;
-import org.apache.commons.math3.linear.RealMatrix;
 
 public final class ALSServingModel implements ServingModel {
 
-  private final IntObjectMap<float[]> X;
-  private final IntObjectMap<float[]> Y;
+  private final ObjectObjectMap<String,float[]> X;
+  private final ObjectObjectMap<String,float[]> Y;
   private final ReadWriteLock xLock;
   private final ReadWriteLock yLock;
   private final int features;
 
   ALSServingModel(int features) {
     Preconditions.checkArgument(features > 0);
-    X = new IntObjectOpenHashMap<>(10000);
-    Y = new IntObjectOpenHashMap<>(10000);
+    X = new ObjectObjectOpenHashMap<>(10000);
+    Y = new ObjectObjectOpenHashMap<>(10000);
     xLock = new ReentrantReadWriteLock();
     yLock = new ReentrantReadWriteLock();
     this.features = features;
@@ -54,7 +54,7 @@ public final class ALSServingModel implements ServingModel {
     return features;
   }
 
-  public float[] getUserVector(int user) {
+  public float[] getUserVector(String user) {
     Lock lock = xLock.readLock();
     lock.lock();
     try {
@@ -64,7 +64,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public float[] getItemVector(int item) {
+  public float[] getItemVector(String item) {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
@@ -74,7 +74,7 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  void setUserVector(int user, float[] vector) {
+  void setUserVector(String user, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = xLock.writeLock();
@@ -86,12 +86,12 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public List<Integer> getAllItemIDs() {
+  public Collection<String> getAllItemIDs() {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      List<Integer> itemsList = new ArrayList<>(Y.size());
-      for (IntCursor intCursor : Y.keys()) {
+      Collection<String> itemsList = new ArrayList<>(Y.size());
+      for (ObjectCursor<String> intCursor : Y.keys()) {
         itemsList.add(intCursor.value);
       }
       return itemsList;
@@ -105,7 +105,7 @@ public final class ALSServingModel implements ServingModel {
    * @param items one or more item IDs
    * @return dot product between user vector and one or more item vectors
    */
-  public double[] dotProduct(int user, int... items) {
+  public double[] dotProduct(String user, String... items) {
     float[] userFeatures = getUserVector(user);
     double[] results = new double[items.length];
     for (int i = 0; i < items.length; i++) {
@@ -124,14 +124,14 @@ public final class ALSServingModel implements ServingModel {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      YTY = VectorMath.transposeTimesSelf(Y);
+      YTY = VectorMath.transposeTimesSelf(Y.values());
     } finally {
       lock.unlock();
     }
     return new LinearSystemSolver().getSolver(YTY);
   }
 
-  void setItemVector(int item, float[] vector) {
+  void setItemVector(String item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = yLock.writeLock();
@@ -143,37 +143,23 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  void retainAllUsers(Collection<Integer> users) {
+  void retainAllUsers(Collection<String> users) {
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.removeAll(new NotContainsPredicate(users));
+      X.removeAll(new NotContainsPredicate<>(users));
     } finally {
       lock.unlock();
     }
   }
 
-  void retainAllItems(Collection<Integer> items) {
+  void retainAllItems(Collection<String> items) {
     Lock lock = yLock.writeLock();
     lock.lock();
     try {
-      Y.removeAll(new NotContainsPredicate(items));
+      Y.removeAll(new NotContainsPredicate<>(items));
     } finally {
       lock.unlock();
     }
   }
-
-  private static final class NotContainsPredicate implements IntPredicate {
-    private final Collection<Integer> values;
-
-    private NotContainsPredicate(Collection<Integer> values) {
-      this.values = values;
-    }
-
-    @Override
-    public boolean apply(int value) {
-      return !values.contains(value);
-    }
-  }
-
 }

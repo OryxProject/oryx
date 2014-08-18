@@ -17,11 +17,10 @@ package com.cloudera.oryx.ml.speed.als;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
@@ -65,7 +64,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           Preconditions.checkNotNull(model);
           // Update
           String[] tokens = message.split("\t");
-          int id = Integer.parseInt(tokens[1]);
+          String id = tokens[1];
           float[] vector = FormatUtils.parseFloatVec(tokens[2]);
           switch (tokens[0]) {
             case "X":
@@ -96,12 +95,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           } else {
 
             // First, remove users/items no longer in the model
-            Collection<Integer> XIDs =
-                parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            Collection<Integer> YIDs =
-                parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(XIDs);
-            model.retainAllItems(YIDs);
+            String[] XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+            String[] YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainAllUsers(Arrays.asList(XIDs));
+            model.retainAllItems(Arrays.asList(YIDs));
 
           }
           break;
@@ -112,24 +109,15 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     }
   }
 
-  private static Collection<Integer> parseIDsFromContent(List<?> content) {
-    String[] tokens = content.get(0).toString().split(" ");
-    Collection<Integer> result = new HashSet<>(content.size());
-    for (String s : tokens) {
-      result.add(Integer.valueOf(s));
-    }
-    return result;
-  }
-
   @Override
   public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
     if (model == null) {
       return Collections.emptyList();
     }
 
-    JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples = newData.mapToPair(new UpdatesToTuple());
+    JavaPairRDD<Tuple2<String,String>,Double> tuples = newData.mapToPair(new UpdatesToTuple());
 
-    JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
+    JavaPairRDD<Tuple2<String,String>,Double> aggregated;
     if (implicit) {
       // For implicit, values are scores to be summed
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
@@ -151,8 +139,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
     Collection<String> result = new ArrayList<>();
     for (UserItemStrength uis : input) {
-      int user = uis.getUser();
-      int item = uis.getItem();
+      String user = uis.getUser();
+      String item = uis.getItem();
       double value = uis.getStrength();
 
       // Xu is the current row u in the X user-feature matrix
@@ -237,17 +225,17 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   private static class UpdatesToTuple
-      implements PairFunction<Tuple2<String,String>,Tuple2<Integer,Integer>,Double> {
+      implements PairFunction<Tuple2<String,String>,Tuple2<String,String>,Double> {
 
     private static final Pattern COMMA = Pattern.compile(",");
 
     @Override
-    public Tuple2<Tuple2<Integer,Integer>,Double> call(Tuple2<String,String> km) {
+    public Tuple2<Tuple2<String,String>,Double> call(Tuple2<String,String> km) {
       String[] tokens = COMMA.split(km._2());
       int numTokens = tokens.length;
       Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3, "Bad update: %s", km._2());
-      int user = Integer.parseInt(tokens[0]);
-      int item = Integer.parseInt(tokens[1]);
+      String user = tokens[0];
+      String item = tokens[1];
       double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;
       return new Tuple2<>(new Tuple2<>(user, item), value);
     }
@@ -255,10 +243,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   private static class TupleToUserItemStrength
-      implements Function<Tuple2<Tuple2<Integer,Integer>,Double>,UserItemStrength> {
+      implements Function<Tuple2<Tuple2<String,String>,Double>,UserItemStrength> {
     @Override
-    public UserItemStrength call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
-      Tuple2<Integer,Integer> userProduct = userProductScore._1();
+    public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> userProductScore) {
+      Tuple2<String,String> userProduct = userProductScore._1();
       return new UserItemStrength(userProduct._1(),
                                   userProduct._2(),
                                   userProductScore._2().floatValue());

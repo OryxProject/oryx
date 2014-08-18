@@ -20,27 +20,28 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.carrotsearch.hppc.IntObjectMap;
-import com.carrotsearch.hppc.IntObjectOpenHashMap;
-import com.carrotsearch.hppc.predicates.IntPredicate;
-import com.cloudera.oryx.common.math.LinearSystemSolver;
-import com.cloudera.oryx.common.math.Solver;
-import com.cloudera.oryx.common.math.VectorMath;
+import com.carrotsearch.hppc.ObjectObjectMap;
+import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
+import com.cloudera.oryx.common.math.LinearSystemSolver;
+import com.cloudera.oryx.common.math.Solver;
+import com.cloudera.oryx.common.math.VectorMath;
+
 public final class ALSSpeedModel {
 
-  private final IntObjectMap<float[]> X;
-  private final IntObjectMap<float[]> Y;
+  private final ObjectObjectMap<String,float[]> X;
+  private final ObjectObjectMap<String,float[]> Y;
   private final ReadWriteLock xLock;
   private final ReadWriteLock yLock;
   private final int features;
 
   ALSSpeedModel(int features) {
     Preconditions.checkArgument(features > 0);
-    X = new IntObjectOpenHashMap<>(10000);
-    Y = new IntObjectOpenHashMap<>(10000);
+    X = new ObjectObjectOpenHashMap<>(10000);
+    Y = new ObjectObjectOpenHashMap<>(10000);
     xLock = new ReentrantReadWriteLock();
     yLock = new ReentrantReadWriteLock();
     this.features = features;
@@ -50,7 +51,7 @@ public final class ALSSpeedModel {
     return features;
   }
 
-  public float[] getUserVector(int user) {
+  public float[] getUserVector(String user) {
     Lock lock = xLock.readLock();
     lock.lock();
     try {
@@ -60,7 +61,7 @@ public final class ALSSpeedModel {
     }
   }
 
-  public float[] getItemVector(int item) {
+  public float[] getItemVector(String item) {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
@@ -70,7 +71,7 @@ public final class ALSSpeedModel {
     }
   }
 
-  public void setUserVector(int user, float[] vector) {
+  public void setUserVector(String user, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = xLock.writeLock();
@@ -82,7 +83,7 @@ public final class ALSSpeedModel {
     }
   }
 
-  public void setItemVector(int item, float[] vector) {
+  public void setItemVector(String item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     Lock lock = yLock.writeLock();
@@ -94,21 +95,21 @@ public final class ALSSpeedModel {
     }
   }
 
-  public void retainAllUsers(Collection<Integer> users) {
+  public void retainAllUsers(Collection<String> users) {
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.removeAll(new NotContainsPredicate(users));
+      X.removeAll(new NotContainsPredicate<>(users));
     } finally {
       lock.unlock();
     }
   }
 
-  public void retainAllItems(Collection<Integer> items) {
+  public void retainAllItems(Collection<String> items) {
     Lock lock = yLock.writeLock();
     lock.lock();
     try {
-      Y.removeAll(new NotContainsPredicate(items));
+      Y.removeAll(new NotContainsPredicate<>(items));
     } finally {
       lock.unlock();
     }
@@ -119,7 +120,7 @@ public final class ALSSpeedModel {
     Lock lock = xLock.readLock();
     lock.lock();
     try {
-      XTX = VectorMath.transposeTimesSelf(X);
+      XTX = VectorMath.transposeTimesSelf(X.values());
     } finally {
       lock.unlock();
     }
@@ -131,22 +132,10 @@ public final class ALSSpeedModel {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      YTY = VectorMath.transposeTimesSelf(Y);
+      YTY = VectorMath.transposeTimesSelf(Y.values());
     } finally {
       lock.unlock();
     }
     return new LinearSystemSolver().getSolver(YTY);
   }
-
-  private static final class NotContainsPredicate implements IntPredicate {
-    private final Collection<Integer> values;
-    private NotContainsPredicate(Collection<Integer> values) {
-      this.values = values;
-    }
-    @Override
-    public boolean apply(int value) {
-      return !values.contains(value);
-    }
-  }
-
 }
