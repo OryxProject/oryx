@@ -43,9 +43,6 @@ import org.apache.catalina.realm.RealmBase;
 /**
  * Adapted from Tomcat's {@link org.apache.catalina.realm.MemoryRealm}.
  * This implementation of {@link RealmBase} lets you add users programmatically to an in-memory store.
- *
- * @author Sean Owen
- * @author Apache Tomcat
  */
 public final class InMemoryRealm extends RealmBase {
 
