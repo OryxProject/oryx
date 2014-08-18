@@ -22,10 +22,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.carrotsearch.hppc.IntObjectMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
-import com.carrotsearch.hppc.cursors.IntObjectCursor;
 import com.carrotsearch.hppc.predicates.IntPredicate;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.google.common.base.Preconditions;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
 public final class ALSSpeedModel {
@@ -113,13 +112,12 @@ public final class ALSSpeedModel {
     }
   }
 
-
   public Solver getXTXSolver() {
     RealMatrix XTX;
     Lock lock = xLock.readLock();
     lock.lock();
     try {
-      XTX = transposeTimesSelf(X);
+      XTX = VectorMath.transposeTimesSelf(X);
     } finally {
       lock.unlock();
     }
@@ -131,32 +129,11 @@ public final class ALSSpeedModel {
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      YTY = transposeTimesSelf(Y);
+      YTY = VectorMath.transposeTimesSelf(Y);
     } finally {
       lock.unlock();
     }
     return new LinearSystemSolver().getSolver(YTY);
-  }
-
-  /**
-   * @param M tall, skinny matrix
-   * @return MT * M as a dense matrix
-   */
-  RealMatrix transposeTimesSelf(IntObjectMap<float[]> M) {
-    if (M == null || M.isEmpty()) {
-      return null;
-    }
-    RealMatrix result = new Array2DRowRealMatrix(features, features);
-    for (IntObjectCursor<float[]> entry : M) {
-      float[] vector = entry.value;
-      for (int row = 0; row < features; row++) {
-        float rowValue = vector[row];
-        for (int col = 0; col < features; col++) {
-          result.addToEntry(row, col, rowValue * vector[col]);
-        }
-      }
-    }
-    return result;
   }
 
   private static final class NotContainsPredicate implements IntPredicate {
