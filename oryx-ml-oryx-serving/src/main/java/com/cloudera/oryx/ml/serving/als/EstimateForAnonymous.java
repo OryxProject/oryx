@@ -27,6 +27,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
@@ -55,7 +56,7 @@ public final class EstimateForAnonymous {
 
     // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
     ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
 
     List<Integer> itemIdList = new ArrayList<>(pathSegmentList.size());

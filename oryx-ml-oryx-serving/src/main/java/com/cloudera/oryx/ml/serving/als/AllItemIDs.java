@@ -23,6 +23,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
@@ -43,7 +44,7 @@ public final class AllItemIDs {
   @Path("/allIDs")
   public List<Integer> get() {
     ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
     return alsServingModel.getAllItemIDs();
   }

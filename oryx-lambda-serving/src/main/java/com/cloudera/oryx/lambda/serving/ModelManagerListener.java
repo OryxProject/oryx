@@ -50,6 +50,8 @@ public final class ModelManagerListener<U> implements ServletContextListener {
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
+  public static final String MANAGER_KEY = ModelManagerListener.class.getName() + ".ModelManager";
+
   private Config config;
   private String updateTopic;
   private String updateQueueLockMaster;
@@ -103,7 +105,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     }).start();
 
     // Set the Model Manager in the Application scope
-    sce.getServletContext().setAttribute("ModelManager", modelManager);
+    sce.getServletContext().setAttribute(MANAGER_KEY, modelManager);
   }
 
   @Override
@@ -111,7 +113,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     log.info("ModelManagerListener destroying");
 
     // Remove the Model Manager from Application scope
-    sce.getServletContext().removeAttribute("ModelManager");
+    sce.getServletContext().removeAttribute(MANAGER_KEY);
 
     if (modelManager != null) {
       log.info("Shutting down model manager");

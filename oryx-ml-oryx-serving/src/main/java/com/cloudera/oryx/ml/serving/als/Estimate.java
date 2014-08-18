@@ -25,6 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 import com.google.common.primitives.Doubles;
@@ -50,7 +51,7 @@ public final class Estimate {
                                              @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
     ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute("ModelManager");
+        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = alsServingModelManager.getModel();
 
     int[] itemIDs = new int[pathSegmentsList.size()];
