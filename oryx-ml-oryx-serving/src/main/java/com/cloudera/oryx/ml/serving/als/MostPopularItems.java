@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,6 +41,12 @@ import java.util.List;
 public final class MostPopularItems {
 
   @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID} required")).build();
+  }
+
+  @GET
   @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response get(@PathParam("userId") String userId,
@@ -59,7 +67,7 @@ public final class MostPopularItems {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Response.status(200).entity("").build();
+    return Response.status(Response.Status.OK.getStatusCode()).entity("").build();
   }
 
 }

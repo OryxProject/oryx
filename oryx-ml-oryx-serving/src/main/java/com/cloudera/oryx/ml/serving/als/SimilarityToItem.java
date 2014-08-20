@@ -15,12 +15,17 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /similarityToItem/[toItemID]/itemID1(/[itemID2]/...)},
@@ -35,9 +40,16 @@ import javax.ws.rs.core.Response;
 public final class SimilarityToItem {
 
   @GET
-  @Path("{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("itemID") String itemID) {
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{toItemID}/{itemId}+ required")).build();
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("{toItemID}/{itemID : .+}")
+  public List<Double> get(@PathParam("toItemID") String toItemID,
+                          @PathParam("itemID") List<PathSegment> pathSegmentList) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -75,7 +87,7 @@ public final class SimilarityToItem {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
     }
   */
-    return Response.status(200).entity("").build();
+    return Arrays.asList(1.2, 3.4);
   }
 
 }

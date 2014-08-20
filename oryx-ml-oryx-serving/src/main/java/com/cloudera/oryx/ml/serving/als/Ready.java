@@ -47,7 +47,7 @@ public final class Ready {
       response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
     }
   */
-    return Response.status(200).entity("").build();
+    return Response.status(Response.Status.OK.getStatusCode()).entity("").build();
   }
 
 }

@@ -25,7 +25,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
@@ -49,8 +51,14 @@ public final class EstimateForAnonymous {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{toItemID}/{itemId}+ required")).build();
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
-  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") String toItemID,
+  public List<Double> get(@PathParam("toItemID") String toItemID,
                                                @PathParam("itemID") List<PathSegment> pathSegmentList) {
 
     // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
