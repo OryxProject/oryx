@@ -20,14 +20,9 @@ import org.junit.Test;
 
 public final class RecommendTest extends AbstractALSServingTest {
 
-  @Override
-  protected Class<?> getResourceClass() {
-    return Recommend.class;
-  }
-
   @Test
   public void test() {
-    String recommend = target("recommend/foo").request().get(String.class);
-    Assert.assertNotNull(recommend);
+    String recommend = target("recommend/Z").request().get(String.class);
+    Assert.assertNotNull(recommend); // TODO
   }
 }

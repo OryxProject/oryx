@@ -86,7 +86,7 @@
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-moxy</artifactId>
+      <artifactId>jersey-media-json-jackson</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

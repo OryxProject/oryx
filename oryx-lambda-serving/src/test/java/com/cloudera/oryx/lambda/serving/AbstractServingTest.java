@@ -15,9 +15,13 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.util.Collection;
+import java.util.List;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.GenericType;
 
+import com.google.common.base.Preconditions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
@@ -26,7 +30,14 @@ import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 
+import com.cloudera.oryx.common.lang.ClassUtils;
+
 public abstract class AbstractServingTest extends JerseyTest {
+
+  protected static final GenericType<Collection<String>> COLLECTION_STRING_TYPE =
+      new GenericType<Collection<String>>() {};
+  protected static final GenericType<List<Double>> LIST_DOUBLE_TYPE =
+      new GenericType<List<Double>>() {};
 
   @Override
   public final TestContainerFactory getTestContainerFactory() {
@@ -48,7 +59,13 @@ public abstract class AbstractServingTest extends JerseyTest {
     return new ResourceConfig(getResourceClass());
   }
 
-  protected abstract Class<?> getResourceClass();
+  protected Class<?> getResourceClass() {
+    // By default, guess resource class from test class name
+    String testClassName = this.getClass().getName();
+    Preconditions.checkState(testClassName.endsWith("Test"));
+    String resourceClassName = testClassName.substring(0, testClassName.length() - 4);
+    return ClassUtils.loadClass(resourceClassName);
+  }
 
   protected abstract Class<? extends ServletContextListener> getInitListenerClass();
 

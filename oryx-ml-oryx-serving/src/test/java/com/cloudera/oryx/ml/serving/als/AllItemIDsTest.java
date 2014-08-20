@@ -16,7 +16,6 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Collection;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
@@ -24,16 +23,10 @@ import org.junit.Test;
 
 public final class AllItemIDsTest extends AbstractALSServingTest {
 
-  @Override
-  protected Class<?> getResourceClass() {
-    return AllItemIDs.class;
-  }
-
   @Test
   public void test() {
-    GenericType<Collection<String>> genericList = new GenericType<Collection<String>>() {
-    };
-    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
-    Assert.assertTrue(items.size() > 0);
+    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(COLLECTION_STRING_TYPE);
+    Assert.assertEquals(1, items.size());
+    Assert.assertTrue(items.contains("A"));
   }
 }

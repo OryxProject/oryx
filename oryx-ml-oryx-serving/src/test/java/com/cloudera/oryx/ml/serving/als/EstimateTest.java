@@ -16,27 +16,18 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public final class EstimateTest extends AbstractALSServingTest {
 
-  @Override
-  protected Class<?> getResourceClass() {
-    return Estimate.class;
+  @Test
+  public void test() {
+    List<Double> items = target("estimate").path("1").path("1/2/3/4/5").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
+    Assert.assertTrue(items.size() > 0); // TODO
   }
 
-  @Test
-  @Ignore
-  public void test() {
-    GenericType<List<Double>> genericList = new GenericType<List<Double>>() {
-    };
-    List<Double> items = target("estimate").path("1").path("1/2/3/4/5").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
-    Assert.assertTrue(items.size() > 0);
-  }
 }
