@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,16 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.ml.serving.als.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+public final class TestALSModelFactory {
 
-public final class RecommendTest extends AbstractALSServingTest {
+  private TestALSModelFactory() {}
 
-  @Test
-  public void test() {
-    String recommend = target("recommend/Z").request().get(String.class);
-    Assert.assertNotNull(recommend); // TODO
+  public static ALSServingModel buildTestModel() {
+    // TODO
+    ALSServingModel model = new ALSServingModel(2);
+    model.setItemVector("A", new float[] {1.0f, 2.0f});
+    model.setUserVector("Z", new float[] {3.0f, 4.0f});
+    return model;
   }
+
 }

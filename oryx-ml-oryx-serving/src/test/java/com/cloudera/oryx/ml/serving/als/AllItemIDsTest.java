@@ -16,29 +16,17 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Collection;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-public final class AllItemIDsTest extends JerseyTest {
-
-  @Override
-  protected Application configure() {
-    return new ResourceConfig(AllItemIDs.class);
-  }
+public final class AllItemIDsTest extends AbstractALSServingTest {
 
   @Test
-  @Ignore
   public void test() {
-    GenericType<Collection<String>> genericList = new GenericType<Collection<String>>() {
-    };
-    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
-    Assert.assertTrue(items.size() > 0);
+    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(COLLECTION_STRING_TYPE);
+    Assert.assertEquals(1, items.size());
+    Assert.assertTrue(items.contains("A"));
   }
 }
