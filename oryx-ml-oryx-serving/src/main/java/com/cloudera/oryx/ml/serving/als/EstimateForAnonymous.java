@@ -51,14 +51,14 @@ public final class EstimateForAnonymous {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
-  public Double getEstimatesForAnonymous(@PathParam("toItemID") String toItemID,
-                                         @PathParam("itemID") List<PathSegment> pathSegmentList) {
+  public Double get(@PathParam("toItemID") String toItemID,
+                    @PathParam("itemID") List<PathSegment> pathSegmentList) {
+
     ServingModelManager<?> alsServingModelManager =
         (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
 
     Pair<String[], float[]> itemValuePairs = parseItemValuePairs(pathSegmentList);
-
     return alsServingModel.dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
   }
 
@@ -87,5 +87,4 @@ public final class EstimateForAnonymous {
     return new Pair<>(s.substring(0, s.indexOf('=')),
         Float.parseFloat(s.substring(s.indexOf('=') + 1)));
   }
-
 }

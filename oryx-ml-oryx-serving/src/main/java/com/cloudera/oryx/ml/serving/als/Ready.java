@@ -41,13 +41,13 @@ public final class Ready {
 
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return getResponse();
+  public Response head() {
+    return get();
   }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getResponse() {
+  public Response get() {
     ServingModelManager<?> alsServingModelManager =
         (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();

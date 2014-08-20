@@ -26,11 +26,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.google.common.primitives.Doubles;
 
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
-import com.google.common.primitives.Doubles;
 
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
@@ -49,8 +49,8 @@ public final class Estimate {
   @GET
   @Path("{userID}/{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Collection<Double> getEstimatePreferences(@PathParam("userID") String userID,
-                                                   @PathParam("itemID") List<PathSegment> pathSegmentsList) {
+  public Collection<Double> get(@PathParam("userID") String userID,
+                                @PathParam("itemID") List<PathSegment> pathSegmentsList) {
     ServingModelManager<?> alsServingModelManager =
         (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
