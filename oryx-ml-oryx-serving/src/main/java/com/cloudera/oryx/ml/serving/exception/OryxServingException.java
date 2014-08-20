@@ -12,22 +12,31 @@
  * the specific language governing permissions and limitations under the
  * License.
  */
+package com.cloudera.oryx.ml.serving.exception;
 
-package com.cloudera.oryx.ml.serving.als;
+public final class OryxServingException extends Exception {
 
-import java.util.List;
-import javax.ws.rs.core.MediaType;
+  private String error;
+  private int statusCode;
 
-import org.junit.Assert;
-import org.junit.Test;
+  public OryxServingException(int statusCode, String error) {
+    this.statusCode = statusCode;
+    this.error = error;
+  }
 
-public final class EstimateTest extends AbstractALSServingTest {
+  public String getError() {
+    return error;
+  }
 
-  @Test
-  public void test() {
-    List<Double> items = target("estimate").path("Z").path("A/B/C").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
-    Assert.assertEquals(3, items.size());
-    Assert.assertEquals(11.0, items.get(0), DOUBLE_EPSILON);
+  public void setError(String error) {
+    this.error = error;
+  }
+
+  public int getStatusCode() {
+    return statusCode;
+  }
+
+  public void setStatusCode(int statusCode) {
+    this.statusCode = statusCode;
   }
 }

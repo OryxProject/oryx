@@ -15,19 +15,18 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
 import javax.ws.rs.core.MediaType;
+
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class EstimateTest extends AbstractALSServingTest {
+public final class EstimateForAnonymousTest extends AbstractALSServingTest {
 
   @Test
   public void test() {
-    List<Double> items = target("estimate").path("Z").path("A/B/C").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
-    Assert.assertEquals(3, items.size());
-    Assert.assertEquals(11.0, items.get(0), DOUBLE_EPSILON);
+    Double item = target("estimateForAnonymous").path("A").path("B=1.0/C=1.8").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
+    Assert.assertEquals(0.0056206285953, item, DOUBLE_EPSILON);
   }
 }

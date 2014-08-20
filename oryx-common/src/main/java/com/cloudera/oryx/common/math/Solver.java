@@ -49,10 +49,6 @@ public final class Solver {
       bVec.setEntry(i, b[i]);
     }
     RealVector vec = solver.solve(bVec);
-    double[] result = new double[b.length];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = vec.getEntry(i);
-    }
-    return result;
+    return vec.toArray();
   }
 }

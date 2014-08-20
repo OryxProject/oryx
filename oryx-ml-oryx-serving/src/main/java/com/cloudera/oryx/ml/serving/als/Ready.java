@@ -25,8 +25,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready}
@@ -39,14 +39,18 @@ public final class Ready {
   @Context
   private ServletContext servletContext;
 
-  @GET
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
+    return getResponse();
+  }
 
-    ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getResponse() {
+    ServingModelManager<?> alsServingModelManager =
+        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
 
     if (alsServingModel != null) {
       return Response.ok().build();
