@@ -23,7 +23,10 @@ public final class TestALSModelFactory {
     // TODO
     ALSServingModel model = new ALSServingModel(2);
     model.setItemVector("A", new float[] {1.0f, 2.0f});
+    model.setItemVector("B", new float[] {2.0f, 1.5f});
+    model.setItemVector("C", new float[] {2.5f, 1.5f});
     model.setUserVector("Z", new float[] {3.0f, 4.0f});
+    model.setUserVector("Y", new float[] {5.0f, 6.0f});
     return model;
   }
 

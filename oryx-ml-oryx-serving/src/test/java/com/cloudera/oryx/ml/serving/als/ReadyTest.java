@@ -15,31 +15,23 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-public final class ReadyTest extends JerseyTest {
+public final class ReadyTest extends AbstractALSServingTest {
 
-  @Override
-  protected Application configure() {
-    return new ResourceConfig(ReadyTest.class);
+  @Test
+  public void testGetResponseOk() {
+    Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Assert.assertEquals(200, response.getStatus());
   }
 
   @Test
-  @Ignore
-  public void test() {
-    GenericType<List<Double>> genericList = new GenericType<List<Double>>() {
-    };
-    List<Double> items = target("estimate").path("1").path("1/2/3/4/5").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get(genericList);
-    Assert.assertTrue(items.size() > 0);
+  public void testHeadResponseOk() {
+    Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).head();
+    Assert.assertEquals(200, response.getStatus());
   }
 }

@@ -12,22 +12,17 @@
  * the specific language governing permissions and limitations under the
  * License.
  */
+package com.cloudera.oryx.ml.serving.exception;
 
-package com.cloudera.oryx.ml.serving.als;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
-import java.util.List;
-import javax.ws.rs.core.MediaType;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-public final class EstimateTest extends AbstractALSServingTest {
-
-  @Test
-  public void test() {
-    List<Double> items = target("estimate").path("Z").path("A/B/C").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
-    Assert.assertEquals(3, items.size());
-    Assert.assertEquals(11.0, items.get(0), DOUBLE_EPSILON);
+@Provider
+public class OryxExceptionMapper implements ExceptionMapper<OryxServingException> {
+  // TODO: Wire this up into the Serving Layer
+  @Override
+  public Response toResponse(OryxServingException exception) {
+    return Response.status(exception.getStatusCode()).entity(exception.getError()).build();
   }
 }

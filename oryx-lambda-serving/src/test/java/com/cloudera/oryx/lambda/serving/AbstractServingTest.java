@@ -34,6 +34,9 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 
 public abstract class AbstractServingTest extends JerseyTest {
 
+  protected static final float FLOAT_EPSILON = 1.0e-6f;
+  protected static final double DOUBLE_EPSILON = 1.0e-12;
+
   protected static final GenericType<Collection<String>> COLLECTION_STRING_TYPE =
       new GenericType<Collection<String>>() {};
   protected static final GenericType<List<Double>> LIST_DOUBLE_TYPE =
