@@ -24,8 +24,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
@@ -43,9 +43,9 @@ public final class AllItemIDs {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
   public Collection<String> get() {
-    ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+    ServingModelManager<?> modelManager =
+        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ALSServingModel alsServingModel = (ALSServingModel) modelManager.getModel();
     return alsServingModel.getAllItemIDs();
   }
 }
