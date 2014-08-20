@@ -23,6 +23,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
@@ -50,14 +51,14 @@ public final class RecommendToMany {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(400).entity(new ErrorResponse(400, "One or more userIDs required")).build();
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID}+ required")).build();
   }
 
   @GET
-  @Path("{userID}")
+  @Path("{userID: .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("userID") String userID,
+  public List<RecommendResponse> get(@PathParam("userID") List<PathSegment> pathSegmentList,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("considerKnownItems") boolean considerKnownItems,

@@ -15,7 +15,10 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
+
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -33,10 +36,16 @@ import javax.ws.rs.core.Response;
 @Path("/pref")
 public final class Preference {
 
-  @GET
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response postNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID}/{itemID} required")).build();
+  }
+
+  @POST
   @Path("{userID}/{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
+  public Response post(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -72,7 +81,7 @@ public final class Preference {
     OryxRecommender recommender = getRecommender();
     recommender.setPreference(userID, itemID, prefValue);
   */
-    return Response.status(200).entity("").build();
+    return Response.status(Response.Status.OK.getStatusCode()).entity("").build();
   }
 
 }

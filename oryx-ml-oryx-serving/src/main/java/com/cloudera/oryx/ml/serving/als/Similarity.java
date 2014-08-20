@@ -15,12 +15,16 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,9 +50,15 @@ import java.util.List;
 public final class Similarity {
 
   @GET
-  @Path("{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("itemID") String itemID,
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{itemID}+ required")).build();
+  }
+
+  @GET
+  @Path("{itemID: .+}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<RecommendResponse> get(@PathParam("itemID") List<PathSegment> pathSegmentList,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("rescorerParams") List<String> rescorerParams) {

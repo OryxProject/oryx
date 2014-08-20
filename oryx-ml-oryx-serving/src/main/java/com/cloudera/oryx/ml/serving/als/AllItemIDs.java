@@ -22,7 +22,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -38,6 +40,12 @@ public final class AllItemIDs {
 
   @Context
   private ServletContext servletContext;
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /allIDs required")).build();
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

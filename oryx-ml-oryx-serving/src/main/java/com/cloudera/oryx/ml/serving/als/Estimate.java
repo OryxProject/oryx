@@ -24,7 +24,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 import com.google.common.primitives.Doubles;
 
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
@@ -46,9 +48,15 @@ public final class Estimate {
   private ServletContext servletContext;
 
   @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID}/{itemId}+ required")).build();
+  }
+
+  @GET
   @Path("{userID}/{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Double> getEstimatePreferences(@PathParam("userID") String userID,
+  public List<Double> get(@PathParam("userID") String userID,
                                              @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
     ServingModelManager<?> alsServingModelManager =
