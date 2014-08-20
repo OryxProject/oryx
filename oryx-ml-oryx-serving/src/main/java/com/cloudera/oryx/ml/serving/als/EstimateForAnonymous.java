@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.ServletContext;
@@ -28,6 +26,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to
