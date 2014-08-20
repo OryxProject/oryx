@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
+
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.ServletContext;
