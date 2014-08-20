@@ -26,10 +26,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
-
 /**
  * <p>Responds to a GET request to
  * {@code /estimateForAnonymous/[toItemID]/[itemID1(=value1)](/[itemID2(=value2)]/...)}.
@@ -53,10 +49,6 @@ public final class EstimateForAnonymous {
   public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") String toItemID,
                                                @PathParam("itemID") List<PathSegment> pathSegmentList) {
 
-    // TODO: refactor the below lines into a Base class, have repeated these enuf # of times
-    ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = alsServingModelManager.getModel();
 
     return Arrays.asList(1.2, 3.4);
   }

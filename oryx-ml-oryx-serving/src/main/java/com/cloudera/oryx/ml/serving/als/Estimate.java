@@ -28,8 +28,8 @@ import javax.ws.rs.core.PathSegment;
 import com.google.common.primitives.Doubles;
 
 import com.cloudera.oryx.lambda.serving.ModelManagerListener;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModelManager;
 
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
@@ -51,9 +51,9 @@ public final class Estimate {
   public List<Double> getEstimatePreferences(@PathParam("userID") String userID,
                                              @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
-    ALSServingModelManager alsServingModelManager =
-        (ALSServingModelManager) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = alsServingModelManager.getModel();
+    ServingModelManager<?> alsServingModelManager =
+        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
 
     String[] itemIDs = new String[pathSegmentsList.size()];
     for (int i = 0; i < itemIDs.length; i++) {

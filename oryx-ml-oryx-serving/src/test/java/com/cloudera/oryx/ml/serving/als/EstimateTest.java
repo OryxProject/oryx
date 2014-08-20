@@ -12,24 +12,22 @@
  * the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public final class EstimateTest extends JerseyTest {
+public final class EstimateTest extends AbstractALSServingTest {
 
   @Override
-  protected Application configure() {
-    return new ResourceConfig(EstimateTest.class);
+  protected Class<?> getResourceClass() {
+    return Estimate.class;
   }
 
   @Test
