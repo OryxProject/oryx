@@ -170,12 +170,10 @@ public final class ALSServingModel implements ServingModel {
   }
 
   private float[] buildAnonymousUserFeatures(String[] itemIDs, float[] values) {
-
     Preconditions.checkArgument(values == null || values.length == itemIDs.length,
         "Number of values doesn't match number of items");
 
     Solver ytySolver = getYTYSolver();
-
     float[] anonymousUserFeatures = null;
     for (int j = 0; j < itemIDs.length; j++) {
       String itemID = itemIDs[j];

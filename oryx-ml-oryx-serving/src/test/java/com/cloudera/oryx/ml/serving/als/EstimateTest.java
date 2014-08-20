@@ -17,6 +17,7 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,5 +30,14 @@ public final class EstimateTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(3, items.size());
     Assert.assertEquals(11.0, items.get(0), DOUBLE_EPSILON);
+  }
+
+  @Test
+  public void testBadRequest() {
+    Response response = target("estimate").path("Z").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Assert.assertEquals(404, response.getStatus());
+    response = target("estimate").path("Z").path("").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Assert.assertEquals(404, response.getStatus());
+    Assert.assertTrue(response.getEntity().equals("path /{userID}/{itemId} required"));
   }
 }

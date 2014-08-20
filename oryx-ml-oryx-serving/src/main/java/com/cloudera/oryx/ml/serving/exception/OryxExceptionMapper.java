@@ -20,7 +20,6 @@ import javax.ws.rs.ext.Provider;
 
 @Provider
 public class OryxExceptionMapper implements ExceptionMapper<OryxServingException> {
-  // TODO: Wire this up into the Serving Layer
   @Override
   public Response toResponse(OryxServingException exception) {
     return Response.status(exception.getStatusCode()).entity(exception.getError()).build();
