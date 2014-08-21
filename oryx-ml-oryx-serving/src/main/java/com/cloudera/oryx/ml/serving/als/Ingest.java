@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.List;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -22,7 +23,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * <p>Responds to a POST request to {@code /ingest} and in turn calls
@@ -35,7 +35,7 @@ import java.util.List;
  * file may be gzipped or zipped.</p>
  */
 @Path("/ingest")
-public final class Ingest {
+public final class Ingest extends AbstractALSResource {
 
   @POST
   @Path("{userId}")

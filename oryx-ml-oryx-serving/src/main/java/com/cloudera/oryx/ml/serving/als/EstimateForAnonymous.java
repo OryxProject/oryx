@@ -17,19 +17,14 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
@@ -43,21 +38,15 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
 @Path("/estimateForAnonymous")
-public final class EstimateForAnonymous {
-
-  @Context
-  private ServletContext servletContext;
+public final class EstimateForAnonymous extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
   public Double get(@PathParam("toItemID") String toItemID,
                     @PathParam("itemID") List<PathSegment> pathSegmentList) {
-    ServingModelManager<?> alsServingModelManager =
-        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
     Pair<String[], float[]> itemValuePairs = parseItemValuePairs(pathSegmentList);
-    return alsServingModel.dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
+    return getALSServingModel().dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
   }
 
   private static Pair<String[],float[]> parseItemValuePairs(List<PathSegment> pathComponents) {

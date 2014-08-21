@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,8 +24,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
+
+import com.cloudera.oryx.lambda.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to
@@ -48,7 +48,7 @@ import java.util.List;
  * see {link OryxRecommender#recommendToAnonymous(String[], float[], int)}.</p>
  */
 @Path("/recommendToAnonymous")
-public final class RecommendToAnonymous {
+public final class RecommendToAnonymous extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

@@ -15,18 +15,12 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready}
@@ -34,10 +28,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * whether the ALSServingModel is available or not.</p>
  */
 @Path("/ready")
-public final class Ready {
-
-  @Context
-  private ServletContext servletContext;
+public final class Ready extends AbstractALSResource {
 
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)
@@ -48,10 +39,7 @@ public final class Ready {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-    ServingModelManager<?> alsServingModelManager =
-        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
-    if (alsServingModel != null) {
+    if (getALSServingModel() != null) {
       return Response.ok().build();
     } else {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
