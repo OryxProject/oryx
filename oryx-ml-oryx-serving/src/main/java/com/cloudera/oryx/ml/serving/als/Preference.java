@@ -31,12 +31,13 @@ import javax.ws.rs.core.Response;
  * to calling {link OryxRecommender#removePreference(String, String)} instead.</p>
  */
 @Path("/pref")
-public final class Preference {
+public final class Preference extends AbstractALSResource {
 
   @GET
   @Path("{userID}/{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("userID") String userID, @PathParam("itemID") String itemID) {
+  public Response get(@PathParam("userID") String userID,
+                      @PathParam("itemID") String itemID) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {

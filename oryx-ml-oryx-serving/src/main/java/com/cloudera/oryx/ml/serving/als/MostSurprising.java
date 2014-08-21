@@ -15,12 +15,12 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>Responds to a GET request to
@@ -34,7 +34,7 @@ import java.util.List;
  * Higher means more surprising</p>
  */
 @Path("/mostSurprising")
-public final class MostSurprising {
+public final class MostSurprising extends AbstractALSResource {
 
   @GET
   @Path("{userId}")
