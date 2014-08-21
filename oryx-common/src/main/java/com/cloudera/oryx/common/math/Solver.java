@@ -43,4 +43,12 @@ public final class Solver {
     return result;
   }
 
+  public double[] solveFToD(float[] b) {
+    RealVector bVec = new ArrayRealVector(b.length);
+    for (int i = 0; i < b.length; i++) {
+      bVec.setEntry(i, b[i]);
+    }
+    RealVector vec = solver.solve(bVec);
+    return vec.toArray();
+  }
 }
