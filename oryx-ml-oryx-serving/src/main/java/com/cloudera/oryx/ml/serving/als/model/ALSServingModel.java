@@ -162,4 +162,55 @@ public final class ALSServingModel implements ServingModel {
       lock.unlock();
     }
   }
+
+  public double dotProduct(String toItemID, String[] itemIDs, float[] values) {
+    float[] toItemFeatures = getItemVector(toItemID);
+    float[] anonymousUserFeatures = buildAnonymousUserFeatures(itemIDs, values);
+    return VectorMath.dot(anonymousUserFeatures, toItemFeatures);
+  }
+
+  private float[] buildAnonymousUserFeatures(String[] itemIDs, float[] values) {
+    Preconditions.checkArgument(values == null || values.length == itemIDs.length,
+        "Number of values doesn't match number of items");
+    Solver ytySolver = getYTYSolver();
+    float[] anonymousUserFeatures = null;
+    for (int j = 0; j < itemIDs.length; j++) {
+      String itemID = itemIDs[j];
+      float[] itemFeatures = getItemVector(itemID);
+      double[] userFoldIn = ytySolver.solveFToD(itemFeatures);
+      if (anonymousUserFeatures == null) {
+        anonymousUserFeatures = new float[userFoldIn.length];
+      }
+      double signedFoldInWeight = foldInWeight(0.0, values == null ? 1.0f : values[j]);
+      if (signedFoldInWeight != 0.0) {
+        for (int i = 0; i < anonymousUserFeatures.length; i++) {
+          anonymousUserFeatures[i] += (float) (signedFoldInWeight * userFoldIn[i]);
+        }
+      }
+    }
+    return anonymousUserFeatures;
+  }
+
+  /**
+   * This function decides how much of a folded-in user or item vector should be added to a target item or user
+   * vector, respectively, on a new action. The idea is that a positive value should push the current value towards
+   * 1, but not further, and a negative value should push towards 0, but not further. How much to move should be
+   * mostly proportional to the size of the value. 0 should move the result not at all; 2 ought to move twice as
+   * much as 1, etc. This isn't quite possible but can be approximated by moving a fraction 1-1/(1+value) of the
+   * distance towards 1, or 0.
+   */
+  private static double foldInWeight(double estimate, float value) {
+    Preconditions.checkState(!(Double.isInfinite(estimate) || Double.isNaN(estimate)));
+    double signedFoldInWeight;
+    if (value > 0.0f && estimate < 1.0) {
+      double multiplier = 1.0 - Math.max(0.0, estimate);
+      signedFoldInWeight = (1.0 - 1.0 / (1.0 + value)) * multiplier;
+    } else if (value < 0.0f && estimate > 0.0) {
+      double multiplier = -Math.min(1.0, estimate);
+      signedFoldInWeight = (1.0 - 1.0 / (1.0 - value)) * multiplier;
+    } else {
+      signedFoldInWeight = 0.0;
+    }
+    return signedFoldInWeight;
+  }
 }

@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -25,6 +25,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.serving.ModelManagerListener;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
@@ -37,6 +42,7 @@ import javax.ws.rs.core.PathSegment;
  *
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
+
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous {
 
@@ -46,11 +52,37 @@ public final class EstimateForAnonymous {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("{toItemID}/{itemID : .+}")
-  public List<Double> getEstimatesForAnonymous(@PathParam("toItemID") String toItemID,
-                                               @PathParam("itemID") List<PathSegment> pathSegmentList) {
-
-
-    return Arrays.asList(1.2, 3.4);
+  public Double get(@PathParam("toItemID") String toItemID,
+                    @PathParam("itemID") List<PathSegment> pathSegmentList) {
+    ServingModelManager<?> alsServingModelManager =
+        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
+    Pair<String[], float[]> itemValuePairs = parseItemValuePairs(pathSegmentList);
+    return alsServingModel.dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
   }
 
+  private Pair<String[],float[]> parseItemValuePairs(List<PathSegment> pathComponents) {
+    List<Pair<String,Float>> itemValuePairs = new ArrayList<>(1);
+    for (PathSegment pathComponent : pathComponents) {
+      itemValuePairs.add(parseItemValue(pathComponent.getPath()));
+    }
+    int size = itemValuePairs.size();
+    String[] itemIDs = new String[size];
+    float[] values = new float[size];
+    for (int i = 0; i < size; i++) {
+      Pair<String,Float> itemValuePair = itemValuePairs.get(i);
+      itemIDs[i] = itemValuePair.getFirst();
+      Float value = itemValuePair.getSecond();
+      values[i] = value == null ? 1.0f : value;
+    }
+    return new Pair<>(itemIDs, values);
+  }
+
+  private Pair<String,Float> parseItemValue(String s) {
+    if (!s.contains("=")) {
+      return new Pair<>(s, null);
+    }
+    return new Pair<>(s.substring(0, s.indexOf('=')),
+        Float.parseFloat(s.substring(s.indexOf('=') + 1)));
+  }
 }

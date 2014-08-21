@@ -15,20 +15,29 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.lambda.serving.ModelManagerListener;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
+
 /**
- * <p>Responds to a HEAD or GET request to {@code /ready} and in turn calls
- * {link com.cloudera.oryx.als.common.OryxRecommender#isReady()}. Returns "OK" or "Unavailable" status depending on
- * whether the recommender is ready.</p>
+ * <p>Responds to a HEAD or GET request to {@code /ready}
+ * Returns "OK" or "Unavailable" status depending on
+ * whether the ALSServingModel is available or not.</p>
  */
 @Path("/ready")
 public final class Ready {
+
+  @Context
+  private ServletContext servletContext;
 
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)
@@ -39,15 +48,14 @@ public final class Ready {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-/*
-    boolean isReady = getRecommender().isReady();
-    if (isReady) {
-      response.setStatus(HttpServletResponse.SC_OK);
+    ServingModelManager<?> alsServingModelManager =
+        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ALSServingModel alsServingModel = (ALSServingModel) alsServingModelManager.getModel();
+    if (alsServingModel != null) {
+      return Response.ok().build();
     } else {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+      return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
     }
-  */
-    return Response.status(200).entity("").build();
   }
-
 }
+

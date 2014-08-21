@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Collection;
 import java.util.List;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -48,8 +49,8 @@ public final class Estimate {
   @GET
   @Path("{userID}/{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<Double> getEstimatePreferences(@PathParam("userID") String userID,
-                                             @PathParam("itemID") List<PathSegment> pathSegmentsList) {
+  public Collection<Double> get(@PathParam("userID") String userID,
+                                @PathParam("itemID") List<PathSegment> pathSegmentsList) {
 
     ServingModelManager<?> alsServingModelManager =
         (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);

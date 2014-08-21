@@ -25,8 +25,9 @@ public final class AllItemIDsTest extends AbstractALSServingTest {
 
   @Test
   public void test() {
-    Collection<String> items = target("item/allIDs").request().accept(MediaType.APPLICATION_JSON_TYPE).get(COLLECTION_STRING_TYPE);
-    Assert.assertEquals(1, items.size());
+    Collection<String> items = target("item/allIDs").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(COLLECTION_STRING_TYPE);
+    Assert.assertEquals(3, items.size());
     Assert.assertTrue(items.contains("A"));
   }
 }
