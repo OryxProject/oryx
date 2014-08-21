@@ -27,17 +27,16 @@ public abstract class AbstractALSResource {
 
   @Context
   private ServletContext servletContext;
-
   private ALSServingModel alsServingModel;
 
   @PostConstruct
-  public void init() {
+  public final void init() {
     ServingModelManager<?> servingModelManager =
         (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
     alsServingModel = (ALSServingModel) servingModelManager.getModel();
   }
 
-  protected ALSServingModel getALSServingModel() {
+  protected final ALSServingModel getALSServingModel() {
     return alsServingModel;
   }
 }

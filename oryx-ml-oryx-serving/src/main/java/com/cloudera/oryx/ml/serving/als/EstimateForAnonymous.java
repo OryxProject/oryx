@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,6 +24,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
@@ -45,32 +46,74 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   @Path("{toItemID}/{itemID : .+}")
   public Double get(@PathParam("toItemID") String toItemID,
                     @PathParam("itemID") List<PathSegment> pathSegmentList) {
-    Pair<String[], float[]> itemValuePairs = parseItemValuePairs(pathSegmentList);
-    return getALSServingModel().dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
+    Pair<String[],double[]> itemValuePairs = parseItemValuePairs(pathSegmentList);
+    String[] itemIDs = itemValuePairs.getFirst();
+    double[] values = itemValuePairs.getSecond();
+    ALSServingModel model = getALSServingModel();
+    float[] toItemVector = model.getItemVector(toItemID);
+    int features = toItemVector.length;
+    double[] userItemRowTimesY = new double[features];
+    for (int j = 0; j < itemIDs.length; j++) {
+      float[] itemVector = model.getItemVector(itemIDs[j]);
+      // 0.5 reflects a "don't know" state
+      double weight = computeTargetQui(model, values[j], 0.5);
+      for (int i = 0; i < features; i++) {
+        userItemRowTimesY[i] += weight * itemVector[i];
+      }
+    }
+    double[] anonymousUserFeatures = model.getYTYSolver().solveDToD(userItemRowTimesY);
+    return VectorMath.dot(anonymousUserFeatures, toItemVector);
   }
 
-  private static Pair<String[],float[]> parseItemValuePairs(List<PathSegment> pathComponents) {
-    List<Pair<String,Float>> itemValuePairs = new ArrayList<>(1);
-    for (PathSegment pathComponent : pathComponents) {
-      itemValuePairs.add(parseItemValue(pathComponent.getPath()));
-    }
-    int size = itemValuePairs.size();
+  private static Pair<String[],double[]> parseItemValuePairs(List<PathSegment> pathComponents) {
+    int size = pathComponents.size();
     String[] itemIDs = new String[size];
-    float[] values = new float[size];
+    double[] values = new double[size];
     for (int i = 0; i < size; i++) {
-      Pair<String,Float> itemValuePair = itemValuePairs.get(i);
+      Pair<String,Double> itemValuePair = parseItemValue(pathComponents.get(i).getPath());
       itemIDs[i] = itemValuePair.getFirst();
-      Float value = itemValuePair.getSecond();
-      values[i] = value == null ? 1.0f : value;
+      Double value = itemValuePair.getSecond();
+      values[i] = value == null ? 1.0 : value;
     }
     return new Pair<>(itemIDs, values);
   }
 
-  private static Pair<String,Float> parseItemValue(String s) {
-    if (!s.contains("=")) {
+  private static Pair<String,Double> parseItemValue(String s) {
+    int offset = s.indexOf('=');
+    if (offset < 0) {
       return new Pair<>(s, null);
     }
-    return new Pair<>(s.substring(0, s.indexOf('=')),
-        Float.parseFloat(s.substring(s.indexOf('=') + 1)));
+    return new Pair<>(s.substring(0, offset), Double.parseDouble(s.substring(offset + 1)));
   }
+
+  /**
+   * See also ALSServingModelManager
+   */
+  private static double computeTargetQui(ALSServingModel model, double value, double currentValue) {
+    // We want Qui to change based on value. What's the target value, Qui'?
+    // Then we find a new vector Xu' such that Qui' = Xu' * (Yi)^t
+    double targetQui;
+    if (model.isImplicit()) {
+      // Target is really 1, or 0, depending on whether value is positive or negative.
+      // This wouldn't account for the strength though. Instead the target is a function
+      // of the current value and strength. If the current value is c, and value is positive
+      // then the target is somewhere between c and 1 depending on the strength. If current
+      // value is already >= 1, there's no effect. Similarly for negative values.
+      if (value > 0.0f && currentValue < 1.0) {
+        double diff = 1.0 - Math.max(0.0, currentValue);
+        targetQui = currentValue + (1.0 - 1.0 / (1.0 + value)) * diff;
+      } else if (value < 0.0f && currentValue > 0.0) {
+        double diff = -Math.min(1.0, currentValue);
+        targetQui = currentValue + (1.0 - 1.0 / (1.0 - value)) * diff;
+      } else {
+        // No change
+        targetQui = Double.NaN;
+      }
+    } else {
+      // Non-implicit -- value is supposed to be the new value
+      targetQui = value;
+    }
+    return targetQui;
+  }
+
 }

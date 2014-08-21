@@ -20,7 +20,7 @@ public final class TestALSModelFactory {
   private TestALSModelFactory() {}
 
   public static ALSServingModel buildTestModel() {
-    ALSServingModel model = new ALSServingModel(2);
+    ALSServingModel model = new ALSServingModel(2, true);
     model.setItemVector("A", new float[] {1.0f, 2.0f});
     model.setItemVector("B", new float[] {2.0f, 1.5f});
     model.setItemVector("C", new float[] {2.5f, 1.5f});

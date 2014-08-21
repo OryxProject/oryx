@@ -148,11 +148,12 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Yi is the current row i in the Y item-feature matrix
       float[] Yi = model.getItemVector(item);
 
-      float[] newXu = null;
+      double[] newXu = null;
       if (Yi != null) {
         // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction
         // in Q = X * Y^t
-        double currentValue = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
+        // 0.5 reflects a "don't know" state
+        double currentValue = Xu == null ? 0.5 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         // The entire vector Qu' is just 0, with Qui' in position i
         // More generally we are looking for Qu' = Xu' * Y^t
@@ -164,29 +165,30 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           for (int i = 0; i < QuiYi.length; i++) {
             QuiYi[i] *= targetQui;
           }
-          newXu = YTYsolver.solveFToF(QuiYi);
+          newXu = YTYsolver.solveFToD(QuiYi);
         }
       }
 
       // Similarly for Y vs X
-      float[] newYi = null;
+      double[] newYi = null;
       if (Xu != null) {
-        double currentValue = Yi == null ? 0.0 : VectorMath.dot(Xu, Yi);
+        // 0.5 reflects a "don't know" state
+        double currentValue = Yi == null ? 0.5 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         if (!Double.isNaN(targetQui)) {
           float[] QuiXu = Xu.clone();
           for (int i = 0; i < QuiXu.length; i++) {
             QuiXu[i] *= targetQui;
           }
-          newYi = XTXsolver.solveFToF(QuiXu);
+          newYi = XTXsolver.solveFToD(QuiXu);
         }
       }
 
       if (newXu != null) {
-        result.add("X\t" + user + '\t' + FormatUtils.formatFloatVec(newXu));
+        result.add("X\t" + user + '\t' + FormatUtils.formatDoubleVec(newXu));
       }
       if (newYi != null) {
-        result.add("Y\t" + item + '\t' + FormatUtils.formatFloatVec(newYi));
+        result.add("Y\t" + item + '\t' + FormatUtils.formatDoubleVec(newYi));
       }
     }
     return result;

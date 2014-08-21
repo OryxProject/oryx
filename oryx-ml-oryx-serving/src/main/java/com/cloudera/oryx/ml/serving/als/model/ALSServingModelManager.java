@@ -64,15 +64,16 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           // New model
           PMML pmml = PMMLUtils.fromString(message);
           int features = Integer.parseInt(PMMLUtils.getExtensionValue(pmml, "features"));
+          boolean implicit = Boolean.valueOf(PMMLUtils.getExtensionValue(pmml, "implicit"));
           if (model == null) {
 
             log.info("No previous model");
-            model = new ALSServingModel(features);
+            model = new ALSServingModel(features, implicit);
 
           } else if (features != model.getFeatures()) {
 
             log.warn("# features has changed! removing old model");
-            model = new ALSServingModel(features);
+            model = new ALSServingModel(features, implicit);
 
           } else {
 

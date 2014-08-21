@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,11 +24,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.google.common.primitives.Doubles;
+import com.google.common.base.Preconditions;
+
+import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]} and in turn calls
- * {@link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#dotProduct(String,String[])}.</p>
+ * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]}.</p>
  *
  * <p>This REST endpoint can also compute several estimates at once. Send a GET request to
  * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
@@ -41,10 +44,19 @@ public final class Estimate extends AbstractALSResource {
   @Produces(MediaType.APPLICATION_JSON)
   public List<Double> get(@PathParam("userID") String userID,
                           @PathParam("itemID") List<PathSegment> pathSegmentsList) {
-    String[] itemIDs = new String[pathSegmentsList.size()];
-    for (int i = 0; i < itemIDs.length; i++) {
-      itemIDs[i] = pathSegmentsList.get(i).getPath();
+    ALSServingModel model = getALSServingModel();
+    float[] userFeatures = model.getUserVector(userID);
+    List<Double> results = new ArrayList<>(pathSegmentsList.size());
+    for (PathSegment pathSegment : pathSegmentsList) {
+      float[] itemFeatures = model.getItemVector(pathSegment.getPath());
+      if (itemFeatures == null) {
+        results.add(0.0);
+      } else {
+        double value = VectorMath.dot(itemFeatures, userFeatures);
+        Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad estimate");
+        results.add(value);
+      }
     }
-    return Doubles.asList(getALSServingModel().dotProduct(userID, itemIDs));
+    return results;
   }
 }

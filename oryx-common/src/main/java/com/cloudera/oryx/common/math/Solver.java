@@ -30,17 +30,12 @@ public final class Solver {
     this.solver = solver;
   }
 
-  public float[] solveFToF(float[] b) {
-    RealVector vec = solver.solve(floatsToVector(b));
-    float[] result = new float[b.length];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = (float) vec.getEntry(i);
-    }
-    return result;
-  }
-
   public double[] solveFToD(float[] b) {
     return solver.solve(floatsToVector(b)).toArray();
+  }
+
+  public double[] solveDToD(double[] b) {
+    return solver.solve(new ArrayRealVector(b, false)).toArray();
   }
 
   private static RealVector floatsToVector(float[] floats) {
