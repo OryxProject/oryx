@@ -13,14 +13,14 @@
 * License.
 */
 
-package com.cloudera.oryx.ml.serving.exception;
+package com.cloudera.oryx.lambda.serving;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 @Provider
-public class OryxExceptionMapper implements ExceptionMapper<OryxServingException> {
+public final class OryxExceptionMapper implements ExceptionMapper<OryxServingException> {
 
   @Override
   public Response toResponse(OryxServingException exception) {

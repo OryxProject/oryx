@@ -14,12 +14,12 @@
 * License.
 */
 
-package com.cloudera.oryx.ml.serving.exception;
+package com.cloudera.oryx.lambda.serving;
 
 public final class OryxServingException extends Exception {
 
-  private String error;
-  private int statusCode;
+  private final String error;
+  private final int statusCode;
 
   public OryxServingException(int statusCode, String error) {
     this.statusCode = statusCode;
@@ -30,15 +30,7 @@ public final class OryxServingException extends Exception {
     return error;
   }
 
-  public void setError(String error) {
-    this.error = error;
-  }
-
   public int getStatusCode() {
     return statusCode;
-  }
-
-  public void setStatusCode(int statusCode) {
-    this.statusCode = statusCode;
   }
 }

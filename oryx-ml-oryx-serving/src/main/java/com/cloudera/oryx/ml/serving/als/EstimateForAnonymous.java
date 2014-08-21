@@ -42,7 +42,6 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  *
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
-
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous {
 
@@ -61,7 +60,7 @@ public final class EstimateForAnonymous {
     return alsServingModel.dotProduct(toItemID, itemValuePairs.getFirst(), itemValuePairs.getSecond());
   }
 
-  private Pair<String[],float[]> parseItemValuePairs(List<PathSegment> pathComponents) {
+  private static Pair<String[],float[]> parseItemValuePairs(List<PathSegment> pathComponents) {
     List<Pair<String,Float>> itemValuePairs = new ArrayList<>(1);
     for (PathSegment pathComponent : pathComponents) {
       itemValuePairs.add(parseItemValue(pathComponent.getPath()));
@@ -78,7 +77,7 @@ public final class EstimateForAnonymous {
     return new Pair<>(itemIDs, values);
   }
 
-  private Pair<String,Float> parseItemValue(String s) {
+  private static Pair<String,Float> parseItemValue(String s) {
     if (!s.contains("=")) {
       return new Pair<>(s, null);
     }
