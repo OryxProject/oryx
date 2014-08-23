@@ -24,6 +24,10 @@ public final class OryxExceptionMapper implements ExceptionMapper<OryxServingExc
 
   @Override
   public Response toResponse(OryxServingException exception) {
-    return Response.status(exception.getStatusCode()).entity(exception.getError()).build();
+    Response.ResponseBuilder response = Response.status(exception.getStatusCode());
+    if (exception.getError() != null) {
+      response = response.entity(exception.getError());
+    }
+    return response.build();
   }
 }

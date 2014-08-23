@@ -16,12 +16,20 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import com.google.common.base.Preconditions;
+
 public final class OryxServingException extends Exception {
 
   private final String error;
   private final int statusCode;
 
+  public OryxServingException(int statusCode) {
+    this(statusCode, null);
+  }
+
   public OryxServingException(int statusCode, String error) {
+    super(statusCode + (error == null ? "" : ": " + error));
+    Preconditions.checkArgument(statusCode >= 100 && statusCode < 600);
     this.statusCode = statusCode;
     this.error = error;
   }
