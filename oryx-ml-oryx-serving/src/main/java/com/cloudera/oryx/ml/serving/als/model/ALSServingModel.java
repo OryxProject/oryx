@@ -24,14 +24,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.carrotsearch.hppc.ObjectObjectMap;
 import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.google.common.base.Preconditions;
-import org.apache.commons.math3.linear.RealMatrix;
-
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.lambda.serving.ServingModel;
+import com.google.common.base.Preconditions;
+import org.apache.commons.math3.linear.RealMatrix;
 
 public final class ALSServingModel implements ServingModel {
 

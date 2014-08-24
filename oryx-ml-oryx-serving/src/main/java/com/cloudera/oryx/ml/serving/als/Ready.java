@@ -39,11 +39,9 @@ public final class Ready extends AbstractALSResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-    if (getALSServingModel() != null) {
-      return Response.ok().build();
-    } else {
-      return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
-    }
+    return getALSServingModel() != null ?
+        Response.ok().build() :
+        Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
   }
 }
 
