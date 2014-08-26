@@ -17,7 +17,6 @@ package com.cloudera.oryx.common.math;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.DecompositionSolver;
-import org.apache.commons.math3.linear.RealVector;
 
 /**
  * Encapsulates a {@link DecompositionSolver} from Commons Math.
@@ -31,19 +30,11 @@ public final class Solver {
   }
 
   public double[] solveFToD(float[] b) {
-    return solver.solve(floatsToVector(b)).toArray();
+    return solver.solve(new ArrayRealVector(VectorMath.toDoubles(b), false)).toArray();
   }
 
   public double[] solveDToD(double[] b) {
     return solver.solve(new ArrayRealVector(b, false)).toArray();
-  }
-
-  private static RealVector floatsToVector(float[] floats) {
-    double[] doubles = new double[floats.length];
-    for (int i = 0; i < doubles.length; i++) {
-      doubles[i] = floats[i];
-    }
-    return new ArrayRealVector(doubles, false);
   }
 
 }

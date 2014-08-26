@@ -104,4 +104,28 @@ public final class VectorMath {
     return result;
   }
 
+  /**
+   * @param doubles array of doubles
+   * @return array "cast" to floats
+   */
+  public static float[] toFloats(double... doubles) {
+    float[] floats = new float[doubles.length];
+    for (int i = 0; i < floats.length; i++) {
+      floats[i] = (float) doubles[i];
+    }
+    return floats;
+  }
+
+  /**
+   * @param floats array of floats
+   * @return array "cast" to doubles
+   */
+  public static double[] toDoubles(float... floats) {
+    double[] doubles = new double[floats.length];
+    for (int i = 0; i < doubles.length; i++) {
+      doubles[i] = floats[i];
+    }
+    return doubles;
+  }
+
 }

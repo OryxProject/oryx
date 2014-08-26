@@ -73,31 +73,28 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     /*
      * User 100 - 104 are solutions to eye(5)*Y*pinv(Y'*Y), but default scaling
-     * will produce values that are half of this since they are brand new.
-     * That is, it's really the solution to (eye(5)/2)*Y*pinv(Y'*Y)
-     *  -0.139066   0.168214
-     *  -0.149819  -0.128632
-     *  -0.103948   0.265175
-     *  -0.200435  -0.081598
-     *  -0.061369  -0.249812
-     * Likewise (eye(4)/2)*X*pinv(X'*X)
-     *  -0.131089   0.063827
-     *  -0.158936  -0.339005
-     *  -0.229073   0.164446
-     *  -0.040136   0.195407
+     * will produce values that are 3/4 of this since they are brand new.
+     * That is, it's really the solution to (0.75*eye(5))*Y*pinv(Y'*Y)
+     * Likewise 105 - 108 are (0.75*eye(4))*X*pinv(X'*X)
      */
 
-    Map<String,float[]> X = new HashMap<>();
-    X.put("100", new float[] {-0.139066f,  0.168214f});
-    X.put("101", new float[] {-0.149819f, -0.128632f});
-    X.put("102", new float[] {-0.103948f,  0.265175f});
-    X.put("103", new float[] {-0.200435f, -0.081598f});
-    X.put("104", new float[] {-0.061369f, -0.249812f});
-    Map<String,float[]> Y = new HashMap<>();
-    Y.put("105", new float[] {-0.131089f,  0.063827f});
-    Y.put("106", new float[] {-0.158936f, -0.339005f});
-    Y.put("107", new float[] {-0.229073f,  0.164446f});
-    Y.put("108", new float[] {-0.040136f,  0.195407f});
+    Map<String,float[]> X = MockModelUpdateGenerator.buildMatrix(100, new double[][] {
+        {-0.2085992442067743,  0.2523213360207475},
+        {-0.2247280310573082, -0.1929485017146139},
+        {-0.1559213545536042,  0.3977631145260019},
+        {-0.3006521945941331, -0.1223970296839849},
+        {-0.0920529503873587, -0.3747183657047325},
+    });
+    Map<String,float[]> Y = MockModelUpdateGenerator.buildMatrix(105, new double[][] {
+        {-0.1966328800604910,  0.0957410625834965},
+        {-0.2384041642283309, -0.5085072425781164},
+        {-0.3436097549067730,  0.2466687004987837},
+        {-0.0602045721873638,  0.2931111530627041},
+    });
+
+    for (int i = 0; i <= 18; i++) {
+      System.out.println(updates.get(i).getSecond());
+    }
 
     for (int i = 10; i <= 18; i++) {
       assertEquals("UP", updates.get(i).getFirst());
