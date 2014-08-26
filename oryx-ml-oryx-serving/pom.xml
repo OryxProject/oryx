@@ -44,12 +44,21 @@
     </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-lambda-serving</artifactId>
+      <artifactId>oryx-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jpmml</groupId>
       <artifactId>pmml-model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>

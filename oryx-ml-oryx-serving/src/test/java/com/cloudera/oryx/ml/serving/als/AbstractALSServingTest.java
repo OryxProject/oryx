@@ -21,7 +21,6 @@ import javax.servlet.ServletContextListener;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.TestALSModelFactory;
@@ -36,7 +35,9 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
   public static final class MockManagerInitListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-      sce.getServletContext().setAttribute(ModelManagerListener.MANAGER_KEY, new MockServingModelManager());
+      sce.getServletContext().setAttribute(
+          AbstractALSResource.MODEL_MANAGER_KEY,
+          new MockServingModelManager());
     }
     @Override
     public void contextDestroyed(ServletContextEvent sce) {

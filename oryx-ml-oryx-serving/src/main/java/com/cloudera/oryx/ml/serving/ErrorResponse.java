@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.serving;
+package com.cloudera.oryx.ml.serving;
 
 import com.google.common.base.Preconditions;
 

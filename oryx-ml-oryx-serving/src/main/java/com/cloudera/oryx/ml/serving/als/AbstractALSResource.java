@@ -19,11 +19,13 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 public abstract class AbstractALSResource {
+
+  static final String MODEL_MANAGER_KEY =
+      "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
 
   @Context
   private ServletContext servletContext;
@@ -31,8 +33,8 @@ public abstract class AbstractALSResource {
 
   @PostConstruct
   public final void init() {
-    ServingModelManager<?> servingModelManager =
-        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+    ServingModelManager<?> servingModelManager = (ServingModelManager<?>)
+        servletContext.getAttribute(MODEL_MANAGER_KEY);
     alsServingModel = (ALSServingModel) servingModelManager.getModel();
   }
 
