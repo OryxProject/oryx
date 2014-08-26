@@ -133,9 +133,9 @@ final class AUC {
           }
         });
 
-    long correct = correctIncorrect.keys().fold(0L, Functions.SUM_LONG);
-    long incorrect = correctIncorrect.values().fold(0L, Functions.SUM_LONG);
-    return (double) correct / (correct + incorrect);
+    double correct = correctIncorrect.keys().fold(0L, Functions.SUM_LONG);
+    double incorrect = correctIncorrect.values().fold(0L, Functions.SUM_LONG);
+    return correct / (correct + incorrect);
   }
 
 }

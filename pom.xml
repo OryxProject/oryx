@@ -186,7 +186,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.1.5</version>
+        <version>1.1.7</version>
       </dependency>
 
       <dependency>
@@ -334,6 +334,8 @@
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <hadoop.version>2.4.1</hadoop.version>
+    <!-- Why is this not yet released in Maven? -->
+    <!-- <hadoop.version>2.5.0</hadoop.version> -->
     <jersey.version>2.11</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
@@ -768,8 +770,40 @@
     </site>
   </distributionManagement>
 
-  <!--
   <profiles>
+    <profile>
+      <id>cdh5.1</id>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <properties>
+        <hadoop.version>2.3.0-cdh5.1.0</hadoop.version>
+        <spark.version>1.0.0-cdh5.1.0</spark.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>cdh5.2</id>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <properties>
+        <hadoop.version>2.5.0-cdh5.2.0-SNAPSHOT</hadoop.version>
+        <spark.version>1.0.0-cdh5.2.0-SNAPSHOT</spark.version>
+      </properties>
+    </profile>
+    <!--
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
@@ -799,7 +833,7 @@
         </plugins>
       </build>
     </profile>
+     -->
   </profiles>
-  -->
 
 </project>
