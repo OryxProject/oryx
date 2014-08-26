@@ -111,7 +111,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
     if (implicit) {
-      double auc = AUC.areaUnderCurve(mfModel, testData);
+      double auc = AUC.areaUnderCurve(sparkContext, mfModel, testData);
       log.info("AUC: {}", auc);
       eval = auc;
     } else {
