@@ -92,10 +92,6 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
         {-0.0602045721873638,  0.2931111530627041},
     });
 
-    for (int i = 0; i <= 18; i++) {
-      System.out.println(updates.get(i).getSecond());
-    }
-
     for (int i = 10; i <= 18; i++) {
       assertEquals("UP", updates.get(i).getFirst());
       String[] tokens = updates.get(i).getSecond().split("\t");
