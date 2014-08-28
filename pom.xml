@@ -333,10 +333,10 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
-    <hadoop.version>2.4.1</hadoop.version>
+    <hadoop.version>2.5.0</hadoop.version>
     <!-- Why is this not yet released in Maven? -->
     <!-- <hadoop.version>2.5.0</hadoop.version> -->
-    <jersey.version>2.11</jersey.version>
+    <jersey.version>2.12</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
     <spark.version>1.0.2</spark.version>
@@ -555,7 +555,7 @@
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
-          <version>0.10</version>
+          <version>0.11</version>
           <configuration>
             <excludes>
               <exclude>**/*.conf</exclude>
