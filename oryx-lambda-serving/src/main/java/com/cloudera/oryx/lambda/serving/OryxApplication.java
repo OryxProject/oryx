@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
@@ -61,11 +60,6 @@ public final class OryxApplication extends Application {
     classes.addAll(providerClasses);
     log.info("Found JAX-RS resources: {}", classes);
     return classes;
-  }
-
-  private Set<Class<?>> getFilterClasses() {
-    Set<Class<?>> filterClassesSet = new HashSet<>(3);
-    filterClassesSet.add(GZipEncoder.class);
   }
 
 }
