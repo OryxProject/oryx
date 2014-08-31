@@ -18,13 +18,14 @@ package com.cloudera.oryx.ml.serving.als.model;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
@@ -32,6 +33,7 @@ import com.cloudera.oryx.lambda.serving.ServingModelManager;
 public final class ALSServingModelManager implements ServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSServingModel model;
 
@@ -44,11 +46,11 @@ public final class ALSServingModelManager implements ServingModelManager<String>
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
+          List<?> update = MAPPER.readValue(message, List.class);
           // Update
-          String[] tokens = message.split("\t");
-          String id = tokens[1];
-          float[] vector = FormatUtils.parseFloatVec(tokens[2]);
-          switch (tokens[0]) {
+          String id = update.get(1).toString();
+          float[] vector = MAPPER.convertValue(update.get(2), float[].class);
+          switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);
               break;

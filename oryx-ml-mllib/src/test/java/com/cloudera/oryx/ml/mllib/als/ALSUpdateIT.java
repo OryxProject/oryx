@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.dmg.pmml.Extension;
 import org.dmg.pmml.PMML;
@@ -33,7 +34,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -43,6 +43,7 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 public final class ALSUpdateIT extends AbstractALSIT {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdateIT.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
@@ -70,6 +71,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
     overlayConfig.put("als.hyperparams.implicit", "false");
     overlayConfig.put("als.hyperparams.lambda", Double.toString(LAMBDA));
     overlayConfig.put("als.hyperparams.features", Integer.toString(FEATURES));
+    overlayConfig.put("als.no-known-items", "false");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
@@ -126,12 +128,12 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       if (isUpdate) {
 
-        String[] tokens = value.split("\t");
+        List<?> update = MAPPER.readValue(value, List.class);
         // First field is X or Y, depending on whether it's a user or item vector
-        boolean isUser = "X".equals(tokens[0]);
-        boolean isProduct = "Y".equals(tokens[0]);
+        boolean isUser = "X".equals(update.get(0).toString());
+        boolean isProduct = "Y".equals(update.get(0).toString());
         // Next is user/item ID
-        Integer id = Integer.valueOf(tokens[1]);
+        Integer id = Integer.valueOf(update.get(1).toString());
         assertTrue(isUser || isProduct);
         if (isUser) {
           seenUsers.add(id);
@@ -139,7 +141,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           seenProducts.add(id);
         }
         // Verify that feature vector are valid floats
-        for (float f : FormatUtils.parseFloatVec(tokens[2])) {
+        for (float f : MAPPER.convertValue(update.get(2), float[].class)) {
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
 
@@ -189,9 +191,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Collection<Integer> seenIDs = new HashSet<>();
     for (Path file : IOUtils.listFiles(path, "part-*")) {
       for (String line : IOUtils.readLines(file)) {
-        String[] idVector = line.split("\t");
-        seenIDs.add(Integer.valueOf(idVector[0]));
-        assertEquals(FEATURES, FormatUtils.parseFloatVec(idVector[1]).length);
+        List<?> update = MAPPER.readValue(line, List.class);
+        seenIDs.add(Integer.valueOf(update.get(0).toString()));
+        assertEquals(FEATURES, MAPPER.convertValue(update.get(1), float[].class).length);
       }
     }
     assertFalse(seenIDs.isEmpty());

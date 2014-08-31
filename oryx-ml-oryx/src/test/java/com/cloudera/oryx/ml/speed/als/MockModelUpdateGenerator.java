@@ -16,20 +16,23 @@
 package com.cloudera.oryx.ml.speed.als;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
 public final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
@@ -42,13 +45,13 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
    X = U*sqrt(S)
    Y = V*sqrt(S)
    */
-  public static final Map<String,float[]> X = buildMatrix(6, new double[][] {
+  static final Map<String,float[]> X = buildMatrix(6, new double[][] {
       {-0.679001918401210,  0.173232408449017},
       {-0.823244234718400, -0.920085196137775},
       {-1.186534432549093,  0.446318558864201},
       {-0.207895139404806,  0.530350819368002},
   });
-  public static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
+  static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
       {-0.720323513289685,  0.456546350776373},
       {-0.776018558846806, -0.349118056105777},
       {-0.538419102792183,  0.719706471415318},
@@ -70,9 +73,9 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
       String message;
       boolean isX = xOrYID >= 6;
       if (isX) {
-        message = "X\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(X.get(xOrYIDString));
+        message = MAPPER.writeValueAsString(Arrays.asList("X", xOrYIDString, X.get(xOrYIDString)));
       } else {
-        message = "Y\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(Y.get(xOrYIDString));
+        message = MAPPER.writeValueAsString(Arrays.asList("Y", xOrYIDString, Y.get(xOrYIDString)));
       }
       return new Pair<>("UP", message);
     }

@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -33,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -45,6 +46,7 @@ import com.cloudera.oryx.common.math.Solver;
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSSpeedModel model;
   private final boolean implicit;
@@ -62,11 +64,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
+          List<?> update = MAPPER.readValue(message, List.class);
           // Update
-          String[] tokens = message.split("\t");
-          String id = tokens[1];
-          float[] vector = FormatUtils.parseFloatVec(tokens[2]);
-          switch (tokens[0]) {
+          String id = update.get(1).toString();
+          float[] vector = MAPPER.convertValue(update.get(2), float[].class);
+          switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);
               break;
@@ -110,7 +112,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) throws IOException {
     if (model == null) {
       return Collections.emptyList();
     }
@@ -185,10 +187,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       }
 
       if (newXu != null) {
-        result.add("X\t" + user + '\t' + FormatUtils.formatDoubleVec(newXu));
+        result.add(MAPPER.writeValueAsString(Arrays.asList("X", user, newXu)));
       }
       if (newYi != null) {
-        result.add("Y\t" + item + '\t' + FormatUtils.formatDoubleVec(newYi));
+        result.add(MAPPER.writeValueAsString(Arrays.asList("Y", item, newYi)));
       }
     }
     return result;

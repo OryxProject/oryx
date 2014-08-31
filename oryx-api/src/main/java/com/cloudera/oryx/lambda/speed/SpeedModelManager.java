@@ -48,8 +48,9 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
   /**
    * @param newData RDD of raw new data from the queue
    * @return updates to publish on the update queue
+   * @throws IOException if an error occurs while building updates
    */
-  Collection<U> buildUpdates(JavaPairRDD<K,M> newData);
+  Collection<U> buildUpdates(JavaPairRDD<K,M> newData) throws IOException;
 
   @Override
   void close();

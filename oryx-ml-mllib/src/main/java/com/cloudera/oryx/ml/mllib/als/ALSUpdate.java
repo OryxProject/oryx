@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.mllib.als;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
@@ -43,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 import scala.reflect.ClassTag$;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
@@ -58,6 +59,7 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 public final class ALSUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdate.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final int iterations;
   private final boolean implicit;
@@ -236,8 +238,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     log.info("Saving features RDD to {}", path);
     fromRDD(features).map(new Function<Tuple2<Object,double[]>, String>() {
       @Override
-      public String call(Tuple2<Object, double[]> keyAndVector) {
-        return formatKeyAndVector(keyAndVector);
+      public String call(Tuple2<Object, double[]> keyAndVector) throws IOException {
+        Object key = keyAndVector._1();
+        double[] vector = keyAndVector._2();
+        return MAPPER.writeValueAsString(Arrays.asList(key, vector));
       }
     }).saveAsTextFile(path.toString(), GzipCodec.class);
   }
@@ -266,10 +270,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
     return featureLines.map(new Function<String,Tuple2<Object,double[]>>() {
       @Override
-      public Tuple2<Object,double[]> call(String line) {
-        int tab = line.indexOf('\t');
-        Integer key = Integer.valueOf(line.substring(0, tab));
-        double[] vector = FormatUtils.parseDoubleVec(line.substring(tab + 1));
+      public Tuple2<Object,double[]> call(String line) throws IOException {
+        List<?> update = MAPPER.readValue(line, List.class);
+        Integer key = Integer.valueOf(update.get(0).toString());
+        double[] vector = MAPPER.convertValue(update.get(1), double[].class);
         return new Tuple2<Object,double[]>(key, vector);
       }
     }).rdd();
@@ -315,21 +319,24 @@ public final class ALSUpdate extends MLUpdate<String> {
                                ClassTag$.MODULE$.<V>apply(Object.class));
   }
 
-  private static String formatKeyAndVector(Tuple2<Object,double[]> keyAndVector) {
-    return keyAndVector._1().toString() + '\t' + FormatUtils.formatDoubleVec(keyAndVector._2());
-  }
+  private static class EnqueuePartitionFunction
+      implements VoidFunction<Iterator<Tuple2<Object,double[]>>> {
 
-  static class EnqueuePartitionFunction implements VoidFunction<Iterator<Tuple2<Object,double[]>>> {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private final String whichMatrix;
     private final QueueProducer<String, String> modelUpdateQueue;
+
     EnqueuePartitionFunction(String whichMatrix, QueueProducer<String,String> modelUpdateQueue) {
       this.whichMatrix = whichMatrix;
       this.modelUpdateQueue = modelUpdateQueue;
     }
     @Override
-    public void call(Iterator<Tuple2<Object,double[]>> it) {
+    public void call(Iterator<Tuple2<Object,double[]>> it) throws IOException {
       while (it.hasNext()) {
-        modelUpdateQueue.send("UP", whichMatrix + '\t' + formatKeyAndVector(it.next()));
+        Tuple2<Object,double[]> keyAndVector = it.next();
+        modelUpdateQueue.send("UP", MAPPER.writeValueAsString(
+            Arrays.asList(whichMatrix, keyAndVector._1(), keyAndVector._2())));
       }
     }
   }

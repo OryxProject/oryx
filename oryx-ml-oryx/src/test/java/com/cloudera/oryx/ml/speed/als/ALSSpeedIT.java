@@ -19,12 +19,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -33,6 +33,7 @@ import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 public final class ALSSpeedIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedIT.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Test
   public void testALSSpeed() throws Exception {
@@ -64,11 +65,11 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     for (int i = 1; i <= 9; i++) {
       assertEquals("UP", updates.get(i).getFirst());
-      String[] tokens = updates.get(i).getSecond().split("\t");
-      boolean isX = "X".equals(tokens[0]);
-      String id = tokens[1];
+      List<?> update = MAPPER.readValue(updates.get(i).getSecond(), List.class);
+      boolean isX = "X".equals(update.get(0).toString());
+      String id = update.get(1).toString();
       float[] expected = (isX ? MockModelUpdateGenerator.X : MockModelUpdateGenerator.Y).get(id);
-      assertArrayEquals(expected, FormatUtils.parseFloatVec(tokens[2]));
+      assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class));
     }
 
     /*
@@ -94,11 +95,11 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     for (int i = 10; i <= 18; i++) {
       assertEquals("UP", updates.get(i).getFirst());
-      String[] tokens = updates.get(i).getSecond().split("\t");
-      boolean isX = "X".equals(tokens[0]);
-      String id = tokens[1];
+      List<?> update = MAPPER.readValue(updates.get(i).getSecond(), List.class);
+      boolean isX = "X".equals(update.get(0).toString());
+      String id = update.get(1).toString();
       float[] expected = (isX ? X : Y).get(id);
-      assertArrayEquals(expected, FormatUtils.parseFloatVec(tokens[2]), 1.0e-5f);
+      assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class), 1.0e-5f);
     }
 
   }
