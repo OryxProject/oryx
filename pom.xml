@@ -183,6 +183,29 @@
         <version>14.0.1</version>
       </dependency>
 
+      <!-- This is used directly: -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <!-- These are to manage differing versions from Jersey -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-base</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
@@ -334,8 +357,7 @@
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <hadoop.version>2.5.0</hadoop.version>
-    <!-- Why is this not yet released in Maven? -->
-    <!-- <hadoop.version>2.5.0</hadoop.version> -->
+    <jackson.version>2.4.2</jackson.version>
     <jersey.version>2.12</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
