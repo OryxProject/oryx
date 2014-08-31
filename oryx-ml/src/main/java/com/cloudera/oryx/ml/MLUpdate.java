@@ -107,13 +107,17 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
    *
    * @param sparkContext active Spark Context
    * @param pmml model for which extra data should be written
+   * @param newData data that has arrived in current interval
+   * @param pastData all previously-known data (may be {@code null})
    * @param modelParentPath directory containing model files, if applicable
    * @param modelUpdateQueue message queue to write to
    */
-  public void addModelData(JavaSparkContext sparkContext,
-                           PMML pmml,
-                           Path modelParentPath,
-                           QueueProducer<String,String> modelUpdateQueue) {
+  public void publishAdditionalModelData(JavaSparkContext sparkContext,
+                                         PMML pmml,
+                                         JavaRDD<M> newData,
+                                         JavaRDD<M> pastData,
+                                         Path modelParentPath,
+                                         QueueProducer<String, String> modelUpdateQueue) {
     // Do nothing by default
   }
 
@@ -178,7 +182,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
         bestModel = PMMLUtils.read(in);
       }
       modelUpdateQueue.send("MODEL", PMMLUtils.toString(bestModel));
-      addModelData(sparkContext, bestModel, finalPath, modelUpdateQueue);
+      publishAdditionalModelData(
+          sparkContext, bestModel, newData, pastData, finalPath, modelUpdateQueue);
     }
   }
 

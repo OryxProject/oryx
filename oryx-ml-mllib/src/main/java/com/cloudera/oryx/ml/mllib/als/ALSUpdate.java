@@ -16,8 +16,10 @@
 package com.cloudera.oryx.ml.mllib.als;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
@@ -28,6 +30,8 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
@@ -58,6 +62,7 @@ public final class ALSUpdate extends MLUpdate<String> {
   private final int iterations;
   private final boolean implicit;
   private final List<HyperParamRange> hyperParamRanges;
+  private final boolean noKnownItems;
 
   public ALSUpdate(Config config) {
     super(config);
@@ -68,6 +73,7 @@ public final class ALSUpdate extends MLUpdate<String> {
         HyperParamRanges.fromConfig(config, "als.hyperparams.features"),
         HyperParamRanges.fromConfig(config, "als.hyperparams.lambda"),
         HyperParamRanges.fromConfig(config, "als.hyperparams.alpha"));
+    noKnownItems = config.getBoolean("als.no-known-items");
   }
 
   @Override
@@ -123,10 +129,12 @@ public final class ALSUpdate extends MLUpdate<String> {
   }
 
   @Override
-  public void addModelData(JavaSparkContext sparkContext,
-                           PMML pmml,
-                           Path modelParentPath,
-                           QueueProducer<String,String> modelUpdateQueue) {
+  public void publishAdditionalModelData(JavaSparkContext sparkContext,
+                                         PMML pmml,
+                                         JavaRDD<String> newData,
+                                         JavaRDD<String> pastData,
+                                         Path modelParentPath,
+                                         QueueProducer<String, String> modelUpdateQueue) {
     log.info("Sending user / X data as model updates");
     String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
     JavaPairRDD<Object,double[]> userRDD =
@@ -138,13 +146,18 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaPairRDD<Object,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
     productRDD.foreachPartition(new EnqueuePartitionFunction("Y", modelUpdateQueue));
+
+    if (!noKnownItems) {
+      log.info("Sending known item data as model updates");
+      // TODO
+    }
   }
 
   private static JavaRDD<Rating> csvToRatingRDD(JavaRDD<String> csvRDD) {
     return csvRDD.map(new Function<String,Rating>() {
       private final Pattern comma = Pattern.compile(",");
       @Override
-      public Rating call(String csv) throws Exception {
+      public Rating call(String csv) {
         String[] tokens = comma.split(csv);
         int numTokens = tokens.length;
         Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3);
@@ -260,6 +273,40 @@ public final class ALSUpdate extends MLUpdate<String> {
         return new Tuple2<Object,double[]>(key, vector);
       }
     }).rdd();
+  }
+
+  private static JavaPairRDD<Integer,Set<Integer>> knownItemsRDD(JavaRDD<String> csvRDD) {
+    return csvRDD.mapToPair(new PairFunction<String,Integer,Integer>() {
+      private final Pattern comma = Pattern.compile(",");
+      @Override
+      public Tuple2<Integer,Integer> call(String csv) {
+        String[] tokens = comma.split(csv);
+        return new Tuple2<>(Integer.valueOf(tokens[0]), Integer.valueOf(tokens[1]));
+      }
+    }).combineByKey(
+        new Function<Integer,Set<Integer>>() {
+          @Override
+          public Set<Integer> call(Integer i) {
+            Set<Integer> set = new HashSet<>();
+            set.add(i);
+            return set;
+          }
+        },
+        new Function2<Set<Integer>,Integer,Set<Integer>>() {
+          @Override
+          public Set<Integer> call(Set<Integer> set, Integer i) {
+            set.add(i);
+            return set;
+          }
+        },
+        new Function2<Set<Integer>,Set<Integer>,Set<Integer>>() {
+          @Override
+          public Set<Integer> call(Set<Integer> set1, Set<Integer> set2) {
+            set1.addAll(set2);
+            return set1;
+          }
+        }
+    );
   }
 
   private static <K,V> JavaPairRDD<K,V> fromRDD(RDD<Tuple2<K,V>> rdd) {
