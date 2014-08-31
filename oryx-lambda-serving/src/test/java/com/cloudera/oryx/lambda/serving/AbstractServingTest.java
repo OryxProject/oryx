@@ -21,7 +21,6 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 
-import com.cloudera.oryx.common.lang.ClassUtils;
 import com.google.common.base.Preconditions;
 import org.glassfish.jersey.message.DeflateEncoder;
 import org.glassfish.jersey.message.GZipEncoder;
@@ -33,6 +32,8 @@ import org.glassfish.jersey.test.ServletDeploymentContext;
 import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+
+import com.cloudera.oryx.common.lang.ClassUtils;
 
 public abstract class AbstractServingTest extends JerseyTest {
 

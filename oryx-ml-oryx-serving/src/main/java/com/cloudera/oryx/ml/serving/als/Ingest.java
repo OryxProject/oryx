@@ -34,17 +34,18 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.google.common.base.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a POST request to {@code /ingest} and in turn calls
  * {link ALSServingModel#ingest(Reader)}}. The content of the request body is
  * fed to this method. Note that the content may be gzipped; if so, header "Content-Encoding"
  * must have value "gzip" or "x-gzip".</p>
- * <p/>
+ *
  * <p>Alternatively, CSV data may be POSTed here as if part of a web browser file upload. In this case
  * the "Content-Type" should be "multipart/form-data", and the payload encoded accordingly. The uploaded
  * file may be gzipped or zipped.</p>

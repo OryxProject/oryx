@@ -48,6 +48,7 @@ public final class Preference extends AbstractALSResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response post(@PathParam("userID") String userID,
                        @PathParam("itemID") String itemID) {
+    /*
     ALSServingModel alsServingModel = getALSServingModel();
     float preferenceValue;
     try {
@@ -55,6 +56,7 @@ public final class Preference extends AbstractALSResource {
     } catch (IllegalArgumentException | IOException ignored) {
       return Response.status(Response.Status.BAD_REQUEST).entity("Bad value").build();
     }
+     */
     // TODO: Need to code this up
     /* Call ALSServingModel.setPreference() */
     return Response.ok().entity("").build();
@@ -72,7 +74,7 @@ public final class Preference extends AbstractALSResource {
     return Response.ok().entity("").build();
   }
 
-  private static float readValue(final HttpServletRequest httpServletRequest) throws IOException {
+  private static float readValue(HttpServletRequest httpServletRequest) throws IOException {
     String line;
     try (BufferedReader reader = httpServletRequest.getReader()) {
       line = reader.readLine();
