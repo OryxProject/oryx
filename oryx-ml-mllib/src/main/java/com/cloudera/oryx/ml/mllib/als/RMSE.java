@@ -40,7 +40,7 @@ final class RMSE {
     ).join(testUserProductValues).values().mapToDouble(
         new DoubleFunction<Tuple2<Double,Double>>() {
           @Override
-          public double call(Tuple2<Double,Double> valuePrediction) throws Exception {
+          public double call(Tuple2<Double,Double> valuePrediction) {
             double diff = valuePrediction._1() - valuePrediction._2();
             return diff * diff;
           }

@@ -17,7 +17,6 @@ package com.cloudera.oryx.common.collection;
 
 import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 /**
@@ -26,28 +25,30 @@ import com.google.common.base.Preconditions;
 public final class FormatUtils {
 
   private static final Pattern COMMA_SPLIT = Pattern.compile(",");
-  private static final Joiner COMMA_JOINER = Joiner.on(',');
 
   private FormatUtils() {}
 
   public static String formatFloatVec(float... vector) {
-    // Joiner needs a Object[], so go ahead and make strings:
-    String[] objVector = new String[vector.length];
+    StringBuilder formatted = new StringBuilder(11 * vector.length);
     for (int i = 0; i < vector.length; i++) {
-      // Only need floats
-      objVector[i] = Float.toString(vector[i]);
+      if (i > 0) {
+        formatted.append(',');
+      }
+      formatted.append(vector[i]);
     }
-    return COMMA_JOINER.join(objVector);
+    return formatted.toString();
   }
 
   public static String formatDoubleVec(double... vector) {
-    // Joiner needs a Object[], so go ahead and make strings:
-    String[] objVector = new String[vector.length];
+    StringBuilder formatted = new StringBuilder(11 * vector.length);
     for (int i = 0; i < vector.length; i++) {
-      // Only need floats
-      objVector[i] = Float.toString((float) vector[i]);
+      if (i > 0) {
+        formatted.append(',');
+      }
+      // Only need float
+      formatted.append((float) vector[i]);
     }
-    return COMMA_JOINER.join(objVector);
+    return formatted.toString();
   }
 
   /**
