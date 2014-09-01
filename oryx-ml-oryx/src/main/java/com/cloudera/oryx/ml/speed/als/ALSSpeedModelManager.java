@@ -99,10 +99,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           } else {
 
             // First, remove users/items no longer in the model
-            String[] XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            String[] YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(Arrays.asList(XIDs));
-            model.retainAllItems(Arrays.asList(YIDs));
+            List<String> XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+            List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainAllUsers(XIDs);
+            model.retainAllItems(YIDs);
 
           }
           break;

@@ -26,7 +26,9 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -176,8 +178,12 @@ public final class PMMLUtils {
    * @param pmmlArrayContent the content of a node that serializes an array PMML-style
    * @return array values in order
    */
-  public static String[] parseArray(List<?> pmmlArrayContent) {
-    return pmmlArrayContent.get(0).toString().split(" ");
+  public static List<String> parseArray(List<?> pmmlArrayContent) {
+    String spaceSeparated = pmmlArrayContent.get(0).toString();
+    if (spaceSeparated.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return Arrays.asList(spaceSeparated.split(" "));
   }
 
 }

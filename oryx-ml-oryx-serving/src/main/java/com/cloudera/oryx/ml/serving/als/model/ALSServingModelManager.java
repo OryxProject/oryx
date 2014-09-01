@@ -16,7 +16,7 @@
 package com.cloudera.oryx.ml.serving.als.model;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -53,9 +53,15 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);
+              if (update.size() > 3) {
+                @SuppressWarnings("unchecked")
+                Collection<String> knownItems = (Collection<String>) update.get(3);
+                model.addKnownItems(id, knownItems);
+              }
               break;
             case "Y":
               model.setItemVector(id, vector);
+              // Right now, no equivalent knownUsers
               break;
             default:
               throw new IllegalStateException("Bad update " + message);
@@ -79,11 +85,12 @@ public final class ALSServingModelManager implements ServingModelManager<String>
 
           } else {
 
-            // First, remove users/items no longer in the model
-            String[] XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            String[] YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(Arrays.asList(XIDs));
-            model.retainAllItems(Arrays.asList(YIDs));
+            // Remove users/items no longer in the model
+            List<String> XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+            List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainAllUsers(XIDs);
+            model.retainAllItems(YIDs);
+            model.pruneKnownItems(YIDs);
 
           }
           break;

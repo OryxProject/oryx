@@ -38,14 +38,14 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
    */
-  static final Map<String,Collection<String>> A = new HashMap<>();
+  public static final Map<String,Collection<String>> A = new HashMap<>();
   static {
     A.put("6", Arrays.asList("1", "4"));
     A.put("7", Arrays.asList("2", "4", "5"));
     A.put("8", Arrays.asList("1", "2", "3", "4"));
     A.put("9", Arrays.asList("2"));
   }
-  static final Map<String,Collection<String>> At = new HashMap<>();
+  public static final Map<String,Collection<String>> At = new HashMap<>();
   static {
     At.put("1", Arrays.asList("6", "8"));
     At.put("2", Arrays.asList("7", "8", "9"));
@@ -64,13 +64,13 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
    X = U*sqrt(S)
    Y = V*sqrt(S)
    */
-  static final Map<String,float[]> X = buildMatrix(6, new double[][] {
+  public static final Map<String,float[]> X = buildMatrix(6, new double[][] {
       {-0.679001918401210,  0.173232408449017},
       {-0.823244234718400, -0.920085196137775},
       {-1.186534432549093,  0.446318558864201},
       {-0.207895139404806,  0.530350819368002},
   });
-  static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
+  public static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
       {-0.720323513289685,  0.456546350776373},
       {-0.776018558846806, -0.349118056105777},
       {-0.538419102792183,  0.719706471415318},
@@ -83,6 +83,7 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
     if (id % 10 == 0) {
       PMML pmml = PMMLUtils.buildSkeletonPMML();
       PMMLUtils.addExtension(pmml, "features", "2");
+      PMMLUtils.addExtension(pmml, "implicit", "true");
       PMMLUtils.addExtensionContent(pmml, "XIDs", X.keySet());
       PMMLUtils.addExtensionContent(pmml, "YIDs", Y.keySet());
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
