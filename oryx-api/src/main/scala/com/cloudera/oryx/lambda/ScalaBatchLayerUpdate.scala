@@ -13,29 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.lambda
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 
-import java.io.IOException;
-import java.util.Iterator;
+trait ScalaBatchLayerUpdate[K,M,U] {
 
-public final class ExampleServingModelManager implements ServingModelManager<String> {
-
-  @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
-
-  }
-
-  @Override
-  public Object getModel() {
-    return null;
-  }
-
-  @Override
-  public void close() {
-
-  }
+  def configureUpdate(sparkContext: SparkContext,
+                      timestamp: Long,
+                      newData: RDD[(K,M)],
+                      pastData: RDD[(K,M)],
+                      modelDirString: String,
+                      modelUpdateQueue: QueueProducer[String,U]): Unit
 
 }

@@ -17,6 +17,7 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
+import com.cloudera.oryx.ml.serving.als.AbstractALSResource;
 import com.cloudera.oryx.ml.speed.als.MockModelUpdateGenerator;
 import com.typesafe.config.Config;
 import org.junit.Test;
@@ -35,13 +36,16 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
   public void testALS() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("serving.application-resources", "com.cloudera.oryx.ml.serving.als");
-    overlayConfig.put("serving.model-manager-class", MockALSServingModelManager.class.getName());
+    overlayConfig.put("serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
     startServerUpdateQueues(config, new MockModelUpdateGenerator(), 10);
 
-    MockALSServingModelManager manager = MockALSServingModelManager.getInstance();
+    ALSServingModelManager manager = (ALSServingModelManager)
+        getServingLayer().getContext().getServletContext().getAttribute(
+            AbstractALSResource.MODEL_MANAGER_KEY);
+
     assertNotNull("Manager must initialize in web context", manager);
 
     ALSServingModel model = manager.getModel();

@@ -33,9 +33,8 @@ import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.lambda.serving.ServingModel;
 
-public final class ALSServingModel implements ServingModel {
+public final class ALSServingModel {
 
   private final ObjectObjectMap<String,float[]> X;
   private final ObjectObjectMap<String,float[]> Y;

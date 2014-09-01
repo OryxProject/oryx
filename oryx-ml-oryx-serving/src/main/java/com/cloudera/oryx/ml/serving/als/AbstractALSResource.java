@@ -24,7 +24,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 public abstract class AbstractALSResource {
 
-  static final String MODEL_MANAGER_KEY =
+  public static final String MODEL_MANAGER_KEY =
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
 
   @Context

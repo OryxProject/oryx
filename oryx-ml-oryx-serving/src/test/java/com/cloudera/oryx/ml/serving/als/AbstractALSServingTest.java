@@ -21,8 +21,8 @@ import javax.servlet.ServletContextListener;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
-import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.TestALSModelFactory;
 
 public abstract class AbstractALSServingTest extends AbstractServingTest {
@@ -51,7 +51,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       throw new UnsupportedOperationException();
     }
     @Override
-    public ServingModel getModel() {
+    public ALSServingModel getModel() {
       return TestALSModelFactory.buildTestModel();
     }
     @Override

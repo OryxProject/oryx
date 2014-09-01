@@ -13,29 +13,16 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.lambda.serving
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.lambda.KeyMessage
 
-import java.io.IOException;
-import java.util.Iterator;
+trait ScalaServingModelManager[U] {
 
-public final class ExampleServingModelManager implements ServingModelManager<String> {
+  def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
 
-  @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  def getModel: AnyRef
 
-  }
-
-  @Override
-  public Object getModel() {
-    return null;
-  }
-
-  @Override
-  public void close() {
-
-  }
+  def close(): Unit
 
 }

@@ -56,6 +56,7 @@ public final class ServingLayer implements Closeable {
   private final String contextPathURIBase;
   private final String appResourcesPackage;
   private Tomcat tomcat;
+  private Context context;
   private Path noSuchBaseDir;
 
   /**
@@ -112,6 +113,13 @@ public final class ServingLayer implements Closeable {
    */
   public void await() {
     tomcat.getServer().await();
+  }
+
+  /**
+   * @return Tomcat's internal context. Really only to be used for testing!
+   */
+  public Context getContext() {
+    return context;
   }
 
   @Override
@@ -205,8 +213,7 @@ public final class ServingLayer implements Closeable {
     Path contextPath = noSuchBaseDir.resolve("context");
     Files.createDirectories(contextPath);
 
-    Context context =
-        tomcat.addContext(contextPathURIBase, contextPath.toAbsolutePath().toString());
+    context = tomcat.addContext(contextPathURIBase, contextPath.toAbsolutePath().toString());
 
     context.setWebappVersion("3.1");
     context.setName("Oryx");

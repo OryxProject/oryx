@@ -621,6 +621,11 @@
             <excludeFilterFile>src/findbugs/excludes.xml</excludeFilterFile>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>net.alchim31.maven</groupId>
+          <artifactId>scala-maven-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>

@@ -13,30 +13,23 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.example
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.speed.SpeedModelManager;
-import org.apache.spark.api.java.JavaPairRDD;
+import com.cloudera.oryx.lambda.KeyMessage
+import com.cloudera.oryx.lambda.serving.ScalaServingModelManager
 
-import java.io.IOException;
-import java.util.Iterator;
+class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
 
-public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
-
-  @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  def consume(updateIterator: Iterator[KeyMessage[String,String]]): Unit = {
 
   }
 
-  @Override
-  public void close() {
-
+  def getModel: AnyRef = {
+    None
   }
 
-  @Override
-  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    return null;
+  def close(): Unit = {
+
   }
 
 }

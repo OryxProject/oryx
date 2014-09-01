@@ -114,7 +114,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) throws IOException {
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) throws IOException {
     if (model == null) {
       return Collections.emptyList();
     }

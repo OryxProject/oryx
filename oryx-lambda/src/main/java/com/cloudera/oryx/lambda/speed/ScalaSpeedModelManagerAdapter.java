@@ -15,38 +15,36 @@
 
 package com.cloudera.oryx.lambda.speed;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
+import scala.collection.JavaConversions$;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 
-public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
+public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelManager<K,M,U> {
 
-  private static final List<KeyMessage<String,String>> holder = new ArrayList<>();
+  private final ScalaSpeedModelManager<K,M,U> scalaManager;
 
-  static List<KeyMessage<String,String>> getIntervalDataHolder() {
-    return holder;
+  public ScalaSpeedModelManagerAdapter(ScalaSpeedModelManager<K,M,U> scalaManager) {
+    Preconditions.checkNotNull(scalaManager);
+    this.scalaManager = scalaManager;
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String,String> update = updateIterator.next();
-      holder.add(new KeyMessage<>(update.getKey(), update.getMessage()));
-    }
+  public void consume(Iterator<KeyMessage<String, U>> updateIterator) {
+    scalaManager.consume(JavaConversions$.MODULE$.asScalaIterator(updateIterator));
   }
 
   @Override
-  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    return newData.values().collect();
+  public Iterable<U> buildUpdates(JavaPairRDD<K, M> newData) {
+    return JavaConversions$.MODULE$.asJavaIterable(scalaManager.buildUpdates(newData.rdd()));
   }
 
   @Override
   public void close() {
-    // do nothing
+    scalaManager.close();
   }
 
 }

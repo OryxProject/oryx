@@ -13,29 +13,37 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.lambda.serving;
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
-
-import java.io.IOException;
 import java.util.Iterator;
 
-public final class ExampleServingModelManager implements ServingModelManager<String> {
+import com.google.common.base.Preconditions;
+import scala.collection.JavaConversions$;
+
+import com.cloudera.oryx.lambda.KeyMessage;
+
+public final class ScalaServingModelManagerAdapter<U> implements ServingModelManager<U> {
+
+  private final ScalaServingModelManager<U> scalaManager;
+
+  public ScalaServingModelManagerAdapter(ScalaServingModelManager<U> scalaManager) {
+    Preconditions.checkNotNull(scalaManager);
+    this.scalaManager = scalaManager;
+  }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
-
+  public void consume(Iterator<KeyMessage<String,U>> updateIterator) {
+    scalaManager.consume(JavaConversions$.MODULE$.asScalaIterator(updateIterator));
   }
 
   @Override
   public Object getModel() {
-    return null;
+    return scalaManager.getModel();
   }
 
   @Override
   public void close() {
-
+    scalaManager.close();
   }
 
 }

@@ -40,12 +40,7 @@ public interface ServingModelManager<U> extends Closeable {
    */
   void consume(Iterator<KeyMessage<String,U>> updateIterator) throws IOException;
 
-  /**
-   * @return a reference to the current state of the model in memory. Note that the model state
-   *  may be updated asynchronously from another thread and so access to the data structure must
-   *  be treated. May be {@code null} if no model is available.
-   */
-  ServingModel getModel();
+  Object getModel();
 
   @Override
   void close();

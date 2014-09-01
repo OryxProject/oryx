@@ -26,7 +26,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
-import kafka.consumer.Consumer;
+import kafka.consumer.Consumer$;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -38,7 +38,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
+import org.apache.spark.streaming.kafka.KafkaUtils$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final String updateBroker;
   private final String updateTopic;
   private final String updateQueueLockMaster;
-  private final Class<SpeedModelManager<K,M,U>> modelManagerClass;
+  private final String modelManagerClassName;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final Class<? extends Decoder<U>> updateDecoderClass;
@@ -82,9 +82,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.updateBroker = config.getString("update-queue.broker");
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateQueueLockMaster = config.getString("update-queue.lock.master");
-
-    this.modelManagerClass = (Class<SpeedModelManager<K,M,U>>) ClassUtils.loadClass(
-        config.getString("speed.model-manager-class"), SpeedModelManager.class);
+    this.modelManagerClassName = config.getString("speed.model-manager-class");
     this.generationIntervalSec = config.getInt("speed.generation-interval-sec");
     this.blockIntervalSec = config.getInt("speed.block-interval-sec");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
@@ -112,7 +110,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
-    consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+    consumer = Consumer$.MODULE$.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),
@@ -168,25 +166,55 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     // TODO for now we can only support default of Strings
     @SuppressWarnings("unchecked")
     JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
-        KafkaUtils.createStream(streamingContext,
-                                inputQueueLockMaster,
-                                // group should be unique
-                                "OryxGroup-SpeedLayer-" + System.currentTimeMillis(),
-                                Collections.singletonMap(messageTopic, 1));
+        KafkaUtils$.MODULE$.createStream(streamingContext,
+                                         inputQueueLockMaster,
+                                         // group should be unique
+                                         "OryxGroup-SpeedLayer-" + System.currentTimeMillis(),
+                                         Collections.singletonMap(messageTopic, 1));
     return dStream;
   }
 
   private SpeedModelManager<K,M,U> loadManagerInstance() {
-    try {
-      return ClassUtils.loadInstanceOf(modelManagerClass.getName(),
-                                       modelManagerClass,
-                                       new Class<?>[] { Config.class },
-                                       new Object[] { config });
+    Class<?> managerClass = ClassUtils.loadClass(modelManagerClassName);
 
-    } catch (IllegalArgumentException iae) {
-      log.info("{} lacks a constructor with Config arg, using no-arg constructor",
-               modelManagerClass);
-      return ClassUtils.loadInstanceOf(modelManagerClass);
+    if (SpeedModelManager.class.isAssignableFrom(managerClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        SpeedModelManager<K,M,U> instance = ClassUtils.loadInstanceOf(
+            modelManagerClassName,
+            SpeedModelManager.class,
+            new Class<?>[] { Config.class },
+            new Object[] { config });
+        return instance;
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        SpeedModelManager<K,M,U> instance =
+            ClassUtils.loadInstanceOf(modelManagerClassName, SpeedModelManager.class);
+        return instance;
+      }
+
+    } else if (ScalaSpeedModelManager.class.isAssignableFrom(managerClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        ScalaSpeedModelManager<K,M,U> instance = ClassUtils.loadInstanceOf(
+            modelManagerClassName,
+            ScalaSpeedModelManager.class,
+            new Class<?>[] { Config.class },
+            new Object[] { config });
+        return new ScalaSpeedModelManagerAdapter<>(instance);
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        ScalaSpeedModelManager<K,M,U> instance =
+            ClassUtils.loadInstanceOf(modelManagerClassName, ScalaSpeedModelManager.class);
+        return new ScalaSpeedModelManagerAdapter<>(instance);
+      }
+
+    } else {
+      throw new IllegalArgumentException("Bad manager class: " + managerClass);
     }
   }
 
