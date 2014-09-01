@@ -125,7 +125,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
+      aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
     Collection<UserItemStrength> input = aggregated.map(new TupleToUserItemStrength()).collect();

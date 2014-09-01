@@ -18,7 +18,6 @@ package com.cloudera.oryx.ml.mllib.als;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -34,7 +33,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
@@ -137,21 +135,35 @@ public final class ALSUpdate extends MLUpdate<String> {
                                          JavaRDD<String> pastData,
                                          Path modelParentPath,
                                          QueueProducer<String, String> modelUpdateQueue) {
+
+    JavaRDD<String> allData = pastData == null ? newData : newData.union(pastData);
+
     log.info("Sending user / X data as model updates");
     String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
-    JavaPairRDD<Object,double[]> userRDD =
+    JavaPairRDD<Integer,double[]> userRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
-    userRDD.foreachPartition(new EnqueuePartitionFunction("X", modelUpdateQueue));
+
+    if (noKnownItems) {
+      userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateQueue));
+    } else {
+      log.info("Sending known item data with model updates");
+      JavaPairRDD<Integer,Set<Integer>> knownItems = knownsRDD(allData, true);
+      userRDD.join(knownItems).foreach(
+          new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateQueue));
+    }
 
     log.info("Sending item / Y data as model updates");
     String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
-    JavaPairRDD<Object,double[]> productRDD =
+    JavaPairRDD<Integer,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
-    productRDD.foreachPartition(new EnqueuePartitionFunction("Y", modelUpdateQueue));
 
-    if (!noKnownItems) {
-      log.info("Sending known item data as model updates");
-      // TODO
+    if (noKnownItems) {
+      productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateQueue));
+    } else {
+      log.info("Sending known user data with model updates");
+      JavaPairRDD<Integer,Set<Integer>> knownUsers = knownsRDD(allData, false);
+      productRDD.join(knownUsers).foreach(
+          new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateQueue));
     }
   }
 
@@ -185,16 +197,10 @@ public final class ALSUpdate extends MLUpdate<String> {
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
+      aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    return aggregated.map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Rating>() {
-      @Override
-      public Rating call(Tuple2<Tuple2<Integer,Integer>, Double> userProductScore) {
-        Tuple2<Integer,Integer> userProduct = userProductScore._1();
-        return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
-      }
-    });
+    return aggregated.map(new TupleToRatingFn());
   }
 
   /**
@@ -225,12 +231,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     return pmml;
   }
 
-
-
   private static void addIDsExtension(PMML pmml,
                                       String key,
                                       RDD<Tuple2<Object,double[]>> features) {
-    List<String> ids = fromRDD(features).keys().map(Functions.TO_STRING).collect();
+    List<String> ids = fromRDD(features).keys().map(Functions.toStringValue()).collect();
     PMMLUtils.addExtensionContent(pmml, key, ids);
   }
 
@@ -252,40 +256,51 @@ public final class ALSUpdate extends MLUpdate<String> {
     String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
     String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
 
-    RDD<Tuple2<Object,double[]>> userRDD =
+    RDD<Tuple2<Integer,double[]>> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
-    RDD<Tuple2<Object,double[]>> productRDD =
+    RDD<Tuple2<Integer,double[]>> productRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
 
     // Cast is needed for some reason with this Scala API returning array
     @SuppressWarnings("unchecked")
-    Tuple2<Object,double[]> first = (Tuple2<Object,double[]>) ((Object[]) userRDD.take(1))[0];
+    Tuple2<?,double[]> first = (Tuple2<?,double[]>) ((Object[]) userRDD.take(1))[0];
     int rank = first._2().length;
-    return new MatrixFactorizationModel(rank, userRDD, productRDD);
+    return new MatrixFactorizationModel(
+        rank, massageToObjectKey(userRDD), massageToObjectKey(productRDD));
   }
 
-  private static RDD<Tuple2<Object,double[]>> readFeaturesRDD(JavaSparkContext sparkContext,
+  private static RDD<Tuple2<Integer,double[]>> readFeaturesRDD(JavaSparkContext sparkContext,
                                                               Path path) {
     log.info("Loading features RDD from {}", path);
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
-    return featureLines.map(new Function<String,Tuple2<Object,double[]>>() {
+    return featureLines.map(new Function<String,Tuple2<Integer,double[]>>() {
       @Override
-      public Tuple2<Object,double[]> call(String line) throws IOException {
+      public Tuple2<Integer,double[]> call(String line) throws IOException {
         List<?> update = MAPPER.readValue(line, List.class);
         Integer key = Integer.valueOf(update.get(0).toString());
         double[] vector = MAPPER.convertValue(update.get(1), double[].class);
-        return new Tuple2<Object,double[]>(key, vector);
+        return new Tuple2<>(key, vector);
       }
     }).rdd();
   }
 
-  private static JavaPairRDD<Integer,Set<Integer>> knownItemsRDD(JavaRDD<String> csvRDD) {
+  private static <A,B> RDD<Tuple2<Object,B>> massageToObjectKey(RDD<Tuple2<A,B>> in) {
+    // More horrible hacks to get around Scala-Java unfriendliness
+    @SuppressWarnings("unchecked")
+    RDD<Tuple2<Object,B>> result = (RDD<Tuple2<Object,B>>) (RDD<?>) in;
+    return result;
+  }
+
+  private static JavaPairRDD<Integer,Set<Integer>> knownsRDD(JavaRDD<String> csvRDD,
+                                                             final boolean knownItems) {
     return csvRDD.mapToPair(new PairFunction<String,Integer,Integer>() {
       private final Pattern comma = Pattern.compile(",");
       @Override
       public Tuple2<Integer,Integer> call(String csv) {
         String[] tokens = comma.split(csv);
-        return new Tuple2<>(Integer.valueOf(tokens[0]), Integer.valueOf(tokens[1]));
+        Integer user = Integer.valueOf(tokens[0]);
+        Integer item = Integer.valueOf(tokens[1]);
+        return knownItems ? new Tuple2<>(user, item) : new Tuple2<>(item, user);
       }
     }).combineByKey(
         new Function<Integer,Set<Integer>>() {
@@ -319,25 +334,13 @@ public final class ALSUpdate extends MLUpdate<String> {
                                ClassTag$.MODULE$.<V>apply(Object.class));
   }
 
-  private static class EnqueuePartitionFunction
-      implements VoidFunction<Iterator<Tuple2<Object,double[]>>> {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private final String whichMatrix;
-    private final QueueProducer<String, String> modelUpdateQueue;
-
-    EnqueuePartitionFunction(String whichMatrix, QueueProducer<String,String> modelUpdateQueue) {
-      this.whichMatrix = whichMatrix;
-      this.modelUpdateQueue = modelUpdateQueue;
-    }
+  private static final class TupleToRatingFn
+      implements Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating> {
     @Override
-    public void call(Iterator<Tuple2<Object,double[]>> it) throws IOException {
-      while (it.hasNext()) {
-        Tuple2<Object,double[]> keyAndVector = it.next();
-        modelUpdateQueue.send("UP", MAPPER.writeValueAsString(
-            Arrays.asList(whichMatrix, keyAndVector._1(), keyAndVector._2())));
-      }
+    public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
+      Tuple2<Integer,Integer> userProduct = userProductScore._1();
+      return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
     }
   }
+
 }

@@ -59,29 +59,27 @@ public final class Functions {
       };
 
   /**
-   * A function that maps objects to their {@link #toString()} representation.
+   * @return a function that maps objects to their {@link Object#toString()} representation.
+   * @param <T> (unused) input type
    */
-  public static final Function<Object,String> TO_STRING =
-      new Function<Object,String>() {
-        @Override
-        public String call(Object o) {
-          return o == null ? null : o.toString();
-        }
-      };
+  public static <T> Function<T,String> toStringValue() {
+    return new Function<T,String>() {
+      @Override
+      public String call(T o) {
+        return String.valueOf(o);
+      }
+    };
+  }
 
   /**
-   * @return a function that returns the last element in a stream of values
+   * @return a function that returns the second of two values
    * @param <T> element type
    */
-  public static <T> Function<Iterable<T>,T> last() {
-    return new Function<Iterable<T>,T>() {
+  public static <T> Function2<T,T,T> last() {
+    return new Function2<T,T,T>() {
       @Override
-      public T call(Iterable<T> values) {
-        T last = null;
-        for (T t : values) {
-          last = t;
-        }
-        return last;
+      public T call(T current, T next) {
+        return next;
       }
     };
   }
