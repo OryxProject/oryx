@@ -161,6 +161,17 @@
         <version>${scala.complete.version}</version>
         <scope>provided</scope>
       </dependency>
+      <!-- Make sure this version is harmonized -->
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scalap</artifactId>
+        <version>${scala.complete.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-compiler</artifactId>
+        <version>${scala.complete.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.typesafe</groupId>
@@ -625,6 +636,16 @@
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
           <version>3.2.0</version>
+          <executions>
+            <execution>
+              <id>scala-compile-first</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>add-source</goal>
+                <goal>compile</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
