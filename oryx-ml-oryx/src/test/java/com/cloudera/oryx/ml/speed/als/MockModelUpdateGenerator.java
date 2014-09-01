@@ -17,6 +17,7 @@ package com.cloudera.oryx.ml.speed.als;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,24 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
 
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
+   */
+  static final Map<String,Collection<String>> A = new HashMap<>();
+  static {
+    A.put("6", Arrays.asList("1", "4"));
+    A.put("7", Arrays.asList("2", "4", "5"));
+    A.put("8", Arrays.asList("1", "2", "3", "4"));
+    A.put("9", Arrays.asList("2"));
+  }
+  static final Map<String,Collection<String>> At = new HashMap<>();
+  static {
+    At.put("1", Arrays.asList("6", "8"));
+    At.put("2", Arrays.asList("7", "8", "9"));
+    At.put("3", Arrays.asList("8"));
+    At.put("4", Arrays.asList("6", "7", "8"));
+    At.put("5", Arrays.asList("7"));
+  }
+
+  /*
    [U,S,V] = svd(A)
 
    U = U(:,1:2)
@@ -73,9 +92,11 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
       String message;
       boolean isX = xOrYID >= 6;
       if (isX) {
-        message = MAPPER.writeValueAsString(Arrays.asList("X", xOrYIDString, X.get(xOrYIDString)));
+        message = MAPPER.writeValueAsString(Arrays.asList(
+            "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
       } else {
-        message = MAPPER.writeValueAsString(Arrays.asList("Y", xOrYIDString, Y.get(xOrYIDString)));
+        message = MAPPER.writeValueAsString(Arrays.asList(
+            "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
       }
       return new Pair<>("UP", message);
     }

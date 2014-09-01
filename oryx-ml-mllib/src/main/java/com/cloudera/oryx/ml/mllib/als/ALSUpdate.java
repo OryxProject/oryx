@@ -17,9 +17,9 @@ package com.cloudera.oryx.ml.mllib.als;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,7 +147,7 @@ public final class ALSUpdate extends MLUpdate<String> {
       userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateQueue));
     } else {
       log.info("Sending known item data with model updates");
-      JavaPairRDD<Integer,Set<Integer>> knownItems = knownsRDD(allData, true);
+      JavaPairRDD<Integer,Collection<Integer>> knownItems = knownsRDD(allData, true);
       userRDD.join(knownItems).foreach(
           new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateQueue));
     }
@@ -161,7 +161,7 @@ public final class ALSUpdate extends MLUpdate<String> {
       productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateQueue));
     } else {
       log.info("Sending known user data with model updates");
-      JavaPairRDD<Integer,Set<Integer>> knownUsers = knownsRDD(allData, false);
+      JavaPairRDD<Integer,Collection<Integer>> knownUsers = knownsRDD(allData, false);
       productRDD.join(knownUsers).foreach(
           new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateQueue));
     }
@@ -291,8 +291,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     return result;
   }
 
-  private static JavaPairRDD<Integer,Set<Integer>> knownsRDD(JavaRDD<String> csvRDD,
-                                                             final boolean knownItems) {
+  private static JavaPairRDD<Integer,Collection<Integer>> knownsRDD(JavaRDD<String> csvRDD,
+                                                                    final boolean knownItems) {
     return csvRDD.mapToPair(new PairFunction<String,Integer,Integer>() {
       private final Pattern comma = Pattern.compile(",");
       @Override
@@ -303,24 +303,24 @@ public final class ALSUpdate extends MLUpdate<String> {
         return knownItems ? new Tuple2<>(user, item) : new Tuple2<>(item, user);
       }
     }).combineByKey(
-        new Function<Integer,Set<Integer>>() {
+        new Function<Integer,Collection<Integer>>() {
           @Override
-          public Set<Integer> call(Integer i) {
-            Set<Integer> set = new HashSet<>();
+          public Collection<Integer> call(Integer i) {
+            Collection<Integer> set = new HashSet<>();
             set.add(i);
             return set;
           }
         },
-        new Function2<Set<Integer>,Integer,Set<Integer>>() {
+        new Function2<Collection<Integer>,Integer,Collection<Integer>>() {
           @Override
-          public Set<Integer> call(Set<Integer> set, Integer i) {
+          public Collection<Integer> call(Collection<Integer> set, Integer i) {
             set.add(i);
             return set;
           }
         },
-        new Function2<Set<Integer>,Set<Integer>,Set<Integer>>() {
+        new Function2<Collection<Integer>,Collection<Integer>,Collection<Integer>>() {
           @Override
-          public Set<Integer> call(Set<Integer> set1, Set<Integer> set2) {
+          public Collection<Integer> call(Collection<Integer> set1, Collection<Integer> set2) {
             set1.addAll(set2);
             return set1;
           }

@@ -51,6 +51,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
   private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int FEATURES = 4;
   private static final double LAMBDA = 0.001;
+  private static final int NUM_USERS_ITEMS = 1000;
 
   @Test
   public void testALS() throws Exception {
@@ -76,11 +77,11 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
     startMessageQueue();
 
-    List<Pair<String,String>> updates =
-        startServerProduceConsumeQueues(config,
-                                        new RandomALSDataGenerator(1000, 1000, 1, 5),
-                                        DATA_TO_WRITE,
-                                        WRITE_INTERVAL_MSEC);
+    List<Pair<String,String>> updates = startServerProduceConsumeQueues(
+        config,
+        new RandomALSDataGenerator(NUM_USERS_ITEMS, NUM_USERS_ITEMS, 1, 5),
+        DATA_TO_WRITE,
+        WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
     log.info("Model instance dirs: {}", modelInstanceDirs);
@@ -143,6 +144,14 @@ public final class ALSUpdateIT extends AbstractALSIT {
         // Verify that feature vector are valid floats
         for (float f : MAPPER.convertValue(update.get(2), float[].class)) {
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
+        }
+
+        @SuppressWarnings("unchecked")
+        Collection<String> knownUsersItems = (Collection<String>) update.get(3);
+        assertFalse(knownUsersItems.isEmpty());
+        for (String known : knownUsersItems) {
+          int i = Integer.parseInt(known);
+          assertTrue(i >= 0 && i < NUM_USERS_ITEMS);
         }
 
       } else {

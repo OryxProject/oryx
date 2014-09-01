@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.speed.als;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
     overlayConfig.put("speed.block-interval-sec", "1");
     overlayConfig.put("als.hyperparams.implicit", "true");
     overlayConfig.put("als.hyperparams.features", "2");
+    overlayConfig.put("als.no-known-items", "false");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
@@ -70,6 +72,12 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
       String id = update.get(1).toString();
       float[] expected = (isX ? MockModelUpdateGenerator.X : MockModelUpdateGenerator.Y).get(id);
       assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class));
+      @SuppressWarnings("unchecked")
+      Collection<String> knownUsersItems = (Collection<String>) update.get(3);
+      Collection<String> expectedKnownUsersItems =
+          (isX ? MockModelUpdateGenerator.A : MockModelUpdateGenerator.At).get(id);
+      assertTrue(knownUsersItems.containsAll(expectedKnownUsersItems));
+      assertTrue(expectedKnownUsersItems.containsAll(knownUsersItems));
     }
 
     /*
@@ -100,6 +108,11 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
       String id = update.get(1).toString();
       float[] expected = (isX ? X : Y).get(id);
       assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class), 1.0e-5f);
+      String otherID = Integer.toString(Integer.parseInt(id) - 99);
+      @SuppressWarnings("unchecked")
+      Collection<String> knownUsersItems = (Collection<String>) update.get(3);
+      assertEquals(1, knownUsersItems.size());
+      assertEquals(otherID, knownUsersItems.iterator().next());
     }
 
   }

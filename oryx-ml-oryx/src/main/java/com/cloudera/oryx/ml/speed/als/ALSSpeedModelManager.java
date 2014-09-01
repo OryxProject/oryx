@@ -50,9 +50,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   private ALSSpeedModel model;
   private final boolean implicit;
+  private final boolean noKnownItems;
 
   public ALSSpeedModelManager(Config config) {
     implicit = config.getBoolean("als.hyperparams.implicit");
+    noKnownItems = config.getBoolean("als.no-known-items");
   }
 
   @Override
@@ -187,13 +189,26 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       }
 
       if (newXu != null) {
-        result.add(MAPPER.writeValueAsString(Arrays.asList("X", user, newXu)));
+        result.add(toUpdateJSON("X", user, newXu, item));
       }
       if (newYi != null) {
-        result.add(MAPPER.writeValueAsString(Arrays.asList("Y", item, newYi)));
+        result.add(toUpdateJSON("Y", item, newYi, user));
       }
     }
     return result;
+  }
+
+  private String toUpdateJSON(String matrix,
+                              String ID,
+                              double[] vector,
+                              String otherID) throws IOException {
+    List<?> args;
+    if (noKnownItems) {
+      args = Arrays.asList(matrix, ID, vector);
+    } else {
+      args = Arrays.asList(matrix, ID, vector, Collections.singletonList(otherID));
+    }
+    return MAPPER.writeValueAsString(args);
   }
 
   @Override

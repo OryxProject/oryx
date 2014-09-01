@@ -16,8 +16,9 @@
 package com.cloudera.oryx.ml.mllib.als;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.Collection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.api.java.function.VoidFunction;
@@ -26,7 +27,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.lambda.QueueProducer;
 
 final class EnqueueFeatureVecsAndKnownItemsFn
-    implements VoidFunction<Tuple2<Integer,Tuple2<double[],Set<Integer>>>> {
+    implements VoidFunction<Tuple2<Integer,Tuple2<double[],Collection<Integer>>>> {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -40,14 +41,18 @@ final class EnqueueFeatureVecsAndKnownItemsFn
   }
 
   @Override
-  public void call(Tuple2<Integer,Tuple2<double[],Set<Integer>>> keyAndVectorAndItems)
+  public void call(Tuple2<Integer,Tuple2<double[],Collection<Integer>>> keyAndVectorAndItems)
       throws IOException {
     Integer id = keyAndVectorAndItems._1();
-    Tuple2<double[],Set<Integer>> vectorAndItems = keyAndVectorAndItems._2();
+    Tuple2<double[],Collection<Integer>> vectorAndItems = keyAndVectorAndItems._2();
     double[] vector = vectorAndItems._1();
-    Set<Integer> knowItemIDs = vectorAndItems._2();
+    Collection<Integer> knowItemIDs = vectorAndItems._2();
+    Collection<String> knownItemIDsStrings = new ArrayList<>(knowItemIDs.size());
+    for (Integer i : knowItemIDs) {
+      knownItemIDsStrings.add(i.toString());
+    }
     modelUpdateQueue.send("UP", MAPPER.writeValueAsString(
-        Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
+        Arrays.asList(whichMatrix, id, vector, knownItemIDsStrings)));
   }
 
 }
