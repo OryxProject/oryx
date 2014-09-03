@@ -54,7 +54,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response getNoArgs() {
-    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{itemID}+ required")).build();
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{itemID}+ required")).build();
   }
 
   @GET
