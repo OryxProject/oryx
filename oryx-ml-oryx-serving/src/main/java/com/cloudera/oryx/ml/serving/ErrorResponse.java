@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving;
 
-import com.google.common.base.Preconditions;
+import javax.ws.rs.core.Response;
 
 /**
  * JSON Error for missing path params, incorrect query params, etc
@@ -23,14 +23,13 @@ import com.google.common.base.Preconditions;
 public final class ErrorResponse {
 
   private final String error;
-  private final int statusCode;
+  private final Response.Status statusCode;
 
-  public ErrorResponse(int statusCode) {
+  public ErrorResponse(Response.Status statusCode) {
     this(statusCode, null);
   }
 
-  public ErrorResponse(int statusCode, String error) {
-    Preconditions.checkArgument(statusCode >= 100 && statusCode < 600);
+  public ErrorResponse(Response.Status statusCode, String error) {
     this.statusCode = statusCode;
     this.error = error;
   }
@@ -39,7 +38,7 @@ public final class ErrorResponse {
     return error;
   }
 
-  public int getStatusCode() {
+  public Response.Status getStatusCode() {
     return statusCode;
   }
 

@@ -24,6 +24,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.ml.serving.IDValue;
+
 /**
  * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
  * and in turn calls {link OryxRecommender#mostSimilarItems(String[], int)} with the supplied values.
@@ -48,7 +50,7 @@ public final class Similarity extends AbstractALSResource {
   @GET
   @Path("{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("itemID") String itemID,
+  public List<IDValue> get(@PathParam("itemID") String itemID,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("rescorerParams") List<String> rescorerParams) {
@@ -98,7 +100,7 @@ public final class Similarity extends AbstractALSResource {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Arrays.asList(new RecommendResponse("1", 5));
+    return Arrays.asList(new IDValue("1", 5));
 
   }
 

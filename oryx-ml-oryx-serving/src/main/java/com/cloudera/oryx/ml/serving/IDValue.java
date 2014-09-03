@@ -13,34 +13,41 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.ml.serving;
 
-public final class RecommendResponse {
+public final class IDValue {
 
-  private String itemID;
-  private int strength;
+  private String id;
+  private double value;
 
-  public RecommendResponse() {}
-
-  public RecommendResponse(String itemID, int strength) {
-    this.itemID = itemID;
-    this.strength = strength;
+  public IDValue() {
+    this(null, Double.NaN);
   }
 
-  public String getItemID() {
-    return itemID;
+  public IDValue(String id, double value) {
+    this.id = id;
+    this.value = value;
   }
 
-  public void setItemID(String itemID) {
-    this.itemID = itemID;
+  public String getID() {
+    return id;
   }
 
-  public int getStrength() {
-    return strength;
+  public void setID(String id) {
+    this.id = id;
   }
 
-  public void setStrength(int strength) {
-    this.strength = strength;
+  public double getValue() {
+    return value;
+  }
+
+  public void setValue(double value) {
+    this.value = value;
+  }
+
+  @Override
+  public String toString() {
+    return id + ":" + value;
   }
 
 }
