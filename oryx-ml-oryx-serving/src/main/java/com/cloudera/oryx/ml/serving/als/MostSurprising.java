@@ -17,9 +17,12 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -41,7 +44,9 @@ public final class MostSurprising extends AbstractALSResource {
   @GET
   @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<IDValue> get() {
+  public List<IDValue> get(
+      @PathParam("userID") String userID,
+      @DefaultValue("10") @QueryParam("howMany") int howMany) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
