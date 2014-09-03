@@ -161,6 +161,17 @@
         <version>${scala.complete.version}</version>
         <scope>provided</scope>
       </dependency>
+      <!-- Make sure this version is harmonized -->
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scalap</artifactId>
+        <version>${scala.complete.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-compiler</artifactId>
+        <version>${scala.complete.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>com.typesafe</groupId>
@@ -183,10 +194,33 @@
         <version>14.0.1</version>
       </dependency>
 
+      <!-- This is used directly: -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <!-- These are to manage differing versions from Jersey -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-base</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.1.5</version>
+        <version>1.1.7</version>
       </dependency>
 
       <dependency>
@@ -203,14 +237,37 @@
       </dependency>
 
       <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.tomcat</groupId>
         <artifactId>tomcat-catalina</artifactId>
         <version>${tomcat.version}</version>
+        <exclusions>
+          <!-- Force Servlet/JSP API to be managed separately -->
+          <exclusion>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-servlet-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jsp-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat</groupId>
         <artifactId>tomcat-coyote</artifactId>
         <version>${tomcat.version}</version>
+        <exclusions>
+          <!-- Force Servlet/JSP API to be managed separately -->
+          <exclusion>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-servlet-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -310,12 +367,13 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
-    <hadoop.version>2.4.1</hadoop.version>
-    <jersey.version>2.11</jersey.version>
+    <hadoop.version>2.5.0</hadoop.version>
+    <jackson.version>2.4.2</jackson.version>
+    <jersey.version>2.12</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
     <spark.version>1.0.2</spark.version>
-    <tomcat.version>8.0.9</tomcat.version>
+    <tomcat.version>8.0.11</tomcat.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
 
@@ -530,7 +588,7 @@
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
-          <version>0.10</version>
+          <version>0.11</version>
           <configuration>
             <excludes>
               <exclude>**/*.conf</exclude>
@@ -573,6 +631,21 @@
             <xmlOutputDirectory>target/site</xmlOutputDirectory>
             <excludeFilterFile>src/findbugs/excludes.xml</excludeFilterFile>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>net.alchim31.maven</groupId>
+          <artifactId>scala-maven-plugin</artifactId>
+          <version>3.2.0</version>
+          <executions>
+            <execution>
+              <id>scala-compile-first</id>
+              <phase>process-resources</phase>
+              <goals>
+                <goal>add-source</goal>
+                <goal>compile</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -745,8 +818,40 @@
     </site>
   </distributionManagement>
 
-  <!--
   <profiles>
+    <profile>
+      <id>cdh5.1</id>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <properties>
+        <hadoop.version>2.3.0-cdh5.1.0</hadoop.version>
+        <spark.version>1.0.0-cdh5.1.0</spark.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>cdh5.2</id>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <properties>
+        <hadoop.version>2.5.0-cdh5.2.0-SNAPSHOT</hadoop.version>
+        <spark.version>1.0.0-cdh5.2.0-SNAPSHOT</spark.version>
+      </properties>
+    </profile>
+    <!--
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
@@ -776,7 +881,7 @@
         </plugins>
       </build>
     </profile>
+     -->
   </profiles>
-  -->
 
 </project>

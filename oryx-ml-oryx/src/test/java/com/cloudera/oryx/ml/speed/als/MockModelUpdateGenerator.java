@@ -16,76 +16,101 @@
 package com.cloudera.oryx.ml.speed.als;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 
 public final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
 
-  public static final Map<String,float[]> X;
-  public static final Map<String,float[]> Y;
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  /*
+   A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
+   */
+  public static final Map<String,Collection<String>> A = new HashMap<>();
   static {
-    /*
-     * Octave:
-     *
-     * A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
-     * [U,S,V] = svd(A)
-     *
-     * U = U(:,1:2)
-     * S = S(1:2,1:2)
-     * V = V(:,1:2)
-     *
-     * X = U*sqrt(S)
-     *   -0.67900   0.17323
-     *   -0.82324  -0.92009
-     *   -1.18653   0.44632
-     *   -0.20790   0.53035
-     * Y = V*sqrt(S)
-     *   -0.72032   0.45655
-     *   -0.77602  -0.34912
-     *   -0.53842   0.71971
-     *   -1.03820  -0.22146
-     *   -0.31787  -0.67801
-     */
-    X = new HashMap<>();
-    X.put("6", new float[] {-0.67900f,  0.17323f});
-    X.put("7", new float[] {-0.82324f, -0.92009f});
-    X.put("8", new float[] {-1.18653f,  0.44632f});
-    X.put("9", new float[] {-0.20790f,  0.53035f});
-    Y = new HashMap<>();
-    Y.put("1", new float[] {-0.72032f,  0.45655f});
-    Y.put("2", new float[] {-0.77602f, -0.34912f});
-    Y.put("3", new float[] {-0.53842f,  0.71971f});
-    Y.put("4", new float[] {-1.03820f, -0.22146f});
-    Y.put("5", new float[] {-0.31787f, -0.67801f});
+    A.put("6", Arrays.asList("1", "4"));
+    A.put("7", Arrays.asList("2", "4", "5"));
+    A.put("8", Arrays.asList("1", "2", "3", "4"));
+    A.put("9", Arrays.asList("2"));
   }
+  public static final Map<String,Collection<String>> At = new HashMap<>();
+  static {
+    At.put("1", Arrays.asList("6", "8"));
+    At.put("2", Arrays.asList("7", "8", "9"));
+    At.put("3", Arrays.asList("8"));
+    At.put("4", Arrays.asList("6", "7", "8"));
+    At.put("5", Arrays.asList("7"));
+  }
+
+  /*
+   [U,S,V] = svd(A)
+
+   U = U(:,1:2)
+   S = S(1:2,1:2)
+   V = V(:,1:2)
+
+   X = U*sqrt(S)
+   Y = V*sqrt(S)
+   */
+  public static final Map<String,float[]> X = buildMatrix(6, new double[][] {
+      {-0.679001918401210,  0.173232408449017},
+      {-0.823244234718400, -0.920085196137775},
+      {-1.186534432549093,  0.446318558864201},
+      {-0.207895139404806,  0.530350819368002},
+  });
+  public static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
+      {-0.720323513289685,  0.456546350776373},
+      {-0.776018558846806, -0.349118056105777},
+      {-0.538419102792183,  0.719706471415318},
+      {-1.038195732260794, -0.221463305994448},
+      {-0.317872218971108, -0.678009656770822},
+  });
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) throws IOException {
     if (id % 10 == 0) {
       PMML pmml = PMMLUtils.buildSkeletonPMML();
       PMMLUtils.addExtension(pmml, "features", "2");
+      PMMLUtils.addExtension(pmml, "implicit", "true");
       PMMLUtils.addExtensionContent(pmml, "XIDs", X.keySet());
       PMMLUtils.addExtensionContent(pmml, "YIDs", Y.keySet());
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
       int xOrYID = id % 10;
       String xOrYIDString = Integer.toString(xOrYID);
+      String message;
       boolean isX = xOrYID >= 6;
       if (isX) {
-        return new Pair<>( "UP", "X\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(X.get(xOrYIDString)));
+        message = MAPPER.writeValueAsString(Arrays.asList(
+            "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
       } else {
-        return new Pair<>( "UP", "Y\t" + xOrYIDString + "\t" + FormatUtils.formatFloatVec(Y.get(xOrYIDString)));
+        message = MAPPER.writeValueAsString(Arrays.asList(
+            "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
       }
-
+      return new Pair<>("UP", message);
     }
+  }
+
+  static Map<String,float[]> buildMatrix(int startIndex, double[]... rows) {
+    Map<String,float[]> matrix = new HashMap<>(rows.length);
+    int index = startIndex;
+    for (double[] row : rows) {
+      matrix.put(Integer.toString(index), VectorMath.toFloats(row));
+      index++;
+    }
+    return Collections.unmodifiableMap(matrix);
   }
 
 }

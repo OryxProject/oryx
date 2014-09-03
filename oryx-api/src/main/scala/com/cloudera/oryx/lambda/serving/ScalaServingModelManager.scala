@@ -13,12 +13,16 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.lambda.serving
 
-import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.lambda.KeyMessage
 
-public final class ALSSpeedModelTest extends OryxTest {
+trait ScalaServingModelManager[U] {
 
-  // Nothing here yet
+  def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
+
+  def getModel: AnyRef
+
+  def close(): Unit
 
 }

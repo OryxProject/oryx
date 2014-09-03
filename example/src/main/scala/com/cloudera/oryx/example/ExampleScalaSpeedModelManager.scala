@@ -13,13 +13,25 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.serving;
 
-/**
- * Marker interface for application's in-memory model representation in the serving layer.
- */
-public interface ServingModel {
+package com.cloudera.oryx.example
 
-  // Nothing here
+import com.cloudera.oryx.lambda.KeyMessage
+import com.cloudera.oryx.lambda.speed.ScalaSpeedModelManager
+import org.apache.spark.rdd.RDD
+
+class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
+
+  def consume(updateIterator: Iterator[KeyMessage[String,String]]): Unit = {
+
+  }
+
+  def buildUpdates(newData: RDD[(String,String)]): Iterable[String] = {
+    Array[String]()
+  }
+
+  def close(): Unit = {
+
+  }
 
 }

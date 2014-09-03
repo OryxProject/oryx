@@ -13,19 +13,24 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda.serving;
+package com.cloudera.oryx.ml.serving;
+
+import com.google.common.base.Preconditions;
 
 /**
  * JSON Error for missing path params, incorrect query params, etc
  */
 public final class ErrorResponse {
 
-  private String error;
-  private int statusCode;
+  private final String error;
+  private final int statusCode;
 
-  public ErrorResponse() {}
+  public ErrorResponse(int statusCode) {
+    this(statusCode, null);
+  }
 
   public ErrorResponse(int statusCode, String error) {
+    Preconditions.checkArgument(statusCode >= 100 && statusCode < 600);
     this.statusCode = statusCode;
     this.error = error;
   }
@@ -34,16 +39,13 @@ public final class ErrorResponse {
     return error;
   }
 
-  public void setError(String error) {
-    this.error = error;
-  }
-
   public int getStatusCode() {
     return statusCode;
   }
 
-  public void setStatusCode(int statusCode) {
-    this.statusCode = statusCode;
+  @Override
+  public String toString() {
+    return statusCode + (error == null ? "" : ": " + error);
   }
 
 }

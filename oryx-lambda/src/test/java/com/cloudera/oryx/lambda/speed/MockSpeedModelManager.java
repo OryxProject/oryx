@@ -16,7 +16,6 @@
 package com.cloudera.oryx.lambda.speed;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,7 +40,7 @@ public final class MockSpeedModelManager implements SpeedModelManager<String,Str
   }
 
   @Override
-  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
     return newData.values().collect();
   }
 

@@ -17,31 +17,62 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
+import com.cloudera.oryx.ml.serving.als.AbstractALSResource;
 import com.cloudera.oryx.ml.speed.als.MockModelUpdateGenerator;
 import com.typesafe.config.Config;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public final class ALSServingModelManagerIT extends AbstractServingIT {
 
+  private static final Logger log = LoggerFactory.getLogger(ALSServingModelManagerIT.class);
+
   @Test
   public void testALS() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("serving.application-resources", "com.cloudera.oryx.ml.serving.als");
-    overlayConfig.put("serving.model-manager-class", MockALSServingModelManager.class.getName());
+    overlayConfig.put("serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
     startServerUpdateQueues(config, new MockModelUpdateGenerator(), 10);
 
-    MockALSServingModelManager manager = MockALSServingModelManager.getInstance();
+    ALSServingModelManager manager = (ALSServingModelManager)
+        getServingLayer().getContext().getServletContext().getAttribute(
+            AbstractALSResource.MODEL_MANAGER_KEY);
+
     assertNotNull("Manager must initialize in web context", manager);
 
     ALSServingModel model = manager.getModel();
+    log.info("{}", model);
+
     assertNotNull(model);
-    //assertEquals(2, model.getFeatures());
+    assertEquals(2, model.getFeatures());
+    assertTrue(model.isImplicit());
+
+    Collection<String> expectedItems = MockModelUpdateGenerator.Y.keySet();
+    assertTrue(expectedItems.containsAll(model.getAllItemIDs()));
+    assertTrue(model.getAllItemIDs().containsAll(expectedItems));
+
+    assertNotNull(model.getYTYSolver());
+
+    for (Map.Entry<String,float[]> entry : MockModelUpdateGenerator.X.entrySet()) {
+      assertArrayEquals(entry.getValue(), model.getUserVector(entry.getKey()));
+    }
+    for (Map.Entry<String,float[]> entry : MockModelUpdateGenerator.Y.entrySet()) {
+      assertArrayEquals(entry.getValue(), model.getItemVector(entry.getKey()));
+    }
+    for (Map.Entry<String,Collection<String>> entry : MockModelUpdateGenerator.A.entrySet()) {
+      Collection<String> expected = entry.getValue();
+      Collection<String> actual = model.getKnownItems(entry.getKey());
+      assertTrue(expected.containsAll(actual));
+      assertTrue(actual.containsAll(expected));
+    }
   }
 
 }

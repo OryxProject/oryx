@@ -17,6 +17,8 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -31,27 +33,36 @@ import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.lambda.serving.ServingModel;
 
-public final class ALSServingModel implements ServingModel {
+public final class ALSServingModel {
 
   private final ObjectObjectMap<String,float[]> X;
   private final ObjectObjectMap<String,float[]> Y;
+  private final ObjectObjectMap<String,Collection<String>> knownItems;
   private final ReadWriteLock xLock;
   private final ReadWriteLock yLock;
+  private final ReadWriteLock knownItemsLock;
   private final int features;
+  private final boolean implicit;
 
-  ALSServingModel(int features) {
+  ALSServingModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
-    X = new ObjectObjectOpenHashMap<>(10000);
-    Y = new ObjectObjectOpenHashMap<>(10000);
+    X = new ObjectObjectOpenHashMap<>();
+    Y = new ObjectObjectOpenHashMap<>();
+    knownItems = new ObjectObjectOpenHashMap<>();
     xLock = new ReentrantReadWriteLock();
     yLock = new ReentrantReadWriteLock();
+    knownItemsLock = new ReentrantReadWriteLock();
     this.features = features;
+    this.implicit = implicit;
   }
 
   public int getFeatures() {
     return features;
+  }
+
+  public boolean isImplicit() {
+    return implicit;
   }
 
   public float[] getUserVector(String user) {
@@ -86,6 +97,45 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
+  public Collection<String> getKnownItems(String user) {
+    Lock lock = this.knownItemsLock.readLock();
+    lock.lock();
+    try {
+      return this.knownItems.get(user);
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  void addKnownItems(String user, Collection<String> items) {
+    Collection<String> knownItemsForUser;
+
+    Lock lock = this.knownItemsLock.readLock();
+    lock.lock();
+    try {
+      knownItemsForUser = this.knownItems.get(user);
+    } finally {
+      lock.unlock();
+    }
+
+    if (knownItemsForUser == null) {
+      Lock writeLock = this.knownItemsLock.writeLock();
+      writeLock.lock();
+      try {
+        // Check again
+        knownItemsForUser = this.knownItems.get(user);
+        if (knownItemsForUser == null) {
+          knownItemsForUser = Collections.synchronizedSet(new HashSet<String>());
+          this.knownItems.put(user, knownItemsForUser);
+        }
+      } finally {
+        writeLock.unlock();
+      }
+    }
+
+    knownItemsForUser.addAll(items);
+  }
+
   public Collection<String> getAllItemIDs() {
     Lock lock = yLock.readLock();
     lock.lock();
@@ -98,25 +148,6 @@ public final class ALSServingModel implements ServingModel {
     } finally {
       lock.unlock();
     }
-  }
-
-  /**
-   * @param user user ID
-   * @param items one or more item IDs
-   * @return dot product between user vector and one or more item vectors
-   */
-  public double[] dotProduct(String user, String... items) {
-    float[] userFeatures = getUserVector(user);
-    double[] results = new double[items.length];
-    for (int i = 0; i < items.length; i++) {
-      float[] itemFeatures = getItemVector(items[i]);
-      if (itemFeatures != null) {
-        double value = VectorMath.dot(itemFeatures, userFeatures);
-        Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad estimate");
-        results[i] = value;
-      }
-    }
-    return results;
   }
 
   public Solver getYTYSolver() {
@@ -143,6 +174,9 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
+  /**
+   * @param users users that should be retained; all else can be removed
+   */
   void retainAllUsers(Collection<String> users) {
     Lock lock = xLock.writeLock();
     lock.lock();
@@ -153,6 +187,9 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
+  /**
+   * @param items items that should be retained; all else can be removed
+   */
   void retainAllItems(Collection<String> items) {
     Lock lock = yLock.writeLock();
     lock.lock();
@@ -162,4 +199,28 @@ public final class ALSServingModel implements ServingModel {
       lock.unlock();
     }
   }
+
+  /**
+   * @param items items that should be retained; all else can be removed
+   */
+  void pruneKnownItems(Collection<String> items) {
+    Lock lock = this.knownItemsLock.readLock();
+    lock.lock();
+    try {
+      for (ObjectCursor<Collection<String>> collectionObjectCursor : this.knownItems.values()) {
+        // Assuming this collection is thread-safe:
+        collectionObjectCursor.value.retainAll(items);
+      }
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "ALSServingModel[features:" + features + ", implicit:" + implicit +
+        ", X:(" + X.size() + " users), Y:(" + Y.size() + " items), knownItems:(" +
+        knownItems.size() + " users)]";
+  }
+
 }

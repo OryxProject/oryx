@@ -40,8 +40,8 @@ public final class ALSSpeedModel {
 
   ALSSpeedModel(int features) {
     Preconditions.checkArgument(features > 0);
-    X = new ObjectObjectOpenHashMap<>(10000);
-    Y = new ObjectObjectOpenHashMap<>(10000);
+    X = new ObjectObjectOpenHashMap<>();
+    Y = new ObjectObjectOpenHashMap<>();
     xLock = new ReentrantReadWriteLock();
     yLock = new ReentrantReadWriteLock();
     this.features = features;
@@ -138,4 +138,11 @@ public final class ALSSpeedModel {
     }
     return new LinearSystemSolver().getSolver(YTY);
   }
+
+  @Override
+  public String toString() {
+    return "ALSSpeedModel[features:" + features +
+        ", X:(" + X.size() + " users), Y:(" + Y.size() + " items)]";
+  }
+
 }

@@ -15,12 +15,12 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>Responds to a GET request to {@code /popularRepresentativeItems}
@@ -29,7 +29,7 @@ import java.util.List;
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
  */
 @Path("/popularRepresentativeItems")
-public final class PopularRepresentativeItems {
+public final class PopularRepresentativeItems extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

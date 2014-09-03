@@ -63,6 +63,10 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     Thread.sleep(bufferMS);
   }
 
+  protected ServingLayer getServingLayer() {
+    return servingLayer;
+  }
+
   @After
   public void tearDownServingLayer() {
     if (servingLayer != null) {

@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-
+import java.util.Collections;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,8 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.List;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)},
@@ -39,7 +38,7 @@ import java.util.List;
  * <p>Outputs item/score pairs like {@link Recommend} does.</p>
  */
 @Path("/because")
-public final class Because {
+public final class Because extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

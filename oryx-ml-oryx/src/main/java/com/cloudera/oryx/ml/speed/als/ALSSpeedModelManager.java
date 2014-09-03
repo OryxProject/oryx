@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -33,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import com.cloudera.oryx.common.collection.FormatUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -45,12 +46,15 @@ import com.cloudera.oryx.common.math.Solver;
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSSpeedModel model;
   private final boolean implicit;
+  private final boolean noKnownItems;
 
   public ALSSpeedModelManager(Config config) {
     implicit = config.getBoolean("als.hyperparams.implicit");
+    noKnownItems = config.getBoolean("als.no-known-items");
   }
 
   @Override
@@ -62,11 +66,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       switch (key) {
         case "UP":
           Preconditions.checkNotNull(model);
+          List<?> update = MAPPER.readValue(message, List.class);
           // Update
-          String[] tokens = message.split("\t");
-          String id = tokens[1];
-          float[] vector = FormatUtils.parseFloatVec(tokens[2]);
-          switch (tokens[0]) {
+          String id = update.get(1).toString();
+          float[] vector = MAPPER.convertValue(update.get(2), float[].class);
+          switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);
               break;
@@ -95,10 +99,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           } else {
 
             // First, remove users/items no longer in the model
-            String[] XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            String[] YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(Arrays.asList(XIDs));
-            model.retainAllItems(Arrays.asList(YIDs));
+            List<String> XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
+            List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainAllUsers(XIDs);
+            model.retainAllItems(YIDs);
 
           }
           break;
@@ -110,7 +114,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) throws IOException {
     if (model == null) {
       return Collections.emptyList();
     }
@@ -123,7 +127,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.groupByKey().mapValues(Functions.<Double>last());
+      aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
     Collection<UserItemStrength> input = aggregated.map(new TupleToUserItemStrength()).collect();
@@ -148,11 +152,12 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Yi is the current row i in the Y item-feature matrix
       float[] Yi = model.getItemVector(item);
 
-      float[] newXu = null;
+      double[] newXu = null;
       if (Yi != null) {
         // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction
         // in Q = X * Y^t
-        double currentValue = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
+        // 0.5 reflects a "don't know" state
+        double currentValue = Xu == null ? 0.5 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         // The entire vector Qu' is just 0, with Qui' in position i
         // More generally we are looking for Qu' = Xu' * Y^t
@@ -164,32 +169,46 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           for (int i = 0; i < QuiYi.length; i++) {
             QuiYi[i] *= targetQui;
           }
-          newXu = YTYsolver.solveFToF(QuiYi);
+          newXu = YTYsolver.solveFToD(QuiYi);
         }
       }
 
       // Similarly for Y vs X
-      float[] newYi = null;
+      double[] newYi = null;
       if (Xu != null) {
-        double currentValue = Yi == null ? 0.0 : VectorMath.dot(Xu, Yi);
+        // 0.5 reflects a "don't know" state
+        double currentValue = Yi == null ? 0.5 : VectorMath.dot(Xu, Yi);
         double targetQui = computeTargetQui(value, currentValue);
         if (!Double.isNaN(targetQui)) {
           float[] QuiXu = Xu.clone();
           for (int i = 0; i < QuiXu.length; i++) {
             QuiXu[i] *= targetQui;
           }
-          newYi = XTXsolver.solveFToF(QuiXu);
+          newYi = XTXsolver.solveFToD(QuiXu);
         }
       }
 
       if (newXu != null) {
-        result.add("X\t" + user + '\t' + FormatUtils.formatFloatVec(newXu));
+        result.add(toUpdateJSON("X", user, newXu, item));
       }
       if (newYi != null) {
-        result.add("Y\t" + item + '\t' + FormatUtils.formatFloatVec(newYi));
+        result.add(toUpdateJSON("Y", item, newYi, user));
       }
     }
     return result;
+  }
+
+  private String toUpdateJSON(String matrix,
+                              String ID,
+                              double[] vector,
+                              String otherID) throws IOException {
+    List<?> args;
+    if (noKnownItems) {
+      args = Arrays.asList(matrix, ID, vector);
+    } else {
+      args = Arrays.asList(matrix, ID, vector, Collections.singletonList(otherID));
+    }
+    return MAPPER.writeValueAsString(args);
   }
 
   @Override

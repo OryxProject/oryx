@@ -15,96 +15,96 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+
+import com.google.common.base.Charsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a POST request to {@code /ingest} and in turn calls
- * {link OryxRecommender#ingest(Reader)}}. The content of the request body is
+ * {link ALSServingModel#ingest(Reader)}}. The content of the request body is
  * fed to this method. Note that the content may be gzipped; if so, header "Content-Encoding"
- * must have value "gzip".</p>
+ * must have value "gzip" or "x-gzip".</p>
  *
  * <p>Alternatively, CSV data may be POSTed here as if part of a web browser file upload. In this case
  * the "Content-Type" should be "multipart/form-data", and the payload encoded accordingly. The uploaded
  * file may be gzipped or zipped.</p>
  */
 @Path("/ingest")
-public final class Ingest {
+public final class Ingest extends AbstractALSResource {
+
+  private static final Logger log = LoggerFactory.getLogger(Ingest.class);
+
+  @Context
+  private HttpServletRequest httpServletRequest;
+
+  @Context
+  private HttpHeaders httpHeaders;
 
   @POST
-  @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response post(@PathParam("userId") String userId,
-                       @QueryParam("howMany") int howMany,
-                       @QueryParam("offset") int offset,
-                       @QueryParam("considerKnownItems") boolean considerKnownItems,
-                       @QueryParam("rescorerParams") List<String> rescorerParams) {
-/*
-    OryxRecommender recommender = getRecommender();
-
-    String contentType = request.getContentType();
-    boolean fromBrowserUpload = contentType != null && contentType.startsWith("multipart/form-data");
+  @Consumes({MediaType.MULTIPART_FORM_DATA, MediaType.TEXT_PLAIN})
+  public Response post() {
+    ALSServingModel alsServingModel = getALSServingModel();
+    String contentType = httpServletRequest.getContentType();
+    boolean fromBrowserUpload = contentType != null && contentType.startsWith(MediaType.MULTIPART_FORM_DATA);
 
     Reader reader;
-    if (fromBrowserUpload) {
-
-      Collection<Part> parts = request.getParts();
-      if (parts == null || parts.isEmpty()) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No form data");
-        return;
-      }
-      Part part = parts.iterator().next();
-      String partContentType = part.getContentType();
-      InputStream in = part.getInputStream();
-      if ("application/zip".equals(partContentType)) {
-        in = new ZipInputStream(in);
-      } else if ("application/gzip".equals(partContentType)) {
-        in = new GZIPInputStream(in);
-      } else if ("application/x-gzip".equals(partContentType)) {
-        in = new GZIPInputStream(in);
-      }
-      reader = new InputStreamReader(in, Charsets.UTF_8);
-
-    } else {
-
-      String charEncodingName = request.getCharacterEncoding();
-      Charset charEncoding = charEncodingName == null ? Charsets.UTF_8 : Charset.forName(charEncodingName);
-      String contentEncoding = request.getHeader(HttpHeaders.CONTENT_ENCODING);
-      if (contentEncoding == null) {
-        reader = request.getReader();
-      } else if ("gzip".equals(contentEncoding)) {
-        reader = new InputStreamReader(new GZIPInputStream(request.getInputStream()), charEncoding);
-      } else if ("zip".equals(contentEncoding)) {
-        reader = new InputStreamReader(new ZipInputStream(request.getInputStream()), charEncoding);
-      } else {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unsupported Content-Encoding");
-        return;
-      }
-    }
-
     try {
-      recommender.ingest(reader);
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-      return;
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
+      if (fromBrowserUpload) {
+        Collection<Part> parts = httpServletRequest.getParts();
+        if (parts == null || parts.isEmpty()) {
+          return Response.status(Response.Status.BAD_REQUEST).entity("No Form Data").build();
+        }
+
+        Part part = parts.iterator().next();
+        InputStream in = part.getInputStream();
+        reader = new InputStreamReader(in, Charsets.UTF_8);
+      } else {
+        String contentEncoding = httpServletRequest.getHeader(HttpHeaders.CONTENT_ENCODING);
+        if (contentEncoding == null) {
+          reader = httpServletRequest.getReader();
+        }
+      }
+    } catch (ServletException | IOException ex) {
+      return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage()).build();
     }
 
-    String referer = request.getHeader(HttpHeaders.REFERER);
-    if (fromBrowserUpload && referer != null) {
+//    try {
+//      alsServingModel.ingest(reader);
+//    } catch (IllegalArgumentException | NoSuchElementException ex) {
+//      return Response.status(Response.Status.BAD_REQUEST).entity(ex.toString()).build();
+//    }
+
+    String referrer = httpHeaders.getRequestHeader("referer").get(0);
+    if (fromBrowserUpload && referrer != null) {
       // Parsing avoids response splitting
-      response.sendRedirect(new URL(referer).toString());
+      try {
+        return Response.created(new URI(referrer)).build();
+      } catch (URISyntaxException e) {
+        log.error("Unable to read referring URI: {}", referrer);
+      }
     }
-  */
-    return Response.status(200).entity("").build();
+    return Response.ok().entity("").build();
   }
-
 }

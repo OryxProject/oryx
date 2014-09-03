@@ -15,8 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,7 +23,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
@@ -38,7 +37,7 @@ import java.util.List;
  * <p>Output is as in {@link Recommend}.</p>
  */
 @Path("/mostPopularItems")
-public final class MostPopularItems {
+public final class MostPopularItems extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

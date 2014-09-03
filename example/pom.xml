@@ -45,6 +45,12 @@
 
   <build>
     <plugins>
+      <!-- Use scala compiler if using Scala APIs -->
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>3.2.0</version>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -54,6 +60,7 @@
           <target>7</target>
         </configuration>
       </plugin>
+      <!-- Rest is just standard definitions -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -92,7 +99,7 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>0.10</version>
+        <version>0.11</version>
       </plugin>
     </plugins>
   </build>

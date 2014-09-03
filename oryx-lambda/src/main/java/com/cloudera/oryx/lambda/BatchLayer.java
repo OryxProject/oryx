@@ -28,7 +28,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
+import org.apache.spark.streaming.kafka.KafkaUtils$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final String messageTopic;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final Class<BatchLayerUpdate<K,M,U>> updateClass;
+  private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
   private final int generationIntervalSec;
@@ -69,8 +69,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.messageTopic = config.getString("input-queue.message.topic");
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
-    this.updateClass = (Class<BatchLayerUpdate<K,M,U>>) ClassUtils.loadClass(
-        config.getString("batch.update-class"), BatchLayerUpdate.class);
+    this.updateClassName = config.getString("batch.update-class");
     this.dataDirString = config.getString("batch.storage.data-dir");
     this.modelDirString = config.getString("batch.storage.model-dir");
     this.generationIntervalSec = config.getInt("batch.generation-interval-sec");
@@ -154,11 +153,11 @@ public final class BatchLayer<K,M,U> implements Closeable {
     // TODO for now we can only support default of Strings
     @SuppressWarnings("unchecked")
     JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
-        KafkaUtils.createStream(streamingContext,
-                                queueLockMaster,
-                                // group should be unique
-                                "OryxGroup-BatchLayer-" + System.currentTimeMillis(),
-                                Collections.singletonMap(messageTopic, 1));
+        KafkaUtils$.MODULE$.createStream(streamingContext,
+                                         queueLockMaster,
+                                         // group should be unique
+                                         "OryxGroup-BatchLayer-" + System.currentTimeMillis(),
+                                         Collections.singletonMap(messageTopic, 1));
     return dStream;
 
     // TODO
@@ -180,15 +179,46 @@ public final class BatchLayer<K,M,U> implements Closeable {
   }
 
   private BatchLayerUpdate<K,M,U> loadUpdateInstance() {
-    try {
-      return ClassUtils.loadInstanceOf(updateClass.getName(),
-                                       updateClass,
-                                       new Class<?>[] { Config.class },
-                                       new Object[] { config });
+    Class<?> updateClass = ClassUtils.loadClass(updateClassName);
 
-    } catch (IllegalArgumentException iae) {
-      log.info("{} lacks a constructor with Config arg, using no-arg constructor", updateClass);
-      return ClassUtils.loadInstanceOf(updateClass);
+    if (BatchLayerUpdate.class.isAssignableFrom(updateClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        BatchLayerUpdate<K,M,U> instance = ClassUtils.loadInstanceOf(
+            updateClassName,
+            BatchLayerUpdate.class,
+            new Class<?>[]{Config.class},
+            new Object[]{config});
+        return instance;
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        BatchLayerUpdate<K,M,U> instance =
+            ClassUtils.loadInstanceOf(updateClassName, BatchLayerUpdate.class);
+        return instance;
+      }
+
+    } else if (ScalaBatchLayerUpdate.class.isAssignableFrom(updateClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        ScalaBatchLayerUpdate<K,M,U> instance = ClassUtils.loadInstanceOf(
+              updateClassName,
+            ScalaBatchLayerUpdate.class,
+              new Class<?>[]{Config.class},
+              new Object[]{config});
+        return new ScalaBatchLayerUpdateAdapter<>(instance);
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        ScalaBatchLayerUpdate<K,M,U> instance =
+            ClassUtils.loadInstanceOf(updateClassName, ScalaBatchLayerUpdate.class);
+        return new ScalaBatchLayerUpdateAdapter<>(instance);
+      }
+
+    } else {
+      throw new IllegalArgumentException("Bad update class: " + updateClassName);
     }
   }
 

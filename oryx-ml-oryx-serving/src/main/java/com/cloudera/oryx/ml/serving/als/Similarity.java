@@ -15,8 +15,9 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -25,8 +26,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
@@ -47,7 +47,7 @@ import java.util.List;
  * {link OryxRecommender#mostSimilarItems(String, int)}.</p>
  */
 @Path("/similarity")
-public final class Similarity {
+public final class Similarity extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

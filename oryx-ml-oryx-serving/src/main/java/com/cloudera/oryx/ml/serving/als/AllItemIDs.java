@@ -16,30 +16,21 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Collection;
-import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-import com.cloudera.oryx.lambda.serving.ModelManagerListener;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
-import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
- * and in turn calls {link ALSServingModel#getAllItemIDs()}.</p>
+ * and in turn calls {@link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
  *
  * <p>JSON output is an array of item IDs.</p>
  */
 @Path("/item")
-public final class AllItemIDs {
-
-  @Context
-  private ServletContext servletContext;
+public final class AllItemIDs extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -51,9 +42,6 @@ public final class AllItemIDs {
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
   public Collection<String> get() {
-    ServingModelManager<?> modelManager =
-        (ServingModelManager<?>) servletContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-    ALSServingModel alsServingModel = (ALSServingModel) modelManager.getModel();
-    return alsServingModel.getAllItemIDs();
+    return getALSServingModel().getAllItemIDs();
   }
 }

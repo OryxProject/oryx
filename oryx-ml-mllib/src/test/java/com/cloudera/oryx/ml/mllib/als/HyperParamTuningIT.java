@@ -65,6 +65,7 @@ public final class HyperParamTuningIT extends AbstractALSIT {
     overlayConfig.put("als.hyperparams.features", "[1," + TEST_FEATURES + "]");
     overlayConfig.put("als.hyperparams.lambda", "0.001");
     overlayConfig.put("als.hyperparams.alpha", "1.0");
+    overlayConfig.put("als.no-known-items", "false");
     overlayConfig.put("ml.eval.candidates", "2");
     overlayConfig.put("ml.eval.parallelism", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());

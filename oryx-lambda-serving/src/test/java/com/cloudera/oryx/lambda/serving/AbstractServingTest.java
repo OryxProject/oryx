@@ -22,7 +22,10 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 
 import com.google.common.base.Preconditions;
+import org.glassfish.jersey.message.DeflateEncoder;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
@@ -33,6 +36,9 @@ import org.glassfish.jersey.test.spi.TestContainerFactory;
 import com.cloudera.oryx.common.lang.ClassUtils;
 
 public abstract class AbstractServingTest extends JerseyTest {
+
+  protected static final float FLOAT_EPSILON = 1.0e-6f;
+  protected static final double DOUBLE_EPSILON = 1.0e-12;
 
   protected static final GenericType<Collection<String>> COLLECTION_STRING_TYPE =
       new GenericType<Collection<String>>() {};
@@ -56,7 +62,11 @@ public abstract class AbstractServingTest extends JerseyTest {
   protected final Application configure() {
     enable(TestProperties.LOG_TRAFFIC);
     enable(TestProperties.DUMP_ENTITY);
-    return new ResourceConfig(getResourceClass());
+    return new ResourceConfig(
+        getResourceClass(),
+        EncodingFilter.class,
+        GZipEncoder.class,
+        DeflateEncoder.class);
   }
 
   protected Class<?> getResourceClass() {

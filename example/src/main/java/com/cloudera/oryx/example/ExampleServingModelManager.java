@@ -16,7 +16,6 @@
 package com.cloudera.oryx.example;
 
 import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModel;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ public final class ExampleServingModelManager implements ServingModelManager<Str
   }
 
   @Override
-  public ServingModel getModel() {
+  public Object getModel() {
     return null;
   }
 

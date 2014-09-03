@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.lambda.serving.ErrorResponse;
-
+import java.util.Arrays;
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -24,8 +24,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
+
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to
@@ -41,7 +41,7 @@ import java.util.List;
  * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
  */
 @Path("/recommend")
-public final class Recommend {
+public final class Recommend extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

@@ -23,12 +23,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * <p>Responds to a HEAD or GET request to {@code /ready} and in turn calls
- * {link com.cloudera.oryx.als.common.OryxRecommender#isReady()}. Returns "OK" or "Unavailable" status depending on
- * whether the recommender is ready.</p>
+ * <p>Responds to a HEAD or GET request to {@code /ready}
+ * Returns "OK" or "Unavailable" status depending on
+ * whether the ALSServingModel is available or not.</p>
  */
 @Path("/ready")
-public final class Ready {
+public final class Ready extends AbstractALSResource {
 
   @HEAD
   @Produces(MediaType.APPLICATION_JSON)
@@ -39,15 +39,9 @@ public final class Ready {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-/*
-    boolean isReady = getRecommender().isReady();
-    if (isReady) {
-      response.setStatus(HttpServletResponse.SC_OK);
-    } else {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-    }
-  */
-    return Response.status(Response.Status.OK.getStatusCode()).entity("").build();
+    return getALSServingModel() != null ?
+        Response.ok().build() :
+        Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
   }
-
 }
+

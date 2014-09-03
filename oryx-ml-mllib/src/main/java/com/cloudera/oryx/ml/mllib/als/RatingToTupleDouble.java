@@ -19,11 +19,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.recommendation.Rating;
 import scala.Tuple2;
 
-/**
-* Created by srowen on 7/20/14.
-*/
-final class RatingToTupleDouble
-    implements PairFunction<Rating,Tuple2<Integer,Integer>,Double> {
+final class RatingToTupleDouble implements PairFunction<Rating,Tuple2<Integer,Integer>,Double> {
   @Override
   public Tuple2<Tuple2<Integer,Integer>,Double> call(Rating rating) {
     return new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating());

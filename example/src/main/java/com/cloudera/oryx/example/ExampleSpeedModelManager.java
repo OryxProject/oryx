@@ -20,7 +20,6 @@ import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
@@ -36,7 +35,7 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
   }
 
   @Override
-  public Collection<String> buildUpdates(JavaPairRDD<String,String> newData) {
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
     return null;
   }
 

@@ -81,10 +81,9 @@ public final class PMMLUtilsTest extends OryxTest {
 
   @Test
   public void testParseArray() {
-    assertArrayEquals(new String[]{"foo", "bar", "baz"},
+    assertEquals(Arrays.asList("foo", "bar", "baz"),
         PMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
-    assertArrayEquals(new String[] {""},
-        PMMLUtils.parseArray(Collections.singletonList("")));
+    assertTrue(PMMLUtils.parseArray(Collections.singletonList("")).isEmpty());
   }
 
 }

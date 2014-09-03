@@ -29,7 +29,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
-import kafka.consumer.Consumer;
+import kafka.consumer.Consumer$;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -55,7 +55,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
   private Config config;
   private String updateTopic;
   private String updateQueueLockMaster;
-  private Class<ServingModelManager<U>> modelManagerClass;
+  private String modelManagerClassName;
   private Class<? extends Decoder<U>> updateDecoderClass;
   private ConsumerConnector consumer;
   private ServingModelManager<U> modelManager;
@@ -67,8 +67,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateQueueLockMaster = config.getString("update-queue.lock.master");
-    this.modelManagerClass = (Class<ServingModelManager<U>>) ClassUtils.loadClass(
-        config.getString("serving.model-manager-class"), ServingModelManager.class);
+    this.modelManagerClassName = config.getString("serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("update-queue.message.decoder-class"), Decoder.class);
   }
@@ -82,7 +81,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
-    consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+    consumer = Consumer$.MODULE$.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),
@@ -128,16 +127,46 @@ public final class ModelManagerListener<U> implements ServletContextListener {
   }
 
   private ServingModelManager<U> loadManagerInstance() {
-    try {
-      return ClassUtils.loadInstanceOf(modelManagerClass.getName(),
-                                       modelManagerClass,
-                                       new Class<?>[] { Config.class },
-                                       new Object[] { config });
+    Class<?> managerClass = ClassUtils.loadClass(modelManagerClassName);
 
-    } catch (IllegalArgumentException iae) {
-      log.info("{} lacks a constructor with Config arg, using no-arg constructor",
-               modelManagerClass);
-      return ClassUtils.loadInstanceOf(modelManagerClass);
+    if (ServingModelManager.class.isAssignableFrom(managerClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        ServingModelManager<U> instance = ClassUtils.loadInstanceOf(
+            modelManagerClassName,
+            ServingModelManager.class,
+            new Class<?>[] { Config.class },
+            new Object[] { config });
+        return instance;
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        ServingModelManager<U> instance =
+            ClassUtils.loadInstanceOf(modelManagerClassName, ServingModelManager.class);
+        return instance;
+      }
+
+    } else if (ScalaServingModelManager.class.isAssignableFrom(managerClass)) {
+
+      try {
+        @SuppressWarnings("unchecked")
+        ScalaServingModelManager<U> instance = ClassUtils.loadInstanceOf(
+            modelManagerClassName,
+            ScalaServingModelManager.class,
+            new Class<?>[] { Config.class },
+            new Object[] { config });
+        return new ScalaServingModelManagerAdapter<>(instance);
+
+      } catch (IllegalArgumentException iae) {
+        @SuppressWarnings("unchecked")
+        ScalaServingModelManager<U> instance =
+            ClassUtils.loadInstanceOf(modelManagerClassName, ScalaServingModelManager.class);
+        return new ScalaServingModelManagerAdapter<>(instance);
+      }
+
+    } else {
+      throw new IllegalArgumentException("Bad manager class: " + managerClass);
     }
   }
 

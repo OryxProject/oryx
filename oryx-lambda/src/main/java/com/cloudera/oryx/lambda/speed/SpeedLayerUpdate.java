@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.lambda.speed;
 
+import java.io.IOException;
+
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
 
@@ -40,7 +42,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
   }
 
   @Override
-  public Void call(JavaPairRDD<K,M> newData) {
+  public Void call(JavaPairRDD<K,M> newData) throws IOException {
     try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
       for (U update : modelManager.buildUpdates(newData)) {
         producer.send("UP", update);

@@ -5,7 +5,7 @@
  * Version 2.0 (the "License"). You may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied. See the License for
@@ -13,12 +13,19 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.speed.als;
+package com.cloudera.oryx.ml.serving.als;
 
-import com.cloudera.oryx.common.OryxTest;
+import javax.ws.rs.core.MediaType;
 
-public final class ALSSpeedModelManagerTest extends OryxTest {
+import org.junit.Assert;
+import org.junit.Test;
 
-  // Nothing here at the moment
+public final class EstimateForAnonymousTest extends AbstractALSServingTest {
 
+  @Test
+  public void test() {
+    Double item = target("estimateForAnonymous").path("A").path("B=1.0/C=1.8").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
+    Assert.assertEquals(0.022482435597189654, item, DOUBLE_EPSILON);
+  }
 }

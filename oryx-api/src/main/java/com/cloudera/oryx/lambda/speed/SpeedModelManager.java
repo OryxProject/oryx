@@ -17,7 +17,6 @@ package com.cloudera.oryx.lambda.speed;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 
 import org.apache.spark.api.java.JavaPairRDD;
@@ -48,8 +47,9 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
   /**
    * @param newData RDD of raw new data from the queue
    * @return updates to publish on the update queue
+   * @throws IOException if an error occurs while building updates
    */
-  Collection<U> buildUpdates(JavaPairRDD<K,M> newData);
+  Iterable<U> buildUpdates(JavaPairRDD<K,M> newData) throws IOException;
 
   @Override
   void close();
