@@ -23,6 +23,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.ml.serving.ErrorResponse;
@@ -52,14 +53,14 @@ public final class RecommendToAnonymous extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(400).entity(new ErrorResponse(400, "one or more itemIDs required")).build();
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{itemID}+ required")).build();
   }
 
   @GET
-  @Path("{itemID}")
+  @Path("{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("itemID") String itemID,
+  public List<RecommendResponse> get(@PathParam("itemID") List<PathSegment> pathSegmentList,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("considerKnownItems") boolean considerKnownItems,

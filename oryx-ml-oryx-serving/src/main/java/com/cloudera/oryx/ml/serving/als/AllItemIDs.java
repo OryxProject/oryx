@@ -20,6 +20,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}
@@ -29,6 +32,12 @@ import javax.ws.rs.core.MediaType;
  */
 @Path("/item")
 public final class AllItemIDs extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /allIDs required")).build();
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

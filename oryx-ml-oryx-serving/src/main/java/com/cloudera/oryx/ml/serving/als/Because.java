@@ -23,6 +23,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)},
@@ -37,6 +39,12 @@ import javax.ws.rs.core.MediaType;
  */
 @Path("/because")
 public final class Because extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID}/{itemId} required")).build();
+  }
 
   @GET
   @Path("{userId}/{itemId}")

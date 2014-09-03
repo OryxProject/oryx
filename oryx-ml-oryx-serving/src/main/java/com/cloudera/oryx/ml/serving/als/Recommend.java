@@ -45,8 +45,8 @@ public final class Recommend extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(400).entity(new ErrorResponse(400, "userID required")).build();
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID} required")).build();
   }
 
   @GET

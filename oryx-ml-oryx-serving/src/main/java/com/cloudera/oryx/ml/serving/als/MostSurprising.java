@@ -21,6 +21,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 
 /**
  * <p>Responds to a GET request to
@@ -35,6 +38,12 @@ import javax.ws.rs.core.MediaType;
  */
 @Path("/mostSurprising")
 public final class MostSurprising extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID} required")).build();
+  }
 
   @GET
   @Path("{userId}")

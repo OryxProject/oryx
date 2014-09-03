@@ -22,9 +22,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
@@ -40,6 +42,12 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  */
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{toItemID}/{itemId}+ required")).build();
+  }
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)

@@ -23,9 +23,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -38,6 +40,12 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  */
 @Path("/estimate")
 public final class Estimate extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID}/{itemId}+ required")).build();
+  }
 
   @GET
   @Path("{userID}/{itemID : .+}")

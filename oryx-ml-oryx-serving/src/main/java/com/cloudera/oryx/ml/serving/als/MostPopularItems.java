@@ -24,6 +24,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.ml.serving.ErrorResponse;
+
 /**
  * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
  * and in turn calls {link OryxRecommender#mostPopularItems(int)}.
@@ -37,6 +39,12 @@ import javax.ws.rs.core.Response;
  */
 @Path("/mostPopularItems")
 public final class MostPopularItems extends AbstractALSResource {
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNoArgs() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), "path /{userID} required")).build();
+  }
 
   @GET
   @Path("{userId}")
@@ -59,7 +67,7 @@ public final class MostPopularItems extends AbstractALSResource {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Response.status(200).entity("").build();
+    return Response.ok().entity("").build();
   }
 
 }
