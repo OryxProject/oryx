@@ -222,7 +222,6 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     try {
       return ClassUtils.loadInstanceOf(updateDecoderClass);
     } catch (IllegalArgumentException iae) {
-      log.warn("No no-arg constructor for {}; trying nullable one-arg", updateDecoderClass);
       // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
       return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
                                        updateDecoderClass,

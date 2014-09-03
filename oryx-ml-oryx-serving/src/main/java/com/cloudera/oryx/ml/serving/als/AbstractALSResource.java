@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
+import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -26,19 +27,29 @@ public abstract class AbstractALSResource {
 
   public static final String MODEL_MANAGER_KEY =
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
+  public static final String INPUT_PRODUCER_KEY =
+      "com.cloudera.oryx.lambda.serving.ModelManagerListener.InputProducer";
 
   @Context
   private ServletContext servletContext;
   private ALSServingModel alsServingModel;
+  private QueueProducer<String,String> inputProducer;
 
+  @SuppressWarnings("unchecked")
   @PostConstruct
   public final void init() {
     ServingModelManager<?> servingModelManager = (ServingModelManager<?>)
         servletContext.getAttribute(MODEL_MANAGER_KEY);
     alsServingModel = (ALSServingModel) servingModelManager.getModel();
+    inputProducer = (QueueProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
   }
 
   protected final ALSServingModel getALSServingModel() {
     return alsServingModel;
   }
+
+  protected final QueueProducer<String,String> getInputProducer() {
+    return inputProducer;
+  }
+
 }

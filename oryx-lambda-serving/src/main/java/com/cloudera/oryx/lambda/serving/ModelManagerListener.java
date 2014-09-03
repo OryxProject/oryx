@@ -44,21 +44,27 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.QueueProducer;
 
 @WebListener
-public final class ModelManagerListener<U> implements ServletContextListener {
+public final class ModelManagerListener<K,M,U> implements ServletContextListener {
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
   public static final String MANAGER_KEY = ModelManagerListener.class.getName() + ".ModelManager";
+  public static final String INPUT_PRODUCER_KEY =
+      ModelManagerListener.class.getName() + ".InputProducer";
 
   private Config config;
   private String updateTopic;
   private String updateQueueLockMaster;
+  private String inputTopic;
+  private String inputQueueBroker;
   private String modelManagerClassName;
   private Class<? extends Decoder<U>> updateDecoderClass;
   private ConsumerConnector consumer;
   private ServingModelManager<U> modelManager;
+  private QueueProducer<K,M> inputProducer;
 
   @SuppressWarnings("unchecked")
   public void init(ServletContext context) {
@@ -67,6 +73,8 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateQueueLockMaster = config.getString("update-queue.lock.master");
+    this.inputTopic = config.getString("input-queue.message.topic");
+    this.inputQueueBroker = config.getString("input-queue.broker");
     this.modelManagerClassName = config.getString("serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("update-queue.message.decoder-class"), Decoder.class);
@@ -75,7 +83,11 @@ public final class ModelManagerListener<U> implements ServletContextListener {
   @Override
   public void contextInitialized(ServletContextEvent sce) {
     log.info("ModelManagerListener initializing");
-    init(sce.getServletContext());
+    ServletContext context = sce.getServletContext();
+    init(context);
+
+    inputProducer = new QueueProducerImpl<>(inputQueueBroker, inputTopic);
+    context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
@@ -104,7 +116,7 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     }).start();
 
     // Set the Model Manager in the Application scope
-    sce.getServletContext().setAttribute(MANAGER_KEY, modelManager);
+    context.setAttribute(MANAGER_KEY, modelManager);
   }
 
   @Override
@@ -118,6 +130,11 @@ public final class ModelManagerListener<U> implements ServletContextListener {
       log.info("Shutting down model manager");
       modelManager.close();
       modelManager = null;
+    }
+    if (inputProducer != null) {
+      log.info("Shutting down input producer");
+      inputProducer.close();
+      inputProducer = null;
     }
     if (consumer != null) {
       log.info("Shutting down consumer");
@@ -174,7 +191,6 @@ public final class ModelManagerListener<U> implements ServletContextListener {
     try {
       return ClassUtils.loadInstanceOf(updateDecoderClass);
     } catch (IllegalArgumentException iae) {
-      log.warn("No no-arg constructor for {}; trying nullable one-arg", updateDecoderClass);
       // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
       return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
                                        updateDecoderClass,

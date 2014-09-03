@@ -32,8 +32,19 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
   private ServingLayer servingLayer;
   private ProduceData updateProducer;
 
-  protected final void startServerUpdateQueues(
-      Config config,
+  protected final void startServer(Config config) throws IOException, InterruptedException {
+    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
+    Thread.sleep(bufferMS);
+
+    servingLayer = new ServingLayer(config);
+
+    log.info("Starting serving layer");
+    servingLayer.start();
+
+    Thread.sleep(bufferMS);
+  }
+
+  protected final void startUpdateQueues(
       RandomDatumGenerator<String,String> updateGenerator,
       int howManyUpdate) throws IOException, InterruptedException {
 
@@ -47,19 +58,10 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
         howManyUpdate,
         10);
 
-    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
-    Thread.sleep(bufferMS);
-
-    servingLayer = new ServingLayer(config);
-
-    log.info("Starting serving layer");
-    servingLayer.start();
-
-    Thread.sleep(bufferMS);
-
     log.info("Producing updates");
     updateProducer.start();
 
+    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
     Thread.sleep(bufferMS);
   }
 

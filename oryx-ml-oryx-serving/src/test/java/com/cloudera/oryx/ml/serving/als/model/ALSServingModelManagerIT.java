@@ -33,14 +33,15 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManagerIT.class);
 
   @Test
-  public void testALS() throws Exception {
+  public void testALSServingModel() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("serving.application-resources", "com.cloudera.oryx.ml.serving.als");
     overlayConfig.put("serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();
-    startServerUpdateQueues(config, new MockModelUpdateGenerator(), 10);
+    startServer(config);
+    startUpdateQueues(new MockModelUpdateGenerator(), 10);
 
     ALSServingModelManager manager = (ALSServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(
