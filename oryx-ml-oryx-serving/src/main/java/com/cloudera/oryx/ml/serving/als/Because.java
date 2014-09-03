@@ -24,6 +24,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.ml.serving.IDValue;
+
 /**
  * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)},
  * and in turn calls {link OryxRecommender#recommendedBecause(String, String, int)}.
@@ -41,7 +43,7 @@ public final class Because extends AbstractALSResource {
   @GET
   @Path("{userId}/{itemId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("userId") String userId,
+  public List<IDValue> get(@PathParam("userId") String userId,
                                      @PathParam("itemId") String itemId,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset) {

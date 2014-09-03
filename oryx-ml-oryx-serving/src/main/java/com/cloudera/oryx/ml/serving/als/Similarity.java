@@ -17,12 +17,16 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
+
+import com.cloudera.oryx.ml.serving.IDValue;
 
 /**
  * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
@@ -46,12 +50,12 @@ import javax.ws.rs.core.MediaType;
 public final class Similarity extends AbstractALSResource {
 
   @GET
-  @Path("{itemID}")
+  @Path("{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("itemID") String itemID,
-                                     @QueryParam("howMany") int howMany,
-                                     @QueryParam("offset") int offset,
-                                     @QueryParam("rescorerParams") List<String> rescorerParams) {
+  public List<IDValue> get(@PathParam("itemID") List<PathSegment> pathSegmentsList,
+                           @DefaultValue("10") @QueryParam("howMany") int howMany,
+                           @DefaultValue("0") @QueryParam("offset") int offset,
+                           @QueryParam("rescorerParams") List<String> rescorerParams) {
 /*
     CharSequence pathInfo = request.getPathInfo();
     if (pathInfo == null) {
@@ -98,7 +102,7 @@ public final class Similarity extends AbstractALSResource {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
     }
   */
-    return Arrays.asList(new RecommendResponse("1", 5));
+    return Arrays.asList(new IDValue("1", 5));
 
   }
 

@@ -14,31 +14,24 @@
 * License.
 */
 
-package com.cloudera.oryx.lambda.serving;
+package com.cloudera.oryx.ml.serving;
 
-import com.google.common.base.Preconditions;
+import javax.ws.rs.core.Response;
 
 public final class OryxServingException extends Exception {
 
-  private final String error;
-  private final int statusCode;
+  private final Response.Status statusCode;
 
-  public OryxServingException(int statusCode) {
+  public OryxServingException(Response.Status statusCode) {
     this(statusCode, null);
   }
 
-  public OryxServingException(int statusCode, String error) {
-    super(statusCode + (error == null ? "" : ": " + error));
-    Preconditions.checkArgument(statusCode >= 100 && statusCode < 600);
+  public OryxServingException(Response.Status statusCode, String message) {
+    super(message);
     this.statusCode = statusCode;
-    this.error = error;
   }
 
-  public String getError() {
-    return error;
-  }
-
-  public int getStatusCode() {
+  public Response.Status getStatusCode() {
     return statusCode;
   }
 }

@@ -18,9 +18,11 @@ package com.cloudera.oryx.ml.serving.als;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 public abstract class AbstractALSResource {
@@ -50,6 +52,19 @@ public abstract class AbstractALSResource {
 
   protected final QueueProducer<String,String> getInputProducer() {
     return inputProducer;
+  }
+
+  protected final void check(boolean condition,
+                             Response.Status status,
+                             String errorMessage) throws OryxServingException {
+    if (!condition) {
+      throw new OryxServingException(status, errorMessage);
+    }
+  }
+
+  protected final void check(boolean condition,
+                             String errorMessage) throws OryxServingException {
+    check(condition, Response.Status.BAD_REQUEST, errorMessage);
   }
 
 }

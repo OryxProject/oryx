@@ -15,8 +15,10 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -25,80 +27,49 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.ErrorResponse;
+import com.cloudera.oryx.ml.serving.IDValue;
+import com.cloudera.oryx.ml.serving.OryxServingException;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
-/**
- * <p>Responds to a GET request to
- * {@code /recommend/[userID](?howMany=n)(&offset=o)(&considerKnownItems=true|false)(&rescorerParams=...)}
- * and in turn calls {link OryxRecommender#recommend(String, int)}.
- * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
- * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
- * will cause the implementation to retrieve 35 results internally and output the last 5.
- * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
- * {@code offset} defaults to 0.</p>
- *
- * <p>CSV output contains one recommendation per line, and each line is of the form {@code itemID, strength},
- * like {@code 325, 0.53}. Strength is an opaque indicator of the relative quality of the recommendation.</p>
- */
 @Path("/recommend")
 public final class Recommend extends AbstractALSResource {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-    return Response.status(400).entity(new ErrorResponse(400, "userID required")).build();
+    return Response.status(Response.Status.BAD_REQUEST).entity(
+        new ErrorResponse(Response.Status.BAD_REQUEST, "User ID required")).build();
   }
 
   @GET
   @Path("{userID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<RecommendResponse> get(@PathParam("userID") String userID,
-                                     @QueryParam("howMany") int howMany,
-                                     @QueryParam("offset") int offset,
-                                     @QueryParam("considerKnownItems") boolean considerKnownItems,
-                                     @QueryParam("rescorerParams") List<String> rescorerParams) {
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
-    String userID;
-    try {
-      userID = pathComponents.next();
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
-    }
-    if (pathComponents.hasNext()) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Path too long");
-      return;
-    }
+  public List<IDValue> get(
+      @PathParam("userID") String userID,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset,
+      @DefaultValue("false") @QueryParam("considerKnownItems") boolean considerKnownItems,
+      @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    userID = unescapeSlashHack(userID);
+    check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be nonnegative");
 
-    OryxRecommender recommender = getRecommender();
-    RescorerProvider rescorerProvider = getRescorerProvider();
-    try {
-      Rescorer rescorer = rescorerProvider == null ? null :
-          rescorerProvider.getRecommendRescorer(new String[] {userID}, recommender, getRescorerParams(request));
-      outputALSResult(request, response, recommender.recommend(userID,
-                                                               getNumResultsToFetch(request),
-                                                               getConsiderKnownItems(request),
-                                                               rescorer));
-    } catch (NoSuchUserException nsue) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, nsue.toString());
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-    } catch (UnsupportedOperationException uoe) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
+    ALSServingModel model = getALSServingModel();
+    List<Pair<String,Double>> topIDDots = model.topDotWithUserVector(userID, howMany + offset);
+    check(topIDDots != null, Response.Status.NOT_FOUND, userID);
+
+    if (topIDDots.size() < offset) {
+      return Collections.emptyList();
     }
-  }
-  */
-    return Arrays.asList(new RecommendResponse("1", 5));
+    int end = Math.min(offset + howMany, topIDDots.size());
+    List<IDValue> response = new ArrayList<>(end - offset);
+    for (int i = offset; i < end; i++) {
+      Pair<String,Double> idDot = topIDDots.get(i);
+      response.add(new IDValue(idDot.getFirst(), idDot.getSecond()));
+    }
+    return response;
   }
 
 }
