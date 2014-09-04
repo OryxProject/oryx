@@ -373,7 +373,7 @@
     <kafka.version>0.8.1.1</kafka.version>
     <slf4j.version>1.7.7</slf4j.version>
     <spark.version>1.0.2</spark.version>
-    <tomcat.version>8.0.11</tomcat.version>
+    <tomcat.version>8.0.12</tomcat.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
 
