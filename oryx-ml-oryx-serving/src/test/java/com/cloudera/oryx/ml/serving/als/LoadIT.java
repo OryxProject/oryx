@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
+import javax.ws.rs.NotFoundException;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -49,50 +50,49 @@ public final class LoadIT extends AbstractALSServingTest {
   }
 
   @Test
+  public void testContainerOverhead() {
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
+    int requests = 10000;
+    for (int i = 0; i < requests; i++) {
+      try {
+        target("/").request().get(LIST_ID_VALUE_TYPE);
+      } catch (NotFoundException nfe) {
+        // continue
+      }
+    }
+    stopwatch.stop();
+    double usecPerRequest = (double) stopwatch.elapsed(TimeUnit.MICROSECONDS) / requests;
+    log.info("{} usec / request", usecPerRequest);
+    Assert.assertTrue(usecPerRequest < 3000.0);
+  }
+
+  @Test
   public void testRecommendLoad() throws Exception {
     int workers = Runtime.getRuntime().availableProcessors();
-    final AtomicLong count = new AtomicLong();
-    final Mean meanReqTimeMS = new Mean();
-    final Stopwatch stopwatch = new Stopwatch();
+    AtomicLong count = new AtomicLong();
+    Mean meanReqTimeMS = new Mean();
+    Stopwatch stopwatch = new Stopwatch();
 
     List<Callable<Void>> tasks = new ArrayList<>(workers);
     for (int i = 0; i < workers; i++) {
-      tasks.add(new LoggingVoidCallable() {
-        private final RandomGenerator random = RandomManager.getRandom();
-        @Override
-        public void doCall() {
-          for (int j = 0; j < REQS_PER_WORKER; j++) {
-            String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
-            long start = System.currentTimeMillis();
-            target("/recommend/" + userID).request().get(LIST_ID_VALUE_TYPE);
-            long end = System.currentTimeMillis();
-            synchronized (meanReqTimeMS) {
-              meanReqTimeMS.increment(end - start);
-            }
-            long currentCount = count.incrementAndGet();
-            if (currentCount % 100 == 0) {
-              log(currentCount, meanReqTimeMS, stopwatch);
-            }
-          }
-        }
-      });
+      tasks.add(new LoadCallable(Integer.toString(i), meanReqTimeMS, count, stopwatch));
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(workers);
-
-    stopwatch.start();
     try {
+      stopwatch.start();
       executor.invokeAll(tasks);
+      stopwatch.stop();
     } finally {
       executor.shutdown();
     }
-    stopwatch.stop();
 
     int totalRequests = workers * REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, stopwatch);
 
     // Need to get this down!
-    Assert.assertTrue(meanReqTimeMS.getResult() < 800.0);
+    Assert.assertTrue(meanReqTimeMS.getResult() < 500.0);
   }
 
   private static void log(long currentCount, Mean meanReqTimeMS, Stopwatch stopwatch) {
@@ -130,6 +130,40 @@ public final class LoadIT extends AbstractALSServingTest {
     @Override
     public ALSServingModel getModel() {
       return model;
+    }
+  }
+
+  private final class LoadCallable extends LoggingVoidCallable {
+
+    private final RandomGenerator random;
+    private final Mean meanReqTimeMS;
+    private final AtomicLong count;
+    private final Stopwatch stopwatch;
+
+    private LoadCallable(String id, Mean meanReqTimeMS, AtomicLong count, Stopwatch stopwatch) {
+      this.meanReqTimeMS = meanReqTimeMS;
+      this.count = count;
+      this.stopwatch = stopwatch;
+      random = RandomManager.getRandom();
+      // We do *not* want a deterministic seed here!
+      random.setSeed(id.hashCode() ^ System.nanoTime());
+    }
+
+    @Override
+    public void doCall() {
+      for (int j = 0; j < REQS_PER_WORKER; j++) {
+        String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
+        long start = System.currentTimeMillis();
+        target("/recommend/" + userID).request().get(LIST_ID_VALUE_TYPE);
+        long timeMS = System.currentTimeMillis() - start;
+        synchronized (meanReqTimeMS) {
+          meanReqTimeMS.increment(timeMS);
+        }
+        long currentCount = count.incrementAndGet();
+        if (currentCount % 100 == 0) {
+          log(currentCount, meanReqTimeMS, stopwatch);
+        }
+      }
     }
   }
 

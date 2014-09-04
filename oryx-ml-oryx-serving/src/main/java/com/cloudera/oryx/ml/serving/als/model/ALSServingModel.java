@@ -162,17 +162,15 @@ public final class ALSServingModel {
       return null;
     }
 
-    ObjectSet<String> knownItems;
-    if (considerKnownItems) {
-      knownItems = null;
-    } else {
-      knownItems = getKnownItems(user);
+    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
+
+    if (!considerKnownItems) {
+      ObjectSet<String> knownItems = getKnownItems(user);
+      if (knownItems != null && !knownItems.isEmpty()) {
+        entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
+      }
     }
 
-    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
-    if (knownItems != null && !knownItems.isEmpty()) {
-      entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
-    }
     Iterable<Pair<String,Double>> idDots =
         Iterables.transform(entries, new DotsFunction(userVector));
     Ordering<Pair<String,Double>> ordering =
