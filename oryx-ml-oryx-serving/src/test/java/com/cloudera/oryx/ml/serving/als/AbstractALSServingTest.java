@@ -16,16 +16,22 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Iterator;
+import java.util.List;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.ws.rs.core.GenericType;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.TestALSModelFactory;
 
 public abstract class AbstractALSServingTest extends AbstractServingTest {
+
+  protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
+      new GenericType<List<IDValue>>() {};
 
   @Override
   protected final Class<? extends ServletContextListener> getInitListenerClass() {

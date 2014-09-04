@@ -30,6 +30,7 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -162,12 +163,26 @@ public final class ALSServingModel {
     if (userVector == null) {
       return null;
     }
+
+    Collection<String> knownItems;
+    if (considerKnownItems) {
+      knownItems = null;
+    } else {
+      knownItems = getKnownItems(user);
+    }
+
+    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
+    if (knownItems != null && !knownItems.isEmpty()) {
+      entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
+    }
+    Iterable<Pair<String,Double>> idDots =
+        Iterables.transform(entries, new DotsFunction(userVector));
+    Ordering<Pair<String,Double>> ordering =
+        Ordering.from(PairComparators.<String,Double>bySecond());
+
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      Iterable<Pair<String,Double>> idDots = Iterables.transform(Y, new DotsFunction(userVector));
-      Ordering<Pair<String,Double>> ordering =
-          Ordering.from(PairComparators.<String,Double>bySecond());
       return ordering.greatestOf(idDots, howMany);
     } finally {
       lock.unlock();
@@ -258,6 +273,17 @@ public final class ALSServingModel {
     @Override
     public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
       return new Pair<>(itemIDVector.key, VectorMath.dot(userVector, itemIDVector.value));
+    }
+  }
+
+  private static class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,float[]>> {
+    private final Collection<String> knownItems;
+    NotKnownPredicate(Collection<String> knownItems) {
+      this.knownItems = knownItems;
+    }
+    @Override
+    public boolean apply(ObjectObjectCursor<String,float[]> input) {
+      return !knownItems.contains(input.key);
     }
   }
 
