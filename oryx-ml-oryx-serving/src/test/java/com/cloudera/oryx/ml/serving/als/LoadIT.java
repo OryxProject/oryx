@@ -38,9 +38,9 @@ import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.LoadTestALSModelFactory;
 
-public final class LoadTest extends AbstractALSServingTest {
+public final class LoadIT extends AbstractALSServingTest {
 
-  private static final Logger log = LoggerFactory.getLogger(LoadTest.class);
+  private static final Logger log = LoggerFactory.getLogger(LoadIT.class);
   private static final int REQS_PER_WORKER = 100;
 
   @Override
