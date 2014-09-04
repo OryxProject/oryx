@@ -26,17 +26,21 @@ public final class EstimateTest extends AbstractALSServingTest {
 
   @Test
   public void test() {
-    List<Double> items = target("estimate").path("Z").path("A/B/C").request()
+    List<Double> items = target("estimate").path("U0").path("I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(3, items.size());
-    Assert.assertEquals(11.0, items.get(0), DOUBLE_EPSILON);
+    Assert.assertEquals(0.387613186054306, items.get(0), FLOAT_EPSILON);
+    Assert.assertEquals(0.465396924146558, items.get(1), FLOAT_EPSILON);
+    Assert.assertEquals(-0.0801478014434228, items.get(2), FLOAT_EPSILON);
   }
 
   @Test
   public void testBadRequest() {
-    Response response = target("estimate").path("Z").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
-    Assert.assertEquals(404, response.getStatus());
-    response = target("estimate").path("Z").path("").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
-    Assert.assertEquals(404, response.getStatus());
+    Response response = target("estimate").path("Z").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+    response = target("estimate").path("Z").path("").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
   }
 }

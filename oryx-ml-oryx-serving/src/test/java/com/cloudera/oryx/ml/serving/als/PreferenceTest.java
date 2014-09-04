@@ -26,14 +26,15 @@ public final class PreferenceTest extends AbstractALSServingTest {
 
   @Test
   public void testPost() {
-    Response response = target("pref").path("Z").path("A").request()
+    Response response = target("pref").path("U1").path("I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).post(Entity.text("1"));
-    Assert.assertEquals(200, response.getStatus());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 
   @Test
   public void testDelete() {
-    Response response = target("pref").path("Z").path("A").request().accept(MediaType.APPLICATION_JSON_TYPE).delete();
-    Assert.assertEquals(200, response.getStatus());
+    Response response = target("pref").path("U1").path("I2").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).delete();
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 }

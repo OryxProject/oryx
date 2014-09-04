@@ -26,12 +26,12 @@ public final class ReadyTest extends AbstractALSServingTest {
   @Test
   public void testGetResponseOk() {
     Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
-    Assert.assertEquals(200, response.getStatus());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 
   @Test
   public void testHeadResponseOk() {
     Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).head();
-    Assert.assertEquals(200, response.getStatus());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 }

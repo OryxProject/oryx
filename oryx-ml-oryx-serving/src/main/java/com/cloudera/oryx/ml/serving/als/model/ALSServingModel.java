@@ -155,7 +155,9 @@ public final class ALSServingModel {
     knownItemsForUser.addAll(items);
   }
 
-  public List<Pair<String,Double>> topDotWithUserVector(String user, int howMany) {
+  public List<Pair<String,Double>> topDotWithUserVector(String user,
+                                                        int howMany,
+                                                        boolean considerKnownItems) {
     float[] userVector = getUserVector(user);
     if (userVector == null) {
       return null;

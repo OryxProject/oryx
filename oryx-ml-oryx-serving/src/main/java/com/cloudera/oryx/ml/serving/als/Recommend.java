@@ -57,7 +57,8 @@ public final class Recommend extends AbstractALSResource {
     check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel model = getALSServingModel();
-    List<Pair<String,Double>> topIDDots = model.topDotWithUserVector(userID, howMany + offset);
+    List<Pair<String,Double>> topIDDots =
+        model.topDotWithUserVector(userID, howMany + offset, considerKnownItems);
     check(topIDDots != null, Response.Status.NOT_FOUND, userID);
 
     if (topIDDots.size() < offset) {

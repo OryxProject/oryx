@@ -26,10 +26,11 @@ public final class RecommendTest extends AbstractALSServingTest {
 
   @Test
   public void testRecommend() throws Exception {
-    String response = target("/recommend/Z").request().get(String.class);
+    String response = target("/recommend/U5").queryParam("howMany", "5")
+        .request().get(String.class);
     Assert.assertNotNull(response);
     List<?> recommendations = new ObjectMapper().readValue(response, List.class);
-    Assert.assertEquals(3, recommendations.size());
+    Assert.assertEquals(5, recommendations.size());
     // TODO
   }
 
