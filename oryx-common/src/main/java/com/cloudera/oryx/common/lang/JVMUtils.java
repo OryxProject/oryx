@@ -37,4 +37,19 @@ public final class JVMUtils {
     Runtime.getRuntime().addShutdownHook(new Thread(new ClosingRunnable(closeable)));
   }
 
+  /**
+   * @return approximate heap used, in bytes
+   */
+  public static long getUsedMemory() {
+    Runtime runtime = Runtime.getRuntime();
+    return runtime.totalMemory() - runtime.freeMemory();
+  }
+
+  /**
+   * @return maximum size that the heap may grow to, in bytes
+   */
+  public static long getMaxMemory() {
+    return Runtime.getRuntime().maxMemory();
+  }
+
 }

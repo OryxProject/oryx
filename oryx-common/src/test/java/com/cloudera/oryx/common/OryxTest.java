@@ -50,12 +50,12 @@ public abstract class OryxTest extends Assert {
   }
 
   @Before
-  public final void setUp() {
+  public final void initRandom() {
     RandomManager.useTestSeed();
   }
 
   @After
-  public final void tearDown() throws IOException {
+  public final void deleteTempDir() throws IOException {
     if (tempDir != null) {
       IOUtils.deleteRecursively(tempDir);
       tempDir = null;
