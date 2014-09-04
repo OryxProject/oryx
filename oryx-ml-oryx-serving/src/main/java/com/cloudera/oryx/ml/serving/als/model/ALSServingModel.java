@@ -185,6 +185,36 @@ public final class ALSServingModel {
     }
   }
 
+  public List<Pair<String,Double>> topCosineSimilarityWithItemVector(String user,
+                                                                     String item,
+                                                                     int howMany) {
+    float[] itemVector = getItemVector(item);
+    if (itemVector == null) {
+      return null;
+    }
+
+    double itemVectorNorm = VectorMath.norm(itemVector);
+    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
+
+    ObjectSet<String> knownItems = getKnownItems(user);
+    if (knownItems != null && !knownItems.isEmpty()) {
+      entries = Iterables.filter(entries, new KnownPredicate(knownItems));
+    }
+
+    Iterable<Pair<String,Double>> idDotNorms =
+        Iterables.transform(entries, new CosineSimilarityFunction(itemVector, itemVectorNorm));
+    Ordering<Pair<String,Double>> ordering =
+        Ordering.from(PairComparators.<String,Double>bySecond());
+
+    Lock lock = yLock.readLock();
+    lock.lock();
+    try {
+      return ordering.greatestOf(idDotNorms, howMany);
+    } finally {
+      lock.unlock();
+    }
+  }
+
   public Collection<String> getAllItemIDs() {
     Lock lock = yLock.readLock();
     lock.lock();
@@ -279,7 +309,22 @@ public final class ALSServingModel {
     }
   }
 
-  private static class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,float[]>> {
+  private static class CosineSimilarityFunction
+      implements Function<ObjectObjectCursor<String, float[]>,Pair<String,Double>> {
+    private final float[] itemVector;
+    private final double itemVectorNorm;
+    CosineSimilarityFunction(float[] itemVector, double itemVectorNorm) {
+      this.itemVector = itemVector;
+      this.itemVectorNorm = itemVectorNorm;
+    }
+    @Override
+    public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
+      return new Pair<>(itemIDVector.key, VectorMath.dot(itemVector, itemIDVector.value) /
+          (itemVectorNorm * VectorMath.norm(itemIDVector.value)));
+    }
+  }
+
+  private static class NotKnownPredicate implements Predicate<ObjectObjectCursor<String, float[]>> {
     private final ObjectSet<String> knownItemsForUser;
     NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
       this.knownItemsForUser = knownItemsForUser;
@@ -288,6 +333,19 @@ public final class ALSServingModel {
     public boolean apply(ObjectObjectCursor<String,float[]> input) {
       synchronized (knownItemsForUser) {
         return !knownItemsForUser.contains(input.key);
+      }
+    }
+  }
+
+  private static class KnownPredicate implements Predicate<ObjectObjectCursor<String, float[]>> {
+    private final ObjectSet<String> knownItemsForUser;
+    KnownPredicate(ObjectSet<String> knownItemsForUser) {
+      this.knownItemsForUser = knownItemsForUser;
+    }
+    @Override
+    public boolean apply(ObjectObjectCursor<String, float[]> input) {
+      synchronized (knownItemsForUser) {
+        return knownItemsForUser.contains(input.key);
       }
     }
   }
