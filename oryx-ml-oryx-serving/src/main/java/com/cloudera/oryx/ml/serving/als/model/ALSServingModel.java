@@ -17,15 +17,17 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.carrotsearch.hppc.ObjectObjectMap;
 import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
+import com.carrotsearch.hppc.ObjectOpenHashSet;
+import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.base.Function;
@@ -46,7 +48,7 @@ public final class ALSServingModel {
 
   private final ObjectObjectMap<String,float[]> X;
   private final ObjectObjectMap<String,float[]> Y;
-  private final ObjectObjectMap<String,Collection<String>> knownItems;
+  private final ObjectObjectMap<String,ObjectSet<String>> knownItems;
   private final ReadWriteLock xLock;
   private final ReadWriteLock yLock;
   private final ReadWriteLock knownItemsLock;
@@ -117,7 +119,7 @@ public final class ALSServingModel {
     }
   }
 
-  public Collection<String> getKnownItems(String user) {
+  ObjectSet<String> getKnownItems(String user) {
     Lock lock = this.knownItemsLock.readLock();
     lock.lock();
     try {
@@ -128,15 +130,7 @@ public final class ALSServingModel {
   }
 
   void addKnownItems(String user, Collection<String> items) {
-    Collection<String> knownItemsForUser;
-
-    Lock lock = this.knownItemsLock.readLock();
-    lock.lock();
-    try {
-      knownItemsForUser = this.knownItems.get(user);
-    } finally {
-      lock.unlock();
-    }
+    ObjectSet<String> knownItemsForUser = getKnownItems(user);
 
     if (knownItemsForUser == null) {
       Lock writeLock = this.knownItemsLock.writeLock();
@@ -145,7 +139,7 @@ public final class ALSServingModel {
         // Check again
         knownItemsForUser = this.knownItems.get(user);
         if (knownItemsForUser == null) {
-          knownItemsForUser = Collections.synchronizedSet(new HashSet<String>());
+          knownItemsForUser = new ObjectOpenHashSet<>();
           this.knownItems.put(user, knownItemsForUser);
         }
       } finally {
@@ -153,7 +147,11 @@ public final class ALSServingModel {
       }
     }
 
-    knownItemsForUser.addAll(items);
+    synchronized (knownItemsForUser) {
+      for (String item : items) {
+        knownItemsForUser.add(item);
+      }
+    }
   }
 
   public List<Pair<String,Double>> topDotWithUserVector(String user,
@@ -164,7 +162,7 @@ public final class ALSServingModel {
       return null;
     }
 
-    Collection<String> knownItems;
+    ObjectSet<String> knownItems;
     if (considerKnownItems) {
       knownItems = null;
     } else {
@@ -244,13 +242,20 @@ public final class ALSServingModel {
   /**
    * @param items items that should be retained; all else can be removed
    */
-  void pruneKnownItems(Collection<String> items) {
+  void pruneKnownItems(Set<String> items) {
     Lock lock = this.knownItemsLock.readLock();
     lock.lock();
     try {
-      for (ObjectCursor<Collection<String>> collectionObjectCursor : this.knownItems.values()) {
-        // Assuming this collection is thread-safe:
-        collectionObjectCursor.value.retainAll(items);
+      for (ObjectCursor<ObjectSet<String>> collectionObjectCursor : this.knownItems.values()) {
+        ObjectSet<String> knownItemsForUser = collectionObjectCursor.value;
+        synchronized (knownItemsForUser) {
+          Iterator<ObjectCursor<String>> it = knownItemsForUser.iterator();
+          while (it.hasNext()) {
+            if (!items.contains(it.next().value)) {
+              it.remove();
+            }
+          }
+        }
       }
     } finally {
       lock.unlock();
@@ -277,13 +282,15 @@ public final class ALSServingModel {
   }
 
   private static class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,float[]>> {
-    private final Collection<String> knownItems;
-    NotKnownPredicate(Collection<String> knownItems) {
-      this.knownItems = knownItems;
+    private final ObjectSet<String> knownItemsForUser;
+    NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
+      this.knownItemsForUser = knownItemsForUser;
     }
     @Override
     public boolean apply(ObjectObjectCursor<String,float[]> input) {
-      return !knownItems.contains(input.key);
+      synchronized (knownItemsForUser) {
+        return !knownItemsForUser.contains(input.key);
+      }
     }
   }
 

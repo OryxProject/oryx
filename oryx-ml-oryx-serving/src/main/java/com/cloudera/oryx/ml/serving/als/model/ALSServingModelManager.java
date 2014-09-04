@@ -17,6 +17,7 @@ package com.cloudera.oryx.ml.serving.als.model;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
             List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
             model.retainAllUsers(XIDs);
             model.retainAllItems(YIDs);
-            model.pruneKnownItems(YIDs);
+            model.pruneKnownItems(new HashSet<>(YIDs));
 
           }
           break;

@@ -34,26 +34,29 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       new GenericType<List<IDValue>>() {};
 
   @Override
-  protected final Class<? extends ServletContextListener> getInitListenerClass() {
+  protected Class<? extends ServletContextListener> getInitListenerClass() {
     return MockManagerInitListener.class;
   }
 
-  public static final class MockManagerInitListener implements ServletContextListener {
+  public static class MockManagerInitListener implements ServletContextListener {
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
+    public final void contextInitialized(ServletContextEvent sce) {
       sce.getServletContext().setAttribute(
           AbstractALSResource.MODEL_MANAGER_KEY,
-          new MockServingModelManager());
+          getModelManager());
+    }
+    protected MockServingModelManager getModelManager() {
+      return new MockServingModelManager();
     }
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {
+    public final void contextDestroyed(ServletContextEvent sce) {
       // do nothing
     }
   }
 
-  private static final class MockServingModelManager implements ServingModelManager<String> {
+  protected static class MockServingModelManager implements ServingModelManager<String> {
     @Override
-    public void consume(Iterator<KeyMessage<String, String>> updateIterator) {
+    public final void consume(Iterator<KeyMessage<String, String>> updateIterator) {
       throw new UnsupportedOperationException();
     }
     @Override
@@ -61,7 +64,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       return TestALSModelFactory.buildTestModel();
     }
     @Override
-    public void close() {
+    public final void close() {
       // do nothing
     }
   }

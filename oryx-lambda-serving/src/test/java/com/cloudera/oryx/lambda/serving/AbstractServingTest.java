@@ -29,11 +29,12 @@ import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
-import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.junit.Before;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
+import com.cloudera.oryx.common.random.RandomManager;
 
 public abstract class AbstractServingTest extends JerseyTest {
 
@@ -44,6 +45,11 @@ public abstract class AbstractServingTest extends JerseyTest {
       new GenericType<Collection<String>>() {};
   protected static final GenericType<List<Double>> LIST_DOUBLE_TYPE =
       new GenericType<List<Double>>() {};
+
+  @Before
+  public final void initRandom() {
+    RandomManager.useTestSeed();
+  }
 
   @Override
   public final TestContainerFactory getTestContainerFactory() {
@@ -60,8 +66,8 @@ public abstract class AbstractServingTest extends JerseyTest {
 
   @Override
   protected final Application configure() {
-    enable(TestProperties.LOG_TRAFFIC);
-    enable(TestProperties.DUMP_ENTITY);
+    //enable(TestProperties.LOG_TRAFFIC);
+    //enable(TestProperties.DUMP_ENTITY);
     return new ResourceConfig(
         getResourceClass(),
         EncodingFilter.class,
