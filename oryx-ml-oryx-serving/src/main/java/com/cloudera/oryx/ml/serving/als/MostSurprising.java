@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -24,66 +23,55 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
+import com.cloudera.oryx.ml.serving.OryxServingException;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
  * {@code /mostSurprising/[userID](?howMany=n)}
- * and in turn calls {link com.cloudera.oryx.als.common.OryxRecommender#mostSurprising(String, int)}.
+ * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#mostSurprising(String, int)}.
  * {@code howMany} is the desired number of results to return. If {@code howMany} is not
- * specified, defaults to {link com.cloudera.oryx.als.serving.web.AbstractALSServlet#DEFAULT_HOW_MANY}.</p>
+ * specified, defaults to 10.</p>
  *
- * <p>CSV output contains one item per line, and each line is of the form {@code itemID, strength},
- * like {@code 325, 0.53}. Strength is an opaque indicator of the relative surprise of the item.
+ * <p>CSV/JSON output contains one item per line, and each line is of the form {@code itemID, strength},
+ * like {@code "I0", 0.53}. Strength is an opaque indicator of the relative surprise of the item.
  * Higher means more surprising</p>
  */
 @Path("/mostSurprising")
 public final class MostSurprising extends AbstractALSResource {
 
   @GET
-  @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<IDValue> get(
-      @PathParam("userID") String userID,
-      @DefaultValue("10") @QueryParam("howMany") int howMany) {
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
-    String userID;
-    try {
-      userID = pathComponents.next();
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
-    }
-    if (pathComponents.hasNext()) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Path too long");
-      return;
-    }
-
-    userID = unescapeSlashHack(userID);
-
-    OryxRecommender recommender = getRecommender();
-    try {
-      outputALSResult(request,
-                      response,
-                      recommender.mostSurprising(userID, getNumResultsToFetch(request)));
-    } catch (NoSuchUserException nsue) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, nsue.toString());
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-    } catch (UnsupportedOperationException uoe) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, uoe.toString());
-    }
-  */
-    return Arrays.asList(new IDValue("1", 5));
+  public Response get() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(
+        new ErrorResponse(Response.Status.BAD_REQUEST, "User ID is required")).build();
   }
 
+  @GET
+  @Path("{userID}")
+  @Produces({MediaType.APPLICATION_JSON,MediaType.TEXT_PLAIN})
+  public List<IDValue> get(@PathParam("userID") String userID,
+                           @DefaultValue("10") @QueryParam("howMany") int howMany) throws OryxServingException {
+    check(howMany > 0, "howMany must be positive");
+
+    ALSServingModel alsServingModel = getALSServingModel();
+    List<Pair<String,Double>> topIDDots =
+        alsServingModel.mostSurprising(userID,howMany);
+    check(topIDDots != null, Response.Status.NOT_FOUND, userID);
+
+    return Lists.transform(topIDDots,new Function<Pair<String, Double>, IDValue>() {
+      @Override
+      public IDValue apply(Pair<String, Double> input) {
+        return new IDValue(input.getFirst(),input.getSecond());
+      }
+    });
+  }
 }
