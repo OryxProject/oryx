@@ -64,7 +64,6 @@ public class BecauseTest extends AbstractALSServingTest {
   private void testOffset(int howMany, int offset, int expectedSize) {
     List<?> recommendations = target("/because/U6/I6")
         .queryParam("howMany", Integer.toString(howMany))
-        .queryParam("considerKnownItems", "false")
         .queryParam("offset", Integer.toString(offset))
         .request().get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(expectedSize, recommendations.size());
@@ -72,7 +71,7 @@ public class BecauseTest extends AbstractALSServingTest {
 
   private void testHowMany(int howMany, int expectedSize) {
     List<?> recommendations = target("/because/U5/I4")
-        .queryParam("howMany",Integer.toString(howMany)).queryParam("considerKnownItems", "true")
+        .queryParam("howMany",Integer.toString(howMany))
         .request().get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(expectedSize, recommendations.size());
   }
