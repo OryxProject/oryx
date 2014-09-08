@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -25,16 +25,21 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
+import com.cloudera.oryx.ml.serving.OryxServingException;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
- * and in turn calls {link OryxRecommender#mostSimilarItems(String[], int)} with the supplied values.
+ * and in turn calls {link ALSServingModel#mostSimilarItems(String[], int)} with the supplied values.
  * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
  * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
  * will cause the implementation to retrieve 35 results internally and output the last 5.
- * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
+ * If {@code howMany} is not specified, defaults to 10.
  * {@code offset} defaults to 0.</p>
  *
  * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
@@ -50,60 +55,35 @@ import com.cloudera.oryx.ml.serving.IDValue;
 public final class Similarity extends AbstractALSResource {
 
   @GET
-  @Path("{itemID : .+}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<IDValue> get(@PathParam("itemID") List<PathSegment> pathSegmentsList,
-                           @DefaultValue("10") @QueryParam("howMany") int howMany,
-                           @DefaultValue("0") @QueryParam("offset") int offset,
-                           @QueryParam("rescorerParams") List<String> rescorerParams) {
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
-    Set<String> itemIDSet = Sets.newHashSet();
-    try {
-      while (pathComponents.hasNext()) {
-        itemIDSet.add(pathComponents.next());
-      }
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
-    }
-
-    if (itemIDSet.isEmpty()) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No items");
-      return;
-    }
-
-    String[] itemIDs = itemIDSet.toArray(new String[itemIDSet.size()]);
-    unescapeSlashHack(itemIDs);
-
-    OryxRecommender recommender = getRecommender();
-    RescorerProvider rescorerProvider = getRescorerProvider();
-    try {
-      int howMany = getNumResultsToFetch(request);
-      List<IDValue> similar;
-      if (rescorerProvider == null) {
-        similar = recommender.mostSimilarItems(itemIDs, howMany);
-      } else {
-        PairRescorer rescorer =
-            rescorerProvider.getMostSimilarItemsRescorer(recommender, getRescorerParams(request));
-        similar = recommender.mostSimilarItems(itemIDs, howMany, rescorer);
-      }
-      outputALSResult(request, response, similar);
-    } catch (NoSuchItemException nsie) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-    }
-  */
-    return Arrays.asList(new IDValue("1", 5));
-
+  public Response get() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(
+        new ErrorResponse(Response.Status.BAD_REQUEST, "Atleast 1 itemID is required")).build();
   }
 
+  @GET
+  @Path("{itemID : .+}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<IDValue> get(
+      @PathParam("itemID") List<PathSegment> pathSegmentsList,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset,
+      @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
+
+    check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be non-negative");
+    check(pathSegmentsList.size() > 0, "Need atleast 1 item to determine similarity");
+
+    ALSServingModel alsServingModel = getALSServingModel();
+    List<String> itemsList = new ArrayList<>(pathSegmentsList.size());
+    for (PathSegment pathSegment : pathSegmentsList) {
+      itemsList.add(pathSegment.getPath());
+    }
+
+    List<Pair<String,Double>> topSimilarities =
+        alsServingModel.mostSimilarItems(itemsList, howMany + offset);
+    check(topSimilarities != null, Response.Status.NOT_FOUND, "No similar items found");
+
+    return toIDValueResponse(topSimilarities, howMany, offset);
+  }
 }
