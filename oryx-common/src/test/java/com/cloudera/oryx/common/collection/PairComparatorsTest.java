@@ -34,7 +34,7 @@ public final class PairComparatorsTest extends OryxTest {
         new Pair<>(1, "baz"),
         new Pair<>(2, "whizz")
     );
-    Collections.sort(pairs, PairComparators.<Integer,String>byFirst());
+    Collections.sort(pairs, PairComparators.<Integer>byFirst());
     assertEquals(1, pairs.get(0).getFirst().intValue());
     assertEquals(2, pairs.get(1).getFirst().intValue());
     assertEquals("baz", pairs.get(0).getSecond());
@@ -50,7 +50,7 @@ public final class PairComparatorsTest extends OryxTest {
         new Pair<>(1, "baz"),
         new Pair<>(2, "whizz")
     );
-    Collections.sort(pairs, PairComparators.<Integer,String>bySecond());
+    Collections.sort(pairs, PairComparators.<String>bySecond());
     assertEquals(1, pairs.get(0).getFirst().intValue());
     assertEquals(4, pairs.get(1).getFirst().intValue());
     assertEquals("baz", pairs.get(0).getSecond());
