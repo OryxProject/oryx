@@ -28,6 +28,7 @@ import javax.ws.rs.NotFoundException;
 import com.google.common.base.Stopwatch;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.glassfish.jersey.test.TestProperties;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -46,6 +47,9 @@ public final class LoadIT extends AbstractALSServingTest {
 
   @Override
   protected Class<?> getResourceClass() {
+    // OK place to sneak this in:
+    disable(TestProperties.LOG_TRAFFIC);
+    disable(TestProperties.DUMP_ENTITY);
     return Recommend.class;
   }
 

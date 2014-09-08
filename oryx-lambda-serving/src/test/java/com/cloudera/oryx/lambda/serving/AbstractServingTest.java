@@ -29,6 +29,7 @@ import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
+import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Before;
@@ -66,8 +67,8 @@ public abstract class AbstractServingTest extends JerseyTest {
 
   @Override
   protected final Application configure() {
-    //enable(TestProperties.LOG_TRAFFIC);
-    //enable(TestProperties.DUMP_ENTITY);
+    enable(TestProperties.LOG_TRAFFIC);
+    enable(TestProperties.DUMP_ENTITY);
     return new ResourceConfig(
         getResourceClass(),
         EncodingFilter.class,
