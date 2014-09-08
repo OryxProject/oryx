@@ -25,7 +25,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
+
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
@@ -65,11 +71,36 @@ public final class Because extends AbstractALSResource {
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be non-negative");
 
-    ALSServingModel alsServingModel = getALSServingModel();
-    List<Pair<String,Double>> topCosineSimilar =
-        alsServingModel.topCosineSimilarityWithItemVector(userID, itemID, howMany + offset);
-    check(topCosineSimilar != null, Response.Status.NOT_FOUND, userID);
+    ALSServingModel model = getALSServingModel();
+    float[] itemVector = model.getItemVector(itemID);
+    check(itemVector != null, Response.Status.NOT_FOUND, itemID);
+    List<Pair<String,float[]>> knownItemVectors = model.getKnownItemVectorsForUser(userID);
+    check(knownItemVectors != null, Response.Status.NOT_FOUND, userID);
 
-    return toIDValueResponse(topCosineSimilar, howMany, offset);
+    Iterable<Pair<String,Double>> idSimilarities =
+        Iterables.transform(knownItemVectors, new CosineSimilarityFunction(itemVector));
+
+    Ordering<Pair<?,Double>> ordering =
+        Ordering.from(PairComparators.<Double>bySecond());
+    return toIDValueResponse(
+        ordering.greatestOf(idSimilarities, howMany + offset), howMany, offset);
   }
+
+  private static final class CosineSimilarityFunction
+      implements Function<Pair<String,float[]>,Pair<String,Double>> {
+    private final float[] itemVector;
+    private final double itemVectorNorm;
+    CosineSimilarityFunction(float[] itemVector) {
+      this.itemVector = itemVector;
+      this.itemVectorNorm = VectorMath.norm(itemVector);
+    }
+    @Override
+    public Pair<String,Double> apply(Pair<String,float[]> itemIDVector) {
+      float[] otherItemVector = itemIDVector.getSecond();
+      double cosineSimilarity =  VectorMath.dot(itemVector, otherItemVector) /
+          (itemVectorNorm * VectorMath.norm(otherItemVector));
+      return new Pair<>(itemIDVector.getFirst(), cosineSimilarity);
+    }
+  }
+
 }

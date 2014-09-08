@@ -25,7 +25,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
+
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
@@ -66,12 +72,31 @@ public final class MostSurprising extends AbstractALSResource {
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
 
-    ALSServingModel alsServingModel = getALSServingModel();
-    List<Pair<String,Double>> mostSurprising =
-        alsServingModel.mostSurprising(userID,howMany);
-    check(mostSurprising != null, Response.Status.NOT_FOUND, userID);
+    ALSServingModel model = getALSServingModel();
+    float[] userVector = model.getUserVector(userID);
+    check(userVector != null, Response.Status.NOT_FOUND, userID);
+    List<Pair<String,float[]>> knownItemVectors = model.getKnownItemVectorsForUser(userID);
+    check(knownItemVectors != null, Response.Status.NOT_FOUND, userID);
 
-    return toIDValueResponse(mostSurprising, howMany, offset);
+    Iterable<Pair<String,Double>> idDots =
+        Iterables.transform(knownItemVectors, new DotsFunction(userVector));
+
+    Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
+    return toIDValueResponse(ordering.leastOf(idDots, howMany + offset), howMany, offset);
+  }
+
+  private static final class DotsFunction
+      implements Function<Pair<String,float[]>,Pair<String,Double>> {
+    private final float[] userVector;
+    DotsFunction(float[] userVector) {
+      this.userVector = userVector;
+    }
+    @Override
+    public Pair<String,Double> apply(Pair<String,float[]> itemIDVector) {
+      return new Pair<>(
+          itemIDVector.getFirst(),
+          VectorMath.dot(userVector, itemIDVector.getSecond()));
+    }
   }
 
 }
