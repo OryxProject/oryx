@@ -157,14 +157,15 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaPairRDD<Integer,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
 
-    if (noKnownItems) {
-      productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateQueue));
-    } else {
-      log.info("Sending known user data with model updates");
-      JavaPairRDD<Integer,Collection<Integer>> knownUsers = knownsRDD(allData, false);
-      productRDD.join(knownUsers).foreach(
-          new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateQueue));
-    }
+    // For now, there is no use in sending known users for each item
+    //if (noKnownItems) {
+    productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateQueue));
+    //} else {
+    //  log.info("Sending known user data with model updates");
+    //  JavaPairRDD<Integer,Collection<Integer>> knownUsers = knownsRDD(allData, false);
+    //  productRDD.join(knownUsers).foreach(
+    //      new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateQueue));
+    //}
   }
 
   private static JavaRDD<Rating> csvToRatingRDD(JavaRDD<String> csvRDD) {

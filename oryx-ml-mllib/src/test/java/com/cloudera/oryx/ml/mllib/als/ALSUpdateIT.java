@@ -146,12 +146,15 @@ public final class ALSUpdateIT extends AbstractALSIT {
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
 
-        @SuppressWarnings("unchecked")
-        Collection<String> knownUsersItems = (Collection<String>) update.get(3);
-        assertFalse(knownUsersItems.isEmpty());
-        for (String known : knownUsersItems) {
-          int i = Integer.parseInt(known);
-          assertTrue(i >= 0 && i < NUM_USERS_ITEMS);
+        if (isUser) {
+          // Only known-items for users exist now, not known users for items
+          @SuppressWarnings("unchecked")
+          Collection<String> knownUsersItems = (Collection<String>) update.get(3);
+          assertFalse(knownUsersItems.isEmpty());
+          for (String known : knownUsersItems) {
+            int i = Integer.parseInt(known);
+            assertTrue(i >= 0 && i < NUM_USERS_ITEMS);
+          }
         }
 
       } else {
