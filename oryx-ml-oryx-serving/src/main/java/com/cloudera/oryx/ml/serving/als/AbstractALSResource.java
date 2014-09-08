@@ -15,13 +15,18 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -65,6 +70,21 @@ public abstract class AbstractALSResource {
   protected final void check(boolean condition,
                              String errorMessage) throws OryxServingException {
     check(condition, Response.Status.BAD_REQUEST, errorMessage);
+  }
+
+  protected static List<IDValue> toIDValueResponse(List<Pair<String,Double>> pairs,
+                                                   int howMany,
+                                                   int offset) {
+    if (pairs.size() < offset) {
+      return Collections.emptyList();
+    }
+    int end = Math.min(offset + howMany, pairs.size());
+    List<IDValue> response = new ArrayList<>(end - offset);
+    for (int i = offset; i < end; i++) {
+      Pair<String,Double> idDot = pairs.get(i);
+      response.add(new IDValue(idDot.getFirst(), idDot.getSecond()));
+    }
+    return response;
   }
 
 }

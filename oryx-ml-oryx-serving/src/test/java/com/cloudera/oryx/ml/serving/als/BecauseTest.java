@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.cloudera.oryx.ml.serving.IDValue;
 
-public class BecauseTest extends AbstractALSServingTest {
+public final class BecauseTest extends AbstractALSServingTest {
 
   @Test
   public void testBecauseRecommended() {
@@ -46,33 +46,17 @@ public class BecauseTest extends AbstractALSServingTest {
 
   @Test
   public void testHowMany() {
-    // There are 9 recs available
-    testHowMany(10, 7);
-    testHowMany(9, 7);
-    testHowMany(5, 5);
+    testHowMany("/because/U5/I4", 10, 7);
+    testHowMany("/because/U5/I4", 9, 7);
+    testHowMany("/because/U5/I4", 5, 5);
   }
 
   @Test
   public void testOffset() {
-    // There are only 3 recs available
-    testOffset(2, 1, 2);
-    testOffset(3, 1, 3);
-    testOffset(1, 1, 1);
-    testOffset(3, 3, 3);
+    testOffset("/because/U6/I6", 2, 1, 2);
+    testOffset("/because/U6/I6", 3, 1, 3);
+    testOffset("/because/U6/I6", 1, 1, 1);
+    testOffset("/because/U6/I6", 3, 3, 3);
   }
 
-  private void testOffset(int howMany, int offset, int expectedSize) {
-    List<?> recommendations = target("/because/U6/I6")
-        .queryParam("howMany", Integer.toString(howMany))
-        .queryParam("offset", Integer.toString(offset))
-        .request().get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(expectedSize, recommendations.size());
-  }
-
-  private void testHowMany(int howMany, int expectedSize) {
-    List<?> recommendations = target("/because/U5/I4")
-        .queryParam("howMany",Integer.toString(howMany))
-        .request().get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(expectedSize, recommendations.size());
-  }
 }

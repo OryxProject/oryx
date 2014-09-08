@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.cloudera.oryx.ml.serving.IDValue;
 
-public class MostSurprisingTest extends AbstractALSServingTest {
+public final class MostSurprisingTest extends AbstractALSServingTest {
 
   @Test(expected = BadRequestException.class)
   public void testNoArg() {
@@ -42,16 +42,16 @@ public class MostSurprisingTest extends AbstractALSServingTest {
 
   @Test
   public void testHowMany() {
-    // There are 9 recs available
-    testHowMany(10, 6);
-    testHowMany(9, 6);
-    testHowMany(5, 5);
+    testHowMany("/mostSurprising/U4", 10, 6);
+    testHowMany("/mostSurprising/U4", 9, 6);
+    testHowMany("/mostSurprising/U4", 5, 5);
   }
 
-  private void testHowMany(int howMany, int expectedSize) {
-    List<?> recommendations = target("/mostSurprising/U4")
-        .queryParam("howMany",Integer.toString(howMany))
-        .request().get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(expectedSize, recommendations.size());
+  @Test
+  public void testOffset() {
+    testOffset("/mostSurprising/U4", 10, 0, 6);
+    testOffset("/mostSurprising/U4", 9, 3, 3);
+    testOffset("/mostSurprising/U4", 5, 6, 0);
   }
+
 }

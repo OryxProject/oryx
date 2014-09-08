@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -34,15 +32,16 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)}
- * and in turn calls {link ALSServingModel#topCosineSimilarityWithItemVector}.
- * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
- * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
- * will cause the implementation to retrieve 35 results internally and output the last 5.
- * If {@code howMany} is not specified, defaults to 10.
- * {@code offset} defaults to 0.</p>
+ * <p>Responds to a GET request to {@code /because/[userID]/[itemID](?howMany=n)(&offset=o)}.</p>
  *
- * <p>Outputs item/score pairs like {@link Recommend} does.</p>
+ * <p>Results are items that the user has interacted with that best explain why a given
+ * item was recommended. Outputs contain item and score pairs, where the score is an opaque
+ * value where higher values mean more relevant to recommendation.</p>
+ *
+ * <p>If the user, item or user's interacted items are not known to the model, an
+ * HTTP 404 Not Found response is generated.</p>
+ *
+ * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
 @Path("/because")
 public final class Because extends AbstractALSResource {
@@ -57,28 +56,20 @@ public final class Because extends AbstractALSResource {
   @GET
   @Path("{userID}/{itemID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public List<IDValue> get(@PathParam("userID") String userID,
-                           @PathParam("itemID") String itemID,
-                           @DefaultValue("10") @QueryParam("howMany") int howMany,
-                           @DefaultValue("0") @QueryParam("offset") int offset) throws OryxServingException {
+  public List<IDValue> get(
+      @PathParam("userID") String userID,
+      @PathParam("itemID") String itemID,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset) throws OryxServingException {
+
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be non-negative");
 
     ALSServingModel alsServingModel = getALSServingModel();
-    List<Pair<String,Double>> topIDDotNorms =
+    List<Pair<String,Double>> topCosineSimilar =
         alsServingModel.topCosineSimilarityWithItemVector(userID, itemID, howMany + offset);
-    check(topIDDotNorms != null, Response.Status.NOT_FOUND, userID);
+    check(topCosineSimilar != null, Response.Status.NOT_FOUND, userID);
 
-    if (topIDDotNorms.size() < offset) {
-      return Collections.emptyList();
-    }
-
-    int end = Math.min(offset + howMany, topIDDotNorms.size());
-    List<IDValue> idValuesList = new ArrayList<>(end - offset);
-    for (int i = offset; i < end; i++) {
-      Pair<String,Double> idDot = topIDDotNorms.get(i);
-      idValuesList.add(new IDValue(idDot.getFirst(), idDot.getSecond()));
-    }
-    return idValuesList;
+    return toIDValueResponse(topCosineSimilar, howMany, offset);
   }
 }

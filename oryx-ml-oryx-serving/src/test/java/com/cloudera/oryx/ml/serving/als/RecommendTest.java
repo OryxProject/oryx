@@ -39,35 +39,17 @@ public final class RecommendTest extends AbstractALSServingTest {
 
   @Test
   public void testHowMany() {
-    // There are 9 recs available
-    testHowMany(10, 9);
-    testHowMany(9, 9);
-    testHowMany(5, 5);
-  }
-
-  private void testHowMany(int howMany, int expectedSize) {
-    List<?> recommendations = target("/recommend/U5")
-        .queryParam("howMany",Integer.toString(howMany)).queryParam("considerKnownItems", "true")
-        .request().get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(expectedSize, recommendations.size());
+    testHowMany("/recommend/U5", 10, 2);
+    testHowMany("/recommend/U5", 2, 2);
+    testHowMany("/recommend/U5", 1, 1);
   }
 
   @Test
   public void testOffset() {
-    // There are only 3 recs available
-    testOffset(2, 1, 2);
-    testOffset(3, 1, 2);
-    testOffset(1, 1, 1);
-    testOffset(3, 3, 0);
-  }
-
-  private void testOffset(int howMany, int offset, int expectedSize) {
-    List<?> recommendations = target("/recommend/U6")
-        .queryParam("howMany", Integer.toString(howMany))
-        .queryParam("considerKnownItems", "false")
-        .queryParam("offset", Integer.toString(offset))
-        .request().get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(expectedSize, recommendations.size());
+    testOffset("/recommend/U6", 2, 1, 2);
+    testOffset("/recommend/U6", 3, 1, 2);
+    testOffset("/recommend/U6", 1, 1, 1);
+    testOffset("/recommend/U6", 3, 3, 0);
   }
 
   @Test

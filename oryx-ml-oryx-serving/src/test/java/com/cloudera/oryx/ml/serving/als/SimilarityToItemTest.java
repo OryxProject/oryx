@@ -22,7 +22,7 @@ import javax.ws.rs.core.MediaType;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class SimilarityToItemTest extends AbstractALSServingTest {
+public final class SimilarityToItemTest extends AbstractALSServingTest {
 
   @Test(expected = BadRequestException.class)
   public void testNoArg() {
@@ -30,7 +30,7 @@ public class SimilarityToItemTest extends AbstractALSServingTest {
   }
 
   @Test
-  public void test() {
+  public void testSimilarityToItem() {
     List<Double> items = target("similarityToItem/I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(2, items.size());

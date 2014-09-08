@@ -154,22 +154,22 @@ public final class ALSServingModel {
     }
   }
 
-  public List<Pair<String,Double>> mostSurprising(String user,int howMany) {
+  public List<Pair<String,Double>> mostSurprising(String user, int howMany) {
     float[] userVector = getUserVector(user);
     if (userVector == null) {
       return null;
     }
-
-    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
-
     ObjectSet<String> knownItems = getKnownItems(user);
-    if (knownItems != null && !knownItems.isEmpty()) {
-      entries = Iterables.filter(entries, new KnownPredicate(knownItems));
+    if (knownItems == null || knownItems.isEmpty()) {
+      return null;
     }
 
+    Iterable<ObjectObjectCursor<String,float[]>> entries =
+        Iterables.filter(Y, new KnownPredicate(knownItems));
+
     Iterable<Pair<String,Double>> idDots =
-        Iterables.transform(entries, new DotsFunction(userVector,true));
-    return fetchMaxItems(idDots,howMany);
+        Iterables.transform(entries, new DotsFunction(userVector, true));
+    return topN(idDots, howMany);
   }
 
   public List<Pair<String,Double>> topDotWithUserVector(String user,
@@ -191,7 +191,7 @@ public final class ALSServingModel {
 
     Iterable<Pair<String,Double>> idDots =
         Iterables.transform(entries, new DotsFunction(userVector,false));
-    return fetchMaxItems(idDots,howMany);
+    return topN(idDots, howMany);
   }
 
   public List<Pair<String,Double>> topCosineSimilarityWithItemVector(String user,
@@ -201,16 +201,17 @@ public final class ALSServingModel {
     if (itemVector == null) {
       return null;
     }
-    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
-
     ObjectSet<String> knownItems = getKnownItems(user);
-    if (knownItems != null && !knownItems.isEmpty()) {
-      entries = Iterables.filter(entries, new KnownPredicate(knownItems));
+    if (knownItems == null || knownItems.isEmpty()) {
+      return null;
     }
 
-    Iterable<Pair<String,Double>> idDotNorms =
+    Iterable<ObjectObjectCursor<String,float[]>> entries =
+        Iterables.filter(Y, new KnownPredicate(knownItems));
+
+    Iterable<Pair<String,Double>> cosineSimilar =
         Iterables.transform(entries, new CosineSimilarityFunction(itemVector));
-    return fetchMaxItems(idDotNorms, howMany);
+    return topN(cosineSimilar, howMany);
   }
 
   public List<Pair<String,Double>> mostSimilarItems(List<String> itemsList,int howMany) {
@@ -231,15 +232,15 @@ public final class ALSServingModel {
       Preconditions.checkState(!(Double.isInfinite(result) || Double.isNaN(result)), "Bad similarity value");
       itemScoresList.add(new Pair<>(entry.key, result));
     }
-    return fetchMaxItems(itemScoresList, howMany);
+    return topN(itemScoresList, howMany);
   }
 
-  private List<Pair<String,Double>> fetchMaxItems(Iterable<Pair<String,Double>> iterables,int howMany) {
+  private List<Pair<String,Double>> topN(Iterable<Pair<String,Double>> pairs, int howMany) {
     Ordering<Pair<String,Double>> ordering = Ordering.from(PairComparators.<String,Double>bySecond());
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      return ordering.greatestOf(iterables, howMany);
+      return ordering.greatestOf(pairs, howMany);
     } finally {
       lock.unlock();
     }
@@ -330,30 +331,32 @@ public final class ALSServingModel {
   private static class DotsFunction
       implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
     private final float[] userVector;
-    private final boolean computeSimilarity;
-    DotsFunction(float[] userVector,boolean computeSimilarity) {
+    private final boolean negate;
+    DotsFunction(float[] userVector, boolean negate) {
       this.userVector = userVector;
-      this.computeSimilarity = computeSimilarity;
+      this.negate = negate;
     }
     @Override
     public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
-      if (computeSimilarity) {
-        return new Pair<>(itemIDVector.key, 1.0 - VectorMath.dot(userVector, itemIDVector.value));
-      } else {
-        return new Pair<>(itemIDVector.key, VectorMath.dot(userVector, itemIDVector.value));
-      }
+      double dot = VectorMath.dot(userVector, itemIDVector.value);
+      return new Pair<>(itemIDVector.key, negate ? 1.0 - dot : dot);
     }
   }
 
   private static class CosineSimilarityFunction
       implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
     private final float[] itemVector;
+    private final double itemVectorNorm;
     CosineSimilarityFunction(float[] itemVector) {
       this.itemVector = itemVector;
+      this.itemVectorNorm = VectorMath.norm(itemVector);
     }
     @Override
     public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
-      return new Pair<>(itemIDVector.key, cosineSimilarity(itemVector, itemIDVector.value));
+      float[] otherItemVector = itemIDVector.value;
+      double cosineSimilarity =  VectorMath.dot(itemVector, otherItemVector) /
+          (itemVectorNorm * VectorMath.norm(otherItemVector));
+      return new Pair<>(itemIDVector.key, cosineSimilarity);
     }
   }
 
@@ -383,7 +386,4 @@ public final class ALSServingModel {
     }
   }
 
-  private static double cosineSimilarity(float[] a, float[] b) {
-    return VectorMath.dot(a,b)/(VectorMath.norm(a) * VectorMath.norm(b));
-  }
 }

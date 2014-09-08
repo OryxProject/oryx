@@ -21,6 +21,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
 
+import org.junit.Assert;
+
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
@@ -67,6 +69,21 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     public final void close() {
       // do nothing
     }
+  }
+
+  protected final void testOffset(String requestPath, int howMany, int offset, int expectedSize) {
+    List<?> results = target(requestPath)
+        .queryParam("howMany", Integer.toString(howMany))
+        .queryParam("offset", Integer.toString(offset))
+        .request().get(LIST_ID_VALUE_TYPE);
+    Assert.assertEquals(expectedSize, results.size());
+  }
+
+  protected final void testHowMany(String requestPath, int howMany, int expectedSize) {
+    List<?> results = target(requestPath)
+        .queryParam("howMany",Integer.toString(howMany))
+        .request().get(LIST_ID_VALUE_TYPE);
+    Assert.assertEquals(expectedSize, results.size());
   }
 
 }

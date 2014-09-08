@@ -25,9 +25,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -35,15 +32,18 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to
- * {@code /mostSurprising/[userID](?howMany=n)}
- * and in turn calls {link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#mostSurprising(String, int)}.
- * {@code howMany} is the desired number of results to return. If {@code howMany} is not
- * specified, defaults to 10.</p>
+ * <p>Responds to a GET request to {@code /mostSurprising/[userID](?howMany=n)(?offset=o)}.
  *
- * <p>CSV/JSON output contains one item per line, and each line is of the form {@code itemID, strength},
- * like {@code "I0", 0.53}. Strength is an opaque indicator of the relative surprise of the item.
- * Higher means more surprising</p>
+ * <p>This is like an anti-{@code recommend} method, where the results are taken from among
+ * the items that the user has already interacted with, and the results are items that
+ * seem least-likely to be interacted with according to the model.
+ * Outputs contain item and score pairs, where the score is an opaque
+ * value where higher values mean more surprising.</p>
+ *
+ * <p>If the user, item or user's interacted items are not known to the model, an
+ * HTTP 404 Not Found response is generated.</p>
+ *
+ * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
 @Path("/mostSurprising")
 public final class MostSurprising extends AbstractALSResource {
@@ -58,20 +58,20 @@ public final class MostSurprising extends AbstractALSResource {
   @GET
   @Path("{userID}")
   @Produces({MediaType.APPLICATION_JSON,MediaType.TEXT_PLAIN})
-  public List<IDValue> get(@PathParam("userID") String userID,
-                           @DefaultValue("10") @QueryParam("howMany") int howMany) throws OryxServingException {
+  public List<IDValue> get(
+      @PathParam("userID") String userID,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset) throws OryxServingException {
+
     check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel alsServingModel = getALSServingModel();
-    List<Pair<String,Double>> topIDDots =
+    List<Pair<String,Double>> mostSurprising =
         alsServingModel.mostSurprising(userID,howMany);
-    check(topIDDots != null, Response.Status.NOT_FOUND, userID);
+    check(mostSurprising != null, Response.Status.NOT_FOUND, userID);
 
-    return Lists.transform(topIDDots,new Function<Pair<String, Double>, IDValue>() {
-      @Override
-      public IDValue apply(Pair<String, Double> input) {
-        return new IDValue(input.getFirst(),input.getSecond());
-      }
-    });
+    return toIDValueResponse(mostSurprising, howMany, offset);
   }
+
 }

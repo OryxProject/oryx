@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -33,6 +31,28 @@ import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
+/**
+ * <p>Responds to a GET request to
+ * {@code /recommend/[userID](?howMany=n)(&offset=o)(&considerKnownItems=c)}.</p>
+ *
+ * <p>Results are recommended items for the user, along with a score.
+ * Outputs contain item and score pairs, where the score is an opaque
+ * value where higher values mean a better recommendation.</p>
+ *
+ * <p>{@code offset} is an offset into the entire list of results; {@code howMany} is the desired
+ * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
+ * will cause the implementation to retrieve 35 results internally and output the last 5.
+ * If {@code howMany} is not specified, defaults to 10. {@code offset} defaults to 0.</p>
+ *
+ * <p>{@code considerKnownItems} causes items that the user has interacted with to be
+ * eligible to be returned as recommendations. It defaults to {@code false}, meaning that these
+ * previously interacted-with items are not returned in recommendations.</p>
+ *
+ * <p>If the user is not known to the model, an HTTP 404 Not Found response is generated.</p>
+ *
+ * <p>Default output is JSON format, an array of recommendations, each of which has an
+ * "id" and "value" entry, like [{"id":"I2","value":0.141348009071816},...]</p>
+ */
 @Path("/recommend")
 public final class Recommend extends AbstractALSResource {
 
@@ -61,16 +81,7 @@ public final class Recommend extends AbstractALSResource {
         model.topDotWithUserVector(userID, howMany + offset, considerKnownItems);
     check(topIDDots != null, Response.Status.NOT_FOUND, userID);
 
-    if (topIDDots.size() < offset) {
-      return Collections.emptyList();
-    }
-    int end = Math.min(offset + howMany, topIDDots.size());
-    List<IDValue> response = new ArrayList<>(end - offset);
-    for (int i = offset; i < end; i++) {
-      Pair<String,Double> idDot = topIDDots.get(i);
-      response.add(new IDValue(idDot.getFirst(), idDot.getSecond()));
-    }
-    return response;
+    return toIDValueResponse(topIDDots, howMany, offset);
   }
 
 }
