@@ -17,6 +17,7 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.Iterator;
 import java.util.List;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
@@ -43,9 +44,9 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
   public static class MockManagerInitListener implements ServletContextListener {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
-      sce.getServletContext().setAttribute(
-          AbstractALSResource.MODEL_MANAGER_KEY,
-          getModelManager());
+      ServletContext context = sce.getServletContext();
+      context.setAttribute(AbstractALSResource.MODEL_MANAGER_KEY, getModelManager());
+      context.setAttribute(AbstractALSResource.INPUT_PRODUCER_KEY, new MockQueueProducer());
     }
     protected MockServingModelManager getModelManager() {
       return new MockServingModelManager();

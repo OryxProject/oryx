@@ -55,7 +55,7 @@ public abstract class AbstractALSResource {
     return alsServingModel;
   }
 
-  protected final QueueProducer<String,String> getInputProducer() {
+  protected final QueueProducer<?,String> getInputProducer() {
     return inputProducer;
   }
 
