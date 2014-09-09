@@ -37,14 +37,12 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
- * and in turn calls {link OryxRecommender#mostPopularItems(int)}.
- * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
- * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
- * will cause the implementation to retrieve 35 results internally and output the last 5.
- * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
- * {@code offset} defaults to 0.</p>
  *
- * <p>Output is as in {@link Recommend}.</p>
+ * <p>Results are items that the most users have interacted with, as item and count pairs.</p>
+ *
+ * <p>{@code howMany} and {@code offset} behavior are as in {@link Recommend}. Output
+ * is also the same, except that item IDs are returned with integer counts rather than
+ * scores.</p>
  */
 @Path("/mostPopularItems")
 public final class MostPopularItems extends AbstractALSResource {
