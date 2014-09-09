@@ -46,11 +46,10 @@ public final class LoadIT extends AbstractALSServingTest {
   private static final int REQS_PER_WORKER = 100;
 
   @Override
-  protected Class<?> getResourceClass() {
-    // OK place to sneak this in:
+  protected void configureProperties() {
+    super.configureProperties();
     disable(TestProperties.LOG_TRAFFIC);
     disable(TestProperties.DUMP_ENTITY);
-    return Recommend.class;
   }
 
   @Test

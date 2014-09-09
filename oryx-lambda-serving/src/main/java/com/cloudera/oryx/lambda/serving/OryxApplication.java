@@ -16,7 +16,6 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.util.Set;
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
@@ -39,21 +38,17 @@ public final class OryxApplication extends Application {
 
   @Context
   private ServletContext servletContext;
-  private String packages;
-
-  @PostConstruct
-  public void init() {
-    packages = servletContext.getInitParameter(OryxApplication.class.getName() + ".packages");
-    Preconditions.checkNotNull(packages);
-  }
 
   /**
-   * @return  user endpoint implementations from the package named in init param
+   * @return user endpoint implementations from the package named in context init param
    *  {@code com.cloudera.oryx.lambda.serving.OryxApplication.packages}.
    */
   @Override
   public Set<Class<?>> getClasses() {
+    String packages =
+        servletContext.getInitParameter(OryxApplication.class.getName() + ".packages");
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
+    Preconditions.checkNotNull(packages);
     Reflections reflections = new Reflections(packages);
     Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
     Set<Class<?>> providerClasses = reflections.getTypesAnnotatedWith(Provider.class);

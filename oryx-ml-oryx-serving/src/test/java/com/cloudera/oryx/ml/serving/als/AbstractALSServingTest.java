@@ -37,6 +37,11 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       new GenericType<List<IDValue>>() {};
 
   @Override
+  protected final String getResourcePackage() {
+    return getClass().getPackage().getName();
+  }
+
+  @Override
   protected Class<? extends ServletContextListener> getInitListenerClass() {
     return MockManagerInitListener.class;
   }

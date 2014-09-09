@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
+import java.util.zip.InflaterInputStream;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -41,8 +41,8 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
  * <p>Responds to a POST to {@code /ingest}. The content of the request are interpreted as
  * lines of text and are submitted to the input Kafka queue as-is.</p>
  *
- * <p>The body may be compressed with {@code application/gzip}, {@code application/x-gzip} or
- * {@code application/zip}. It may also by {@code multipart/form-data} encoded.</p>
+ * <p>The body may be compressed with {@code gzip} or {@code deflate} {@code Content-Encoding}.
+ * It may also by {@code multipart/form-data} encoded.</p>
  */
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
@@ -83,11 +83,10 @@ public final class Ingest extends AbstractALSResource {
                                             InputStream in) throws IOException {
     if (contentEncoding != null) {
       switch (contentEncoding) {
-        case "application/zip":
-          in = new ZipInputStream(in);
+        case "deflate":
+          in = new InflaterInputStream(in);
           break;
-        case "application/gzip":
-        case "application/x-gzip":
+        case "gzip":
           in = new GZIPInputStream(in);
           break;
       }

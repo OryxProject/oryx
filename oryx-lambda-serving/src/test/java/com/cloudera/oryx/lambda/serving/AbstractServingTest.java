@@ -18,14 +18,8 @@ package com.cloudera.oryx.lambda.serving;
 import java.util.Collection;
 import java.util.List;
 import javax.servlet.ServletContextListener;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.GenericType;
 
-import com.google.common.base.Preconditions;
-import org.glassfish.jersey.message.DeflateEncoder;
-import org.glassfish.jersey.message.GZipEncoder;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
@@ -34,7 +28,6 @@ import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Before;
 
-import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 
 public abstract class AbstractServingTest extends JerseyTest {
@@ -57,32 +50,22 @@ public abstract class AbstractServingTest extends JerseyTest {
     return new GrizzlyWebTestContainerFactory();
   }
 
+  protected void configureProperties() {
+    enable(TestProperties.LOG_TRAFFIC);
+    enable(TestProperties.DUMP_ENTITY);
+  }
+
   @Override
   protected final DeploymentContext configureDeployment() {
-    return ServletDeploymentContext.builder(configure())
-        .initParam("jersey.config.server.provider.packages", getResourceClass().getPackage().getName())
+    configureProperties();
+    return ServletDeploymentContext.builder(OryxApplication.class)
+        .initParam("javax.ws.rs.Application", OryxApplication.class.getName())
+        .contextParam(OryxApplication.class.getName() + ".packages", getResourcePackage())
         .addListener(getInitListenerClass())
         .build();
   }
 
-  @Override
-  protected final Application configure() {
-    enable(TestProperties.LOG_TRAFFIC);
-    enable(TestProperties.DUMP_ENTITY);
-    return new ResourceConfig(
-        getResourceClass(),
-        EncodingFilter.class,
-        GZipEncoder.class,
-        DeflateEncoder.class);
-  }
-
-  protected Class<?> getResourceClass() {
-    // By default, guess resource class from test class name
-    String testClassName = this.getClass().getName();
-    Preconditions.checkState(testClassName.endsWith("Test"));
-    String resourceClassName = testClassName.substring(0, testClassName.length() - 4);
-    return ClassUtils.loadClass(resourceClassName);
-  }
+  protected abstract String getResourcePackage();
 
   protected abstract Class<? extends ServletContextListener> getInitListenerClass();
 

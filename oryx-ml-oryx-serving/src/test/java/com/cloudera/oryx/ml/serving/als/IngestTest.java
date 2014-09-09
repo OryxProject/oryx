@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -56,25 +55,16 @@ public final class IngestTest extends AbstractALSServingTest {
   public void testGZippedIngest() {
     byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
     Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "application/gzip"));
+        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "gzip"));
     Response response = target("/ingest").request().post(entity);
     checkResponse(response);
   }
 
   @Test
-  public void testZippedIngest() {
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (ZipOutputStream compressingStream = new ZipOutputStream(bytes)) {
-      compressingStream.putNextEntry(new ZipEntry("data"));
-      compressingStream.write(INGEST_DATA.getBytes(StandardCharsets.UTF_8));
-      compressingStream.closeEntry();
-    } catch (IOException e) {
-      // Can't happen
-      throw new IllegalStateException(e);
-    }
-    byte[] compressed = bytes.toByteArray();
+  public void testDeflateIngest() {
+    byte[] compressed = compress(INGEST_DATA, DeflaterOutputStream.class);
     Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "application/zip"));
+        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "deflate"));
     Response response = target("/ingest").request().post(entity);
     checkResponse(response);
   }
@@ -92,7 +82,7 @@ public final class IngestTest extends AbstractALSServingTest {
   public void testGzippedFormIngest() {
     byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
     Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.MULTIPART_FORM_DATA_TYPE, "application/gzip"));
+        compressed, compressedVariant(MediaType.MULTIPART_FORM_DATA_TYPE, "gzip"));
     Response response = target("/ingest").request().post(entity);
     checkResponse(response);
   }
@@ -110,6 +100,7 @@ public final class IngestTest extends AbstractALSServingTest {
                                        new Class<?>[] { OutputStream.class },
                                        new Object[] { bytes })) {
       compressingStream.write(data.getBytes(StandardCharsets.UTF_8));
+      compressingStream.flush();
     } catch (IOException e) {
       // Can't happen
       throw new IllegalStateException(e);
