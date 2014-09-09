@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.util.HashSet;
 import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -27,6 +28,8 @@ import com.google.common.base.Preconditions;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.common.lang.ClassUtils;
 
 /**
  * The single JAX-RS app for the serving-layer.
@@ -50,9 +53,18 @@ public final class OryxApplication extends Application {
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
     Preconditions.checkNotNull(packages);
     Reflections reflections = new Reflections(packages);
-    Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
-    Set<Class<?>> providerClasses = reflections.getTypesAnnotatedWith(Provider.class);
-    classes.addAll(providerClasses);
+    Set<Class<?>> classes = new HashSet<>(reflections.getTypesAnnotatedWith(Path.class));
+    classes.addAll(reflections.getTypesAnnotatedWith(Provider.class));
+    // Want to configure these globally, but not depend on Jersey, even though it's
+    // what will be used in practice by the provide dapps.
+    for (String optionalJerseyClass : new String[] {
+          "org.glassfish.jersey.message.DeflateEncoder",
+          "org.glassfish.jersey.message.GZipEncoder",
+          "org.glassfish.jersey.server.filter.EncodingFilter"}) {
+      if (ClassUtils.classExists(optionalJerseyClass)) {
+        classes.add(ClassUtils.loadClass(optionalJerseyClass));
+      }
+    }
     log.info("Found JAX-RS resources: {}", classes);
     return classes;
   }

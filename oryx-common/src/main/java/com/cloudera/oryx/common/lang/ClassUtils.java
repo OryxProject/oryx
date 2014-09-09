@@ -48,6 +48,19 @@ public final class ClassUtils {
     return doLoadClass(className, superClass, ClassUtils.class.getClassLoader());
   }
 
+  /**
+   * @param implClassName class name to text
+   * @return {@code true} if the class exists in the JVM and can be loaded
+   */
+  public static boolean classExists(String implClassName) {
+    try {
+      Class.forName(implClassName);
+      return true;
+    } catch (ClassNotFoundException ignored) {
+      return false;
+    }
+  }
+
   private static <T> Class<? extends T> doLoadClass(String implClassName,
                                                     Class<T> superClass,
                                                     ClassLoader classLoader) {

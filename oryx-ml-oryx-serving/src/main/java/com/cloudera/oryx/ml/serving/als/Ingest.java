@@ -17,13 +17,11 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.InflaterInputStream;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -31,7 +29,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.lambda.QueueProducer;
@@ -52,10 +49,8 @@ public final class Ingest extends AbstractALSResource {
 
   @POST
   @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, TEXT_CSV})
-  public void post(InputStream in, @Context HttpHeaders requestHeaders) throws IOException {
-    String contentEncoding =
-        requestHeaders.getHeaderString(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
-    doPost(buildReader(contentEncoding, in));
+  public void post(Reader reader) throws IOException {
+    doPost(reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader));
   }
 
   @POST
@@ -70,28 +65,11 @@ public final class Ingest extends AbstractALSResource {
         String partContentType = part.getContentType();
         if (INGEST_TYPES.contains(partContentType)) {
           anyValidPart = true;
-          String contentEncoding =
-              part.getHeader(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
-          doPost(buildReader(contentEncoding, part.getInputStream()));
+          doPost(new BufferedReader(new InputStreamReader(part.getInputStream(), StandardCharsets.UTF_8)));
         }
       }
     }
     check(anyValidPart, "No Part with supported Content-Type");
-  }
-
-  private static BufferedReader buildReader(String contentEncoding,
-                                            InputStream in) throws IOException {
-    if (contentEncoding != null) {
-      switch (contentEncoding) {
-        case "deflate":
-          in = new InflaterInputStream(in);
-          break;
-        case "gzip":
-          in = new GZIPInputStream(in);
-          break;
-      }
-    }
-    return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
 
   private void doPost(BufferedReader buffered) throws IOException {

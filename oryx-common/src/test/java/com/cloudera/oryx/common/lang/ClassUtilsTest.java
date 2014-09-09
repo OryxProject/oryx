@@ -55,4 +55,11 @@ public final class ClassUtilsTest extends OryxTest {
                               new Object[] { null });
   }
 
+  @Test
+  public void testExists() {
+    assertTrue(ClassUtils.classExists("java.lang.String"));
+    assertTrue(ClassUtils.classExists("com.cloudera.oryx.common.lang.ClassUtils"));
+    assertFalse(ClassUtils.classExists("java.Foo"));
+  }
+
 }
