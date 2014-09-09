@@ -75,14 +75,16 @@ public final class Ingest extends AbstractALSResource {
 
   private static BufferedReader buildReader(String contentEncoding,
                                             InputStream in) throws IOException {
-    switch (contentEncoding) {
-      case "application/zip":
-        in = new ZipInputStream(in);
-        break;
-      case "application/gzip":
-      case "application/x-gzip":
-        in = new GZIPInputStream(in);
-        break;
+    if (contentEncoding != null) {
+      switch (contentEncoding) {
+        case "application/zip":
+          in = new ZipInputStream(in);
+          break;
+        case "application/gzip":
+        case "application/x-gzip":
+          in = new GZIPInputStream(in);
+          break;
+      }
     }
     return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
