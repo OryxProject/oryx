@@ -16,7 +16,7 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,7 +68,7 @@ public final class RecommendTest extends AbstractALSServingTest {
     Assert.assertEquals(2.00474569593095, withConsider.get(0).getValue(), FLOAT_EPSILON);
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test(expected = NotFoundException.class)
   public void testNoArg() {
     target("/recommend").request().get(String.class);
   }

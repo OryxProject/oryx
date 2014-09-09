@@ -18,30 +18,26 @@ package com.cloudera.oryx.ml.serving.als;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * <p>Responds to a HEAD or GET request to {@code /ready}
- * Returns "OK" or "Unavailable" status depending on
- * whether the ALSServingModel is available or not.</p>
+ * <p>Responds to a HEAD or GET request to {@code /ready} and returns {@link Response.Status#OK}
+ * or {@link Response.Status#SERVICE_UNAVAILABLE} status depending or whether the model is
+ * available or not.</p>
  */
 @Path("/ready")
 public final class Ready extends AbstractALSResource {
 
   @HEAD
-  @Produces(MediaType.APPLICATION_JSON)
   public Response head() {
     return get();
   }
 
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
   public Response get() {
-    return getALSServingModel() != null ?
-        Response.ok().build() :
-        Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+    return getALSServingModel() == null ?
+        Response.status(Response.Status.SERVICE_UNAVAILABLE).build() :
+        Response.ok().build();
   }
 }
 

@@ -26,7 +26,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -55,13 +54,6 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  */
 @Path("/recommend")
 public final class Recommend extends AbstractALSResource {
-
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(Response.Status.BAD_REQUEST).entity(
-        new ErrorResponse(Response.Status.BAD_REQUEST, "User ID required")).build();
-  }
 
   @GET
   @Path("{userID}")

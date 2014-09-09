@@ -16,7 +16,7 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
@@ -39,7 +39,7 @@ public final class BecauseTest extends AbstractALSServingTest {
 
   }
 
-  @Test(expected = BadRequestException.class)
+  @Test(expected = NotFoundException.class)
   public void testNoArg() {
     target("/because").request().get(String.class);
   }

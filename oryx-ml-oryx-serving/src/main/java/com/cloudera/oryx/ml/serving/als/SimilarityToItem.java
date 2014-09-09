@@ -28,7 +28,6 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -46,13 +45,6 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  */
 @Path("/similarityToItem")
 public final class SimilarityToItem extends AbstractALSResource {
-
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(Response.Status.BAD_REQUEST).entity(
-        new ErrorResponse(Response.Status.BAD_REQUEST, "toItemID is required")).build();
-  }
 
   @GET
   @Path("{toItemID}/{itemID : .+}")

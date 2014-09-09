@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
@@ -24,14 +23,14 @@ import org.junit.Test;
 public final class ReadyTest extends AbstractALSServingTest {
 
   @Test
-  public void testGetResponseOk() {
-    Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+  public void testGet() {
+    Response response = target("/ready").request().get();
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 
   @Test
-  public void testHeadResponseOk() {
-    Response response = target("/ready").request().accept(MediaType.APPLICATION_JSON_TYPE).head();
+  public void testHead() {
+    Response response = target("/ready").request().head();
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
   }
 }

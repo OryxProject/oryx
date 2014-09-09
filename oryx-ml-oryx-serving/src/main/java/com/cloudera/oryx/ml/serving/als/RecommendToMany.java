@@ -23,9 +23,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.ml.serving.ErrorResponse;
 import com.cloudera.oryx.ml.serving.IDValue;
 
 /**
@@ -48,13 +46,6 @@ import com.cloudera.oryx.ml.serving.IDValue;
  */
 @Path("/recommendToMany")
 public final class RecommendToMany extends AbstractALSResource {
-
-  @GET
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response get() {
-    return Response.status(Response.Status.BAD_REQUEST).entity(
-        new ErrorResponse(Response.Status.BAD_REQUEST, "One or more user IDs required")).build();
-  }
 
   @GET
   @Path("{userID}")
