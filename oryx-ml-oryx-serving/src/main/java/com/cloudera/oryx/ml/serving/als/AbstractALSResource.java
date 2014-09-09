@@ -37,6 +37,8 @@ public abstract class AbstractALSResource {
   public static final String INPUT_PRODUCER_KEY =
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.InputProducer";
 
+  public static final String TEXT_CSV = "text/csv";
+
   @Context
   private ServletContext servletContext;
   private ALSServingModel alsServingModel;

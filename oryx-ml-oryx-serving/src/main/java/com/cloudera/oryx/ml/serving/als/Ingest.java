@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -32,7 +33,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.ml.serving.OryxServingException;
@@ -47,8 +47,11 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
 
+  private static final Collection<String> INGEST_TYPES =
+      Arrays.asList(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, TEXT_CSV);
+
   @POST
-  @Consumes(MediaType.TEXT_PLAIN)
+  @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, TEXT_CSV})
   public void post(InputStream in, @Context HttpHeaders requestHeaders) throws IOException {
     String contentEncoding =
         requestHeaders.getHeaderString(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
@@ -61,16 +64,19 @@ public final class Ingest extends AbstractALSResource {
       throws IOException, ServletException, OryxServingException {
     // JAX-RS does not by itself support multipart form data yet, so doing it manually:
     Collection<Part> parts = request.getParts();
-    if (parts == null || parts.isEmpty()) {
-      throw new OryxServingException(Response.Status.BAD_REQUEST, "No Form Data");
+    boolean anyValidPart = false;
+    if (parts != null) {
+      for (Part part : parts) {
+        String partContentType = part.getContentType();
+        if (INGEST_TYPES.contains(partContentType)) {
+          anyValidPart = true;
+          String contentEncoding =
+              part.getHeader(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
+          doPost(buildReader(contentEncoding, part.getInputStream()));
+        }
+      }
     }
-    // Read 1st part only:
-    Part part = parts.iterator().next();
-    // Rough check on content type
-    check(part.getContentType().startsWith("text/"),
-          "Bad content type for form part: " + part.getContentType());
-    String contentEncoding = part.getHeader(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
-    doPost(buildReader(contentEncoding, part.getInputStream()));
+    check(anyValidPart, "No Part with supported Content-Type");
   }
 
   private static BufferedReader buildReader(String contentEncoding,
