@@ -15,21 +15,26 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Variant;
 
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.collection.Pair;
@@ -69,21 +74,38 @@ public final class IngestTest extends AbstractALSServingTest {
     checkResponse(response);
   }
 
-  @Ignore("Form parts unsupported by Grizzly so far")
   @Test
   public void testFormIngest() {
-    Response response = target("/ingest").request().post(
-        Entity.entity(INGEST_DATA, MediaType.MULTIPART_FORM_DATA_TYPE));
-    checkResponse(response);
+    doTestFormIngest(INGEST_DATA, null, null);
   }
 
-  @Ignore("Form parts unsupported by Grizzly so far")
   @Test
   public void testGzippedFormIngest() {
-    byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
-    Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.MULTIPART_FORM_DATA_TYPE, "gzip"));
-    Response response = target("/ingest").request().post(entity);
+    doTestFormIngest(INGEST_DATA, GZIPOutputStream.class, "gzip");
+  }
+
+  @Test
+  public void testZippedFormIngest() {
+    doTestFormIngest(INGEST_DATA, ZipOutputStream.class, "zip");
+  }
+
+  private void doTestFormIngest(String data,
+                                Class<? extends OutputStream> compressingStreamClass,
+                                String encoding) {
+    byte[] bytes;
+    if (compressingStreamClass == null) {
+      bytes = data.getBytes(StandardCharsets.UTF_8);
+    } else {
+      bytes = compress(data, compressingStreamClass);
+    }
+    MediaType type =
+        encoding == null ? MediaType.TEXT_PLAIN_TYPE : new MediaType("application", encoding);
+    InputStream in = new ByteArrayInputStream(bytes);
+    StreamDataBodyPart filePart = new StreamDataBodyPart("data", in, "data", type);
+    MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
+    multiPart.getBodyParts().add(filePart);
+    Response response = target("/ingest").request().post(
+        Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
     checkResponse(response);
   }
 
@@ -99,7 +121,13 @@ public final class IngestTest extends AbstractALSServingTest {
                                        compressingStreamClass,
                                        new Class<?>[] { OutputStream.class },
                                        new Object[] { bytes })) {
+      if (compressingStream instanceof ZipOutputStream) {
+        ((ZipOutputStream) compressingStream).putNextEntry(new ZipEntry("data"));
+      }
       compressingStream.write(data.getBytes(StandardCharsets.UTF_8));
+      if (compressingStream instanceof ZipOutputStream) {
+        ((ZipOutputStream) compressingStream).closeEntry();
+      }
       compressingStream.flush();
     } catch (IOException e) {
       // Can't happen

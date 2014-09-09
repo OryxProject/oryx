@@ -46,11 +46,15 @@ public abstract class AbstractALSResource {
 
   @SuppressWarnings("unchecked")
   @PostConstruct
-  public final void init() {
+  public void init() {
     ServingModelManager<?> servingModelManager = (ServingModelManager<?>)
         servletContext.getAttribute(MODEL_MANAGER_KEY);
     alsServingModel = (ALSServingModel) servingModelManager.getModel();
     inputProducer = (QueueProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
+  }
+
+  protected final ServletContext getServletContext() {
+    return servletContext;
   }
 
   protected final ALSServingModel getALSServingModel() {

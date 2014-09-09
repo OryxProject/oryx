@@ -22,6 +22,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
 
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.Assert;
 
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -39,6 +41,12 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
   @Override
   protected final String getResourcePackage() {
     return getClass().getPackage().getName();
+  }
+
+  @Override
+  protected void configureClient(ClientConfig config) {
+    super.configureClient(config);
+    config.register(MultiPartFeature.class);
   }
 
   @Override
