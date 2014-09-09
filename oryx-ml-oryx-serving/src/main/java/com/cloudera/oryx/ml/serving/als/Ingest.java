@@ -17,10 +17,12 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -35,18 +37,22 @@ import javax.ws.rs.core.Response;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
+/**
+ * <p>Responds to a POST to {@code /ingest}. The content of the request are interpreted as
+ * lines of text and are submitted to the input Kafka queue as-is.</p>
+ *
+ * <p>The body may be compressed with {@code application/gzip}, {@code application/x-gzip} or
+ * {@code application/zip}. It may also by {@code multipart/form-data} encoded.</p>
+ */
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
 
-  @Context
-  private HttpHeaders requestHeaders;
-
   @POST
   @Consumes(MediaType.TEXT_PLAIN)
-  public void post(Reader reader) throws IOException {
-    BufferedReader buffered =
-        reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
-    doPost(buffered);
+  public void post(InputStream in, @Context HttpHeaders requestHeaders) throws IOException {
+    String contentEncoding =
+        requestHeaders.getHeaderString(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
+    doPost(buildReader(contentEncoding, in));
   }
 
   @POST
@@ -60,9 +66,25 @@ public final class Ingest extends AbstractALSResource {
     }
     // Read 1st part only:
     Part part = parts.iterator().next();
-    BufferedReader buffered = new BufferedReader(
-        new InputStreamReader(part.getInputStream(), StandardCharsets.UTF_8));
-    doPost(buffered);
+    // Rough check on content type
+    check(part.getContentType().startsWith("text/"),
+          "Bad content type for form part: " + part.getContentType());
+    String contentEncoding = part.getHeader(com.google.common.net.HttpHeaders.CONTENT_ENCODING);
+    doPost(buildReader(contentEncoding, part.getInputStream()));
+  }
+
+  private static BufferedReader buildReader(String contentEncoding,
+                                            InputStream in) throws IOException {
+    switch (contentEncoding) {
+      case "application/zip":
+        in = new ZipInputStream(in);
+        break;
+      case "application/gzip":
+      case "application/x-gzip":
+        in = new GZIPInputStream(in);
+        break;
+    }
+    return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
   }
 
   private void doPost(BufferedReader buffered) throws IOException {

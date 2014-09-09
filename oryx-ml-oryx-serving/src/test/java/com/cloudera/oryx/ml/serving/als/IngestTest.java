@@ -16,28 +16,66 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Variant;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.ClassUtils;
 
 public final class IngestTest extends AbstractALSServingTest {
 
   private static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\n";
   private static final String[] INGEST_LINES = INGEST_DATA.split("\n");
 
+  @Before
+  public void clearProducerData() {
+    MockQueueProducer.getData().clear();
+  }
+
   @Test
   public void testSimpleIngest() {
     Response response = target("/ingest").request().post(Entity.text(INGEST_DATA));
+    checkResponse(response);
+  }
+
+  @Test
+  public void testGZippedIngest() {
+    byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
+    Entity<byte[]> entity = Entity.entity(
+        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "application/gzip"));
+    Response response = target("/ingest").request().post(entity);
+    checkResponse(response);
+  }
+
+  @Test
+  public void testZippedIngest() {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (ZipOutputStream compressingStream = new ZipOutputStream(bytes)) {
+      compressingStream.putNextEntry(new ZipEntry("data"));
+      compressingStream.write(INGEST_DATA.getBytes(StandardCharsets.UTF_8));
+      compressingStream.closeEntry();
+    } catch (IOException e) {
+      // Can't happen
+      throw new IllegalStateException(e);
+    }
+    byte[] compressed = bytes.toByteArray();
+    Entity<byte[]> entity = Entity.entity(
+        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "application/zip"));
+    Response response = target("/ingest").request().post(entity);
     checkResponse(response);
   }
 
@@ -49,21 +87,39 @@ public final class IngestTest extends AbstractALSServingTest {
     checkResponse(response);
   }
 
-  @Ignore("TODO figure out how to handle compressed input")
+  @Ignore("Form parts unsupported by Grizzly so far")
   @Test
-  public void testGZippedIngest() throws Exception {
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (GZIPOutputStream zipOut = new GZIPOutputStream(bytes)) {
-      zipOut.write(INGEST_DATA.getBytes(StandardCharsets.UTF_8));
-    }
-    Response response = target("/ingest").request().post(Entity.entity(bytes.toByteArray(),
-        Variant.mediaTypes(MediaType.TEXT_PLAIN_TYPE).encodings("application/gzip").build().get(0)));
+  public void testGzippedFormIngest() {
+    byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
+    Entity<byte[]> entity = Entity.entity(
+        compressed, compressedVariant(MediaType.MULTIPART_FORM_DATA_TYPE, "application/gzip"));
+    Response response = target("/ingest").request().post(entity);
     checkResponse(response);
+  }
+
+  private static Variant compressedVariant(MediaType contentType, String contentEncoding) {
+    return Variant.mediaTypes(contentType).encodings(contentEncoding).build().get(0);
+  }
+
+  private static byte[] compress(
+      String data, Class<? extends OutputStream> compressingStreamClass) {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (OutputStream compressingStream =
+             ClassUtils.loadInstanceOf(compressingStreamClass.getName(),
+                                       compressingStreamClass,
+                                       new Class<?>[] { OutputStream.class },
+                                       new Object[] { bytes })) {
+      compressingStream.write(data.getBytes(StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      // Can't happen
+      throw new IllegalStateException(e);
+    }
+    return bytes.toByteArray();
   }
 
   private static void checkResponse(Response response) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-    List<Pair<String, String>> data = MockQueueProducer.getData();
+    List<Pair<String,String>> data = MockQueueProducer.getData();
     for (int i = 0; i < data.size(); i++) {
       Pair<String,String> expected = data.get(i);
       Assert.assertNull(expected.getFirst());
