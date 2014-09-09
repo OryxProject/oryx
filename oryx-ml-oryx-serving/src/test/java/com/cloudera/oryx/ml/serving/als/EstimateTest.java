@@ -25,7 +25,7 @@ import org.junit.Test;
 public final class EstimateTest extends AbstractALSServingTest {
 
   @Test
-  public void test() {
+  public void testEstimate() {
     List<Double> items = target("estimate").path("U0").path("I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(3, items.size());
@@ -36,11 +36,8 @@ public final class EstimateTest extends AbstractALSServingTest {
 
   @Test
   public void testBadRequest() {
-    Response response = target("estimate").path("Z").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get();
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-    response = target("estimate").path("Z").path("").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).get();
+    Response response = target("estimate").path("Z").request().get();
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
   }
+
 }

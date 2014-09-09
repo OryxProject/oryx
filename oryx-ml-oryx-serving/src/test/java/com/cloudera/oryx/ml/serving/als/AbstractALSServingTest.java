@@ -29,6 +29,7 @@ import org.junit.Assert;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.IDCount;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.ml.serving.als.model.TestALSModelFactory;
@@ -37,6 +38,8 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
 
   protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
+  protected static final GenericType<List<IDCount>> LIST_ID_COUNT_TYPE =
+      new GenericType<List<IDCount>>() {};
 
   @Override
   protected final String getResourcePackage() {

@@ -16,13 +16,24 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
+import com.carrotsearch.hppc.ObjectIntMap;
+import com.carrotsearch.hppc.cursors.ObjectIntCursor;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.ml.serving.IDCount;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
@@ -39,27 +50,34 @@ import javax.ws.rs.core.Response;
 public final class MostPopularItems extends AbstractALSResource {
 
   @GET
-  @Path("{userId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("userId") String userId,
-                      @QueryParam("howMany") int howMany,
-                      @QueryParam("offset") int offset,
-                      @QueryParam("considerKnownItems") boolean considerKnownItems,
-                      @QueryParam("rescorerParams") List<String> rescorerParams) {
-/*
-    OryxRecommender recommender = getRecommender();
-    RescorerProvider rescorerProvider = getRescorerProvider();
-    try {
-      Rescorer rescorer = rescorerProvider == null ? null :
-          rescorerProvider.getMostPopularItemsRescorer(recommender, getRescorerParams(request));
-      outputALSResult(request, response, recommender.mostPopularItems(getNumResultsToFetch(request), rescorer));
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-    }
-  */
-    return Response.status(200).entity("").build();
+  public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
+                           @DefaultValue("0") @QueryParam("offset") int offset) {
+
+    ALSServingModel model = getALSServingModel();
+    ObjectIntMap<String> itemCounts = model.getItemCounts();
+
+    Iterable<Pair<String,Integer>> countPairs =
+        Iterables.transform(itemCounts,
+            new Function<ObjectIntCursor<String>, Pair<String,Integer>>() {
+              @Override
+              public Pair<String,Integer> apply(ObjectIntCursor<String> input) {
+                return new Pair<>(input.key, input.value);
+              }
+            });
+
+    List<Pair<String,Integer>> allTopCountPairs =
+        Ordering.from(PairComparators.<Integer>bySecond()).greatestOf(countPairs, howMany + offset);
+    List<Pair<String,Integer>> topCountPairs =
+        selectedSublist(allTopCountPairs, howMany, offset);
+
+    return Lists.transform(topCountPairs,
+        new Function<Pair<String, Integer>, IDCount>() {
+          @Override
+          public IDCount apply(Pair<String,Integer> idCount) {
+            return new IDCount(idCount.getFirst(), idCount.getSecond());
+          }
+        });
   }
 
 }

@@ -24,6 +24,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.carrotsearch.hppc.ObjectIntMap;
+import com.carrotsearch.hppc.ObjectIntOpenHashMap;
 import com.carrotsearch.hppc.ObjectObjectMap;
 import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
 import com.carrotsearch.hppc.ObjectOpenHashSet;
@@ -127,6 +129,25 @@ public final class ALSServingModel {
     } finally {
       lock.unlock();
     }
+  }
+
+  public ObjectIntMap<String> getItemCounts() {
+    ObjectIntMap<String> counts = new ObjectIntOpenHashMap<>();
+    Lock lock = this.knownItemsLock.readLock();
+    lock.lock();
+    try {
+      for (ObjectCursor<ObjectSet<String>> idsCursor : knownItems.values()) {
+        ObjectSet<String> ids = idsCursor.value;
+        synchronized (ids) {
+          for (ObjectCursor<String> idCursor : ids) {
+            counts.addTo(idCursor.value, 1);
+          }
+        }
+      }
+    } finally {
+      lock.unlock();
+    }
+    return counts;
   }
 
   void addKnownItems(String user, Collection<String> items) {
