@@ -125,6 +125,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <!-- Allow more memory for load IT -->
+        <configuration>
+          <argLine>-Xmx2g</argLine>
+        </configuration>
       </plugin>
     </plugins>
   </build>
