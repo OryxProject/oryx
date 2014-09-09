@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving;
 
-public final class IDCount {
+public final class IDCount implements HasCSV {
 
   private String id;
   private int count;
@@ -48,6 +48,11 @@ public final class IDCount {
   @Override
   public String toString() {
     return id + ":" + count;
+  }
+
+  @Override
+  public String toCSV() {
+    return id + "," + count;
   }
 
 }

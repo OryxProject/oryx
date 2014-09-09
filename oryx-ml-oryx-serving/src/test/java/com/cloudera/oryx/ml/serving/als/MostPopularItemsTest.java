@@ -17,6 +17,8 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,8 +27,9 @@ import com.cloudera.oryx.ml.serving.IDCount;
 public final class MostPopularItemsTest extends AbstractALSServingTest {
 
   @Test
-  public void testMosPopular() {
-    List<IDCount> top = target("/mostPopularItems").request().get(LIST_ID_COUNT_TYPE);
+  public void testMostPopular() {
+    List<IDCount> top = target("/mostPopularItems").request()
+        .accept(MediaType.APPLICATION_JSON).get(LIST_ID_COUNT_TYPE);
     Assert.assertEquals(9, top.size());
     for (int i = 1; i < top.size(); i++) {
       Assert.assertTrue(top.get(i).getValue() >= 1);
@@ -34,6 +37,19 @@ public final class MostPopularItemsTest extends AbstractALSServingTest {
     }
     Assert.assertEquals(6, top.get(0).getValue());
     Assert.assertEquals(6, top.get(1).getValue());
+  }
+
+  @Test
+  public void testMostPopularCSV() {
+    // more cursory test, mostly of format
+    String response = target("/mostPopularItems").request().get(String.class);
+    String[] rows = response.split("\n");
+    Assert.assertEquals(9, rows.length);
+    for (String row : rows) {
+      String[] tokens = row.split(",");
+      int count = Integer.parseInt(tokens[1]);
+      Assert.assertTrue(count > 0);
+    }
   }
 
 }

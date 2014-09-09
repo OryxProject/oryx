@@ -41,6 +41,7 @@ import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
@@ -71,7 +72,7 @@ public final class Ingest extends AbstractALSResource {
   }
 
   @POST
-  @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, TEXT_CSV})
+  @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, CSVMessageBodyWriter.TEXT_CSV})
   public void post(Reader reader) throws IOException {
     doPost(reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader));
   }

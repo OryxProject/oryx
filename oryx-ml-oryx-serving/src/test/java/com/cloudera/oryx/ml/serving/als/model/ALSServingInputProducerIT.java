@@ -41,7 +41,8 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
   @Test
   public void testALSInputProducer() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("serving.application-resources", "com.cloudera.oryx.ml.serving.als");
+    overlayConfig.put("serving.application-resources",
+        "\"com.cloudera.oryx.ml.serving,com.cloudera.oryx.ml.serving.als\"");
     overlayConfig.put("serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 

@@ -32,6 +32,7 @@ import com.google.common.collect.Ordering;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDCount;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -48,7 +49,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 public final class MostPopularItems extends AbstractALSResource {
 
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
                            @DefaultValue("0") @QueryParam("offset") int offset) {
 

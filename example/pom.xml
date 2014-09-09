@@ -24,7 +24,6 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.cloudera.oryx</groupId>
   <artifactId>example</artifactId>
   <packaging>jar</packaging>
   <name>Example</name>

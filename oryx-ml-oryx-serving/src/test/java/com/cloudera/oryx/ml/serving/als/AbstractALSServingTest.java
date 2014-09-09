@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.servlet.ServletContext;
@@ -42,8 +43,8 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       new GenericType<List<IDCount>>() {};
 
   @Override
-  protected final String getResourcePackage() {
-    return getClass().getPackage().getName();
+  protected final List<String> getResourcePackages() {
+    return Arrays.asList("com.cloudera.oryx.ml.serving", "com.cloudera.oryx.ml.serving.als");
   }
 
   @Override

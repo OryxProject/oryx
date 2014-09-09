@@ -54,7 +54,7 @@ public final class ServingLayer implements Closeable {
   private final Path keystoreFile;
   private final String keystorePassword;
   private final String contextPathURIBase;
-  private final String appResourcesPackage;
+  private final String appResourcesPackages;
   private Tomcat tomcat;
   private Context context;
   private Path noSuchBaseDir;
@@ -82,7 +82,7 @@ public final class ServingLayer implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
-    this.appResourcesPackage = config.getString("serving.application-resources");
+    this.appResourcesPackages = config.getString("serving.application-resources");
   }
 
   public synchronized void start() throws IOException {
@@ -219,7 +219,7 @@ public final class ServingLayer implements Closeable {
     context.setName("Oryx");
 
     // OryxApplication only needs one config value, so just pass it
-    context.addParameter(OryxApplication.class.getName() + ".packages", appResourcesPackage);
+    context.addParameter(OryxApplication.class.getName() + ".packages", appResourcesPackages);
     // ModelManagerListener will need whole config
     String serializedConfig = ConfigUtils.serialize(config);
     context.addParameter(ConfigUtils.class.getName() + ".serialized", serializedConfig);

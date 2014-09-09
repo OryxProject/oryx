@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving;
 
-public final class IDValue {
+public final class IDValue implements HasCSV {
 
   private String id;
   private double value;
@@ -48,6 +48,11 @@ public final class IDValue {
   @Override
   public String toString() {
     return id + ":" + value;
+  }
+
+  @Override
+  public String toCSV() {
+    return id + "," + value;
   }
 
 }

@@ -20,6 +20,7 @@ import java.util.List;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
 
+import com.google.common.base.Joiner;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
@@ -58,14 +59,15 @@ public abstract class AbstractServingTest extends JerseyTest {
   @Override
   protected final DeploymentContext configureDeployment() {
     configureProperties();
+    String joinedPackages = Joiner.on(',').join(getResourcePackages());
     return ServletDeploymentContext.builder(OryxApplication.class)
         .initParam("javax.ws.rs.Application", OryxApplication.class.getName())
-        .contextParam(OryxApplication.class.getName() + ".packages", getResourcePackage())
+        .contextParam(OryxApplication.class.getName() + ".packages", joinedPackages)
         .addListener(getInitListenerClass())
         .build();
   }
 
-  protected abstract String getResourcePackage();
+  protected abstract List<String> getResourcePackages();
 
   protected abstract Class<? extends ServletContextListener> getInitListenerClass();
 

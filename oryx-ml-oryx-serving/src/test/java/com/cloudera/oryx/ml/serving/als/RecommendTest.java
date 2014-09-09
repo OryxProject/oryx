@@ -16,6 +16,7 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
 import org.junit.Assert;
@@ -44,12 +45,22 @@ public final class RecommendTest extends AbstractALSServingTest {
     testHowMany("/recommend/U5", 1, 1);
   }
 
+  @Test(expected = BadRequestException.class)
+  public void testBadHowMany() {
+    testHowMany("/recommend/U5", -1, 0);
+  }
+
   @Test
   public void testOffset() {
     testOffset("/recommend/U6", 2, 1, 2);
     testOffset("/recommend/U6", 3, 1, 2);
     testOffset("/recommend/U6", 1, 1, 1);
     testOffset("/recommend/U6", 3, 3, 0);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testBadOffset() {
+    testOffset("/recommend/U6", 3, -1, 0);
   }
 
   @Test

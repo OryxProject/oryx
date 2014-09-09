@@ -20,6 +20,7 @@ import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
@@ -41,6 +42,7 @@ public final class OryxApplication extends Application {
 
   @Context
   private ServletContext servletContext;
+  private Set<Class<?>> classes;
 
   /**
    * @return user endpoint implementations from the package named in context init param
@@ -48,15 +50,26 @@ public final class OryxApplication extends Application {
    */
   @Override
   public Set<Class<?>> getClasses() {
+    if (classes == null) {
+      classes = doGetClasses();
+    }
+    return classes;
+  }
+
+  private Set<Class<?>> doGetClasses() {
     String packages =
         servletContext.getInitParameter(OryxApplication.class.getName() + ".packages");
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
     Preconditions.checkNotNull(packages);
-    Reflections reflections = new Reflections(packages);
-    Set<Class<?>> classes = new HashSet<>(reflections.getTypesAnnotatedWith(Path.class));
-    classes.addAll(reflections.getTypesAnnotatedWith(Provider.class));
+    Set<Class<?>> classes = new HashSet<>();
+    for (String thePackage : packages.split(",")) {
+      Reflections reflections = new Reflections(thePackage);
+      classes.addAll(reflections.getTypesAnnotatedWith(Path.class));
+      classes.addAll(reflections.getTypesAnnotatedWith(Produces.class));
+      classes.addAll(reflections.getTypesAnnotatedWith(Provider.class));
+    }
     // Want to configure these globally, but not depend on Jersey, even though it's
-    // what will be used in practice by the provide dapps.
+    // what will be used in practice by the provided apps.
     for (String optionalJerseyClass : new String[] {
           "org.glassfish.jersey.message.DeflateEncoder",
           "org.glassfish.jersey.message.GZipEncoder",
@@ -65,7 +78,7 @@ public final class OryxApplication extends Application {
         classes.add(ClassUtils.loadClass(optionalJerseyClass));
       }
     }
-    log.info("Found JAX-RS resources: {}", classes);
+    log.debug("Found JAX-RS resources: {}", classes);
     return classes;
   }
 
