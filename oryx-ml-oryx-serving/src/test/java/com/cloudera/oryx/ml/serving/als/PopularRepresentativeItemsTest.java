@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -21,22 +21,21 @@ import javax.ws.rs.core.MediaType;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class AllItemIDsTest extends AbstractALSServingTest {
+public final class PopularRepresentativeItemsTest extends AbstractALSServingTest {
 
   @Test
-  public void testAllItemIDs() {
-    List<String> items = target("/item/allIDs").request()
+  public void testPopularRepresentativeItems() {
+    List<String> items = target("/popularRepresentativeItems").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
-    Assert.assertEquals(9, items.size());
-    for (int item = 0; item < 9; item++) {
-      Assert.assertTrue(items.contains("I" + item));
-    }
+    Assert.assertEquals(2, items.size());
+    Assert.assertEquals("I0", items.get(0));
+    Assert.assertEquals("I4", items.get(1));
   }
 
   @Test
-  public void testAllItemIDsCSV() {
-    String response = target("/item/allIDs").request().get(String.class);
-    Assert.assertEquals(9, response.split("\n").length);
+  public void testPopularRepresentativeItemsCSV() {
+    String response = target("/popularRepresentativeItems").request().get(String.class);
+    Assert.assertEquals(2, response.split("\n").length);
   }
 
 }

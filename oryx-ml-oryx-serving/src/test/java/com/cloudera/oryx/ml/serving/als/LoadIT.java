@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
 
 import com.google.common.base.Stopwatch;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -160,7 +161,8 @@ public final class LoadIT extends AbstractALSServingTest {
       for (int j = 0; j < REQS_PER_WORKER; j++) {
         String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
         long start = System.currentTimeMillis();
-        target("/recommend/" + userID).request().get(LIST_ID_VALUE_TYPE);
+        target("/recommend/" + userID).request()
+            .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
         long timeMS = System.currentTimeMillis() - start;
         synchronized (meanReqTimeMS) {
           meanReqTimeMS.increment(timeMS);

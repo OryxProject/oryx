@@ -34,8 +34,6 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.apache.commons.math3.linear.RealMatrix;
 
@@ -75,6 +73,15 @@ public final class ALSServingModel {
 
   public boolean isImplicit() {
     return implicit;
+  }
+
+  /**
+   * This should not be accessed directly! It may be used in a transformation that is later
+   * passed to {@link #topN(Iterable, int)}
+   * @return item-feature matrix
+   */
+  public ObjectObjectMap<String,float[]> getY() {
+    return Y;
   }
 
   public float[] getUserVector(String user) {
@@ -121,7 +128,7 @@ public final class ALSServingModel {
     }
   }
 
-  ObjectSet<String> getKnownItems(String user) {
+  public ObjectSet<String> getKnownItems(String user) {
     Lock lock = this.knownItemsLock.readLock();
     lock.lock();
     try {
@@ -200,28 +207,6 @@ public final class ALSServingModel {
     return idVectors;
   }
 
-  public List<Pair<String,Double>> topDotWithUserVector(String user,
-                                                        int howMany,
-                                                        boolean considerKnownItems) {
-    float[] userVector = getUserVector(user);
-    if (userVector == null) {
-      return null;
-    }
-
-    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
-
-    if (!considerKnownItems) {
-      ObjectSet<String> knownItems = getKnownItems(user);
-      if (knownItems != null && !knownItems.isEmpty()) {
-        entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
-      }
-    }
-
-    Iterable<Pair<String,Double>> idDots =
-        Iterables.transform(entries, new DotsFunction(userVector));
-    return topN(idDots, howMany);
-  }
-
   public List<Pair<String,Double>> mostSimilarItems(List<String> itemsList, int howMany) {
     List<Pair<String,Double>> itemScoresList = new ArrayList<>(itemsList.size());
     Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
@@ -244,7 +229,7 @@ public final class ALSServingModel {
     return topN(itemScoresList, howMany);
   }
 
-  private List<Pair<String,Double>> topN(Iterable<Pair<String,Double>> pairs, int howMany) {
+  public List<Pair<String,Double>> topN(Iterable<Pair<String,Double>> pairs, int howMany) {
     Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
     Lock lock = yLock.readLock();
     lock.lock();
@@ -337,17 +322,6 @@ public final class ALSServingModel {
         knownItems.size() + " users)]";
   }
 
-  private static final class DotsFunction
-      implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
-    private final float[] userVector;
-    DotsFunction(float[] userVector) {
-      this.userVector = userVector;
-    }
-    @Override
-    public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
-      return new Pair<>(itemIDVector.key, VectorMath.dot(userVector, itemIDVector.value));
-    }
-  }
 
   private static final class CosineSimilarityFunction
       implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
@@ -363,20 +337,6 @@ public final class ALSServingModel {
       double cosineSimilarity =  VectorMath.dot(itemVector, otherItemVector) /
           (itemVectorNorm * VectorMath.norm(otherItemVector));
       return new Pair<>(itemIDVector.key, cosineSimilarity);
-    }
-  }
-
-  private static final class NotKnownPredicate
-      implements Predicate<ObjectObjectCursor<String,float[]>> {
-    private final ObjectSet<String> knownItemsForUser;
-    NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
-      this.knownItemsForUser = knownItemsForUser;
-    }
-    @Override
-    public boolean apply(ObjectObjectCursor<String,float[]> input) {
-      synchronized (knownItemsForUser) {
-        return !knownItemsForUser.contains(input.key);
-      }
     }
   }
 

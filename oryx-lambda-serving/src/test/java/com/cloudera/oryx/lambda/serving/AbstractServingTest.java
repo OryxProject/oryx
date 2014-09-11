@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import java.util.Collection;
 import java.util.List;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
@@ -36,8 +35,8 @@ public abstract class AbstractServingTest extends JerseyTest {
   protected static final float FLOAT_EPSILON = 1.0e-6f;
   protected static final double DOUBLE_EPSILON = 1.0e-12;
 
-  protected static final GenericType<Collection<String>> COLLECTION_STRING_TYPE =
-      new GenericType<Collection<String>>() {};
+  protected static final GenericType<List<String>> LIST_STRING_TYPE =
+      new GenericType<List<String>>() {};
   protected static final GenericType<List<Double>> LIST_DOUBLE_TYPE =
       new GenericType<List<Double>>() {};
 

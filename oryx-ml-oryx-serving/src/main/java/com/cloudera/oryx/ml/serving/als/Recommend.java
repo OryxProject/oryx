@@ -25,6 +25,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.carrotsearch.hppc.ObjectSet;
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -73,11 +78,35 @@ public final class Recommend extends AbstractALSResource {
     check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel model = getALSServingModel();
-    List<Pair<String,Double>> topIDDots =
-        model.topDotWithUserVector(userID, howMany + offset, considerKnownItems);
-    checkExists(topIDDots != null, userID);
+    float[] userVector = model.getUserVector(userID);
+    checkExists(userVector != null, userID);
 
+    Iterable<ObjectObjectCursor<String,float[]>> entries = model.getY();
+    if (!considerKnownItems) {
+      ObjectSet<String> knownItems = model.getKnownItems(userID);
+      if (knownItems != null && !knownItems.isEmpty()) {
+        entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
+      }
+    }
+
+    Iterable<Pair<String,Double>> idDots =
+        Iterables.transform(entries, new DotsFunction(userVector));
+    List<Pair<String,Double>> topIDDots = model.topN(idDots, howMany + offset);
     return toIDValueResponse(topIDDots, howMany, offset);
+  }
+
+  private static final class NotKnownPredicate
+      implements Predicate<ObjectObjectCursor<String,float[]>> {
+    private final ObjectSet<String> knownItemsForUser;
+    NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
+      this.knownItemsForUser = knownItemsForUser;
+    }
+    @Override
+    public boolean apply(ObjectObjectCursor<String,float[]> input) {
+      synchronized (knownItemsForUser) {
+        return !knownItemsForUser.contains(input.key);
+      }
+    }
   }
 
 }
