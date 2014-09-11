@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
@@ -23,10 +24,41 @@ import org.junit.Test;
 public final class EstimateForAnonymousTest extends AbstractALSServingTest {
 
   @Test
-  public void test() {
-    Double item = target("estimateForAnonymous").path("I3").path("I4=1.0").path("I5=2.0").request()
+  public void testEstimateForAnonymous() {
+    Double item = target("/estimateForAnonymous/I3/I4=1.0/I5=2.0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
-    //Assert.assertEquals(0.022482435597189654, item, DOUBLE_EPSILON);
-    // TODO
+    Assert.assertEquals(-0.05814245143707833, item, DOUBLE_EPSILON);
   }
+
+  @Test
+  public void testEstimateForAnonymousWithUnknown() {
+    Double item = target("/estimateForAnonymous/I3/foo/I4=1.0/I5=2.0").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
+    Assert.assertEquals(-0.05814245143707833, item, DOUBLE_EPSILON);
+  }
+
+  @Test
+  public void testEstimateForAnonymousWithAllUnknown() {
+    Double item = target("/estimateForAnonymous/I3/foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
+    Assert.assertEquals(0.0, item, DOUBLE_EPSILON);
+  }
+
+  @Test
+  public void testEstimateForAnonymousCSV() {
+    String response = target("/estimateForAnonymous/I3/I4=1.0/I5=2.0").request()
+        .get(String.class);
+    Assert.assertEquals(-0.05814245143707833, Double.parseDouble(response), DOUBLE_EPSILON);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testBadRequest() {
+    target("/estimateForAnonymous").request().get(String.class);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testUnknownUser() {
+    target("/estimateForAnonymous/foo").request().get(String.class);
+  }
+
 }

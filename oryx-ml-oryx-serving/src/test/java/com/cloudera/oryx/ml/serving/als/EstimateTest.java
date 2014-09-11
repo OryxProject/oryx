@@ -16,8 +16,8 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public final class EstimateTest extends AbstractALSServingTest {
 
   @Test
   public void testEstimate() {
-    List<Double> items = target("estimate").path("U0").path("I0/I1/I2").request()
+    List<Double> items = target("estimate/U0/I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(3, items.size());
     Assert.assertEquals(0.387613186054306, items.get(0), FLOAT_EPSILON);
@@ -36,14 +36,13 @@ public final class EstimateTest extends AbstractALSServingTest {
 
   @Test
   public void testEstimateCSV() {
-    String response = target("estimate").path("U0").path("I0/I1/I2").request().get(String.class);
+    String response = target("estimate/U0/I0/I1/I2").request().get(String.class);
     testCSVScores(3, response);
   }
 
-  @Test
+  @Test(expected = NotFoundException.class)
   public void testBadRequest() {
-    Response response = target("estimate").path("Z").request().get();
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+    target("/estimate/Z").request().get(String.class);
   }
 
 }
