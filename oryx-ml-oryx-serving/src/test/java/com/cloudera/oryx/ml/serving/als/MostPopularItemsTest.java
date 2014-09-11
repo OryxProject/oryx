@@ -29,7 +29,7 @@ public final class MostPopularItemsTest extends AbstractALSServingTest {
   @Test
   public void testMostPopular() {
     List<IDCount> top = target("/mostPopularItems").request()
-        .accept(MediaType.APPLICATION_JSON).get(LIST_ID_COUNT_TYPE);
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
     Assert.assertEquals(9, top.size());
     for (int i = 1; i < top.size(); i++) {
       Assert.assertTrue(top.get(i).getValue() >= 1);
@@ -41,15 +41,8 @@ public final class MostPopularItemsTest extends AbstractALSServingTest {
 
   @Test
   public void testMostPopularCSV() {
-    // more cursory test, mostly of format
     String response = target("/mostPopularItems").request().get(String.class);
-    String[] rows = response.split("\n");
-    Assert.assertEquals(9, rows.length);
-    for (String row : rows) {
-      String[] tokens = row.split(",");
-      int count = Integer.parseInt(tokens[1]);
-      Assert.assertTrue(count > 0);
-    }
+    testCSVTopByCount(9, response);
   }
 
 }

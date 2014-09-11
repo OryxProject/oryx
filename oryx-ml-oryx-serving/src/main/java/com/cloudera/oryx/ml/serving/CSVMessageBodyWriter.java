@@ -31,13 +31,14 @@ import javax.ws.rs.ext.MessageBodyWriter;
 public final class CSVMessageBodyWriter implements MessageBodyWriter<Object> {
 
   public static final String TEXT_CSV = "text/csv";
+  public static final MediaType TEXT_CSV_TYPE = new MediaType("text", "csv");
 
   @Override
   public boolean isWriteable(Class<?> type,
                              Type genericType,
                              Annotation[] annotations,
                              MediaType mediaType) {
-    return true;
+    return TEXT_CSV_TYPE.equals(mediaType);
   }
 
   @Override

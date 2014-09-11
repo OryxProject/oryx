@@ -22,6 +22,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -93,15 +94,68 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     List<?> results = target(requestPath)
         .queryParam("howMany", Integer.toString(howMany))
         .queryParam("offset", Integer.toString(offset))
-        .request().get(LIST_ID_VALUE_TYPE);
+        .request()
+        .accept(MediaType.APPLICATION_JSON_TYPE)
+        .get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(expectedSize, results.size());
   }
 
   protected final void testHowMany(String requestPath, int howMany, int expectedSize) {
     List<?> results = target(requestPath)
-        .queryParam("howMany",Integer.toString(howMany))
-        .request().get(LIST_ID_VALUE_TYPE);
+        .queryParam("howMany", Integer.toString(howMany))
+        .request()
+        .accept(MediaType.APPLICATION_JSON_TYPE)
+        .get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(expectedSize, results.size());
+  }
+
+  protected static void testCSVTopByScore(int expectedSize, String response) {
+    testCSVTop(expectedSize, response, false, false);
+  }
+
+  protected static void testCSVLeastByScore(int expectedSize, String response) {
+    testCSVTop(expectedSize, response, false, true);
+  }
+
+  protected static void testCSVTopByCount(int expectedSize, String response) {
+    testCSVTop(expectedSize, response, true, false);
+  }
+
+  private static void testCSVTop(int expectedSize,
+                                 String response,
+                                 boolean counts,
+                                 boolean reverse) {
+    String[] rows = response.split("\n");
+    Assert.assertEquals(expectedSize, rows.length);
+    for (int i = 0; i < rows.length; i++) {
+      String row = rows[i];
+      String[] tokens = row.split(",");
+      if (counts) {
+        int count = Integer.parseInt(tokens[1]);
+        Assert.assertTrue(count > 0);
+      }
+      if (i > 0) {
+        double thisScore = Double.parseDouble(tokens[1]);
+        Assert.assertFalse(Double.isNaN(thisScore));
+        Assert.assertFalse(Double.isInfinite(thisScore));
+        double lastScore = Double.parseDouble(rows[i-1].split(",")[1]);
+        if (reverse) {
+          Assert.assertTrue(lastScore <= thisScore);
+        } else {
+          Assert.assertTrue(lastScore >= thisScore);
+        }
+      }
+    }
+  }
+
+  protected final void testCSVScores(int expectedSize, String response) {
+    String[] rows = response.split("\n");
+    Assert.assertEquals(expectedSize, rows.length);
+    for (String row : rows) {
+      double score = Double.parseDouble(row);
+      Assert.assertFalse(Double.isNaN(score));
+      Assert.assertFalse(Double.isInfinite(score));
+    }
   }
 
 }

@@ -27,25 +27,37 @@ import javax.ws.rs.core.PathSegment;
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to {@code /estimate/[userID]/[itemID]}.</p>
  *
+ * <p>The results are opaque values which estimate the strength of interaction between a user
+ * and item. Higher values mean stronger interaction.</p>
+ *
  * <p>This REST endpoint can also compute several estimates at once. Send a GET request to
- * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}. The output are estimates, in the same
- * order as the item ID.</p>
+ * {@code /estimate/[userID]/[itemID1](/[itemID2]/...)}.</p>
+ *
+ * <p>If the user is not known to the model, a {@link javax.ws.rs.core.Response.Status#NOT_FOUND}
+ * response is generated. If any item is not known, then that entry in the response will be 0.</p>
+ *
+ * <p>The output are estimates, in the same order as the item IDs. For default CSV output,
+ * each line contains one estimate. For JSON output, the result is an array of estimates.</p>
  */
 @Path("/estimate")
 public final class Estimate extends AbstractALSResource {
 
   @GET
   @Path("{userID}/{itemID : .+}")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<Double> get(@PathParam("userID") String userID,
-                          @PathParam("itemID") List<PathSegment> pathSegmentsList) {
+                          @PathParam("itemID") List<PathSegment> pathSegmentsList)
+      throws OryxServingException {
     ALSServingModel model = getALSServingModel();
     float[] userFeatures = model.getUserVector(userID);
+    checkExists(userFeatures != null, userID);
     List<Double> results = new ArrayList<>(pathSegmentsList.size());
     for (PathSegment pathSegment : pathSegmentsList) {
       float[] itemFeatures = model.getItemVector(pathSegment.getPath());

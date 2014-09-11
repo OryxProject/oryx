@@ -24,6 +24,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
 
 /**
@@ -51,51 +52,12 @@ public final class RecommendToAnonymous extends AbstractALSResource {
 
   @GET
   @Path("{itemID}")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(@PathParam("itemID") String itemID,
                                      @QueryParam("howMany") int howMany,
                                      @QueryParam("offset") int offset,
                                      @QueryParam("considerKnownItems") boolean considerKnownItems,
                                      @QueryParam("rescorerParams") List<String> rescorerParams) {
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    Iterator<String> pathComponents = SLASH.split(pathInfo).iterator();
-    Pair<String[],float[]> itemIDsAndValue;
-    try {
-      itemIDsAndValue = parseItemValuePairs(pathComponents);
-    } catch (NoSuchElementException nsee) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, nsee.toString());
-      return;
-    }
-
-    if (itemIDsAndValue.getFirst().length == 0) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No items");
-      return;
-    }
-
-    String[] itemIDs = itemIDsAndValue.getFirst();
-    float[] values = itemIDsAndValue.getSecond();
-
-    OryxRecommender recommender = getRecommender();
-    RescorerProvider rescorerProvider = getRescorerProvider();
-    try {
-      Rescorer rescorer = rescorerProvider == null ? null :
-          rescorerProvider.getRecommendToAnonymousRescorer(itemIDs, recommender, getRescorerParams(request));
-      outputALSResult(request,
-                      response,
-                      recommender.recommendToAnonymous(itemIDs, values, getNumResultsToFetch(request), rescorer));
-    } catch (NotReadyException nre) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, nre.toString());
-    } catch (NoSuchItemException nsie) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, nsie.toString());
-    } catch (IllegalArgumentException iae) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, iae.toString());
-    }
-  */
     return Arrays.asList(new IDValue("1", 5));
   }
 

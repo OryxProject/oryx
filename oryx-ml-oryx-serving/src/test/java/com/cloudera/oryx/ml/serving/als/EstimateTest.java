@@ -35,6 +35,12 @@ public final class EstimateTest extends AbstractALSServingTest {
   }
 
   @Test
+  public void testEstimateCSV() {
+    String response = target("estimate").path("U0").path("I0/I1/I2").request().get(String.class);
+    testCSVScores(3, response);
+  }
+
+  @Test
   public void testBadRequest() {
     Response response = target("estimate").path("Z").request().get();
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());

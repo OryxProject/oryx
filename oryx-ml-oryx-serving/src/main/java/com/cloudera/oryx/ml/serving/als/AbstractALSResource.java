@@ -78,6 +78,11 @@ public abstract class AbstractALSResource {
     check(condition, Response.Status.BAD_REQUEST, errorMessage);
   }
 
+  protected final void checkExists(boolean condition,
+                                   String entity) throws OryxServingException {
+    check(condition, Response.Status.NOT_FOUND, entity);
+  }
+
   protected static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {
     if (values.size() < offset) {
       return Collections.emptyList();

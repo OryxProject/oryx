@@ -16,7 +16,6 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
@@ -26,15 +25,25 @@ public final class PreferenceTest extends AbstractALSServingTest {
 
   @Test
   public void testPost() {
-    Response response = target("pref").path("U1").path("I2").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).post(Entity.text("1"));
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    Response response = target("/pref/U1/I2").request().post(Entity.text("1"));
+    checkResponse(response, "U1", "I2", "1");
   }
 
   @Test
   public void testDelete() {
-    Response response = target("pref").path("U1").path("I2").request()
-        .accept(MediaType.APPLICATION_JSON_TYPE).delete();
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    Response response = target("/pref/U1/I2").request().delete();
+    checkResponse(response, "U1", "I2", "");
   }
+
+  private static void checkResponse(Response response, String user, String item, String score) {
+    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    /*
+    List<Pair<String,String>> data = MockQueueProducer.getData();
+    Assert.assertEquals(1, data.size());
+    Pair<String,String> expected = data.get(0);
+    Assert.assertNull(expected.getFirst());
+    Assert.assertEquals(user + "," + item + "," + score, expected.getSecond());
+     */
+  }
+
 }

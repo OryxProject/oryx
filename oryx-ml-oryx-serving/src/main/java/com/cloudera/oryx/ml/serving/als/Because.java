@@ -32,6 +32,7 @@ import com.google.common.collect.Ordering;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -44,7 +45,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * value where higher values mean more relevant to recommendation.</p>
  *
  * <p>If the user, item or user's interacted items are not known to the model, an
- * HTTP 404 Not Found response is generated.</p>
+ * {@link Response.Status#NOT_FOUND} response is generated.</p>
  *
  * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
@@ -53,7 +54,7 @@ public final class Because extends AbstractALSResource {
 
   @GET
   @Path("{userID}/{itemID}")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,
@@ -65,9 +66,9 @@ public final class Because extends AbstractALSResource {
 
     ALSServingModel model = getALSServingModel();
     float[] itemVector = model.getItemVector(itemID);
-    check(itemVector != null, Response.Status.NOT_FOUND, itemID);
+    checkExists(itemVector != null, itemID);
     List<Pair<String,float[]>> knownItemVectors = model.getKnownItemVectorsForUser(userID);
-    check(knownItemVectors != null, Response.Status.NOT_FOUND, userID);
+    checkExists(knownItemVectors != null, userID);
 
     Iterable<Pair<String,Double>> idSimilarities =
         Iterables.transform(knownItemVectors, new CosineSimilarityFunction(itemVector));

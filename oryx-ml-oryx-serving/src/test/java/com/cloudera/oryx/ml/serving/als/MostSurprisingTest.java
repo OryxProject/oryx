@@ -32,12 +32,18 @@ public final class MostSurprisingTest extends AbstractALSServingTest {
   }
 
   @Test
-  public void testMostSurprisingJson() {
-    List<IDValue> recs = target("mostSurprising/U0").request()
+  public void testMostSurprising() {
+    List<IDValue> recs = target("/mostSurprising/U0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(3, recs.size());
     Assert.assertEquals("I0", recs.get(0).getID());
     Assert.assertEquals(0.38761317555864894, recs.get(0).getValue(), DOUBLE_EPSILON);
+  }
+
+  @Test
+  public void testMostSurprisingCSV() {
+    String response = target("/mostSurprising/U0").request().get(String.class);
+    testCSVLeastByScore(3, response);
   }
 
   @Test

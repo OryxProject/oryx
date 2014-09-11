@@ -32,6 +32,7 @@ import com.google.common.collect.Ordering;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -45,8 +46,8 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * Outputs contain item and score pairs, where the score is an opaque
  * value where higher values mean more surprising.</p>
  *
- * <p>If the user, item or user's interacted items are not known to the model, an
- * HTTP 404 Not Found response is generated.</p>
+ * <p>If the user, item or user's interacted items are not known to the model, a
+ * {@link Response.Status#NOT_FOUND} response is generated.</p>
  *
  * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
@@ -55,7 +56,7 @@ public final class MostSurprising extends AbstractALSResource {
 
   @GET
   @Path("{userID}")
-  @Produces({MediaType.APPLICATION_JSON,MediaType.TEXT_PLAIN})
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("userID") String userID,
       @DefaultValue("10") @QueryParam("howMany") int howMany,
@@ -66,9 +67,9 @@ public final class MostSurprising extends AbstractALSResource {
 
     ALSServingModel model = getALSServingModel();
     float[] userVector = model.getUserVector(userID);
-    check(userVector != null, Response.Status.NOT_FOUND, userID);
+    checkExists(userVector != null, userID);
     List<Pair<String,float[]>> knownItemVectors = model.getKnownItemVectorsForUser(userID);
-    check(knownItemVectors != null, Response.Status.NOT_FOUND, userID);
+    checkExists(knownItemVectors != null, userID);
 
     Iterable<Pair<String,Double>> idDots =
         Iterables.transform(knownItemVectors, new DotsFunction(userVector));

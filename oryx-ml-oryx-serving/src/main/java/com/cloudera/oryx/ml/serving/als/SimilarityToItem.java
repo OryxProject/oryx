@@ -23,11 +23,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
@@ -36,26 +36,22 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  *
  * <p>This computes cosine similarity between an item and one or more other items.</p>
  *
- * <p>If the first given item is not known to the model, an
- * HTTP 404 Not Found response is generated. For other items, if not known to the model,
- * a 0.0 is returned in the response in that place</p>
- *
- * <p>The output are similarities, in the same order as the item IDs as a JSON array
- * of double values.</p>
+ * <p>The output are similarities, in the same order as the item IDs, with format
+ * as in {@link Estimate}</p>
  */
 @Path("/similarityToItem")
 public final class SimilarityToItem extends AbstractALSResource {
 
   @GET
   @Path("{toItemID}/{itemID : .+}")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<Double> get(
       @PathParam("toItemID") String toItemID,
       @PathParam("itemID") List<PathSegment> pathSegmentsList) throws OryxServingException {
 
     ALSServingModel alsServingModel = getALSServingModel();
     float[] toItemFeatures = alsServingModel.getItemVector(toItemID);
-    check(toItemFeatures != null, Response.Status.NOT_FOUND, toItemID);
+    checkExists(toItemFeatures != null, toItemID);
 
     double toItemFeaturesNorm = VectorMath.norm(toItemFeatures);
     List<Double> results = new ArrayList<>(pathSegmentsList.size());

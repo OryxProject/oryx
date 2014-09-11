@@ -21,18 +21,19 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
+
 /**
- * <p>Responds to a GET request to {@code /item/allIDs}
- * and in turn calls {@link com.cloudera.oryx.ml.serving.als.model.ALSServingModel#getAllItemIDs()}.</p>
+ * <p>Responds to a GET request to {@code /item/allIDs}.</p>
  *
- * <p>JSON output is an array of item IDs.</p>
+ * <p>CSV output consists of one ID per line. JSON output is an array of item IDs.</p>
  */
 @Path("/item")
 public final class AllItemIDs extends AbstractALSResource {
 
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
   @Path("/allIDs")
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Collection<String> get() {
     return getALSServingModel().getAllItemIDs();
   }

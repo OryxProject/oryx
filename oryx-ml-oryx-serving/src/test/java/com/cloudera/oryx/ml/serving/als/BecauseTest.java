@@ -27,8 +27,8 @@ import com.cloudera.oryx.ml.serving.IDValue;
 public final class BecauseTest extends AbstractALSServingTest {
 
   @Test
-  public void testBecauseRecommended() {
-    List<IDValue> recs = target("because").path("U0/I0").request()
+  public void testBecause() {
+    List<IDValue> recs = target("/because/U0/I0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     Assert.assertEquals(3, recs.size());
     for (int i = 1; i < recs.size(); i++) {
@@ -36,7 +36,12 @@ public final class BecauseTest extends AbstractALSServingTest {
     }
     Assert.assertEquals("I0", recs.get(0).getID());
     Assert.assertEquals(1.0, recs.get(0).getValue(), DOUBLE_EPSILON);
+  }
 
+  @Test
+  public void testBecauseCSV() {
+    String response = target("/because/U0/I0").request().get(String.class);
+    testCSVTopByScore(3, response);
   }
 
   @Test(expected = NotFoundException.class)
