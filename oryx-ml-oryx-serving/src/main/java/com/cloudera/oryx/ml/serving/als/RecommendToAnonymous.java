@@ -15,50 +15,69 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.PathSegment;
 
+import com.carrotsearch.hppc.ObjectOpenHashSet;
+import com.carrotsearch.hppc.ObjectSet;
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.google.common.collect.Iterables;
+
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
+import com.cloudera.oryx.ml.serving.OryxServingException;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)},
- * and in turn calls {link OryxRecommender#recommendToAnonymous(String[], float[], int, Rescorer)}
- * with the supplied values. That is, 1 or more item IDs are supplied, which may each optionally correspond to
- * a value or else default to 1.
- * {@code offset} is an offset into the entire list of results; {@code howMany} is the desired
- * number of results to return from there. For example, {@code offset=30} and {@code howMany=5}
- * will cause the implementation to retrieve 35 results internally and output the last 5.
- * If {@code howMany} is not specified, defaults to {link AbstractALSServlet#DEFAULT_HOW_MANY}.
- * {@code offset} defaults to 0.</p>
+ * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)}.</p>
  *
- * <p>Unknown item IDs are ignored, unless all are unknown, in which case a
- * {link HttpServletResponse#SC_BAD_REQUEST} status is returned.</p>
+ * <p>Results are recommended items for an "anonymous" user, along with a score. The user is
+ * defined by a set of items and optional interaction strengths, as in
+ * {@link com.cloudera.oryx.ml.serving.als.EstimateForAnonymous}.
+ * Outputs contain item and score pairs, where the score is an opaque
+ * value where higher values mean a better recommendation.</p>
  *
- * <p>Outputs item/score pairs like {@link Recommend} does.</p>
- *
- * <p>This does something slightly different from {@link Similarity};
- * see {link OryxRecommender#recommendToAnonymous(String[], float[], int)}.</p>
+ * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
 @Path("/recommendToAnonymous")
 public final class RecommendToAnonymous extends AbstractALSResource {
 
   @GET
-  @Path("{itemID}")
+  @Path("{itemID : .+}")
   @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public List<IDValue> get(@PathParam("itemID") String itemID,
-                                     @QueryParam("howMany") int howMany,
-                                     @QueryParam("offset") int offset,
-                                     @QueryParam("considerKnownItems") boolean considerKnownItems,
-                                     @QueryParam("rescorerParams") List<String> rescorerParams) {
-    return Arrays.asList(new IDValue("1", 5));
+  public List<IDValue> get(
+      @PathParam("itemID") List<PathSegment> pathSegments,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset,
+      @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
+
+    check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be nonnegative");
+
+    ALSServingModel model = getALSServingModel();
+    double[] anonymousUserFeatures =
+        EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
+
+    ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
+    for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {
+      knownItems.add(itemValue.getFirst());
+    }
+    Iterable<ObjectObjectCursor<String,float[]>> entries =
+        Iterables.filter(model.getY(), new NotKnownPredicate(knownItems));
+
+    Iterable<Pair<String,Double>> idDots =
+        Iterables.transform(entries, new DotsFunction(anonymousUserFeatures));
+    List<Pair<String,Double>> topIDDots = model.topN(idDots, howMany + offset);
+    return toIDValueResponse(topIDDots, howMany, offset);
   }
 
 }

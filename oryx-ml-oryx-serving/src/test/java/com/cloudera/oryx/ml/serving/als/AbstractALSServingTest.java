@@ -109,6 +109,26 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     Assert.assertEquals(expectedSize, results.size());
   }
 
+  protected static void testTopByValue(int expectedSize,
+                                       List<IDValue> values,
+                                       boolean reverse) {
+    Assert.assertEquals(expectedSize, values.size());
+    for (int i = 0; i < values.size(); i++) {
+      IDValue value = values.get(i);
+      double thisScore = value.getValue();
+      Assert.assertFalse(Double.isNaN(thisScore));
+      Assert.assertFalse(Double.isInfinite(thisScore));
+      if (i > 0) {
+        double lastScore = values.get(i-1).getValue();
+        if (reverse) {
+          Assert.assertTrue(lastScore <= thisScore);
+        } else {
+          Assert.assertTrue(lastScore >= thisScore);
+        }
+      }
+    }
+  }
+
   protected static void testCSVTopByScore(int expectedSize, String response) {
     testCSVTop(expectedSize, response, false, false);
   }
@@ -134,10 +154,10 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
         int count = Integer.parseInt(tokens[1]);
         Assert.assertTrue(count > 0);
       }
+      double thisScore = Double.parseDouble(tokens[1]);
+      Assert.assertFalse(Double.isNaN(thisScore));
+      Assert.assertFalse(Double.isInfinite(thisScore));
       if (i > 0) {
-        double thisScore = Double.parseDouble(tokens[1]);
-        Assert.assertFalse(Double.isNaN(thisScore));
-        Assert.assertFalse(Double.isInfinite(thisScore));
         double lastScore = Double.parseDouble(rows[i-1].split(",")[1]);
         if (reverse) {
           Assert.assertTrue(lastScore <= thisScore);

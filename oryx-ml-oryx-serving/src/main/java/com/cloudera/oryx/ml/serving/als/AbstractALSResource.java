@@ -65,21 +65,21 @@ public abstract class AbstractALSResource {
     return inputProducer;
   }
 
-  protected final void check(boolean condition,
-                             Response.Status status,
-                             String errorMessage) throws OryxServingException {
+  protected static void check(boolean condition,
+                              Response.Status status,
+                              String errorMessage) throws OryxServingException {
     if (!condition) {
       throw new OryxServingException(status, errorMessage);
     }
   }
 
-  protected final void check(boolean condition,
-                             String errorMessage) throws OryxServingException {
+  protected static void check(boolean condition,
+                              String errorMessage) throws OryxServingException {
     check(condition, Response.Status.BAD_REQUEST, errorMessage);
   }
 
-  protected final void checkExists(boolean condition,
-                                   String entity) throws OryxServingException {
+  protected static void checkExists(boolean condition,
+                                    String entity) throws OryxServingException {
     check(condition, Response.Status.NOT_FOUND, entity);
   }
 

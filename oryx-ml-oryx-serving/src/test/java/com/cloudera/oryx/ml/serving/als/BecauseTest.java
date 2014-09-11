@@ -30,10 +30,7 @@ public final class BecauseTest extends AbstractALSServingTest {
   public void testBecause() {
     List<IDValue> recs = target("/because/U0/I0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(3, recs.size());
-    for (int i = 1; i < recs.size(); i++) {
-      Assert.assertTrue(recs.get(i).getValue() <= recs.get(i-1).getValue());
-    }
+    testTopByValue(3, recs, false);
     Assert.assertEquals("I0", recs.get(0).getID());
     Assert.assertEquals(1.0, recs.get(0).getValue(), DOUBLE_EPSILON);
   }

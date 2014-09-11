@@ -25,9 +25,9 @@ public final class EstimateForAnonymousTest extends AbstractALSServingTest {
 
   @Test
   public void testEstimateForAnonymous() {
-    Double item = target("/estimateForAnonymous/I3/I4=1.0/I5=2.0").request()
+    Double item = target("/estimateForAnonymous/I7/I4=1.0/I5=2.0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
-    Assert.assertEquals(-0.05814245143707833, item, DOUBLE_EPSILON);
+    Assert.assertEquals(0.41001138390689273, item, DOUBLE_EPSILON);
   }
 
   @Test

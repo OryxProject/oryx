@@ -24,9 +24,13 @@ import com.cloudera.oryx.common.math.VectorMath;
 final class DotsFunction
     implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
 
-  private final float[] userVector;
+  private final double[] userVector;
 
   DotsFunction(float[] userVector) {
+    this(VectorMath.toDoubles(userVector));
+  }
+
+  DotsFunction(double[] userVector) {
     this.userVector = userVector;
   }
 

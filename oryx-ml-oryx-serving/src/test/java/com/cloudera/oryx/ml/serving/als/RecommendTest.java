@@ -31,11 +31,7 @@ public final class RecommendTest extends AbstractALSServingTest {
   public void testRecommend() {
     List<IDValue> recs = target("/recommend/U0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-    Assert.assertNotNull(recs);
-    Assert.assertEquals(6, recs.size());
-    for (int i = 1; i < recs.size(); i++) {
-      Assert.assertTrue(recs.get(i).getValue() <= recs.get(i-1).getValue());
-    }
+    testTopByValue(6, recs, false);
     Assert.assertEquals("I1", recs.get(0).getID());
     Assert.assertEquals(0.465396924146558, recs.get(0).getValue(), FLOAT_EPSILON);
   }

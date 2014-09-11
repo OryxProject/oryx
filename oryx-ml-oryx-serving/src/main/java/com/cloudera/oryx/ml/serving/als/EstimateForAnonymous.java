@@ -48,28 +48,22 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   @GET
   @Path("{toItemID}/{itemID : .+}")
   @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public Double get(@PathParam("toItemID") String toItemID,
-                    @PathParam("itemID") List<PathSegment> pathSegmentList)
-      throws OryxServingException {
-
-    List<Pair<String,Double>> itemValuePairs = Lists.transform(pathSegmentList,
-        new Function<PathSegment, Pair<String, Double>>() {
-          @Override
-          public Pair<String,Double> apply(PathSegment segment) {
-            String s = segment.getPath();
-            int offset = s.indexOf('=');
-            return offset < 0 ?
-                new Pair<>(s, 1.0) :
-                new Pair<>(s.substring(0, offset),
-                           Double.parseDouble(s.substring(offset + 1)));
-          }
-        });
+  public Double get(
+      @PathParam("toItemID") String toItemID,
+      @PathParam("itemID") List<PathSegment> pathSegments) throws OryxServingException {
 
     ALSServingModel model = getALSServingModel();
     float[] toItemVector = model.getItemVector(toItemID);
     checkExists(toItemVector != null, toItemID);
 
-    int features = toItemVector.length;
+    double[] anonymousUserFeatures = buildAnonymousUserFeatures(model, pathSegments);
+    return VectorMath.dot(anonymousUserFeatures, toItemVector);
+  }
+
+  static double[] buildAnonymousUserFeatures(ALSServingModel model,
+                                             List<PathSegment> pathSegments) {
+    List<Pair<String,Double>> itemValuePairs = parsePathSegments(pathSegments);
+    int features = model.getFeatures();
     double[] userItemRowTimesY = new double[features];
     for (Pair<String,Double> itemValue : itemValuePairs) {
       float[] itemVector = model.getItemVector(itemValue.getFirst());
@@ -81,8 +75,22 @@ public final class EstimateForAnonymous extends AbstractALSResource {
         }
       }
     }
-    double[] anonymousUserFeatures = model.getYTYSolver().solveDToD(userItemRowTimesY);
-    return VectorMath.dot(anonymousUserFeatures, toItemVector);
+    return model.getYTYSolver().solveDToD(userItemRowTimesY);
+  }
+
+  static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {
+    return Lists.transform(pathSegments,
+        new Function<PathSegment, Pair<String, Double>>() {
+          @Override
+          public Pair<String, Double> apply(PathSegment segment) {
+            String s = segment.getPath();
+            int offset = s.indexOf('=');
+            return offset < 0 ?
+                new Pair<>(s, 1.0) :
+                new Pair<>(s.substring(0, offset),
+                    Double.parseDouble(s.substring(offset + 1)));
+          }
+        });
   }
 
   /**

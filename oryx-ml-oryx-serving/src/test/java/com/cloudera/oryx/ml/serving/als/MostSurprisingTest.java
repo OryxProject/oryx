@@ -35,7 +35,7 @@ public final class MostSurprisingTest extends AbstractALSServingTest {
   public void testMostSurprising() {
     List<IDValue> recs = target("/mostSurprising/U0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-    Assert.assertEquals(3, recs.size());
+    testTopByValue(3, recs, true);
     Assert.assertEquals("I0", recs.get(0).getID());
     Assert.assertEquals(0.38761317555864894, recs.get(0).getValue(), DOUBLE_EPSILON);
   }

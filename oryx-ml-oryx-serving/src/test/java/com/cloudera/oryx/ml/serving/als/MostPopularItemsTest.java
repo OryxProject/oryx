@@ -31,9 +31,12 @@ public final class MostPopularItemsTest extends AbstractALSServingTest {
     List<IDCount> top = target("/mostPopularItems").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
     Assert.assertEquals(9, top.size());
-    for (int i = 1; i < top.size(); i++) {
-      Assert.assertTrue(top.get(i).getValue() >= 1);
-      Assert.assertTrue(top.get(i-1).getValue() >= top.get(i).getValue());
+    for (int i = 0; i < top.size(); i++) {
+      int thisCount = top.get(i).getValue();
+      Assert.assertTrue(thisCount >= 1);
+      if (i > 0) {
+        Assert.assertTrue(top.get(i - 1).getValue() >= thisCount);
+      }
     }
     Assert.assertEquals(6, top.get(0).getValue());
     Assert.assertEquals(6, top.get(1).getValue());

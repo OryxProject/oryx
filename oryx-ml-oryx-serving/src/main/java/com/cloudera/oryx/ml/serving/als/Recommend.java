@@ -27,7 +27,6 @@ import javax.ws.rs.core.Response;
 
 import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 import com.cloudera.oryx.common.collection.Pair;
@@ -93,20 +92,6 @@ public final class Recommend extends AbstractALSResource {
         Iterables.transform(entries, new DotsFunction(userVector));
     List<Pair<String,Double>> topIDDots = model.topN(idDots, howMany + offset);
     return toIDValueResponse(topIDDots, howMany, offset);
-  }
-
-  private static final class NotKnownPredicate
-      implements Predicate<ObjectObjectCursor<String,float[]>> {
-    private final ObjectSet<String> knownItemsForUser;
-    NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
-      this.knownItemsForUser = knownItemsForUser;
-    }
-    @Override
-    public boolean apply(ObjectObjectCursor<String,float[]> input) {
-      synchronized (knownItemsForUser) {
-        return !knownItemsForUser.contains(input.key);
-      }
-    }
   }
 
 }
