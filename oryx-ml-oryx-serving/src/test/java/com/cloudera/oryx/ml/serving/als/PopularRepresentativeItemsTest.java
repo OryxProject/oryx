@@ -28,7 +28,8 @@ public final class PopularRepresentativeItemsTest extends AbstractALSServingTest
     List<String> items = target("/popularRepresentativeItems").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
     Assert.assertEquals(2, items.size());
-    Assert.assertEquals("I0", items.get(0));
+    // These are tied in the current model:
+    Assert.assertTrue("I0".equals(items.get(0)) || "I3".equals(items.get(0)));
     Assert.assertEquals("I4", items.get(1));
   }
 
