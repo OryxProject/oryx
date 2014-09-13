@@ -29,6 +29,7 @@ import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.collect.Iterables;
 
+import com.cloudera.oryx.common.ClosedFunction;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -80,17 +81,23 @@ public final class Recommend extends AbstractALSResource {
     float[] userVector = model.getUserVector(userID);
     checkExists(userVector != null, userID);
 
-    Iterable<ObjectObjectCursor<String,float[]>> entries = model.getY();
+    ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn = null;
     if (!considerKnownItems) {
-      ObjectSet<String> knownItems = model.getKnownItems(userID);
+      final ObjectSet<String> knownItems = model.getKnownItems(userID);
       if (knownItems != null && !knownItems.isEmpty()) {
-        entries = Iterables.filter(entries, new NotKnownPredicate(knownItems));
+        entriesFn = new ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>>() {
+          @Override
+          public Iterable<ObjectObjectCursor<String,float[]>> apply(Iterable<ObjectObjectCursor<String,float[]>> input) {
+            return Iterables.filter(input, new NotKnownPredicate(knownItems));
+          }
+        };
       }
     }
 
-    Iterable<Pair<String,Double>> idDots =
-        Iterables.transform(entries, new DotsFunction(userVector));
-    List<Pair<String,Double>> topIDDots = model.topN(idDots, howMany + offset);
+    List<Pair<String,Double>> topIDDots = model.topN(
+        entriesFn,
+        new DotsFunction(userVector),
+        howMany + offset);
     return toIDValueResponse(topIDDots, howMany, offset);
   }
 

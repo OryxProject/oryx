@@ -34,9 +34,11 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.common.ClosedFunction;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
@@ -73,15 +75,6 @@ public final class ALSServingModel {
 
   public boolean isImplicit() {
     return implicit;
-  }
-
-  /**
-   * This should not be accessed directly! It may be used in a transformation that is later
-   * passed to {@link #topN(Iterable, int)}
-   * @return item-feature matrix
-   */
-  public ObjectObjectMap<String,float[]> getY() {
-    return Y;
   }
 
   public float[] getUserVector(String user) {
@@ -207,6 +200,7 @@ public final class ALSServingModel {
     return idVectors;
   }
 
+  /*
   public List<Pair<String,Double>> mostSimilarItems(List<String> itemsList, int howMany) {
     List<Pair<String,Double>> itemScoresList = new ArrayList<>(itemsList.size());
     Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
@@ -228,13 +222,22 @@ public final class ALSServingModel {
     }
     return topN(itemScoresList, howMany);
   }
+   */
 
-  public List<Pair<String,Double>> topN(Iterable<Pair<String,Double>> pairs, int howMany) {
+  public List<Pair<String,Double>> topN(
+      ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn,
+      Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> scoreFn,
+      int howMany) {
+
+    Iterable<ObjectObjectCursor<String,float[]>> entries =
+        entriesFn == null ? Y : entriesFn.apply(Y);
+    Iterable<Pair<String,Double>> idDots = Iterables.transform(entries, scoreFn);
+
     Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
     Lock lock = yLock.readLock();
     lock.lock();
     try {
-      return ordering.greatestOf(pairs, howMany);
+      return ordering.greatestOf(idDots, howMany);
     } finally {
       lock.unlock();
     }

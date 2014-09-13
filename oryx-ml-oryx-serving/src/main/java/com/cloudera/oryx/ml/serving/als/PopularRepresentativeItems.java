@@ -22,8 +22,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.collect.Iterables;
-
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -50,9 +48,7 @@ public final class PopularRepresentativeItems extends AbstractALSResource {
     float[] unitVector = new float[features];
     for (int i = 0; i < features; i++) {
       unitVector[i] = 1.0f;
-      Iterable<Pair<String,Double>> idDots =
-          Iterables.transform(model.getY(), new DotsFunction(unitVector));
-      List<Pair<String,Double>> topIDDot = model.topN(idDots, 1);
+      List<Pair<String,Double>> topIDDot = model.topN(null, new DotsFunction(unitVector), 1);
       items.add(topIDDot.isEmpty() ? null : topIDDot.get(0).getFirst());
       unitVector[i] = 0.0f; // reset
     }
