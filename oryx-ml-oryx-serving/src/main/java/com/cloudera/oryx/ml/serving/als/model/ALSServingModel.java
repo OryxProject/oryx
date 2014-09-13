@@ -15,11 +15,17 @@
 
 package com.cloudera.oryx.ml.serving.als.model;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -32,27 +38,36 @@ import com.carrotsearch.hppc.ObjectOpenHashSet;
 import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
+import com.carrotsearch.hppc.predicates.ObjectPredicate;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.ClosedFunction;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 
 public final class ALSServingModel {
 
+  private static final int PARTITIONS = Runtime.getRuntime().availableProcessors();
+  // PARTITIONS == 1 is supported mostly for testing now
+  private static final ExecutorService executor = PARTITIONS <= 1 ? null :
+      Executors.newFixedThreadPool(PARTITIONS,
+          new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSServingModel-%d").build());
+
   private final ObjectObjectMap<String,float[]> X;
-  private final ObjectObjectMap<String,float[]> Y;
+  private final ObjectObjectMap<String,float[]>[] Y;
   private final ObjectObjectMap<String,ObjectSet<String>> knownItems;
   private final ReadWriteLock xLock;
-  private final ReadWriteLock yLock;
+  private final ReadWriteLock[] yLocks;
   private final ReadWriteLock knownItemsLock;
   private final int features;
   private final boolean implicit;
@@ -60,10 +75,19 @@ public final class ALSServingModel {
   ALSServingModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
     X = new ObjectObjectOpenHashMap<>();
-    Y = new ObjectObjectOpenHashMap<>();
+    @SuppressWarnings("unchecked")
+    ObjectObjectMap<String,float[]>[] theY =
+        (ObjectObjectMap<String,float[]>[]) Array.newInstance(ObjectObjectMap.class, PARTITIONS);
+    for (int i = 0; i < theY.length; i++) {
+      theY[i] = new ObjectObjectOpenHashMap<>(1024, 0.9f);
+    }
+    Y = theY;
     knownItems = new ObjectObjectOpenHashMap<>();
     xLock = new ReentrantReadWriteLock();
-    yLock = new ReentrantReadWriteLock();
+    yLocks = new ReentrantReadWriteLock[Y.length];
+    for (int i = 0; i < yLocks.length; i++) {
+      yLocks[i] = new ReentrantReadWriteLock();
+    }
     knownItemsLock = new ReentrantReadWriteLock();
     this.features = features;
     this.implicit = implicit;
@@ -77,6 +101,10 @@ public final class ALSServingModel {
     return implicit;
   }
 
+  private static int partition(Object o) {
+    return (o.hashCode() & 0x7FFFFFFF) % PARTITIONS;
+  }
+
   public float[] getUserVector(String user) {
     Lock lock = xLock.readLock();
     lock.lock();
@@ -88,10 +116,11 @@ public final class ALSServingModel {
   }
 
   public float[] getItemVector(String item) {
-    Lock lock = yLock.readLock();
+    int partition = partition(item);
+    Lock lock = yLocks[partition].readLock();
     lock.lock();
     try {
-      return Y.get(item);
+      return Y[partition].get(item);
     } finally {
       lock.unlock();
     }
@@ -112,15 +141,21 @@ public final class ALSServingModel {
   void setItemVector(String item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    Lock lock = yLock.writeLock();
+    int partition = partition(item);
+    Lock lock = yLocks[partition].writeLock();
     lock.lock();
     try {
-      Y.put(item, vector);
+      Y[partition].put(item, vector);
     } finally {
       lock.unlock();
     }
   }
 
+  /**
+   * @param user user to get known items for
+   * @return set of known items for the user. Note that this object is not thread-safe and
+   *  access must be {@code synchronized}
+   */
   public ObjectSet<String> getKnownItems(String user) {
     Lock lock = this.knownItemsLock.readLock();
     lock.lock();
@@ -185,17 +220,20 @@ public final class ALSServingModel {
       return null;
     }
     List<Pair<String,float[]>> idVectors = new ArrayList<>(knownItems.size());
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
-      synchronized (knownItems) {
-        for (ObjectCursor<String> knownItem : knownItems) {
-          String itemID = knownItem.value;
-          idVectors.add(new Pair<>(itemID, Y.get(itemID)));
+    synchronized (knownItems) {
+      for (ObjectCursor<String> knownItem : knownItems) {
+        String itemID = knownItem.value;
+        int partition = partition(itemID);
+        float[] vector;
+        Lock lock = yLocks[partition].readLock();
+        lock.lock();
+        try {
+          vector = Y[partition].get(itemID);
+        } finally {
+          lock.unlock();
         }
+        idVectors.add(new Pair<>(itemID, vector));
       }
-    } finally {
-      lock.unlock();
     }
     return idVectors;
   }
@@ -225,46 +263,83 @@ public final class ALSServingModel {
    */
 
   public List<Pair<String,Double>> topN(
-      ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn,
-      Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> scoreFn,
-      int howMany) {
+      final ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn,
+      final Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> scoreFn,
+      final int howMany) {
 
-    Iterable<ObjectObjectCursor<String,float[]>> entries =
-        entriesFn == null ? Y : entriesFn.apply(Y);
-    Iterable<Pair<String,Double>> idDots = Iterables.transform(entries, scoreFn);
+    final Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
 
-    Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
-      return ordering.greatestOf(idDots, howMany);
-    } finally {
-      lock.unlock();
+    List<Callable<Iterable<Pair<String, Double>>>> tasks = new ArrayList<>(Y.length);
+    for (int partition = 0; partition < Y.length; partition++) {
+      final int thePartition = partition;
+      tasks.add(new LoggingCallable<Iterable<Pair<String,Double>>>() {
+        @Override
+        public Iterable<Pair<String, Double>> doCall() {
+          Iterable<ObjectObjectCursor<String, float[]>> entries =
+              entriesFn == null ? Y[thePartition] : entriesFn.apply(Y[thePartition]);
+          Iterable<Pair<String, Double>> idDots = Iterables.transform(entries, scoreFn);
+          Lock lock = yLocks[thePartition].readLock();
+          lock.lock();
+          try {
+            return ordering.greatestOf(idDots, howMany);
+          } finally {
+            lock.unlock();
+          }
+        }
+      });
     }
+
+    List<Iterable<Pair<String, Double>>> iterables = new ArrayList<>();
+    if (Y.length >= 2) {
+      try {
+        for (Future<Iterable<Pair<String, Double>>> future : executor.invokeAll(tasks)) {
+          iterables.add(future.get());
+        }
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
+      } catch (ExecutionException e) {
+        throw new IllegalStateException(e.getCause());
+      }
+    } else {
+      try {
+        iterables.add(tasks.get(0).call());
+      } catch (Exception e) {
+        throw new IllegalStateException(e);
+      }
+    }
+
+
+    return ordering.greatestOf(Iterables.concat(iterables), howMany);
   }
 
   public Collection<String> getAllItemIDs() {
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
-      Collection<String> itemsList = new ArrayList<>(Y.size());
-      for (ObjectCursor<String> intCursor : Y.keys()) {
-        itemsList.add(intCursor.value);
+    Collection<String> itemsList = new ArrayList<>();
+    for (int partition = 0; partition < Y.length; partition++) {
+      Lock lock = yLocks[partition].readLock();
+      lock.lock();
+      try {
+        for (ObjectCursor<String> intCursor : Y[partition].keys()) {
+          itemsList.add(intCursor.value);
+        }
+      } finally {
+        lock.unlock();
       }
-      return itemsList;
-    } finally {
-      lock.unlock();
     }
+    return itemsList;
   }
 
   public Solver getYTYSolver() {
-    RealMatrix YTY;
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
-      YTY = VectorMath.transposeTimesSelf(Y.values());
-    } finally {
-      lock.unlock();
+    RealMatrix YTY = null;
+    for (int partition = 0; partition < Y.length; partition++) {
+      RealMatrix YTYpartial;
+      Lock lock = yLocks[partition].readLock();
+      lock.lock();
+      try {
+        YTYpartial = VectorMath.transposeTimesSelf(Y[partition].values());
+      } finally {
+        lock.unlock();
+      }
+      YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
     }
     return new LinearSystemSolver().getSolver(YTY);
   }
@@ -286,12 +361,15 @@ public final class ALSServingModel {
    * @param items items that should be retained; all else can be removed
    */
   void retainAllItems(Collection<String> items) {
-    Lock lock = yLock.writeLock();
-    lock.lock();
-    try {
-      Y.removeAll(new NotContainsPredicate<>(items));
-    } finally {
-      lock.unlock();
+    ObjectPredicate<String> predicate = new NotContainsPredicate<>(items);
+    for (int partition = 0; partition < Y.length; partition++) {
+      Lock lock = yLocks[partition].writeLock();
+      lock.lock();
+      try {
+        Y[partition].removeAll(predicate);
+      } finally {
+        lock.unlock();
+      }
     }
   }
 
@@ -320,12 +398,10 @@ public final class ALSServingModel {
 
   @Override
   public String toString() {
-    return "ALSServingModel[features:" + features + ", implicit:" + implicit +
-        ", X:(" + X.size() + " users), Y:(" + Y.size() + " items), knownItems:(" +
-        knownItems.size() + " users)]";
+    return "ALSServingModel[features:" + features + ", implicit:" + implicit + "]";
   }
 
-
+  /*
   private static final class CosineSimilarityFunction
       implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
     private final float[] itemVector;
@@ -342,5 +418,6 @@ public final class ALSServingModel {
       return new Pair<>(itemIDVector.key, cosineSimilarity);
     }
   }
+   */
 
 }

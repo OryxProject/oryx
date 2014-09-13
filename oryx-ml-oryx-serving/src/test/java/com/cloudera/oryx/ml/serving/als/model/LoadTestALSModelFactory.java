@@ -31,7 +31,7 @@ public final class LoadTestALSModelFactory {
   private static final Logger log = LoggerFactory.getLogger(LoadTestALSModelFactory.class);
 
   public static final int USERS = 100_000;
-  public static final int ITEMS = 1_000_000;
+  public static final int ITEMS = 2_000_000;
   private static final int FEATURES = 150;
   private static final int AVG_ITEMS_PER_USER = 20;
 

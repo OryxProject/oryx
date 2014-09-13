@@ -89,10 +89,7 @@ public final class VectorMath {
       float[] vector = entry.value;
       if (result == null) {
         features = vector.length;
-        Preconditions.checkArgument(features > 0);
         result = new Array2DRowRealMatrix(features, features);
-      } else {
-        Preconditions.checkArgument(features == vector.length);
       }
       for (int row = 0; row < features; row++) {
         float rowValue = vector[row];

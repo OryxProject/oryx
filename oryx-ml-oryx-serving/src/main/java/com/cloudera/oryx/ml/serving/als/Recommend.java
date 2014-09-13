@@ -25,6 +25,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.carrotsearch.hppc.ObjectOpenHashSet;
 import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.collect.Iterables;
@@ -83,12 +84,16 @@ public final class Recommend extends AbstractALSResource {
 
     ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn = null;
     if (!considerKnownItems) {
-      final ObjectSet<String> knownItems = model.getKnownItems(userID);
+      ObjectSet<String> knownItems = model.getKnownItems(userID);
       if (knownItems != null && !knownItems.isEmpty()) {
+        final ObjectSet<String> knownItemsCopy;
+        synchronized (knownItems) {
+          knownItemsCopy = new ObjectOpenHashSet<>(knownItems);
+        }
         entriesFn = new ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>>() {
           @Override
           public Iterable<ObjectObjectCursor<String,float[]>> apply(Iterable<ObjectObjectCursor<String,float[]>> input) {
-            return Iterables.filter(input, new NotKnownPredicate(knownItems));
+            return Iterables.filter(input, new NotKnownPredicate(knownItemsCopy));
           }
         };
       }

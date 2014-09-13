@@ -140,7 +140,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <!-- Allow more memory for load IT -->
         <configuration>
-          <argLine>-Xmx2g</argLine>
+          <argLine>-Xmx3g</argLine>
         </configuration>
       </plugin>
     </plugins>

@@ -23,15 +23,17 @@ final class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,flo
 
   private final ObjectSet<String> knownItemsForUser;
 
+  /**
+   * @param knownItemsForUser items which are already known to the user. The object should
+   *  be safely accessible without synchronization.
+   */
   NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
     this.knownItemsForUser = knownItemsForUser;
   }
 
   @Override
   public boolean apply(ObjectObjectCursor<String,float[]> input) {
-    synchronized (knownItemsForUser) {
-      return !knownItemsForUser.contains(input.key);
-    }
+    return !knownItemsForUser.contains(input.key);
   }
 
 }
