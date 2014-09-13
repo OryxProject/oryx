@@ -339,7 +339,9 @@ public final class ALSServingModel {
       } finally {
         lock.unlock();
       }
-      YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+      if (YTYpartial != null) {
+        YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+      }
     }
     return new LinearSystemSolver().getSolver(YTY);
   }
