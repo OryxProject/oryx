@@ -388,7 +388,7 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
-    <hadoop.version>2.5.0</hadoop.version>
+    <hadoop.version>2.5.1</hadoop.version>
     <jackson.version>2.4.2</jackson.version>
     <jersey.version>2.12</jersey.version>
     <kafka.version>0.8.1.1</kafka.version>
