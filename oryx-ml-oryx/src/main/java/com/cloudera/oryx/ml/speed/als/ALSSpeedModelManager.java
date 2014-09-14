@@ -249,10 +249,18 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     private static final Pattern COMMA = Pattern.compile(",");
 
     @Override
-    public Tuple2<Tuple2<String,String>,Double> call(Tuple2<String,String> km) {
-      String[] tokens = COMMA.split(km._2());
+    public Tuple2<Tuple2<String,String>,Double> call(Tuple2<String,String> km) throws IOException {
+      String message = km._2();
+      String[] tokens;
+      // Hacky, but effective way of differentiating simple CSV from JSON array
+      if (message.endsWith("]")) {
+        // JSON
+        tokens = MAPPER.readValue(message, String[].class);
+      } else {
+        // CSV
+        tokens = COMMA.split(message);
+      }
       int numTokens = tokens.length;
-      Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3, "Bad update: %s", km._2());
       String user = tokens[0];
       String item = tokens[1];
       double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;

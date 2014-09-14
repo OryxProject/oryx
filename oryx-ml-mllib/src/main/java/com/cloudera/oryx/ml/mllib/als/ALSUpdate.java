@@ -83,7 +83,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
-                         JavaRDD<String> csvTrainData,
+                         JavaRDD<String> trainData,
                          List<Number> hyperParams,
                          Path candidatePath) {
     log.info("Building model with params {}", hyperParams);
@@ -95,13 +95,13 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
 
-    JavaRDD<Rating> trainData = csvToRatingRDD(csvTrainData);
-    trainData = aggregateScores(trainData);
+    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(toParsedRDD(trainData));
+    trainRatingData = aggregateScores(trainRatingData);
     MatrixFactorizationModel model;
     if (implicit) {
-      model = ALS.trainImplicit(trainData.rdd(), features, iterations, lambda, alpha);
+      model = ALS.trainImplicit(trainRatingData.rdd(), features, iterations, lambda, alpha);
     } else {
-      model = ALS.train(trainData.rdd(), features, iterations, lambda);
+      model = ALS.train(trainRatingData.rdd(), features, iterations, lambda);
     }
     return mfModelToPMML(model, features, lambda, alpha, implicit, candidatePath);
   }
@@ -110,18 +110,18 @@ public final class ALSUpdate extends MLUpdate<String> {
   public double evaluate(JavaSparkContext sparkContext,
                          PMML model,
                          Path modelParentPath,
-                         JavaRDD<String> csvTestData) {
+                         JavaRDD<String> testData) {
     log.info("Evaluating model");
-    JavaRDD<Rating> testData = csvToRatingRDD(csvTestData);
-    testData = aggregateScores(testData);
+    JavaRDD<Rating> testRatingData = parsedToRatingRDD(toParsedRDD(testData));
+    testRatingData = aggregateScores(testRatingData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
     if (implicit) {
-      double auc = AUC.areaUnderCurve(sparkContext, mfModel, testData);
+      double auc = AUC.areaUnderCurve(sparkContext, mfModel, testRatingData);
       log.info("AUC: {}", auc);
       eval = auc;
     } else {
-      double rmse = RMSE.rmse(mfModel, testData);
+      double rmse = RMSE.rmse(mfModel, testRatingData);
       log.info("RMSE: {}", rmse);
       eval = 1.0 / rmse;
     }
@@ -168,14 +168,28 @@ public final class ALSUpdate extends MLUpdate<String> {
     //}
   }
 
-  private static JavaRDD<Rating> csvToRatingRDD(JavaRDD<String> csvRDD) {
-    return csvRDD.map(new Function<String,Rating>() {
+  private static JavaRDD<String[]> toParsedRDD(JavaRDD<String> rdd) {
+    return rdd.map(new Function<String,String[]>() {
       private final Pattern comma = Pattern.compile(",");
       @Override
-      public Rating call(String csv) {
-        String[] tokens = comma.split(csv);
+      public String[] call(String line) throws IOException {
+        // Hacky, but effective way of differentiating simple CSV from JSON array
+        if (line.endsWith("]")) {
+          // JSON
+          return MAPPER.readValue(line, String[].class);
+        } else {
+          // CSV
+          return comma.split(line);
+        }
+      }
+    });
+  }
+
+  private static JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
+    return parsedRDD.map(new Function<String[],Rating>() {
+      @Override
+      public Rating call(String[] tokens) {
         int numTokens = tokens.length;
-        Preconditions.checkArgument(numTokens >= 2 && numTokens <= 3);
         return new Rating(
             Integer.parseInt(tokens[0]),
             Integer.parseInt(tokens[1]),
