@@ -98,6 +98,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     SparkConf sparkConf = new SparkConf();
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.streaming.blockInterval", Long.toString(blockIntervalMS));
+    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(3 * generationIntervalSec));
+    sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
     long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
