@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -37,16 +39,15 @@ import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
 import com.carrotsearch.hppc.ObjectOpenHashSet;
 import com.carrotsearch.hppc.ObjectSet;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.carrotsearch.hppc.predicates.ObjectPredicate;
-import com.google.common.base.Function;
+import com.carrotsearch.hppc.procedures.ObjectObjectProcedure;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import com.cloudera.oryx.common.ClosedFunction;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
@@ -54,6 +55,7 @@ import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.ml.serving.als.DoubleFunction;
 
 public final class ALSServingModel {
 
@@ -79,7 +81,7 @@ public final class ALSServingModel {
     ObjectObjectMap<String,float[]>[] theY =
         (ObjectObjectMap<String,float[]>[]) Array.newInstance(ObjectObjectMap.class, PARTITIONS);
     for (int i = 0; i < theY.length; i++) {
-      theY[i] = new ObjectObjectOpenHashMap<>(1024, 0.9f);
+      theY[i] = new ObjectObjectOpenHashMap<>();
     }
     Y = theY;
     knownItems = new ObjectObjectOpenHashMap<>();
@@ -263,28 +265,46 @@ public final class ALSServingModel {
    */
 
   public List<Pair<String,Double>> topN(
-      final ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>> entriesFn,
-      final Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> scoreFn,
-      final int howMany) {
-
-    final Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
+      final DoubleFunction<float[]> scoreFn,
+      final int howMany,
+      final Predicate<String> allowedPredicate) {
 
     List<Callable<Iterable<Pair<String, Double>>>> tasks = new ArrayList<>(Y.length);
     for (int partition = 0; partition < Y.length; partition++) {
       final int thePartition = partition;
       tasks.add(new LoggingCallable<Iterable<Pair<String,Double>>>() {
         @Override
-        public Iterable<Pair<String, Double>> doCall() {
-          Iterable<ObjectObjectCursor<String, float[]>> entries =
-              entriesFn == null ? Y[thePartition] : entriesFn.apply(Y[thePartition]);
-          Iterable<Pair<String, Double>> idDots = Iterables.transform(entries, scoreFn);
+        public Iterable<Pair<String,Double>> doCall() {
+          final Queue<Pair<String,Double>> topN =
+              new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
+
+          ObjectObjectProcedure<String,float[]> topNProc =
+              new ObjectObjectProcedure<String,float[]>() {
+                @Override
+                public void apply(String key, float[] value) {
+                  if (allowedPredicate == null || allowedPredicate.apply(key)) {
+                    double score = scoreFn.apply(value);
+                    if (topN.size() >= howMany) {
+                      if (score > topN.peek().getSecond()) {
+                        topN.poll();
+                        topN.add(new Pair<>(key, score));
+                      }
+                    } else {
+                      topN.add(new Pair<>(key, score));
+                    }
+                  }
+                }
+              };
+
           Lock lock = yLocks[thePartition].readLock();
           lock.lock();
           try {
-            return ordering.greatestOf(idDots, howMany);
+            Y[thePartition].forEach(topNProc);
           } finally {
             lock.unlock();
           }
+          // Ordering and excess items don't matter; will be merged and finally sorted later
+          return topN;
         }
       });
     }
@@ -308,8 +328,8 @@ public final class ALSServingModel {
       }
     }
 
-
-    return ordering.greatestOf(Iterables.concat(iterables), howMany);
+    return Ordering.from(PairComparators.<Double>bySecond())
+        .greatestOf(Iterables.concat(iterables), howMany);
   }
 
   public Collection<String> getAllItemIDs() {

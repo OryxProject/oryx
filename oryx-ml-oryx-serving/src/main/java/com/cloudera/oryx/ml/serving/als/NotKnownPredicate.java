@@ -16,10 +16,9 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import com.carrotsearch.hppc.ObjectSet;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.google.common.base.Predicate;
 
-final class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,float[]>> {
+final class NotKnownPredicate implements Predicate<String> {
 
   private final ObjectSet<String> knownItemsForUser;
 
@@ -32,8 +31,8 @@ final class NotKnownPredicate implements Predicate<ObjectObjectCursor<String,flo
   }
 
   @Override
-  public boolean apply(ObjectObjectCursor<String,float[]> input) {
-    return !knownItemsForUser.contains(input.key);
+  public boolean apply(String input) {
+    return !knownItemsForUser.contains(input);
   }
 
 }

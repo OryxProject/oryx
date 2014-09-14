@@ -27,10 +27,7 @@ import javax.ws.rs.core.PathSegment;
 
 import com.carrotsearch.hppc.ObjectOpenHashSet;
 import com.carrotsearch.hppc.ObjectSet;
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.common.collect.Iterables;
 
-import com.cloudera.oryx.common.ClosedFunction;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -68,20 +65,15 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     double[] anonymousUserFeatures =
         EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
 
-    final ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
+    ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
     for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {
       knownItems.add(itemValue.getFirst());
     }
 
     List<Pair<String,Double>> topIDDots = model.topN(
-        new ClosedFunction<Iterable<ObjectObjectCursor<String,float[]>>>() {
-          @Override
-          public Iterable<ObjectObjectCursor<String,float[]>> apply(Iterable<ObjectObjectCursor<String,float[]>> input) {
-            return Iterables.filter(input, new NotKnownPredicate(knownItems));
-          }
-        },
         new DotsFunction(anonymousUserFeatures),
-        howMany + offset);
+        howMany + offset,
+        new NotKnownPredicate(knownItems));
     return toIDValueResponse(topIDDots, howMany, offset);
   }
 

@@ -15,14 +15,9 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
-import com.google.common.base.Function;
-
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 
-final class DotsFunction
-    implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
+final class DotsFunction implements DoubleFunction<float[]> {
 
   private final double[] userVector;
 
@@ -35,8 +30,8 @@ final class DotsFunction
   }
 
   @Override
-  public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
-    return new Pair<>(itemIDVector.key, VectorMath.dot(userVector, itemIDVector.value));
+  public double apply(float[] itemVector) {
+    return VectorMath.dot(userVector, itemVector);
   }
 
 }

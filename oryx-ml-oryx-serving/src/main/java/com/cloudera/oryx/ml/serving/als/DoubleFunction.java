@@ -13,12 +13,13 @@
  * License.
  */
 
-package com.cloudera.oryx.common;
+package com.cloudera.oryx.ml.serving.als;
 
-import com.google.common.base.Function;
+/**
+ * Simple interface for a function from Object to {@code double}.
+ */
+public interface DoubleFunction<T> {
 
-public interface ClosedFunction<T> extends Function<T,T> {
-
-  // Just exists to simplify signature when in/out types are the same
+  double apply(T t);
 
 }

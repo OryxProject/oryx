@@ -70,8 +70,8 @@ public final class LoadIT extends AbstractALSServingTest {
   @Test
   public void testRecommendLoad() throws Exception {
     // Since latency is more important, and local machine will also be busy handling requests,
-    // use few concurrent workers, but use at least 2:
-    int workers = 2;
+    // use few concurrent workers, like 1:
+    int workers = 1;
     AtomicLong count = new AtomicLong();
     Mean meanReqTimeMS = new Mean();
     long start = System.currentTimeMillis();
@@ -91,8 +91,7 @@ public final class LoadIT extends AbstractALSServingTest {
     int totalRequests = workers * REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);
 
-    // Need to get this down!
-    Assert.assertTrue(meanReqTimeMS.getResult() < 600.0);
+    Assert.assertTrue(meanReqTimeMS.getResult() < 300.0);
   }
 
   private static void log(long currentCount, Mean meanReqTimeMS, long start) {
