@@ -16,18 +16,13 @@
 package com.cloudera.oryx.common.io;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Simply closes a {@link Closeable}.
  */
 public final class ClosingRunnable implements Runnable {
-
-  private static final Logger log = LoggerFactory.getLogger(ClosingRunnable.class);
 
   private final Closeable closeable;
 
@@ -38,11 +33,7 @@ public final class ClosingRunnable implements Runnable {
 
   @Override
   public void run() {
-    try {
-      closeable.close();
-    } catch (IOException e) {
-      log.warn("Failed to close {}", closeable, e);
-    }
+    IOUtils.closeQuietly(closeable);
   }
 
 }

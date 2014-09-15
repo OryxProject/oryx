@@ -23,15 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import com.google.common.collect.AbstractIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Iterator over the lines of a file.
  */
 final class LineIterator extends AbstractIterator<String> implements Closeable {
-
-  private static final Logger log = LoggerFactory.getLogger(LineIterator.class);
 
   private final Path file;
   private BufferedReader in;
@@ -45,13 +41,7 @@ final class LineIterator extends AbstractIterator<String> implements Closeable {
   public void close() {
     if (!closed) {
       closed = true;
-      if (in != null) {
-        try {
-          in.close();
-        } catch (IOException e) {
-          log.warn("Exception while closing reader", e);
-        }
-      }
+      IOUtils.closeQuietly(in);
     }
   }
 
