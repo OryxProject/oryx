@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -26,20 +26,57 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
+import com.cloudera.oryx.ml.serving.OryxServingException;
+import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
+/**
+ * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)}.</p>
+ *
+ * <p>Results are items that are most similar to a given item.
+ * Outputs contain item and score pairs, where the score is an opaque
+ * value where higher values mean more relevant to recommendation.</p>
+ *
+ * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
+ *
+ * <p>Default output is CSV format, containing {@code id,value} per line.
+ * JSON format can also be selected by an appropriate {@code Accept} header. It returns
+ * an array of recommendations, each of which has an "id" and "value" entry, like
+ * [{"id":"I2","value":0.141348009071816},...]</p>
+ */
 @Path("/similarity")
 public final class Similarity extends AbstractALSResource {
 
   @GET
   @Path("{itemID : .+}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public List<IDValue> get(@PathParam("itemID") List<PathSegment> pathSegmentsList,
-                           @DefaultValue("10") @QueryParam("howMany") int howMany,
-                           @DefaultValue("0") @QueryParam("offset") int offset,
-                           @QueryParam("rescorerParams") List<String> rescorerParams) {
-    return Arrays.asList(new IDValue("1", 5));
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  public List<IDValue> get(
+      @PathParam("itemID") List<PathSegment> pathSegmentsList,
+      @DefaultValue("10") @QueryParam("howMany") int howMany,
+      @DefaultValue("0") @QueryParam("offset") int offset,
+      @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
+    check(!pathSegmentsList.isEmpty() && pathSegmentsList.size() > 0, "Need atleast 1 item to determine similarity");
+    check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be non-negative");
+
+    ALSServingModel alsServingModel = getALSServingModel();
+    List<float[]> itemFeaturesList = new ArrayList<>(pathSegmentsList.size());
+
+    for (PathSegment pathSegment : pathSegmentsList) {
+      float[] itemVector = alsServingModel.getItemVector(pathSegment.getPath());
+      if (itemVector != null) {
+        itemFeaturesList.add(itemVector);
+      }
+    }
+
+    List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
+        new CosineAverageFunction(itemFeaturesList),
+        howMany + offset,
+        null);
+
+    return toIDValueResponse(topIDCosines, howMany, offset);
   }
-
 }
