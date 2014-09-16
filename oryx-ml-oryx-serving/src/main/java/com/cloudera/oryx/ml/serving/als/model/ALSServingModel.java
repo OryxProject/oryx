@@ -240,30 +240,6 @@ public final class ALSServingModel {
     return idVectors;
   }
 
-  /*
-  public List<Pair<String,Double>> mostSimilarItems(List<String> itemsList, int howMany) {
-    List<Pair<String,Double>> itemScoresList = new ArrayList<>(itemsList.size());
-    Iterable<ObjectObjectCursor<String,float[]>> entries = Y;
-
-    // TODO need lock among other things
-    for (ObjectObjectCursor<String,float[]> entry : entries) {
-      double total = 0.0;
-      double entryNorm = VectorMath.norm(entry.value);
-      for (String item : itemsList) {
-        if (!item.equalsIgnoreCase(entry.key)) {
-          float[] itemFeatures = getItemVector(item);
-          double similarity = VectorMath.dot(entry.value, itemFeatures)/(entryNorm * VectorMath.norm(itemFeatures));
-          total += similarity;
-        }
-      }
-      double result = total / itemsList.size();
-      Preconditions.checkState(!(Double.isInfinite(result) || Double.isNaN(result)), "Bad similarity value");
-      itemScoresList.add(new Pair<>(entry.key, result));
-    }
-    return topN(itemScoresList, howMany);
-  }
-   */
-
   public List<Pair<String,Double>> topN(
       final DoubleFunction<float[]> scoreFn,
       final int howMany,
@@ -422,24 +398,5 @@ public final class ALSServingModel {
   public String toString() {
     return "ALSServingModel[features:" + features + ", implicit:" + implicit + "]";
   }
-
-  /*
-  private static final class CosineSimilarityFunction
-      implements Function<ObjectObjectCursor<String,float[]>,Pair<String,Double>> {
-    private final float[] itemVector;
-    private final double itemVectorNorm;
-    CosineSimilarityFunction(float[] itemVector) {
-      this.itemVector = itemVector;
-      this.itemVectorNorm = VectorMath.norm(itemVector);
-    }
-    @Override
-    public Pair<String,Double> apply(ObjectObjectCursor<String,float[]> itemIDVector) {
-      float[] otherItemVector = itemIDVector.value;
-      double cosineSimilarity =  VectorMath.dot(itemVector, otherItemVector) /
-          (itemVectorNorm * VectorMath.norm(otherItemVector));
-      return new Pair<>(itemIDVector.key, cosineSimilarity);
-    }
-  }
-   */
 
 }
