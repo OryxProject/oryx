@@ -52,11 +52,11 @@ query operations on the result.
 Availability
 ------------
 
-|          | *Serving*      | *Speed*      | *Batch*      |
-| --------:| -------------- | ------------ | ------------ |
-| *ML app* | _no_           | _no_         | alpha        |
-| *ML*     | _no_           | _no_         | alpha        |
-| *Lambda* | _no_           | _no_         | alpha        |
+|          | *Serving*        | *Speed*          | *Batch*          |
+| --------:| ---------------- | ---------------- | ---------------- |
+| *ML app* | alpha (ALS only) | alpha (ALS only) | alpha (ALS only) |
+| *ML*     | alpha            | alpha            | alpha            |
+| *Lambda* | alpha            | alpha            | alpha            |
 
 Module Mapping
 --------------
