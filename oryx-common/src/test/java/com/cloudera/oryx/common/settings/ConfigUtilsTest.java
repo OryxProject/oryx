@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.settings;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.typesafe.config.Config;
 import org.junit.Test;
 
@@ -39,6 +42,19 @@ public final class ConfigUtilsTest extends OryxTest {
     assertEquals(
         ConfigUtils.getDefault().getString("serving.api.port"),
         deserialized.getString("serving.api.port"));
+  }
+
+  @Test
+  public void testOptional() {
+    assertNull(ConfigUtils.getOptionalString(ConfigUtils.getDefault(), "nonexistent"));
+  }
+
+  @Test
+  public void testOverlayOn() {
+    Map<String,String> overlay = new HashMap<>();
+    overlay.put("foo", "bar");
+    Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
+    assertEquals("bar", config.getString("foo"));
   }
 
 }

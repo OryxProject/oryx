@@ -19,6 +19,7 @@ import java.util.Map;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,10 @@ public final class ConfigUtils {
 
   private static final Logger log = LoggerFactory.getLogger(ConfigUtils.class);
 
+  private static final String[] CONFIG_PREFIXES_TO_IGNORE = {
+      "awt", "file", "ftp", "gopherProxySet", "http", "idea", "java", "line",
+      "os", "path", "socksNonProxyHosts", "sun", "user"
+  };
   private static final Config DEFAULT_CONFIG = ConfigFactory.load();
 
   private ConfigUtils() {}
@@ -75,21 +80,11 @@ public final class ConfigUtils {
    *  inherited from the local JVM environment
    */
   public static String serialize(Config config) {
-    return config.root()
-        .withoutKey("awt")
-        .withoutKey("file")
-        .withoutKey("ftp")
-        .withoutKey("gopherProxySet")
-        .withoutKey("http")
-        .withoutKey("idea")
-        .withoutKey("java")
-        .withoutKey("line")
-        .withoutKey("os")
-        .withoutKey("path")
-        .withoutKey("socksNonProxyHosts")
-        .withoutKey("sun")
-        .withoutKey("user")
-        .render(ConfigRenderOptions.concise());
+    ConfigObject serialized = config.root();
+    for (String prefix : CONFIG_PREFIXES_TO_IGNORE) {
+      serialized = serialized.withoutKey(prefix);
+    }
+    return serialized.render(ConfigRenderOptions.concise());
   }
 
   /**

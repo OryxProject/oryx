@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Simple value class encapsulating a key and message in a queue.
@@ -36,6 +37,21 @@ public final class KeyMessage<K,M> implements Serializable {
 
   public M getMessage() {
     return message;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(key) ^ Objects.hashCode(message);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof KeyMessage)) {
+      return false;
+    }
+    @SuppressWarnings("unchecked")
+    KeyMessage<K,M> other = (KeyMessage<K,M>) o;
+    return Objects.equals(key, other.key) && Objects.equals(message, other.message);
   }
 
   @Override
