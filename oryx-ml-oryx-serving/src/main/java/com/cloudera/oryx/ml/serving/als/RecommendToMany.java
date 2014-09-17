@@ -72,9 +72,8 @@ public final class RecommendToMany extends AbstractALSResource {
     for (PathSegment pathSegment : pathSegmentsList) {
       String userID = pathSegment.getPath();
       float[] userFeatureVector = alsServingModel.getUserVector(userID);
-      if (userFeatureVector != null) {
-        userFeaturesList.add(VectorMath.toDoubles(userFeatureVector));
-      }
+      checkExists(userFeatureVector != null, userID);
+      userFeaturesList.add(VectorMath.toDoubles(userFeatureVector));
       if (!considerKnownItems) {
         ObjectSet<String> knownItems = alsServingModel.getKnownItems(userID);
         if (knownItems != null && !knownItems.isEmpty()) {
