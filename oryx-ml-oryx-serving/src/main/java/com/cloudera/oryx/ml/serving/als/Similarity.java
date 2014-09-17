@@ -43,7 +43,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  *
  * <p>Default output is CSV format, containing {@code id,value} per line.
  * JSON format can also be selected by an appropriate {@code Accept} header. It returns
- * an array of recommendations, each of which has an "id" and "value" entry, like
+ * an array of similarities, each of which has an "id" and "value" entry, like
  * [{"id":"I2","value":0.141348009071816},...]</p>
  */
 @Path("/similarity")
@@ -66,10 +66,10 @@ public final class Similarity extends AbstractALSResource {
     List<float[]> itemFeaturesList = new ArrayList<>(pathSegmentsList.size());
 
     for (PathSegment pathSegment : pathSegmentsList) {
-      float[] itemVector = alsServingModel.getItemVector(pathSegment.getPath());
-      if (itemVector != null) {
-        itemFeaturesList.add(itemVector);
-      }
+      String itemID = pathSegment.getPath();
+      float[] itemVector = alsServingModel.getItemVector(itemID);
+      checkExists(itemVector != null, itemID);
+      itemFeaturesList.add(itemVector);
     }
 
     List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
