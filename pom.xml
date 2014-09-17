@@ -686,7 +686,7 @@
           <executions>
             <execution>
               <id>check-api</id>
-              <phase>verify</phase>
+              <phase>install</phase>
               <goals>
                 <goal>check</goal>
               </goals>
