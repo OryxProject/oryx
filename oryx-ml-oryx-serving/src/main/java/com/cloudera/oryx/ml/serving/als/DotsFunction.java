@@ -15,23 +15,34 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.List;
+
 import com.cloudera.oryx.common.math.VectorMath;
 
 final class DotsFunction implements DoubleFunction<float[]> {
 
-  private final double[] userVector;
+  private final double[][] userFeaturesVectors;
 
   DotsFunction(float[] userVector) {
     this(VectorMath.toDoubles(userVector));
   }
 
   DotsFunction(double[] userVector) {
-    this.userVector = userVector;
+    this.userFeaturesVectors = new double[][] {userVector};
+  }
+
+  public DotsFunction(List<double[]> userFeaturesVectorsList) {
+    this.userFeaturesVectors =
+        userFeaturesVectorsList.toArray(new double[userFeaturesVectorsList.size()][]);
   }
 
   @Override
   public double apply(float[] itemVector) {
-    return VectorMath.dot(userVector, itemVector);
+    double total = 0.0;
+    for (double[] userFeatureVector : userFeaturesVectors) {
+      total += VectorMath.dot(userFeatureVector, itemVector);
+    }
+    return total / userFeaturesVectors.length;
   }
 
 }
