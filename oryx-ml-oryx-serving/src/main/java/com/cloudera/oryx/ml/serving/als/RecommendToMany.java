@@ -76,10 +76,11 @@ public final class RecommendToMany extends AbstractALSResource {
       userFeaturesList.add(VectorMath.toDoubles(userFeatureVector));
       if (!considerKnownItems) {
         ObjectSet<String> knownItems = alsServingModel.getKnownItems(userID);
-        checkExists(knownItems != null, userID);
-        synchronized (knownItems) {
-          for (ObjectCursor<String> knownItem : knownItems) {
-            userKnownItems.add(knownItem.value);
+        if (knownItems != null && !knownItems.isEmpty()) {
+          synchronized (knownItems) {
+            for (ObjectCursor<String> knownItem : knownItems) {
+              userKnownItems.add(knownItem.value);
+            }
           }
         }
       }

@@ -83,9 +83,10 @@ public final class Recommend extends AbstractALSResource {
     Predicate<String> allowedFn = null;
     if (!considerKnownItems) {
       ObjectSet<String> knownItems = model.getKnownItems(userID);
-      checkExists(knownItems != null, userID);
-      synchronized (knownItems) {
-        allowedFn = new NotKnownPredicate(new ObjectOpenHashSet<>(knownItems));
+      if (knownItems != null && !knownItems.isEmpty()) {
+        synchronized (knownItems) {
+          allowedFn = new NotKnownPredicate(new ObjectOpenHashSet<>(knownItems));
+        }
       }
     }
 
