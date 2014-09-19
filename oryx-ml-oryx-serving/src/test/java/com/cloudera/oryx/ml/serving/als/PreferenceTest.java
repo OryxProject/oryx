@@ -20,11 +20,12 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 
 public final class PreferenceTest extends AbstractALSServingTest {
 
