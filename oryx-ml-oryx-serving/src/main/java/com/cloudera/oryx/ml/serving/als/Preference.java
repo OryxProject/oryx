@@ -15,10 +15,22 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+
+import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
  * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]}. If the request body is empty,
@@ -31,16 +43,43 @@ public final class Preference extends AbstractALSResource {
 
   @POST
   @Path("{userID}/{itemID}")
-  public void post(@PathParam("userID") String userID,
-                   @PathParam("itemID") String itemID) {
-
+  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  public void post(
+      @PathParam("userID") String userID,
+      @PathParam("itemID") String itemID,
+      @Context HttpServletRequest httpServletRequest) throws IOException, OryxServingException {
+    Float itemValue = readRequestData(httpServletRequest);
+    check(itemValue != null, "Bad Request Data");
+    sendToQueue(userID + "," + itemID + "," + itemValue);
   }
 
   @DELETE
   @Path("{userID}/{itemID}")
-  public void delete(@PathParam("userID") String userID,
-                     @PathParam("itemID") String itemID) {
-
+  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  public void delete(
+      @PathParam("userID") String userID,
+      @PathParam("itemID") String itemID) {
+    sendToQueue(userID + "," + itemID);
   }
 
+  private void sendToQueue(String preferenceData) {
+    QueueProducer<?,String> inputQueue = getInputProducer();
+    inputQueue.send(preferenceData);
+  }
+
+  private Float readRequestData(HttpServletRequest request) throws IOException {
+    BufferedReader reader = new BufferedReader(
+        new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
+    String line = reader.readLine();
+    if (line == null || line.trim().isEmpty()) {
+      return 1.0f;
+    }
+    Float value = null;
+    try {
+      value = Float.parseFloat(line);
+    } catch (NumberFormatException nfe) {
+      // do nothing
+    }
+    return value;
+  }
 }

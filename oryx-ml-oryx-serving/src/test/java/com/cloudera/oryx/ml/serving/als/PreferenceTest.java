@@ -15,35 +15,65 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.List;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public final class PreferenceTest extends AbstractALSServingTest {
 
+  private static final String PREFERENCE_DATA = "2.5f\n";
+
+  @Before
+  public void clearProducerData() {
+    MockQueueProducer.getData().clear();
+  }
+
   @Test
-  public void testPost() {
-    Response response = target("/pref/U1/I2").request().post(Entity.text("1"));
-    checkResponse(response, "U1", "I2", "1");
+  public void testPostJson() {
+    Response response = target("/pref/U1/I1").request()
+        .post(Entity.entity(PREFERENCE_DATA, MediaType.APPLICATION_JSON));
+    checkResponse(response, "U1,I1,2.5");
+  }
+
+  @Test
+  public void testPostWithEmptyItemValue() {
+    Response response = target("/pref/U2/I2").request().post(Entity.text(""));
+    checkResponse(response, "U2,I2,1.0");
+  }
+
+  @Test
+  public void testPostWithBadItemValue() {
+    Response response = target("/pref/U2/I2").request().post(Entity.text("aBc!"));
+    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+  }
+
+  @Test
+  public void testPostCSV() {
+    Response response = target("/pref/U1/I1").request()
+        .post(Entity.entity(PREFERENCE_DATA, CSVMessageBodyWriter.TEXT_CSV_TYPE));
+    checkResponse(response, "U1,I1,2.5");
   }
 
   @Test
   public void testDelete() {
     Response response = target("/pref/U1/I2").request().delete();
-    checkResponse(response, "U1", "I2", "");
+    checkResponse(response, "U1,I2");
   }
 
-  private static void checkResponse(Response response, String user, String item, String score) {
+  private static void checkResponse(Response response, String expectedOutput) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-    /*
     List<Pair<String,String>> data = MockQueueProducer.getData();
-    Assert.assertEquals(1, data.size());
-    Pair<String,String> expected = data.get(0);
-    Assert.assertNull(expected.getFirst());
-    Assert.assertEquals(user + "," + item + "," + score, expected.getSecond());
-     */
+    for (Pair<String, String> expected : data) {
+      Assert.assertNull(expected.getFirst());
+      Assert.assertEquals(expectedOutput, expected.getSecond());
+    }
   }
 
 }
