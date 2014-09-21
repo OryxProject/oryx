@@ -17,26 +17,25 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import javax.servlet.http.HttpServletRequest;
+import java.io.Reader;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
- * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]}. If the request body is empty,
- * the value is 1.0, otherwise the value in the request body's first line is used.</p>
+ * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]}. The first line of the request
+ * body is parsed as a strength score for the user-item preference. If the request body is empty,
+ * the value is 1.0.</p>
  *
- * <p>Also responds to a DELETE request to the same path, with the same defaults.</p>
+ * <p>Also responds to a DELETE request to the same path, which will signal the removal
+ * of a user-item association.</p>
  */
 @Path("/pref")
 public final class Preference extends AbstractALSResource {
@@ -47,39 +46,39 @@ public final class Preference extends AbstractALSResource {
   public void post(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,
-      @Context HttpServletRequest httpServletRequest) throws IOException, OryxServingException {
-    Float itemValue = readRequestData(httpServletRequest);
-    check(itemValue != null, "Bad Request Data");
+      Reader reader) throws IOException, OryxServingException {
+    float itemValue = readRequestData(reader);
+    check(!Float.isNaN(itemValue) && !Float.isInfinite(itemValue), "Bad value: " + itemValue);
     sendToQueue(userID + "," + itemID + "," + itemValue);
   }
 
+  // Disabled until supported in the model build
+  /*
   @DELETE
   @Path("{userID}/{itemID}")
-  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
   public void delete(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID) {
     sendToQueue(userID + "," + itemID);
   }
+   */
 
   private void sendToQueue(String preferenceData) {
     QueueProducer<?,String> inputQueue = getInputProducer();
     inputQueue.send(preferenceData);
   }
 
-  private Float readRequestData(HttpServletRequest request) throws IOException {
-    BufferedReader reader = new BufferedReader(
-        new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
-    String line = reader.readLine();
+  private static float readRequestData(Reader reader) throws IOException, OryxServingException {
+    BufferedReader bufferedReader =
+        reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+    String line = bufferedReader.readLine();
     if (line == null || line.trim().isEmpty()) {
       return 1.0f;
     }
-    Float value = null;
     try {
-      value = Float.parseFloat(line);
+      return Float.parseFloat(line);
     } catch (NumberFormatException nfe) {
-      // do nothing
+      throw new OryxServingException(Response.Status.BAD_REQUEST, nfe.getMessage());
     }
-    return value;
   }
 }
