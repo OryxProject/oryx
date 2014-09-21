@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
-
 import com.cloudera.oryx.common.math.VectorMath;
 
 final class DotsFunction implements DoubleFunction<float[]> {
@@ -31,9 +29,8 @@ final class DotsFunction implements DoubleFunction<float[]> {
     this.userFeaturesVectors = new double[][] {userVector};
   }
 
-  public DotsFunction(List<double[]> userFeaturesVectorsList) {
-    this.userFeaturesVectors =
-        userFeaturesVectorsList.toArray(new double[userFeaturesVectorsList.size()][]);
+  DotsFunction(double[][] userFeaturesVectors) {
+    this.userFeaturesVectors = userFeaturesVectors;
   }
 
   @Override

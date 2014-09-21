@@ -15,17 +15,14 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.List;
-
 import com.cloudera.oryx.common.math.VectorMath;
 
 final class CosineAverageFunction implements DoubleFunction<float[]> {
 
   private final float[][] itemFeatureVectors;
 
-  CosineAverageFunction(List<float[]> itemVectorsList) {
-    this.itemFeatureVectors =
-        itemVectorsList.toArray(new float[itemVectorsList.size()][]);
+  CosineAverageFunction(float[][] itemFeatureVectors) {
+    this.itemFeatureVectors = itemFeatureVectors;
   }
 
   @Override

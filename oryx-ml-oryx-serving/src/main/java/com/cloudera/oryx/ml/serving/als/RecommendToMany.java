@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -61,19 +60,19 @@ public final class RecommendToMany extends AbstractALSResource {
       @DefaultValue("false") @QueryParam("considerKnownItems") boolean considerKnownItems,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    check(!pathSegmentsList.isEmpty() && pathSegmentsList.size() > 0, "Need atleast 1 user");
+    check(!pathSegmentsList.isEmpty(), "Need at least 1 user");
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be non-negative");
 
     ALSServingModel alsServingModel = getALSServingModel();
-    List<double[]> userFeaturesList = new ArrayList<>(pathSegmentsList.size());
+    double[][] userFeaturesVectors = new double[pathSegmentsList.size()][];
     ObjectSet<String> userKnownItems = new ObjectOpenHashSet<>();
 
-    for (PathSegment pathSegment : pathSegmentsList) {
-      String userID = pathSegment.getPath();
+    for (int i = 0; i < userFeaturesVectors.length; i++) {
+      String userID = pathSegmentsList.get(i).getPath();
       float[] userFeatureVector = alsServingModel.getUserVector(userID);
       checkExists(userFeatureVector != null, userID);
-      userFeaturesList.add(VectorMath.toDoubles(userFeatureVector));
+      userFeaturesVectors[i] = VectorMath.toDoubles(userFeatureVector);
       if (!considerKnownItems) {
         ObjectSet<String> knownItems = alsServingModel.getKnownItems(userID);
         if (knownItems != null && !knownItems.isEmpty()) {
@@ -87,7 +86,7 @@ public final class RecommendToMany extends AbstractALSResource {
     }
 
     List<Pair<String,Double>> topIDDots = alsServingModel.topN(
-        new DotsFunction(userFeaturesList),
+        new DotsFunction(userFeaturesVectors),
         howMany + offset,
         new NotKnownPredicate(userKnownItems));
 

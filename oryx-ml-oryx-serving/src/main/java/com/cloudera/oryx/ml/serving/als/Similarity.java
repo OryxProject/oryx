@@ -58,22 +58,22 @@ public final class Similarity extends AbstractALSResource {
       @DefaultValue("0") @QueryParam("offset") int offset,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    check(!pathSegmentsList.isEmpty() && pathSegmentsList.size() > 0, "Need atleast 1 item to determine similarity");
+    check(!pathSegmentsList.isEmpty(), "Need at least 1 item to determine similarity");
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be non-negative");
 
     ALSServingModel alsServingModel = getALSServingModel();
-    List<float[]> itemFeaturesList = new ArrayList<>(pathSegmentsList.size());
+    float[][] itemFeatureVectors = new float[pathSegmentsList.size()][];
 
-    for (PathSegment pathSegment : pathSegmentsList) {
-      String itemID = pathSegment.getPath();
+    for (int i = 0; i < itemFeatureVectors.length; i++) {
+      String itemID = pathSegmentsList.get(i).getPath();
       float[] itemVector = alsServingModel.getItemVector(itemID);
       checkExists(itemVector != null, itemID);
-      itemFeaturesList.add(itemVector);
+      itemFeatureVectors[i] = itemVector;
     }
 
     List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
-        new CosineAverageFunction(itemFeaturesList),
+        new CosineAverageFunction(itemFeatureVectors),
         howMany + offset,
         null);
 
