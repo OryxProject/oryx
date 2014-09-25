@@ -17,13 +17,9 @@ package com.cloudera.oryx.lambda;
 
 import java.io.Serializable;
 
-import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import kafka.serializer.Decoder;
 import kafka.serializer.Encoder;
-import kafka.serializer.StringDecoder;
-import kafka.serializer.StringEncoder;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
@@ -55,13 +51,6 @@ public final class BatchSerializationConfig implements Serializable {
         config.getString("batch.storage.key-writable-class"), Writable.class);
     this.messageWritableClass = ClassUtils.loadClass(
         config.getString("batch.storage.message-writable-class"), Writable.class);
-    // TODO remove these limits
-    Preconditions.checkArgument(StringDecoder.class.equals(keyDecoderClass));
-    Preconditions.checkArgument(StringDecoder.class.equals(messageDecoderClass));
-    Preconditions.checkArgument(StringEncoder.class.equals(keyEncoderClass));
-    Preconditions.checkArgument(StringEncoder.class.equals(messageEncoderClass));
-    Preconditions.checkArgument(Text.class.equals(keyWritableClass));
-    Preconditions.checkArgument(Text.class.equals(messageWritableClass));
   }
 
   public Class<? extends Decoder<?>> getKeyDecoderClass() {
