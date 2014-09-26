@@ -17,6 +17,8 @@ package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
@@ -25,10 +27,11 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.SparkConf;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils$;
+import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +63,6 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final BatchSerializationConfig batchSerializationConfig;
   private JavaStreamingContext streamingContext;
 
-  @SuppressWarnings("unchecked")
   public BatchLayer(Config config) {
     Preconditions.checkNotNull(config);
     this.config = config;
@@ -80,10 +82,6 @@ public final class BatchLayer<K,M,U> implements Closeable {
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(storagePartitions > 0);
-
-    // TODO remove these limits
-    Preconditions.checkArgument(String.class.equals(keyClass));
-    Preconditions.checkArgument(String.class.equals(messageClass));
   }
 
   public synchronized void start() {
@@ -153,32 +151,18 @@ public final class BatchLayer<K,M,U> implements Closeable {
   }
 
   private JavaPairDStream<K,M> buildDStream() {
-    // TODO for now we can only support default of Strings
-    @SuppressWarnings("unchecked")
-    JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
-        KafkaUtils$.MODULE$.createStream(streamingContext,
-                                         queueLockMaster,
-                                         // group should be unique
-                                         "OryxGroup-BatchLayer-" + System.currentTimeMillis(),
-                                         Collections.singletonMap(messageTopic, 1));
-    return dStream;
-
-    // TODO
-    // There is currently a bug with this version of KafkaUtils.createStream()
-    // Use it later when it is fixed.
-    /*
     Map<String,String> kafkaParams = new HashMap<>();
     kafkaParams.put("zookeeper.connect", queueLockMaster);
     kafkaParams.put("group.id", "OryxGroup-BatchLayer-" + System.currentTimeMillis());
-    return KafkaUtils.createStream(streamingContext,
-                                   Object.class,
-                                   messageClass,
-                                   DefaultDecoder.class,
-                                   decoderClass,
-                                   kafkaParams,
-                                   Collections.singletonMap(messageTopic, 1),
-                                   StorageLevel.MEMORY_AND_DISK_2());
-     */
+    return KafkaUtils.createStream(
+        streamingContext,
+        keyClass,
+        messageClass,
+        batchSerializationConfig.getKeyDecoderClass(),
+        batchSerializationConfig.getMessageDecoderClass(),
+        kafkaParams,
+        Collections.singletonMap(messageTopic, 1),
+        StorageLevel.MEMORY_AND_DISK_2());
   }
 
   private BatchLayerUpdate<K,M,U> loadUpdateInstance() {
