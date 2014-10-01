@@ -35,15 +35,15 @@ public class SimilarityTest extends AbstractALSServingTest {
   public void testSimilarItems() {
     List<IDValue> recs = target("similarity/I0/I4/I6").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-    testTopByValue(9, recs, false);
+    testTopByValue(6, recs, false);
     Assert.assertEquals("I1", recs.get(1).getID());
-    Assert.assertEquals(0.5852498930217405, recs.get(2).getValue(), DOUBLE_EPSILON);
+    Assert.assertEquals(0.5571406877613947, recs.get(2).getValue(), DOUBLE_EPSILON);
   }
 
   @Test
   public void testHowMany() {
-    testHowMany("/similarity/I0/I2/I4", 10, 9);
-    testHowMany("/similarity/I0/I2/I4", 9, 9);
+    testHowMany("/similarity/I0/I2/I4", 10, 6);
+    testHowMany("/similarity/I0/I2/I4", 9, 6);
     testHowMany("/similarity/I0/I2/I4", 5, 5);
   }
 
@@ -58,7 +58,7 @@ public class SimilarityTest extends AbstractALSServingTest {
   @Test
   public void testSimilarityCSV() {
     String response = target("/similarity/I0/I4/I6").request().get(String.class);
-    testCSVTopByScore(9, response);
+    testCSVTopByScore(6, response);
   }
 
   @Test(expected = BadRequestException.class)
