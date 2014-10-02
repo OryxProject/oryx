@@ -18,7 +18,9 @@ package com.cloudera.oryx.lambda.speed;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -35,15 +37,17 @@ import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 import org.apache.spark.SparkConf;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils$;
+import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.lambda.BatchSerializationConfig;
 import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
@@ -71,6 +75,9 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private JavaStreamingContext streamingContext;
   private ConsumerConnector consumer;
   private SpeedModelManager<K,M,U> modelManager;
+  private final Class<K> keyClass;
+  private final Class<M> messageClass;
+  private final BatchSerializationConfig batchSerializationConfig;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -87,6 +94,12 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.blockIntervalSec = config.getInt("speed.block-interval-sec");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("update-queue.message.decoder-class"), Decoder.class);
+    this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
+    this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
+    this.batchSerializationConfig = new BatchSerializationConfig(config);
+
+    Preconditions.checkArgument(this.generationIntervalSec > 0);
+    Preconditions.checkArgument(this.blockIntervalSec > 0);
   }
 
   public synchronized void start() {
@@ -166,15 +179,18 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   }
 
   private JavaPairDStream<K,M> buildDStream() {
-    // TODO for now we can only support default of Strings
-    @SuppressWarnings("unchecked")
-    JavaPairDStream<K,M> dStream = (JavaPairDStream<K,M>)
-        KafkaUtils$.MODULE$.createStream(streamingContext,
-                                         inputQueueLockMaster,
-                                         // group should be unique
-                                         "OryxGroup-SpeedLayer-" + System.currentTimeMillis(),
-                                         Collections.singletonMap(messageTopic, 1));
-    return dStream;
+    Map<String,String> kafkaParams = new HashMap<>();
+    kafkaParams.put("zookeeper.connect", inputQueueLockMaster);
+    kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
+    return KafkaUtils.createStream(
+        streamingContext,
+        keyClass,
+        messageClass,
+        batchSerializationConfig.getKeyDecoderClass(),
+        batchSerializationConfig.getMessageDecoderClass(),
+        kafkaParams,
+        Collections.singletonMap(messageTopic, 1),
+        StorageLevel.MEMORY_AND_DISK_2());
   }
 
   private SpeedModelManager<K,M,U> loadManagerInstance() {
