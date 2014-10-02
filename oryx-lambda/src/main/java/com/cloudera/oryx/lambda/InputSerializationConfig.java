@@ -28,7 +28,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
  * Encapsulates configuration of classes used in reading data from the input queue,
  * and also persisting the data to storage in Hadoop.
  */
-public final class BatchSerializationConfig implements Serializable {
+public final class InputSerializationConfig implements Serializable {
 
   private final Class<? extends Decoder<?>> keyDecoderClass;
   private final Class<? extends Decoder<?>> messageDecoderClass;
@@ -38,7 +38,7 @@ public final class BatchSerializationConfig implements Serializable {
   private final Class<? extends Writable> messageWritableClass;
 
   @SuppressWarnings("unchecked")
-  public BatchSerializationConfig(Config config) {
+  public InputSerializationConfig(Config config) {
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
         config.getString("input-queue.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.lambda.BatchSerializationConfig;
+import com.cloudera.oryx.lambda.InputSerializationConfig;
 import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
@@ -77,7 +77,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private SpeedModelManager<K,M,U> modelManager;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final BatchSerializationConfig batchSerializationConfig;
+  private final InputSerializationConfig inputSerializationConfig;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -96,7 +96,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         config.getString("update-queue.message.decoder-class"), Decoder.class);
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
-    this.batchSerializationConfig = new BatchSerializationConfig(config);
+    this.inputSerializationConfig = new InputSerializationConfig(config);
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);
@@ -186,8 +186,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         streamingContext,
         keyClass,
         messageClass,
-        batchSerializationConfig.getKeyDecoderClass(),
-        batchSerializationConfig.getMessageDecoderClass(),
+        inputSerializationConfig.getKeyDecoderClass(),
+        inputSerializationConfig.getMessageDecoderClass(),
         kafkaParams,
         Collections.singletonMap(messageTopic, 1),
         StorageLevel.MEMORY_AND_DISK_2());

@@ -33,16 +33,16 @@ final class ValueToWritableFunction<K,M>
 
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final BatchSerializationConfig batchSerializationConfig;
+  private final InputSerializationConfig inputSerializationConfig;
   private transient ValueWritableConverter<K> keyConverter;
   private transient ValueWritableConverter<M> messageConverter;
 
   ValueToWritableFunction(Class<K> keyClass,
                           Class<M> messageClass,
-                          BatchSerializationConfig batchSerializationConfig) {
+                          InputSerializationConfig inputSerializationConfig) {
     this.keyClass = keyClass;
     this.messageClass = messageClass;
-    this.batchSerializationConfig = batchSerializationConfig;
+    this.inputSerializationConfig = inputSerializationConfig;
     initConverters();
   }
 
@@ -53,10 +53,10 @@ final class ValueToWritableFunction<K,M>
 
   private void initConverters() {
     keyConverter =
-        new ValueWritableConverter<>(keyClass, batchSerializationConfig.getKeyWritableClass());
+        new ValueWritableConverter<>(keyClass, inputSerializationConfig.getKeyWritableClass());
     messageConverter =
         new ValueWritableConverter<>(messageClass,
-                                     batchSerializationConfig.getMessageWritableClass());
+                                     inputSerializationConfig.getMessageWritableClass());
   }
 
   @Override

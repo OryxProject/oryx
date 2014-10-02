@@ -51,7 +51,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   private final Class<M> messageClass;
   private final String dataDirString;
   private final String modelDirString;
-  private final BatchSerializationConfig batchSerializationConfig;
+  private final InputSerializationConfig inputSerializationConfig;
   private final BatchLayerUpdate<K,M,U> updateInstance;
   private final String updateBroker;
   private final String updateTopic;
@@ -63,14 +63,14 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                       Class<M> messageClass,
                       String dataDirString,
                       String modelDirString,
-                      BatchSerializationConfig batchSerializationConfig,
+                      InputSerializationConfig inputSerializationConfig,
                       BatchLayerUpdate<K,M,U> updateInstance,
                       JavaStreamingContext streamingContext) {
     this.keyClass = keyClass;
     this.messageClass = messageClass;
     this.dataDirString = dataDirString;
     this.modelDirString = modelDirString;
-    this.batchSerializationConfig = batchSerializationConfig;
+    this.inputSerializationConfig = inputSerializationConfig;
     this.updateBroker = config.getString("update-queue.broker");
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateInstance = updateInstance;
@@ -103,13 +103,13 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
       JavaPairRDD<Writable,Writable> pastWritableData = (JavaPairRDD<Writable,Writable>)
           sparkContext.newAPIHadoopRDD(updatedConf,
                                        SequenceFileInputFormat.class,
-                                       batchSerializationConfig.getKeyWritableClass(),
-                                       batchSerializationConfig.getMessageWritableClass());
+                                       inputSerializationConfig.getKeyWritableClass(),
+                                       inputSerializationConfig.getMessageWritableClass());
 
       pastData = pastWritableData.mapToPair(
           new WritableToValueFunction<>(keyClass,
                                         messageClass,
-                                        batchSerializationConfig));
+              inputSerializationConfig));
     }
 
     try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
