@@ -25,6 +25,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.carrotsearch.hppc.ObjectOpenHashSet;
+import com.carrotsearch.hppc.ObjectSet;
+
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -63,18 +66,20 @@ public final class Similarity extends AbstractALSResource {
 
     ALSServingModel alsServingModel = getALSServingModel();
     float[][] itemFeatureVectors = new float[pathSegmentsList.size()][];
+    ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
 
     for (int i = 0; i < itemFeatureVectors.length; i++) {
       String itemID = pathSegmentsList.get(i).getPath();
       float[] itemVector = alsServingModel.getItemVector(itemID);
       checkExists(itemVector != null, itemID);
       itemFeatureVectors[i] = itemVector;
+      knownItems.add(itemID);
     }
 
     List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
         new CosineAverageFunction(itemFeatureVectors),
         howMany + offset,
-        null);
+        new NotKnownPredicate(knownItems));
 
     return toIDValueResponse(topIDCosines, howMany, offset);
   }
