@@ -32,9 +32,9 @@ public final class WritableToValueFunctionTest extends OryxTest {
   public void testFunction() {
     Map<String,String> overlayConfig = new HashMap<>();
     Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
-    InputSerializationConfig batchSerConfig = new InputSerializationConfig(config);
+    InputSerializationConfig serializationConfig = new InputSerializationConfig(config);
     WritableToValueFunction<String,String> function =
-        new WritableToValueFunction<>(String.class, String.class, batchSerConfig);
+        new WritableToValueFunction<>(String.class, String.class, serializationConfig);
     Tuple2<Writable,Writable> in = new Tuple2<Writable,Writable>(new Text("bizz"), new Text("buzz"));
     Tuple2<String,String> out = function.call(in);
     assertEquals("bizz", out._1());
