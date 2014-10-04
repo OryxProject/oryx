@@ -153,3 +153,6 @@ Contributors
 
 - Sean Owen (Cloudera)
 - Suneel Marthi and Kam Kasravi (Intel)
+
+[![Build Status](https://travis-ci.org/OryxProject/oryx.png?branch=master)](https://travis-ci.org/OryxProject/oryx)
+[![codecov.io](https://codecov.io/github/OryxProject/oryx/coverage.svg?branch=master)](https://codecov.io/github/OryxProject/oryx?branch=master)
