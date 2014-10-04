@@ -15,7 +15,9 @@
 
 package com.cloudera.oryx.common.lang;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -28,9 +30,23 @@ import com.cloudera.oryx.common.OryxTest;
 public final class ClassUtilsTest extends OryxTest {
 
   @Test
-  public void testInstantiate() {
-    Set<?> set = ClassUtils.loadInstanceOf(HashSet.class.getName(), Set.class);
-    assertTrue(set instanceof HashSet);
+  public void testLoadClass() {
+    assertSame(ArrayList.class, ClassUtils.loadClass(ArrayList.class.getName()));
+  }
+
+  @Test
+  public void testLoadClass2() {
+    assertSame(ArrayList.class, ClassUtils.loadClass(ArrayList.class.getName(), List.class));
+  }
+
+  @Test
+  public void testLoadInstanceOf() {
+    assertTrue(ClassUtils.loadInstanceOf(HashSet.class) instanceof HashSet);
+  }
+
+  @Test
+  public void testLoadInstanceOf2() {
+    assertTrue(ClassUtils.loadInstanceOf(HashSet.class.getName(), Set.class) instanceof HashSet);
   }
 
   @Test
