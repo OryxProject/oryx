@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import kafka.serializer.Decoder;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -54,15 +55,19 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final String messageTopic;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
+  private final Class<? extends Decoder<?>> keyDecoderClass;
+  private final Class<? extends Decoder<?>> messageDecoderClass;
+  private final Class<? extends Writable> keyWritableClass;
+  private final Class<? extends Writable> messageWritableClass;
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int storagePartitions;
-  private final InputSerializationConfig inputSerializationConfig;
   private JavaStreamingContext streamingContext;
 
+  @SuppressWarnings("unchecked")
   public BatchLayer(Config config) {
     Preconditions.checkNotNull(config);
     this.config = config;
@@ -71,13 +76,20 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.messageTopic = config.getString("input-queue.message.topic");
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
+    this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+        config.getString("input-queue.message.key-decoder-class"), Decoder.class);
+    this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+        config.getString("input-queue.message.message-decoder-class"), Decoder.class);
+    this.keyWritableClass = ClassUtils.loadClass(
+        config.getString("batch.storage.key-writable-class"), Writable.class);
+    this.messageWritableClass = ClassUtils.loadClass(
+        config.getString("batch.storage.message-writable-class"), Writable.class);
     this.updateClassName = config.getString("batch.update-class");
     this.dataDirString = config.getString("batch.storage.data-dir");
     this.modelDirString = config.getString("batch.storage.model-dir");
     this.generationIntervalSec = config.getInt("batch.generation-interval-sec");
     this.blockIntervalSec = config.getInt("batch.block-interval-sec");
     this.storagePartitions = config.getInt("batch.storage.partitions");
-    this.inputSerializationConfig = new InputSerializationConfig(config);
 
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
@@ -108,16 +120,20 @@ public final class BatchLayer<K,M,U> implements Closeable {
         new BatchUpdateFunction<>(config,
                                   keyClass,
                                   messageClass,
+                                  keyWritableClass,
+                                  messageWritableClass,
                                   dataDirString,
                                   modelDirString,
-            inputSerializationConfig,
                                   loadUpdateInstance(),
                                   streamingContext));
 
     // Save data to HDFS. Write the original message type, not transformed.
     JavaPairDStream<Writable,Writable> writableDStream =
         dStream.repartition(storagePartitions).mapToPair(
-            new ValueToWritableFunction<>(keyClass, messageClass, inputSerializationConfig));
+            new ValueToWritableFunction<>(keyClass,
+                                          messageClass,
+                                          keyWritableClass,
+                                          messageWritableClass));
 
     // This horrible, separate declaration is necessary to appease the compiler
     @SuppressWarnings("unchecked")
@@ -125,8 +141,8 @@ public final class BatchLayer<K,M,U> implements Closeable {
         (Class<? extends OutputFormat<?,?>>) (Class<?>) SequenceFileOutputFormat.class;
     writableDStream.saveAsNewAPIHadoopFiles(dataDirString + "/oryx",
                                             "data",
-                                            inputSerializationConfig.getKeyWritableClass(),
-                                            inputSerializationConfig.getMessageWritableClass(),
+                                            keyWritableClass,
+                                            messageWritableClass,
                                             outputFormatClass,
                                             streamingContext.sparkContext().hadoopConfiguration());
 
@@ -158,8 +174,8 @@ public final class BatchLayer<K,M,U> implements Closeable {
         streamingContext,
         keyClass,
         messageClass,
-        inputSerializationConfig.getKeyDecoderClass(),
-        inputSerializationConfig.getMessageDecoderClass(),
+        keyDecoderClass,
+        messageDecoderClass,
         kafkaParams,
         Collections.singletonMap(messageTopic, 1),
         StorageLevel.MEMORY_AND_DISK_2());

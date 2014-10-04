@@ -16,27 +16,17 @@
 package com.cloudera.oryx.lambda;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.typesafe.config.Config;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.junit.Test;
 import scala.Tuple2;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public final class WritableToValueFunctionTest extends OryxTest {
 
   @Test
   public void testFunction() {
-    Map<String,String> overlayConfig = new HashMap<>();
-    Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
-    overlayConfig.put("batch.storage.key-writable-class", Text.class.getName());
-    overlayConfig.put("batch.storage.message-writable-class", Text.class.getName());
-    InputSerializationConfig serializationConfig = new InputSerializationConfig(config);
     WritableToValueFunction<String,String> function =
-        new WritableToValueFunction<>(String.class, String.class, serializationConfig);
+        new WritableToValueFunction<>(String.class, String.class, Text.class, Text.class);
     Tuple2<Writable,Writable> in = new Tuple2<Writable,Writable>(new Text("bizz"), new Text("buzz"));
     Tuple2<String,String> out = function.call(in);
     assertEquals("bizz", out._1());

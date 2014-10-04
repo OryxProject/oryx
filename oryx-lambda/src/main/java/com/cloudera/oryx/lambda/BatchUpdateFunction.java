@@ -49,9 +49,10 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
 
   private final Class<K> keyClass;
   private final Class<M> messageClass;
+  private final Class<? extends Writable> keyWritableClass;
+  private final Class<? extends Writable> messageWritableClass;
   private final String dataDirString;
   private final String modelDirString;
-  private final InputSerializationConfig inputSerializationConfig;
   private final BatchLayerUpdate<K,M,U> updateInstance;
   private final String updateBroker;
   private final String updateTopic;
@@ -61,16 +62,18 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   BatchUpdateFunction(Config config,
                       Class<K> keyClass,
                       Class<M> messageClass,
+                      Class<? extends Writable> keyWritableClass,
+                      Class<? extends Writable> messageWritableClass,
                       String dataDirString,
                       String modelDirString,
-                      InputSerializationConfig inputSerializationConfig,
                       BatchLayerUpdate<K,M,U> updateInstance,
                       JavaStreamingContext streamingContext) {
     this.keyClass = keyClass;
     this.messageClass = messageClass;
+    this.keyWritableClass = keyWritableClass;
+    this.messageWritableClass = messageWritableClass;
     this.dataDirString = dataDirString;
     this.modelDirString = modelDirString;
-    this.inputSerializationConfig = inputSerializationConfig;
     this.updateBroker = config.getString("update-queue.broker");
     this.updateTopic = config.getString("update-queue.message.topic");
     this.updateInstance = updateInstance;
@@ -103,13 +106,14 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
       JavaPairRDD<Writable,Writable> pastWritableData = (JavaPairRDD<Writable,Writable>)
           sparkContext.newAPIHadoopRDD(updatedConf,
                                        SequenceFileInputFormat.class,
-                                       inputSerializationConfig.getKeyWritableClass(),
-                                       inputSerializationConfig.getMessageWritableClass());
+                                       keyWritableClass,
+                                       messageWritableClass);
 
       pastData = pastWritableData.mapToPair(
           new WritableToValueFunction<>(keyClass,
                                         messageClass,
-              inputSerializationConfig));
+                                        keyWritableClass,
+                                        messageWritableClass));
     }
 
     try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {

@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.lambda.InputSerializationConfig;
 import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
@@ -71,13 +70,14 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final String modelManagerClassName;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
+  private final Class<? extends Decoder<?>> keyDecoderClass;
+  private final Class<? extends Decoder<?>> messageDecoderClass;
   private final Class<? extends Decoder<U>> updateDecoderClass;
   private JavaStreamingContext streamingContext;
   private ConsumerConnector consumer;
   private SpeedModelManager<K,M,U> modelManager;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final InputSerializationConfig inputSerializationConfig;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -92,11 +92,14 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.modelManagerClassName = config.getString("speed.model-manager-class");
     this.generationIntervalSec = config.getInt("speed.generation-interval-sec");
     this.blockIntervalSec = config.getInt("speed.block-interval-sec");
+    this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+        config.getString("input-queue.message.key-decoder-class"), Decoder.class);
+    this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+        config.getString("input-queue.message.message-decoder-class"), Decoder.class);
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("update-queue.message.decoder-class"), Decoder.class);
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
-    this.inputSerializationConfig = new InputSerializationConfig(config);
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);
@@ -186,8 +189,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         streamingContext,
         keyClass,
         messageClass,
-        inputSerializationConfig.getKeyDecoderClass(),
-        inputSerializationConfig.getMessageDecoderClass(),
+        keyDecoderClass,
+        messageDecoderClass,
         kafkaParams,
         Collections.singletonMap(messageTopic, 1),
         StorageLevel.MEMORY_AND_DISK_2());

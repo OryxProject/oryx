@@ -33,16 +33,19 @@ final class ValueToWritableFunction<K,M>
 
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final InputSerializationConfig inputSerializationConfig;
+  private final Class<? extends Writable> keyWritableClass;
+  private final Class<? extends Writable> messageWritableClass;
   private transient ValueWritableConverter<K> keyConverter;
   private transient ValueWritableConverter<M> messageConverter;
 
   ValueToWritableFunction(Class<K> keyClass,
                           Class<M> messageClass,
-                          InputSerializationConfig inputSerializationConfig) {
+                          Class<? extends Writable> keyWritableClass,
+                          Class<? extends Writable> messageWritableClass) {
     this.keyClass = keyClass;
     this.messageClass = messageClass;
-    this.inputSerializationConfig = inputSerializationConfig;
+    this.keyWritableClass = keyWritableClass;
+    this.messageWritableClass = messageWritableClass;
     initConverters();
   }
 
@@ -52,11 +55,8 @@ final class ValueToWritableFunction<K,M>
   }
 
   private void initConverters() {
-    keyConverter =
-        new ValueWritableConverter<>(keyClass, inputSerializationConfig.getKeyWritableClass());
-    messageConverter =
-        new ValueWritableConverter<>(messageClass,
-                                     inputSerializationConfig.getMessageWritableClass());
+    keyConverter = new ValueWritableConverter<>(keyClass, keyWritableClass);
+    messageConverter = new ValueWritableConverter<>(messageClass, messageWritableClass);
   }
 
   @Override
