@@ -29,10 +29,26 @@ public final class VectorMathTest extends OryxTest {
 
   private static final float[] VEC1 = { 1.0f, 0.5f, -3.5f };
   private static final float[] VEC2 = { 0.0f, -10.3f, -3.0f };
+  private static final double[] VEC1D = { 1.0, 0.5, -3.5 };
 
   @Test
-  public void testDot() {
+  public void testDotFF() {
     assertEquals(5.35, VectorMath.dot(VEC1, VEC2), FLOAT_EPSILON);
+  }
+
+  @Test
+  public void testDotDF() {
+    assertEquals(5.35, VectorMath.dot(VEC1D, VEC2), FLOAT_EPSILON);
+  }
+
+  @Test
+  public void testToFloats() {
+    assertArrayEquals(new float[] {1.2f}, VectorMath.toFloats(1.2), FLOAT_EPSILON);
+  }
+
+  @Test
+  public void testToDoubles() {
+    assertArrayEquals(new double[] {1.2}, VectorMath.toDoubles(1.2f), FLOAT_EPSILON);
   }
 
   @Test

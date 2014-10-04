@@ -27,6 +27,7 @@ public final class PairTest extends OryxTest {
     assertEquals(new Pair<>(null, null), new Pair<>(null, null));
     assertNotEquals(new Pair<>(3.0, "foo"), new Pair<>(4.0, "foo"));
     assertNotEquals(new Pair<>(3.0, "foo"), new Pair<>("foo", 3.0));
+    assertNotEquals("3.0,foo", new Pair<>(3.0, "foo"));
   }
 
   @Test

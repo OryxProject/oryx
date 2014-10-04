@@ -77,6 +77,8 @@ public final class PMMLUtilsTest extends OryxTest {
     assertNull(PMMLUtils.getExtensionContent(model, "foo"));
     PMMLUtils.addExtensionContent(model, "foo", Arrays.asList("bar", "baz"));
     assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
+    PMMLUtils.addExtensionContent(model, "foo", Collections.emptyList());
+    assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
   }
 
   @Test
@@ -84,6 +86,32 @@ public final class PMMLUtilsTest extends OryxTest {
     assertEquals(Arrays.asList("foo", "bar", "baz"),
         PMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
     assertTrue(PMMLUtils.parseArray(Collections.singletonList("")).isEmpty());
+  }
+
+  @Test
+  public void testToString() throws Exception {
+    PMML model = buildDummyModel();
+    model.getHeader().setTimestamp(null);
+    assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+                 "<PMML version=\"4.2.1\" xmlns=\"http://www.dmg.org/PMML-4_2\">\n" +
+                 "    <Header>\n" +
+                 "        <Application name=\"Oryx\"/>\n" +
+                 "    </Header>\n" +
+                 "    <TreeModel functionName=\"classification\">\n" +
+                 "        <Node recordCount=\"123.0\"/>\n" +
+                 "    </TreeModel>\n" +
+                 "</PMML>\n",
+                 PMMLUtils.toString(model));
+  }
+
+  @Test
+  public void testFromString() throws Exception {
+    PMML model = buildDummyModel();
+    PMML model2 = PMMLUtils.fromString(PMMLUtils.toString(model));
+    assertEquals(model.getHeader().getApplication().getName(),
+                 model2.getHeader().getApplication().getName());
+    assertEquals(model.getModels().get(0).getFunctionName(),
+                 model2.getModels().get(0).getFunctionName());
   }
 
 }
