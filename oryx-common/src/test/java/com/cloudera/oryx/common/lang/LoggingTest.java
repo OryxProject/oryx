@@ -28,7 +28,7 @@ public final class LoggingTest extends OryxTest {
     new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
-        throw new IOException();
+        throw new IOException("It's safe to ignore this exception");
       }
     }.run();
   }
@@ -49,7 +49,7 @@ public final class LoggingTest extends OryxTest {
     new LoggingCallable<Void>() {
       @Override
       public Void doCall() throws IOException {
-        throw new IOException();
+        throw new IOException("It's safe to ignore this exception");
       }
     }.call();
   }
@@ -59,7 +59,7 @@ public final class LoggingTest extends OryxTest {
     new LoggingVoidCallable() {
       @Override
       public void doCall() throws IOException {
-        throw new IOException();
+        throw new IOException("It's safe to ignore this exception");
       }
     }.call();
   }
