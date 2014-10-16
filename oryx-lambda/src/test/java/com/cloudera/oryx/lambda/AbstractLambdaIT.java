@@ -16,9 +16,12 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.typesafe.config.Config;
 import org.junit.After;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,29 +44,35 @@ public abstract class AbstractLambdaIT extends OryxTest {
   protected static final String UPDATE_TOPIC = "OryxUpdate";
   protected static final int WAIT_BUFFER_IN_WRITES = 250;
 
+  private int localZKPort;
+  private int localKafkaBrokerPort;
   private LocalZKServer localZKServer;
   private LocalKafkaBroker localKafkaBroker;
 
+  @Before
+  public final void allocatePorts() throws IOException {
+    localZKPort = IOUtils.chooseFreePort();
+    localKafkaBrokerPort = IOUtils.chooseFreePort();
+  }
+
   protected final void startMessageQueue() throws IOException, InterruptedException {
     log.info("Starting local test Zookeeper server");
-    localZKServer = new LocalZKServer();
+    localZKServer = new LocalZKServer(localZKPort);
     localZKServer.start();
     log.info("Starting local Kafka broker");
-    localKafkaBroker = new LocalKafkaBroker();
+    localKafkaBroker = new LocalKafkaBroker(localKafkaBrokerPort, localZKPort);
     localKafkaBroker.start();
-    int zkPort = localZKServer.getPort();
-    KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);
-    KafkaUtils.deleteTopic("localhost", zkPort, UPDATE_TOPIC);
-    KafkaUtils.maybeCreateTopic("localhost", zkPort, INPUT_TOPIC);
-    KafkaUtils.maybeCreateTopic("localhost", zkPort, UPDATE_TOPIC);
+    KafkaUtils.deleteTopic("localhost", localZKPort, INPUT_TOPIC);
+    KafkaUtils.deleteTopic("localhost", localZKPort, UPDATE_TOPIC);
+    KafkaUtils.maybeCreateTopic("localhost", localZKPort, INPUT_TOPIC);
+    KafkaUtils.maybeCreateTopic("localhost", localZKPort, UPDATE_TOPIC);
   }
 
   @After
   public final void tearDownKafkaZK() {
     if (localZKServer != null) {
-      int zkPort = localZKServer.getPort();
-      KafkaUtils.deleteTopic("localhost", zkPort, INPUT_TOPIC);
-      KafkaUtils.deleteTopic("localhost", zkPort, UPDATE_TOPIC);
+      KafkaUtils.deleteTopic("localhost", localZKPort, INPUT_TOPIC);
+      KafkaUtils.deleteTopic("localhost", localZKPort, UPDATE_TOPIC);
     }
     if (localKafkaBroker != null) {
       log.info("Stopping Kafka");
@@ -78,15 +87,22 @@ public abstract class AbstractLambdaIT extends OryxTest {
   }
 
   protected Config getConfig() {
-    return ConfigUtils.getDefault();
+    Map<String,String> overlay = new HashMap<>();
+    String queueBroker = "\"localhost:" + localKafkaBrokerPort + '"';
+    String queueLockMaster = "\"localhost:" + localZKPort + '"';
+    overlay.put("input-queue.broker", queueBroker);
+    overlay.put("input-queue.lock.master", queueLockMaster);
+    overlay.put("update-queue.broker", queueBroker);
+    overlay.put("update-queue.lock.master", queueLockMaster);
+    return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
   }
 
   protected final int getZKPort() {
-    return localZKServer.getPort();
+    return localZKPort;
   }
 
   protected final int getKafkaBrokerPort() {
-    return localKafkaBroker.getPort();
+    return localKafkaBrokerPort;
   }
 
 }

@@ -35,8 +35,6 @@ import com.cloudera.oryx.common.lang.JVMUtils;
 public final class LocalKafkaBroker implements Closeable {
 
   public static final int TEST_BROKER_ID = 8675309;
-  public static final int DEFAULT_PORT = 9092;
-  public static final int DEFAULT_ZK_PORT = 2181;
 
   private static final Logger log = LoggerFactory.getLogger(LocalKafkaBroker.class);
 
@@ -44,14 +42,6 @@ public final class LocalKafkaBroker implements Closeable {
   private final int zkPort;
   private Path logsDir;
   private KafkaServerStartable kafkaServer;
-
-  /**
-   * Creates an instance that will listen on the default port, and connect to the default
-   * Zookeeper port.
-   */
-  public LocalKafkaBroker() {
-    this(DEFAULT_PORT, DEFAULT_ZK_PORT);
-  }
 
   /**
    * Creates an instance that will listen on the given port and connect to the given
@@ -75,6 +65,8 @@ public final class LocalKafkaBroker implements Closeable {
    * @throws IOException if an error occurs during initialization
    */
   public synchronized void start() throws IOException {
+    log.info("Starting Kafka broker on port {}", port);
+
     logsDir = Files.createTempDirectory(LocalKafkaBroker.class.getSimpleName());
     logsDir.toFile().deleteOnExit();
 
@@ -112,8 +104,8 @@ public final class LocalKafkaBroker implements Closeable {
   }
 
   public static void main(String[] args) throws Exception {
-    int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
-    int zkPort = args.length > 1 ? Integer.parseInt(args[1]) : DEFAULT_ZK_PORT;
+    int port = args.length > 0 ? Integer.parseInt(args[0]) : IOUtils.chooseFreePort();
+    int zkPort = args.length > 1 ? Integer.parseInt(args[1]) : IOUtils.chooseFreePort();
     try (final LocalKafkaBroker kafkaBroker = new LocalKafkaBroker(port, zkPort)) {
       JVMUtils.closeAtShutdown(kafkaBroker);
       kafkaBroker.start();

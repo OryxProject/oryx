@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.zk.LocalZKServer;
 
@@ -40,13 +41,14 @@ public final class ProduceConsumeIT extends OryxTest {
 
   @Test
   public void testProduceConsume() throws Exception {
-    try (LocalZKServer localZKServer = new LocalZKServer();
-         LocalKafkaBroker localKafkaBroker = new LocalKafkaBroker()) {
+    int zkPort = IOUtils.chooseFreePort();
+    int kafkaBrokerPort = IOUtils.chooseFreePort();
+    try (LocalZKServer localZKServer = new LocalZKServer(zkPort);
+         LocalKafkaBroker localKafkaBroker = new LocalKafkaBroker(kafkaBrokerPort, zkPort)) {
 
       localZKServer.start();
       localKafkaBroker.start();
 
-      int zkPort = localZKServer.getPort();
       KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
       KafkaUtils.maybeCreateTopic("localhost", zkPort, TOPIC);
 

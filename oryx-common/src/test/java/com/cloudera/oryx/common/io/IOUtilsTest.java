@@ -16,12 +16,15 @@
 package com.cloudera.oryx.common.io;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -126,6 +129,26 @@ public final class IOUtilsTest extends OryxTest {
     assertTrue(it.hasNext());
     assertEquals("baz", it.next());
     assertFalse(it.hasNext());
+  }
+
+  @Test
+  public void testChooseFreePort() throws IOException {
+    int freePort = IOUtils.chooseFreePort();
+    assertTrue(freePort >= 1024 && freePort < 65536);
+    try (ServerSocket socket = new ServerSocket(freePort, 0)) {
+      assertEquals(freePort, socket.getLocalPort());
+    }
+  }
+
+  @Test
+  public void testDistinctFreePorts() throws IOException {
+    // This whole thing probably won't work unless successive calls really do return
+    // different ports instead of reusing free ephemeral ports.
+    Set<Integer> ports = new HashSet<>();
+    for (int i = 0; i < 10; i++) {
+      ports.add(IOUtils.chooseFreePort());
+    }
+    assertEquals(10, ports.size());
   }
 
 }

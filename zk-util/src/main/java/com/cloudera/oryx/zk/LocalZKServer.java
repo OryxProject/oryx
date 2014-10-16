@@ -42,8 +42,6 @@ public final class LocalZKServer implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(LocalZKServer.class);
 
-  public static final int DEFAULT_PORT = 2181;
-
   private final int port;
   private Path dataDir;
   private DatadirCleanupManager purgeManager;
@@ -51,13 +49,6 @@ public final class LocalZKServer implements Closeable {
   private FileTxnSnapLog transactionLog;
   private ServerCnxnFactory connectionFactory;
   private boolean closed;
-
-  /**
-   * Creates an instance that will run Zookeeper on the default port.
-   */
-  public LocalZKServer() {
-    this(DEFAULT_PORT);
-  }
 
   /**
    * Creates an instance that will run Zookeeper on the given port.
@@ -79,6 +70,7 @@ public final class LocalZKServer implements Closeable {
    * @throws InterruptedException if an error occurs during initialization
    */
   public synchronized void start() throws IOException, InterruptedException {
+    log.info("Starting Zookeeper on port {}", port);
 
     dataDir = Files.createTempDirectory(LocalZKServer.class.getSimpleName());
     dataDir.toFile().deleteOnExit();
@@ -161,7 +153,7 @@ public final class LocalZKServer implements Closeable {
   }
 
   public static void main(String[] args) throws Exception {
-    int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
+    int port = args.length > 0 ? Integer.parseInt(args[0]) : IOUtils.chooseFreePort();
     try (final LocalZKServer zkServer = new LocalZKServer(port)) {
       JVMUtils.closeAtShutdown(zkServer);
       zkServer.start();

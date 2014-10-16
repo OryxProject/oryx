@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -183,6 +184,19 @@ public final class IOUtils {
       } catch (IOException e) {
         log.warn("Unable to close", e);
       }
+    }
+  }
+
+  /**
+   * Binds to a free ephemeral port, and then releases it. The returned port is quite likely
+   * to be free for use after this, but is not entirely guaranteed to be.
+   *
+   * @return a (probably) free ephemeral port
+   * @throws IOException if an error occurs while binding to a port
+   */
+  public static int chooseFreePort() throws IOException {
+    try (ServerSocket socket = new ServerSocket(0, 0)) {
+      return socket.getLocalPort();
     }
   }
 
