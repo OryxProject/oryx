@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import javax.net.ssl.SSLContext;
 
 public final class ServingLayer implements Closeable {
 
@@ -180,7 +183,10 @@ public final class ServingLayer implements Closeable {
       connector.setSecure(true);
       connector.setScheme("https");
       connector.setAttribute("SSLEnabled", "true");
-      connector.setAttribute("sslProtocol", "TLSv1.1");
+      String protocol = chooseSSLProtocol("TLSv1.2", "TLSv1.1");
+      if (protocol != null) {
+        connector.setAttribute("sslProtocol", protocol);
+      }
       if (keystoreFile != null) {
         connector.setAttribute("keystoreFile", keystoreFile.toAbsolutePath().toFile());
       }
@@ -207,6 +213,19 @@ public final class ServingLayer implements Closeable {
     connector.setAttribute("maxHttpHeaderSize", 65536);
 
     return connector;
+  }
+
+  private static String chooseSSLProtocol(String... protocols) {
+    for (String protocol : protocols) {
+      try {
+        SSLContext.getInstance(protocol);
+        return protocol;
+      } catch (NoSuchAlgorithmException ignored) {
+        log.info("SSL protocol {} is not supported", protocol);
+      }
+    }
+    log.warn("No supported SSL protocols among {}", Arrays.toString(protocols));
+    return null;
   }
 
   private Context makeContext(Tomcat tomcat, Path noSuchBaseDir) throws IOException {
