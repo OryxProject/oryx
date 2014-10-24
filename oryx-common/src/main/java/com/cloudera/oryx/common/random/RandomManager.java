@@ -18,15 +18,15 @@ package com.cloudera.oryx.common.random;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.random.Well19937c;
 
 /**
  * Manages random number generation. Allows resetting RNGs to a known state for testing.
  */
 public final class RandomManager {
 
-  private static final long TEST_SEED = 1234567890L;
+  private static final long TEST_SEED = 1_234_567_890_123_456_789L;
 
   private static final Map<RandomGenerator,Boolean> INSTANCES = new WeakHashMap<>();
   private static boolean useTestSeed;
@@ -40,9 +40,9 @@ public final class RandomManager {
   public static RandomGenerator getRandom() {
     if (useTestSeed) {
       // No need to track instances anymore
-      return new MersenneTwister(TEST_SEED);
+      return new Well19937c(TEST_SEED);
     }
-    RandomGenerator random = new MersenneTwister();
+    RandomGenerator random = new Well19937c();
     synchronized (INSTANCES) {
       INSTANCES.put(random, Boolean.TRUE); // Value does not matter
     }

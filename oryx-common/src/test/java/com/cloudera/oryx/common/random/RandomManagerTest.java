@@ -25,8 +25,8 @@ public final class RandomManagerTest extends OryxTest {
   public void testRandomState() {
     // Really, a test that the random generator state is reset in tests
     RandomGenerator generator = RandomManager.getRandom();
-    assertEquals(-1295207068, generator.nextInt());
-    assertNotEquals(-1295207068, generator.nextInt());
+    assertEquals(1553355631, generator.nextInt());
+    assertNotEquals(1553355631, generator.nextInt());
   }
 
 }
