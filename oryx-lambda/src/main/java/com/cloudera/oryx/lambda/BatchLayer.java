@@ -28,10 +28,12 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.api.java.JavaStreamingContextFactory;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,11 +64,11 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
+  private final String checkpointDirString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int storagePartitions;
   private JavaStreamingContext streamingContext;
-  private final String checkPointDirString;
 
   @SuppressWarnings("unchecked")
   public BatchLayer(Config config) {
@@ -88,10 +90,12 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.updateClassName = config.getString("batch.update-class");
     this.dataDirString = config.getString("batch.storage.data-dir");
     this.modelDirString = config.getString("batch.storage.model-dir");
+    this.checkpointDirString = config.hasPath("batch.storage.checkpoint-dir") ?
+        config.getString("batch.storage.checkpoint-dir") :
+        null;
     this.generationIntervalSec = config.getInt("batch.generation-interval-sec");
     this.blockIntervalSec = config.getInt("batch.block-interval-sec");
     this.storagePartitions = config.getInt("batch.storage.partitions");
-    this.checkPointDirString = config.getString("batch.storage.checkpoint-dir");
 
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
@@ -111,14 +115,34 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
-    long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    streamingContext = new JavaStreamingContext(sparkConf, new Duration(batchDurationMS));
-    streamingContext.checkpoint(checkPointDirString);
+    final long batchDurationMS =
+       TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
+    final JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
+
+    JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
+      @Override
+      public JavaStreamingContext create() {
+        return new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
+      }
+    };
+
+    if (checkpointDirString == null) {
+      log.info("Not using a streaming checkpoint dir");
+      streamingContext = streamingContextFactory.create();
+    } else {
+      log.info("Using streaming checkpoint dir {}", checkpointDirString);
+      streamingContext = JavaStreamingContext.getOrCreate(
+          checkpointDirString, sparkContext.hadoopConfiguration(), streamingContextFactory, false);
+      streamingContext.checkpoint(checkpointDirString);
+    }
 
     log.info("Creating message queue stream");
 
     JavaPairDStream<K,M> dStream = buildDStream();
-    dStream.checkpoint(new Duration(batchDurationMS));
+    
+    if (checkpointDirString != null) {
+      dStream.checkpoint(new Duration(batchDurationMS));
+    }
 
     dStream.foreachRDD(
         new BatchUpdateFunction<>(config,

@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.ml.speed.als;
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -40,12 +39,9 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
   @Test
   public void testALSSpeed() throws Exception {
     Map<String,String> overlayConfig = new HashMap<>();
-    Path tempDir = getTempDir();
     overlayConfig.put("speed.model-manager-class", ALSSpeedModelManager.class.getName());
     overlayConfig.put("speed.generation-interval-sec", "5");
     overlayConfig.put("speed.block-interval-sec", "1");
-    overlayConfig.put("speed.storage.checkpoint-dir",
-                      "\"" + tempDir.resolve("checkpoint").toUri() + "\"");
     overlayConfig.put("als.hyperparams.implicit", "true");
     overlayConfig.put("als.hyperparams.features", "2");
     overlayConfig.put("als.no-known-items", "false");
