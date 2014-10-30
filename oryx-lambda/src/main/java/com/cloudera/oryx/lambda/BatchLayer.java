@@ -66,6 +66,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final int blockIntervalSec;
   private final int storagePartitions;
   private JavaStreamingContext streamingContext;
+  private final String checkPointDirString;
 
   @SuppressWarnings("unchecked")
   public BatchLayer(Config config) {
@@ -90,6 +91,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.generationIntervalSec = config.getInt("batch.generation-interval-sec");
     this.blockIntervalSec = config.getInt("batch.block-interval-sec");
     this.storagePartitions = config.getInt("batch.storage.partitions");
+    this.checkPointDirString = config.getString("batch.storage.checkpoint-dir");
 
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
@@ -105,16 +107,18 @@ public final class BatchLayer<K,M,U> implements Closeable {
     SparkConf sparkConf = new SparkConf();
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.streaming.blockInterval", Long.toString(blockIntervalMS));
-    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(3 * generationIntervalSec));
+    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
     long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
     streamingContext = new JavaStreamingContext(sparkConf, new Duration(batchDurationMS));
+    streamingContext.checkpoint(checkPointDirString);
 
     log.info("Creating message queue stream");
 
     JavaPairDStream<K,M> dStream = buildDStream();
+    dStream.checkpoint(new Duration(batchDurationMS));
 
     dStream.foreachRDD(
         new BatchUpdateFunction<>(config,
