@@ -23,7 +23,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.carrotsearch.hppc.ObjectOpenHashSet;
 import com.carrotsearch.hppc.ObjectSet;
@@ -52,7 +51,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * eligible to be returned as recommendations. It defaults to {@code false}, meaning that these
  * previously interacted-with items are not returned in recommendations.</p>
  *
- * <p>If the user is not known to the model, a {@link Response.Status#NOT_FOUND}
+ * <p>If the user is not known to the model, a {@link javax.ws.rs.core.Response.Status#NOT_FOUND}
  * response is generated.</p>
  *
  * <p>Default output is CSV format, containing {@code id,value} per line.
