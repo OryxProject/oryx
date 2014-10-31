@@ -23,7 +23,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -45,7 +44,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
  * value where higher values mean more relevant to recommendation.</p>
  *
  * <p>If the user, item or user's interacted items are not known to the model, an
- * {@link Response.Status#NOT_FOUND} response is generated.</p>
+ * {@link javax.ws.rs.core.Response.Status#NOT_FOUND} response is generated.</p>
  *
  * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
