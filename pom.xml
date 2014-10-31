@@ -551,6 +551,10 @@
               </goals>
             </execution>
           </executions>
+          <configuration>
+            <!-- This helps debug NotSerializableException problems -->
+            <argLine>-Dsun.io.serialization.extendedDebugInfo=true</argLine>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
