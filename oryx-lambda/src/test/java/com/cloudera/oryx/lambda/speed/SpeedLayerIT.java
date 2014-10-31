@@ -15,17 +15,17 @@
 
 package com.cloudera.oryx.lambda.speed;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.typesafe.config.Config;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * Tests {@link SpeedLayer}.
@@ -36,10 +36,13 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
 
   @Test
   public void testSpeedLayer() throws Exception {
+    Path tempDir = getTempDir();
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("speed.model-manager-class", MockSpeedModelManager.class.getName());
     overlayConfig.put("speed.generation-interval-sec", "3");
     overlayConfig.put("speed.block-interval-sec", "1");
+    overlayConfig.put("speed.storage.checkpoint-dir",
+                      "\"" + tempDir.resolve("checkpoint").toUri() + "\"");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

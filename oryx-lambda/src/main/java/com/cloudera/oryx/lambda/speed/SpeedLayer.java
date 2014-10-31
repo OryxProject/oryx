@@ -78,6 +78,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private SpeedModelManager<K,M,U> modelManager;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
+  private final String checkPointDirString;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -100,6 +101,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         config.getString("update-queue.message.decoder-class"), Decoder.class);
     this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
     this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
+    this.checkPointDirString = config.getString("speed.storage.checkpoint-dir");
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);
@@ -114,16 +116,18 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     SparkConf sparkConf = new SparkConf();
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.streaming.blockInterval", Long.toString(blockIntervalMS));
-    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(3 * generationIntervalSec));
+    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
     long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
     streamingContext = new JavaStreamingContext(sparkConf, new Duration(batchDurationMS));
+    streamingContext.checkpoint(checkPointDirString);
 
     log.info("Creating message queue stream");
 
     JavaPairDStream<K,M> dStream = buildDStream();
+    dStream.checkpoint(new Duration(batchDurationMS));
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());

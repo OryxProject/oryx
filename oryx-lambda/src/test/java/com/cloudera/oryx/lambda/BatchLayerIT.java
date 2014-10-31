@@ -49,6 +49,8 @@ public final class BatchLayerIT extends AbstractBatchIT {
                       "\"" + dataDir.toUri() + "\"");
     overlayConfig.put("batch.storage.model-dir",
                       "\"" + tempDir.resolve("model").toUri() + "\"");
+    overlayConfig.put("batch.storage.checkpoint-dir",
+                      "\"" + tempDir.resolve("checkpoint").toUri() + "\"");
     overlayConfig.put("batch.generation-interval-sec",
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",
