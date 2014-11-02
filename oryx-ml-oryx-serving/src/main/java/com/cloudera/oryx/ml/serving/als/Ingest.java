@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. and Intel Corp. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -24,8 +24,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -149,21 +147,4 @@ public final class Ingest extends AbstractALSResource {
       inputQueue.send(userID + "," + itemID + "," + strength + "," + timestamp);
     }
   }
-
-  private static InputStream maybeDecompress(String contentType,
-                                             InputStream in) throws IOException {
-    if (contentType != null) {
-      switch (contentType) {
-        case "application/zip":
-          in = new ZipInputStream(in);
-          break;
-        case "application/gzip":
-        case "application/x-gzip":
-          in = new GZIPInputStream(in);
-          break;
-      }
-    }
-    return in;
-  }
-
 }
