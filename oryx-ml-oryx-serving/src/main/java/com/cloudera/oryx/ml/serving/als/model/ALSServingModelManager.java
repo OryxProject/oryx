@@ -87,11 +87,13 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           } else {
 
             // Remove users/items no longer in the model
-            List<String> XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.retainAllUsers(XIDs);
-            model.retainAllItems(YIDs);
-            model.pruneKnownItems(new HashSet<>(YIDs));
+            Collection<String> XIDs =
+                new HashSet<>(PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs")));
+            Collection<String> YIDs =
+                new HashSet<>(PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs")));
+            model.pruneKnownItems(XIDs, YIDs);
+            model.pruneX(XIDs);
+            model.pruneY(YIDs);
 
           }
           break;

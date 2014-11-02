@@ -16,32 +16,55 @@
 package com.cloudera.oryx.ml.speed.als;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.carrotsearch.hppc.ObjectObjectMap;
 import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
+import com.carrotsearch.hppc.predicates.ObjectPredicate;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 
+/**
+ * Contains all data structures needed to create near-real-time updates for an
+ * ALS-based recommender.
+ */
 public final class ALSSpeedModel {
 
+  /** User-feature matrix, where row is keyed by user ID string and row is a dense float array. */
   private final ObjectObjectMap<String,float[]> X;
+  /** Item-feature matrix, where row is keyed by item ID string and row is a dense float array. */
   private final ObjectObjectMap<String,float[]> Y;
+  /** Remembers user IDs added since last model. */
+  private final Collection<String> recentNewUsers;
+  /** Remembers item IDs added since last model. Partitioned like Y. */
+  private final Collection<String> recentNewItems;
+  /** Controls access to X, and recentNewUsers. */
   private final ReadWriteLock xLock;
+  /** Controls access to Y, and recentNewItems. */
   private final ReadWriteLock yLock;
+  /** Whether model uses implicit feedback. */
   private final int features;
 
+  /**
+   * Creates an empty model.
+   *
+   * @param features number of features expected for user/item feature vectors
+   */
   ALSSpeedModel(int features) {
     Preconditions.checkArgument(features > 0);
     X = new ObjectObjectOpenHashMap<>();
     Y = new ObjectObjectOpenHashMap<>();
+    recentNewUsers = new HashSet<>();
+    recentNewItems = new HashSet<>();
     xLock = new ReentrantReadWriteLock();
     yLock = new ReentrantReadWriteLock();
     this.features = features;
@@ -77,7 +100,10 @@ public final class ALSSpeedModel {
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.put(user, vector);
+      if (X.put(user, vector) == null) {
+        // User was actually new
+        recentNewUsers.add(user);
+      }
     } finally {
       lock.unlock();
     }
@@ -89,27 +115,40 @@ public final class ALSSpeedModel {
     Lock lock = yLock.writeLock();
     lock.lock();
     try {
-      Y.put(item, vector);
+      if (Y.put(item, vector) == null) {
+        // Item was actually new
+        recentNewItems.add(item);
+      }
     } finally {
       lock.unlock();
     }
   }
 
-  public void retainAllUsers(Collection<String> users) {
+  public void pruneX(Collection<String> users) {
+    // Keep all users in the new model, or, that have been added since last model
+    @SuppressWarnings("unchecked")
+    ObjectPredicate<String> predicate = new AndPredicate<>(
+        new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.removeAll(new NotContainsPredicate<>(users));
+      X.removeAll(predicate);
+      recentNewUsers.clear();
     } finally {
       lock.unlock();
     }
   }
 
-  public void retainAllItems(Collection<String> items) {
+  public void pruneY(Collection<String> items) {
+    // Keep all items in the new model, or, that have been added since last model
+    @SuppressWarnings("unchecked")
+    ObjectPredicate<String> predicate = new AndPredicate<>(
+        new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems));
     Lock lock = yLock.writeLock();
     lock.lock();
     try {
-      Y.removeAll(new NotContainsPredicate<>(items));
+      Y.removeAll(predicate);
+      recentNewItems.clear();
     } finally {
       lock.unlock();
     }
