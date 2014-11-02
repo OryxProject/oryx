@@ -53,7 +53,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   private final boolean noKnownItems;
 
   public ALSSpeedModelManager(Config config) {
-    implicit = config.getBoolean("als.hyperparams.implicit");
+    implicit = config.getBoolean("als.implicit");
     noKnownItems = config.getBoolean("als.no-known-items");
   }
 
