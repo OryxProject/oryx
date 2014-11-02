@@ -66,8 +66,8 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   public ALSUpdate(Config config) {
     super(config);
-    iterations = config.getInt("als.hyperparams.iterations");
-    implicit = config.getBoolean("als.hyperparams.implicit");
+    iterations = config.getInt("als.iterations");
+    implicit = config.getBoolean("als.implicit");
     Preconditions.checkArgument(iterations > 0);
     hyperParamRanges = Arrays.asList(
         HyperParamRanges.fromConfig(config, "als.hyperparams.features"),
