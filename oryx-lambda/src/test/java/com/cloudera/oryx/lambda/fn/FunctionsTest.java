@@ -46,6 +46,8 @@ public final class FunctionsTest extends OryxTest {
                  Functions.SUM_DOUBLE.call(Double.POSITIVE_INFINITY, 0.0).doubleValue());
     assertEquals(Double.NEGATIVE_INFINITY,
                  Functions.SUM_DOUBLE.call(Double.NEGATIVE_INFINITY, 0.0).doubleValue());
+    assertTrue(Double.isNaN(Functions.SUM_DOUBLE.call(1.0, Double.NaN)));
+    assertEquals(1.0, Functions.SUM_DOUBLE.call(Double.NaN, 1.0).doubleValue());
   }
 
   @Test

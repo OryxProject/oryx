@@ -42,7 +42,8 @@ final class RandomALSDataGenerator implements RandomDatumGenerator<String,String
     return new Pair<>(Integer.toString(id),
                       random.nextInt(numUsers) + "," +
                       random.nextInt(numProducts) + "," +
-                      (random.nextInt(maxRating - minRating) + minRating));
+                      (random.nextInt(maxRating - minRating) + minRating) + "," +
+                      System.currentTimeMillis());
   }
 
 }

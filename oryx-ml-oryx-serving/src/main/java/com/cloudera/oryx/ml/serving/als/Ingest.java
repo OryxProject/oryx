@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -33,7 +34,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import com.google.common.base.Splitter;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -45,8 +48,21 @@ import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
- * <p>Responds to a POST to {@code /ingest}. The content of the request are interpreted as
- * lines of text and are submitted to the input Kafka queue as-is.</p>
+ * <p>Responds to a POST to {@code /ingest}. For each line in the request body, a line of CSV text
+ * is written to the input Kafka queue, in the form {@code userID,itemID,strength,timestamp}.
+ * Strength must be a number and defaults to 1; an empty strength value signifies a delete.
+ * Timestamp must be a number of milliseconds since Jany 1, 1970.
+ * These values are parsed directly from the request body line, which may be in one of
+ * several forms:</p>
+
+ * <ul>
+ *   <li>{@code userID,itemID}: strength defaults to 1 and timestamp is current system time</li>
+ *   <li>{@code userID,itemID,}: interpreted as a "delete" for the user-item association.
+ *     timestamp is current system time</li>
+ *   <li>{@code userID,itemID,strength}: timestamp is current system time</li>
+ *   <li>{@code userID,itemID,strength,timestamp}: all given values are parsed and used,
+ *     including timestamp.</li>
+ * </ul>
  *
  * <p>The body may be compressed with {@code gzip} or {@code deflate} {@code Content-Encoding}.
  * It may also by {@code multipart/form-data} encoded, and each part may be compressed with
@@ -58,6 +74,9 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
  */
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
+
+  // Use Splitter to handle blank trailing field, unlike Pattern
+  private static final Splitter COMMA = Splitter.on(',');
 
   private DiskFileItemFactory fileItemFactory;
 
@@ -73,7 +92,7 @@ public final class Ingest extends AbstractALSResource {
 
   @POST
   @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, CSVMessageBodyWriter.TEXT_CSV})
-  public void post(Reader reader) throws IOException {
+  public void post(Reader reader) throws IOException, OryxServingException {
     doPost(reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader));
   }
 
@@ -92,11 +111,42 @@ public final class Ingest extends AbstractALSResource {
     }
   }
 
-  private void doPost(BufferedReader buffered) throws IOException {
+  private void doPost(BufferedReader buffered) throws IOException, OryxServingException {
     QueueProducer<?,String> inputQueue = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
-      inputQueue.send(line);
+      Iterator<String> tokens = COMMA.split(line).iterator();
+      check(tokens.hasNext(), line);
+      String userID = tokens.next();
+      check(tokens.hasNext(), line);
+      String itemID = tokens.next();
+      String strength;
+      long timestamp;
+      // Has a strength?
+      if (tokens.hasNext()) {
+        String rawStrength = tokens.next();
+        // Special case deletes:
+        if (rawStrength.isEmpty()) {
+          strength = "";
+        } else {
+          strength = Preference.validateAndStandardizeStrength(rawStrength);
+        }
+        // Has a timestamp?
+        if (tokens.hasNext()) {
+          try {
+            timestamp = Long.parseLong(tokens.next());
+          } catch (NumberFormatException nfe) {
+            throw new OryxServingException(Response.Status.BAD_REQUEST, nfe.getMessage());
+          }
+          check(timestamp > 0, line);
+        } else {
+          timestamp = System.currentTimeMillis();
+        }
+      } else {
+        strength = "1";
+        timestamp = System.currentTimeMillis();
+      }
+      inputQueue.send(userID + "," + itemID + "," + strength + "," + timestamp);
     }
   }
 
@@ -115,26 +165,5 @@ public final class Ingest extends AbstractALSResource {
     }
     return in;
   }
-
-  /*
-  @POST
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public void post(@Context HttpServletRequest request)
-      throws IOException, ServletException, OryxServingException {
-    // JAX-RS does not by itself support multipart form data yet, so doing it manually:
-    Collection<Part> parts = request.getParts();
-    boolean anyValidPart = false;
-    if (parts != null) {
-      for (Part part : parts) {
-        String partContentType = part.getContentType();
-        if (INGEST_TYPES.contains(partContentType)) {
-          anyValidPart = true;
-          doPost(new BufferedReader(new InputStreamReader(part.getInputStream(), StandardCharsets.UTF_8)));
-        }
-      }
-    }
-    check(anyValidPart, "No Part with supported Content-Type");
-  }
-   */
 
 }

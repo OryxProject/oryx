@@ -42,8 +42,14 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 
 public final class IngestTest extends AbstractALSServingTest {
 
-  private static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\n";
-  private static final String[] INGEST_LINES = INGEST_DATA.split("\n");
+  private static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\nc,D,\na,C,2,123456789";
+  private static final String[][] EXPECTED_QUEUE = {
+      {"a", "B", "1.0"},
+      {"c", "B", "1"},
+      {"c", "D", "5.5"},
+      {"c", "D", ""},
+      {"a", "C", "2.0"},
+  };
 
   @Before
   public void clearProducerData() {
@@ -75,23 +81,23 @@ public final class IngestTest extends AbstractALSServingTest {
   }
 
   @Test
-  public void testFormIngest() {
+  public void testFormIngest() throws Exception {
     doTestFormIngest(INGEST_DATA, null, null);
   }
 
   @Test
-  public void testGzippedFormIngest() {
+  public void testGzippedFormIngest() throws Exception {
     doTestFormIngest(INGEST_DATA, GZIPOutputStream.class, "gzip");
   }
 
   @Test
-  public void testZippedFormIngest() {
+  public void testZippedFormIngest() throws Exception {
     doTestFormIngest(INGEST_DATA, ZipOutputStream.class, "zip");
   }
 
   private void doTestFormIngest(String data,
                                 Class<? extends OutputStream> compressingStreamClass,
-                                String encoding) {
+                                String encoding) throws IOException {
     byte[] bytes;
     if (compressingStreamClass == null) {
       bytes = data.getBytes(StandardCharsets.UTF_8);
@@ -102,11 +108,12 @@ public final class IngestTest extends AbstractALSServingTest {
         encoding == null ? MediaType.TEXT_PLAIN_TYPE : new MediaType("application", encoding);
     InputStream in = new ByteArrayInputStream(bytes);
     StreamDataBodyPart filePart = new StreamDataBodyPart("data", in, "data", type);
-    MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
-    multiPart.getBodyParts().add(filePart);
-    Response response = target("/ingest").request().post(
-        Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
-    checkResponse(response);
+    try (MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE)) {
+      multiPart.getBodyParts().add(filePart);
+      Response response = target("/ingest").request().post(
+          Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+      checkResponse(response);
+    }
   }
 
   private static Variant compressedVariant(MediaType contentType, String contentEncoding) {
@@ -140,9 +147,12 @@ public final class IngestTest extends AbstractALSServingTest {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     List<Pair<String,String>> data = MockQueueProducer.getData();
     for (int i = 0; i < data.size(); i++) {
-      Pair<String,String> expected = data.get(i);
-      Assert.assertNull(expected.getFirst());
-      Assert.assertEquals(INGEST_LINES[i], expected.getSecond());
+      Pair<String,String> actual = data.get(i);
+      Assert.assertNull(actual.getFirst());
+      String[] tokens = actual.getSecond().split(",");
+      Assert.assertEquals(EXPECTED_QUEUE[i][0], tokens[0]);
+      Assert.assertEquals(EXPECTED_QUEUE[i][1], tokens[1]);
+      Assert.assertEquals(EXPECTED_QUEUE[i][2], tokens[2]);
     }
   }
 

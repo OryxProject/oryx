@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
@@ -47,6 +48,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final Pattern COMMA = Pattern.compile(",");
 
   private ALSSpeedModel model;
   private final boolean implicit;
@@ -119,18 +121,22 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    JavaPairRDD<Tuple2<String,String>,Double> tuples = newData.mapToPair(new UpdatesToTuple());
+    // Order by timestamp and parse as tuples
+    JavaRDD<String> sortedValues =
+        newData.values().sortBy(TO_TIMESTAMP_FN, true, newData.partitions().size());
+    JavaPairRDD<Tuple2<String,String>,Double> tuples = sortedValues.mapToPair(TO_TUPLE_FN);
 
     JavaPairRDD<Tuple2<String,String>,Double> aggregated;
     if (implicit) {
       // For implicit, values are scores to be summed
+      // See comments in ALSUpdate for explanation of how deletes are handled by this.
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
       aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    Collection<UserItemStrength> input = aggregated.map(new TupleToUserItemStrength()).collect();
+    Collection<UserItemStrength> input = aggregated.map(TO_UIS_FN).collect();
 
     Solver XTXsolver;
     Solver YTYsolver;
@@ -243,41 +249,56 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return targetQui;
   }
 
-  private static class UpdatesToTuple
-      implements PairFunction<Tuple2<String,String>,Tuple2<String,String>,Double> {
+  private static final PairFunction<String,Tuple2<String,String>,Double> TO_TUPLE_FN =
+      new PairFunction<String,Tuple2<String,String>,Double>() {
+        @Override
+        public Tuple2<Tuple2<String,String>,Double> call(String line) throws Exception {
+          String[] tokens = PARSE_FN.call(line);
+          String user = tokens[0];
+          String item = tokens[1];
+          Double strength = Double.valueOf(tokens[2]);
+          return new Tuple2<>(new Tuple2<>(user, item), strength);
+        }
+      };
 
-    private static final Pattern COMMA = Pattern.compile(",");
+  private static final Function<Tuple2<Tuple2<String,String>,Double>,UserItemStrength> TO_UIS_FN =
+      new Function<Tuple2<Tuple2<String, String>, Double>, UserItemStrength>() {
+        @Override
+        public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> tuple) {
+          return new UserItemStrength(tuple._1()._1(), tuple._1()._2(), tuple._2().floatValue());
+        }
+      };
 
-    @Override
-    public Tuple2<Tuple2<String,String>,Double> call(Tuple2<String,String> km) throws IOException {
-      String message = km._2();
-      String[] tokens;
-      // Hacky, but effective way of differentiating simple CSV from JSON array
-      if (message.endsWith("]")) {
-        // JSON
-        tokens = MAPPER.readValue(message, String[].class);
-      } else {
-        // CSV
-        tokens = COMMA.split(message);
-      }
-      int numTokens = tokens.length;
-      String user = tokens[0];
-      String item = tokens[1];
-      double value = numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0;
-      return new Tuple2<>(new Tuple2<>(user, item), value);
-    }
+  /**
+   * Parses with PARSE_FN and returns fourth field as timestamp
+   */
+  private static final Function<String,Long> TO_TIMESTAMP_FN =
+      new Function<String,Long>() {
+        @Override
+        public Long call(String line) throws Exception {
+          return Long.valueOf(PARSE_FN.call(line)[3]);
+        }
+      };
 
-  }
-
-  private static class TupleToUserItemStrength
-      implements Function<Tuple2<Tuple2<String,String>,Double>,UserItemStrength> {
-    @Override
-    public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> userProductScore) {
-      Tuple2<String,String> userProduct = userProductScore._1();
-      return new UserItemStrength(userProduct._1(),
-                                  userProduct._2(),
-                                  userProductScore._2().floatValue());
-    }
-  }
+  /**
+   * Parses 4-element CSV or JSON array to 4-element String[]
+   */
+  private static final Function<String,String[]> PARSE_FN =
+      new Function<String,String[]>() {
+        @Override
+        public String[] call(String line) throws IOException {
+          // Hacky, but effective way of differentiating simple CSV from JSON array
+          String[] result;
+          if (line.endsWith("]")) {
+            // JSON
+            result = MAPPER.readValue(line, String[].class);
+          } else {
+            // CSV
+            result = COMMA.split(line);
+          }
+          Preconditions.checkArgument(result.length == 4);
+          return result;
+        }
+      };
 
 }

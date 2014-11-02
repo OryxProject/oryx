@@ -19,13 +19,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
@@ -47,38 +47,37 @@ public final class Preference extends AbstractALSResource {
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,
       Reader reader) throws IOException, OryxServingException {
-    float itemValue = readRequestData(reader);
-    check(!Float.isNaN(itemValue) && !Float.isInfinite(itemValue), "Bad value: " + itemValue);
-    sendToQueue(userID + "," + itemID + "," + itemValue);
+    BufferedReader bufferedReader =
+        reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+    String line = bufferedReader.readLine();
+    String value = validateAndStandardizeStrength(line);
+    sendToQueue(userID, itemID, value);
   }
 
-  // Disabled until supported in the model build
-  /*
   @DELETE
   @Path("{userID}/{itemID}")
   public void delete(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID) {
-    sendToQueue(userID + "," + itemID);
-  }
-   */
-
-  private void sendToQueue(String preferenceData) {
-    QueueProducer<?,String> inputQueue = getInputProducer();
-    inputQueue.send(preferenceData);
+    sendToQueue(userID, itemID, "");
   }
 
-  private static float readRequestData(Reader reader) throws IOException, OryxServingException {
-    BufferedReader bufferedReader =
-        reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
-    String line = bufferedReader.readLine();
-    if (line == null || line.trim().isEmpty()) {
-      return 1.0f;
+  private void sendToQueue(String userID, String itemID, String value) {
+    getInputProducer().send(userID + "," + itemID + "," + value + "," + System.currentTimeMillis());
+  }
+
+  static String validateAndStandardizeStrength(String raw) throws OryxServingException {
+    if (raw == null || raw.trim().isEmpty()) {
+      return "1";
     }
+    float value;
     try {
-      return Float.parseFloat(line);
+      value = Float.parseFloat(raw);
     } catch (NumberFormatException nfe) {
       throw new OryxServingException(Response.Status.BAD_REQUEST, nfe.getMessage());
     }
+    check(!Float.isNaN(value) && !Float.isInfinite(value), raw);
+    return Float.toString(value);
   }
+
 }

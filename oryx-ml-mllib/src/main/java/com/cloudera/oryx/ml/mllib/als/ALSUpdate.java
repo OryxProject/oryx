@@ -30,6 +30,7 @@ import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -37,12 +38,14 @@ import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
 import org.apache.spark.rdd.RDD;
+import org.apache.spark.util.StatCounter;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 import scala.reflect.ClassTag$;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
@@ -58,6 +61,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdate.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final Pattern COMMA = Pattern.compile(",");
 
   private final int iterations;
   private final boolean implicit;
@@ -95,7 +99,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
 
-    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(toParsedRDD(trainData));
+    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(trainData.map(PARSE_FN));
     trainRatingData = aggregateScores(trainRatingData);
     MatrixFactorizationModel model;
     if (implicit) {
@@ -112,7 +116,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                          Path modelParentPath,
                          JavaRDD<String> testData) {
     log.info("Evaluating model");
-    JavaRDD<Rating> testRatingData = parsedToRatingRDD(toParsedRDD(testData));
+    JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(PARSE_FN));
     testRatingData = aggregateScores(testRatingData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
@@ -168,34 +172,59 @@ public final class ALSUpdate extends MLUpdate<String> {
     //}
   }
 
-  private static JavaRDD<String[]> toParsedRDD(JavaRDD<String> rdd) {
-    return rdd.map(new Function<String,String[]>() {
-      private final Pattern comma = Pattern.compile(",");
+  /**
+   * Implementation which splits based solely on time. It will return approximately
+   * the earliest {@link #getTestFraction()} of input, ordered by timestamp, as new training
+   * data and the rest as test data.
+   */
+  @Override
+  protected Pair<JavaRDD<String>,JavaRDD<String>> splitNewDataToTrainTest(JavaRDD<String> newData) {
+    // Rough approximation; assumes timestamps are fairly evenly distributed
+    StatCounter maxMin = newData.mapToDouble(new DoubleFunction<String>() {
       @Override
-      public String[] call(String line) throws IOException {
-        // Hacky, but effective way of differentiating simple CSV from JSON array
-        if (line.endsWith("]")) {
-          // JSON
-          return MAPPER.readValue(line, String[].class);
-        } else {
-          // CSV
-          return comma.split(line);
-        }
+      public double call(String line) throws Exception {
+        return TO_TIMESTAMP_FN.call(line).doubleValue();
+      }
+    }).stats();
+
+    long minTime = (long) maxMin.min();
+    long maxTime = (long) maxMin.max();
+    log.info("New data timestamp range: {} - {}", minTime, maxTime);
+    final long approxTestTrainBoundary = minTime + (long) (getTestFraction() * (maxTime - minTime));
+    log.info("Splitting at timestamp {}", approxTestTrainBoundary);
+
+    JavaRDD<String> newTrainData = newData.filter(new Function<String,Boolean>() {
+      @Override
+      public Boolean call(String line) throws Exception {
+        return TO_TIMESTAMP_FN.call(line) < approxTestTrainBoundary;
       }
     });
+    JavaRDD<String> testData = newData.filter(new Function<String,Boolean>() {
+      @Override
+      public Boolean call(String line) throws Exception {
+        return TO_TIMESTAMP_FN.call(line) >= approxTestTrainBoundary;
+      }
+    });
+
+    return new Pair<>(newTrainData, testData);
   }
 
+  /**
+   * @param parsedRDD parsed input as {@code String[]}
+   * @return {@link Rating}s ordered by timestamp
+   */
   private static JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
-    return parsedRDD.map(new Function<String[],Rating>() {
+    return parsedRDD.mapToPair(new PairFunction<String[],Long,Rating>() {
       @Override
-      public Rating call(String[] tokens) {
-        int numTokens = tokens.length;
-        return new Rating(
-            Integer.parseInt(tokens[0]),
-            Integer.parseInt(tokens[1]),
-            numTokens == 3 ? Double.parseDouble(tokens[2]) : 1.0);
+      public Tuple2<Long,Rating> call(String[] tokens) {
+        return new Tuple2<>(
+            Long.valueOf(tokens[3]),
+            new Rating(Integer.parseInt(tokens[0]),
+                       Integer.parseInt(tokens[1]),
+                       // Empty value means 'delete'; propagate as NaN
+                       tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
       }
-    });
+    }).sortByKey().values();
   }
 
   /**
@@ -208,14 +237,22 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
     if (implicit) {
-      // For implicit, values are scores to be summed
+      // For implicit, values are scores to be summed. Relies on the values being encountered
+      // order to handle deletes correctly. When encountering NaN (delete), the sum will
+      // become NaN and be removed. Except that NaN + b = b according to this function to
+      // account for brand new values after a delete.
       aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
     } else {
       // For non-implicit, last wins.
       aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    return aggregated.map(new TupleToRatingFn());
+    return aggregated.filter(new Function<Tuple2<Tuple2<Integer, Integer>, Double>, Boolean>() {
+      @Override
+      public Boolean call(Tuple2<Tuple2<Integer,Integer>,Double> userItemScore) {
+        return !Double.isNaN(userItemScore._2());
+      }
+    }).map(TUPLE_TO_RATING_FN);
   }
 
   /**
@@ -309,10 +346,9 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static JavaPairRDD<Integer,Collection<Integer>> knownsRDD(JavaRDD<String> csvRDD,
                                                                     final boolean knownItems) {
     return csvRDD.mapToPair(new PairFunction<String,Integer,Integer>() {
-      private final Pattern comma = Pattern.compile(",");
       @Override
       public Tuple2<Integer,Integer> call(String csv) {
-        String[] tokens = comma.split(csv);
+        String[] tokens = COMMA.split(csv);
         Integer user = Integer.valueOf(tokens[0]);
         Integer item = Integer.valueOf(tokens[1]);
         return knownItems ? new Tuple2<>(user, item) : new Tuple2<>(item, user);
@@ -349,13 +385,45 @@ public final class ALSUpdate extends MLUpdate<String> {
                                ClassTag$.MODULE$.<V>apply(Object.class));
   }
 
-  private static final class TupleToRatingFn
-      implements Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating> {
-    @Override
-    public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
-      Tuple2<Integer,Integer> userProduct = userProductScore._1();
-      return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
-    }
-  }
+  private static final Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating> TUPLE_TO_RATING_FN =
+      new Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating>() {
+        @Override
+        public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
+          Tuple2<Integer,Integer> userProduct = userProductScore._1();
+          return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
+        }
+      };
+
+  /**
+   * Parses with PARSE_FN and returns fourth field as timestamp
+   */
+  private static final Function<String,Long> TO_TIMESTAMP_FN =
+      new Function<String,Long>() {
+        @Override
+        public Long call(String line) throws Exception {
+          return Long.valueOf(PARSE_FN.call(line)[3]);
+        }
+      };
+
+  /**
+   * Parses 4-element CSV or JSON array to 4-element String[]
+   */
+  private static final Function<String,String[]> PARSE_FN =
+      new Function<String,String[]>() {
+        @Override
+        public String[] call(String line) throws IOException {
+          // Hacky, but effective way of differentiating simple CSV from JSON array
+          String[] result;
+          if (line.endsWith("]")) {
+            // JSON
+            result = MAPPER.readValue(line, String[].class);
+          } else {
+            // CSV
+            result = COMMA.split(line);
+          }
+          Preconditions.checkArgument(result.length == 4);
+          return result;
+        }
+      };
 
 }

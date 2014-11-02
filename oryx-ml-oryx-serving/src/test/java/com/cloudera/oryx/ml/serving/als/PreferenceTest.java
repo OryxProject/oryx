@@ -40,13 +40,13 @@ public final class PreferenceTest extends AbstractALSServingTest {
   public void testPostJson() {
     Response response = target("/pref/U1/I1").request()
         .post(Entity.entity(PREFERENCE_DATA, MediaType.APPLICATION_JSON));
-    checkResponse(response, "U1,I1,2.5");
+    checkResponse(response, "U1", "I1", "2.5");
   }
 
   @Test
   public void testPostWithEmptyItemValue() {
     Response response = target("/pref/U2/I2").request().post(Entity.text(""));
-    checkResponse(response, "U2,I2,1.0");
+    checkResponse(response, "U2", "I2", "1");
   }
 
   @Test
@@ -59,24 +59,28 @@ public final class PreferenceTest extends AbstractALSServingTest {
   public void testPostCSV() {
     Response response = target("/pref/U1/I1").request()
         .post(Entity.entity(PREFERENCE_DATA, CSVMessageBodyWriter.TEXT_CSV_TYPE));
-    checkResponse(response, "U1,I1,2.5");
+    checkResponse(response, "U1", "I1", "2.5");
   }
 
-  // Disabled until supported in the model build
-  /*
   @Test
   public void testDelete() {
     Response response = target("/pref/U1/I2").request().delete();
-    checkResponse(response, "U1,I2");
+    checkResponse(response, "U1", "I2", "");
   }
-   */
 
-  private static void checkResponse(Response response, String expectedOutput) {
+  private static void checkResponse(Response response,
+                                    String expectedUser,
+                                    String expectedItem,
+                                    String expectedValue) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     List<Pair<String,String>> data = MockQueueProducer.getData();
     Assert.assertEquals(1, data.size());
     Assert.assertNull(data.get(0).getFirst());
-    Assert.assertEquals(expectedOutput, data.get(0).getSecond());
+    String[] tokens = data.get(0).getSecond().split(",");
+    Assert.assertEquals(expectedUser, tokens[0]);
+    Assert.assertEquals(expectedItem, tokens[1]);
+    Assert.assertEquals(expectedValue, tokens[2]);
+    Long.parseLong(tokens[3]); // Check it doesn't throw an exception
   }
 
 }

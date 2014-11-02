@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.BatchLayerUpdate;
@@ -77,6 +78,10 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     Preconditions.checkArgument(testFraction >= 0.0 && testFraction <= 1.0);
     Preconditions.checkArgument(candidates > 0);
     Preconditions.checkArgument(evalParallelism > 0);
+  }
+
+  protected final double getTestFraction() {
+    return testFraction;
   }
 
   /**
@@ -292,28 +297,9 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       Path candidatePath = new Path(candidatesPath, Integer.toString(i));
       log.info("Building candidate {} with params {}", i, hyperParameters);
 
-      JavaRDD<M> allTrainData;
-      JavaRDD<M> testData;
-      if (testFraction <= 0.0) {
-
-        allTrainData = pastData == null ? newData : newData.union(pastData);
-        testData = null;
-
-      } else if (testFraction >= 1.0) {
-
-        allTrainData = pastData;
-        testData = newData;
-
-      } else {
-
-        RDD<M>[] testTrainRDDs = newData.rdd().randomSplit(
-            new double[]{1.0 - testFraction, testFraction},
-            RandomManager.getRandom().nextLong());
-        JavaRDD<M> newTrainData = newData.wrapRDD(testTrainRDDs[0]);
-        allTrainData = pastData == null ? newTrainData : newTrainData.union(pastData);
-        testData = newData.wrapRDD(testTrainRDDs[1]);
-
-      }
+      Pair<JavaRDD<M>,JavaRDD<M>> trainTestData = splitTrainTest(newData, pastData);
+      JavaRDD<M> allTrainData = trainTestData.getFirst();
+      JavaRDD<M> testData = trainTestData.getSecond();
 
       long trainDataSize = allTrainData == null ? 0 : allTrainData.count();
       long testDataSize = testData == null ? 0 : testData.count();
@@ -345,6 +331,38 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
       return new Tuple2<>(candidatePath, eval);
     }
+  }
+
+  private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
+    Preconditions.checkNotNull(newData);
+    if (testFraction <= 0.0) {
+      return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
+    }
+    if (testFraction >= 1.0) {
+      return new Pair<>(pastData, newData);
+    }
+    if (newData.count() == 0) {
+      return new Pair<>(pastData, null);
+    }
+    Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);
+    JavaRDD<M> newTrainData = newTrainTest.getFirst();
+    return new Pair<>(pastData == null ? newTrainData : newTrainData.union(pastData),
+                      newTrainTest.getSecond());
+  }
+
+  /**
+   * Default implementation which randomly splits new data into train/test sets.
+   * This handles the case where {@link #getTestFraction()} is not 0 or 1.
+   *
+   * @param newData data that has arrived in the current input batch
+   * @return a {@link Pair} of train, test {@link RDD}s.
+   */
+  protected Pair<JavaRDD<M>,JavaRDD<M>> splitNewDataToTrainTest(JavaRDD<M> newData) {
+    RDD<M>[] testTrainRDDs = newData.rdd().randomSplit(
+        new double[]{1.0 - testFraction, testFraction},
+        RandomManager.getRandom().nextLong());
+    return new Pair<>(newData.wrapRDD(testTrainRDDs[0]),
+                      newData.wrapRDD(testTrainRDDs[1]));
   }
 
 }
