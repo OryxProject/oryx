@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -405,25 +405,5 @@ public final class ALSUpdate extends MLUpdate<String> {
         }
       };
 
-  /**
-   * Parses 4-element CSV or JSON array to 4-element String[]
-   */
-  private static final Function<String,String[]> PARSE_FN =
-      new Function<String,String[]>() {
-        @Override
-        public String[] call(String line) throws IOException {
-          // Hacky, but effective way of differentiating simple CSV from JSON array
-          String[] result;
-          if (line.endsWith("]")) {
-            // JSON
-            result = MAPPER.readValue(line, String[].class);
-          } else {
-            // CSV
-            result = COMMA.split(line);
-          }
-          Preconditions.checkArgument(result.length == 4);
-          return result;
-        }
-      };
 
 }

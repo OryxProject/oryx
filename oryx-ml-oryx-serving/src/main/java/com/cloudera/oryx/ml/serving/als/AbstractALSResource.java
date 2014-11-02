@@ -18,69 +18,27 @@ package com.cloudera.oryx.ml.serving.als;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.QueueProducer;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 import com.cloudera.oryx.ml.serving.IDValue;
-import com.cloudera.oryx.ml.serving.OryxServingException;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 
-public abstract class AbstractALSResource {
+public abstract class AbstractALSResource extends AbstractOryxResource {
 
-  public static final String MODEL_MANAGER_KEY =
-      "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
-  public static final String INPUT_PRODUCER_KEY =
-      "com.cloudera.oryx.lambda.serving.ModelManagerListener.InputProducer";
-
-  @Context
-  private ServletContext servletContext;
   private ALSServingModel alsServingModel;
-  private QueueProducer<String,String> inputProducer;
 
-  @SuppressWarnings("unchecked")
   @PostConstruct
   public void init() {
-    ServingModelManager<?> servingModelManager = (ServingModelManager<?>)
-        servletContext.getAttribute(MODEL_MANAGER_KEY);
-    alsServingModel = (ALSServingModel) servingModelManager.getModel();
-    inputProducer = (QueueProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
-  }
-
-  protected final ServletContext getServletContext() {
-    return servletContext;
+    super.init();
+    alsServingModel = (ALSServingModel) getServingModelManager().getModel();
   }
 
   protected final ALSServingModel getALSServingModel() {
     return alsServingModel;
-  }
-
-  protected final QueueProducer<?,String> getInputProducer() {
-    return inputProducer;
-  }
-
-  protected static void check(boolean condition,
-                              Response.Status status,
-                              String errorMessage) throws OryxServingException {
-    if (!condition) {
-      throw new OryxServingException(status, errorMessage);
-    }
-  }
-
-  protected static void check(boolean condition,
-                              String errorMessage) throws OryxServingException {
-    check(condition, Response.Status.BAD_REQUEST, errorMessage);
-  }
-
-  protected static void checkExists(boolean condition,
-                                    String entity) throws OryxServingException {
-    check(condition, Response.Status.NOT_FOUND, entity);
   }
 
   protected static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {
