@@ -28,9 +28,9 @@ public abstract class AbstractALSIT extends AbstractBatchIT {
   @Override
   protected Config getConfig() {
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("als.hyperparams.iterations", "10");
+    overlayConfig.put("als.iterations", "10");
     overlayConfig.put("als.hyperparams.features", "10");
-    overlayConfig.put("als.hyperparams.implicit", "true");
+    overlayConfig.put("als.implicit", "true");
     overlayConfig.put("als.hyperparams.lambda", "0.001");
     overlayConfig.put("als.hyperparams.alpha", "1.0");
     return ConfigUtils.overlayOn(overlayConfig, super.getConfig());

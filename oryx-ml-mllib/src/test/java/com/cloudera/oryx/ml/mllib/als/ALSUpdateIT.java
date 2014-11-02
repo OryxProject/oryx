@@ -69,7 +69,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("als.hyperparams.implicit", "false");
+    overlayConfig.put("als.implicit", "false");
     overlayConfig.put("als.hyperparams.lambda", Double.toString(LAMBDA));
     overlayConfig.put("als.hyperparams.features", Integer.toString(FEATURES));
     overlayConfig.put("als.no-known-items", "false");

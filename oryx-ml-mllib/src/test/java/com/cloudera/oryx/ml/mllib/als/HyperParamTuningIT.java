@@ -61,7 +61,7 @@ public final class HyperParamTuningIT extends AbstractALSIT {
     overlayConfig.put("batch.block-interval-sec",
                       Integer.toString(BLOCK_INTERVAL_SEC));
     // Choose pairs of values where the best is predictable
-    overlayConfig.put("als.hyperparams.implicit", "true");
+    overlayConfig.put("als.implicit", "true");
     overlayConfig.put("als.hyperparams.features", "[1," + TEST_FEATURES + "]");
     overlayConfig.put("als.hyperparams.lambda", "0.001");
     overlayConfig.put("als.hyperparams.alpha", "1.0");
