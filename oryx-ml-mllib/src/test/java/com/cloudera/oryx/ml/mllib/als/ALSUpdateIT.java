@@ -192,15 +192,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
   }
 
-  private static Collection<Integer> parseIDsFromContent(List<?> content) {
-    List<String> values = PMMLUtils.parseArray(content);
-    Collection<Integer> result = new HashSet<>(values.size());
-    for (String s : values) {
-      result.add(Integer.valueOf(s));
-    }
-    return result;
-  }
-
   private static Collection<Integer> checkFeatures(Path path, Collection<Integer> previousIDs)
       throws IOException {
     Collection<Integer> seenIDs = new HashSet<>();

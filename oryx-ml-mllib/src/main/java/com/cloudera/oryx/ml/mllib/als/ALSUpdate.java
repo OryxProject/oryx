@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -32,7 +31,6 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
@@ -62,7 +60,6 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdate.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Pattern COMMA = Pattern.compile(",");
 
   private final int iterations;
   private final boolean implicit;
@@ -141,7 +138,8 @@ public final class ALSUpdate extends MLUpdate<String> {
                                          Path modelParentPath,
                                          QueueProducer<String, String> modelUpdateQueue) {
 
-    JavaRDD<String> allData = pastData == null ? newData : newData.union(pastData);
+    JavaRDD<String[]> allData =
+        (pastData == null ? newData : newData.union(pastData)).map(MLFunctions.PARSE_FN);
 
     log.info("Sending user / X data as model updates");
     String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
@@ -344,40 +342,46 @@ public final class ALSUpdate extends MLUpdate<String> {
     return result;
   }
 
-  private static JavaPairRDD<Integer,Collection<Integer>> knownsRDD(JavaRDD<String> csvRDD,
+  private static JavaPairRDD<Integer,Collection<Integer>> knownsRDD(JavaRDD<String[]> allData,
                                                                     final boolean knownItems) {
-    return csvRDD.mapToPair(new PairFunction<String,Integer,Integer>() {
-      @Override
-      public Tuple2<Integer,Integer> call(String csv) {
-        String[] tokens = COMMA.split(csv);
-        Integer user = Integer.valueOf(tokens[0]);
-        Integer item = Integer.valueOf(tokens[1]);
-        return knownItems ? new Tuple2<>(user, item) : new Tuple2<>(item, user);
-      }
-    }).combineByKey(
-        new Function<Integer,Collection<Integer>>() {
+    JavaRDD<String[]> sorted = allData.sortBy(
+        new Function<String[], Long>() {
           @Override
-          public Collection<Integer> call(Integer i) {
-            Collection<Integer> set = new HashSet<>();
-            set.add(i);
-            return set;
+          public Long call(String[] datum) {
+            return Long.valueOf(datum[3]);
           }
-        },
-        new Function2<Collection<Integer>,Integer,Collection<Integer>>() {
+        }, true, allData.partitions().size());
+
+    JavaPairRDD<Integer,Tuple2<Integer,Boolean>> tuples = sorted.mapToPair(
+        new PairFunction<String[],Integer,Tuple2<Integer,Boolean>>() {
           @Override
-          public Collection<Integer> call(Collection<Integer> set, Integer i) {
-            set.add(i);
-            return set;
+          public Tuple2<Integer,Tuple2<Integer,Boolean>> call(String[] datum) {
+            Integer user = Integer.valueOf(datum[0]);
+            Integer item = Integer.valueOf(datum[1]);
+            Boolean delete = datum[2].isEmpty();
+            return knownItems ?
+                new Tuple2<>(user, new Tuple2<>(item, delete)) :
+                new Tuple2<>(item, new Tuple2<>(user, delete));
           }
-        },
-        new Function2<Collection<Integer>,Collection<Integer>,Collection<Integer>>() {
+        });
+
+    // TODO likely need to figure out a way to avoid groupByKey but collectByKey
+    // won't work here -- doesn't guarantee enough about ordering
+    return tuples.groupByKey().mapValues(
+        new Function<Iterable<Tuple2<Integer, Boolean>>, Collection<Integer>>() {
           @Override
-          public Collection<Integer> call(Collection<Integer> set1, Collection<Integer> set2) {
-            set1.addAll(set2);
-            return set1;
+          public Collection<Integer> call(Iterable<Tuple2<Integer, Boolean>> idDeletes) {
+            Collection<Integer> ids = new HashSet<>();
+            for (Tuple2<Integer, Boolean> idDelete : idDeletes) {
+              if (idDelete._2()) {
+                ids.remove(idDelete._1());
+              } else {
+                ids.add(idDelete._1());
+              }
+            }
+            return ids;
           }
-        }
-    );
+        });
   }
 
   private static <K,V> JavaPairRDD<K,V> fromRDD(RDD<Tuple2<K,V>> rdd) {

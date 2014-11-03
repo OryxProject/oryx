@@ -15,11 +15,15 @@
 
 package com.cloudera.oryx.ml.mllib.als;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
 
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.AbstractBatchIT;
 
@@ -34,6 +38,15 @@ public abstract class AbstractALSIT extends AbstractBatchIT {
     overlayConfig.put("als.hyperparams.lambda", "0.001");
     overlayConfig.put("als.hyperparams.alpha", "1.0");
     return ConfigUtils.overlayOn(overlayConfig, super.getConfig());
+  }
+
+  static Collection<Integer> parseIDsFromContent(List<?> content) {
+    List<String> values = PMMLUtils.parseArray(content);
+    Collection<Integer> result = new HashSet<>(values.size());
+    for (String s : values) {
+      result.add(Integer.valueOf(s));
+    }
+    return result;
   }
 
 }

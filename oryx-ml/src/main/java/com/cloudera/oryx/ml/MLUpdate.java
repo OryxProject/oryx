@@ -256,7 +256,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       Double eval = pathEval.getValue();
       if ((bestCandidatePath == null || (eval != null && eval > bestEval)) &&
           fs.exists(path)) {
-        log.info("Best eval / path is now {} {}", eval ,path);
+        log.info("Best eval / path is now {} / {}", eval ,path);
         if (eval != null) {
           bestEval = eval;
         }
