@@ -45,10 +45,8 @@ public final class BatchLayerIT extends AbstractBatchIT {
     Path dataDir = tempDir.resolve("data");
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("batch.update-class", MockBatchUpdate.class.getName());
-    overlayConfig.put("batch.storage.data-dir",
-                      "\"" + dataDir.toUri() + "\"");
-    overlayConfig.put("batch.storage.model-dir",
-                      "\"" + tempDir.resolve("model").toUri() + "\"");
+    ConfigUtils.set(overlayConfig, "batch.storage.data-dir", dataDir);
+    ConfigUtils.set(overlayConfig, "batch.storage.model-dir", tempDir.resolve("model"));
     overlayConfig.put("batch.generation-interval-sec",
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",

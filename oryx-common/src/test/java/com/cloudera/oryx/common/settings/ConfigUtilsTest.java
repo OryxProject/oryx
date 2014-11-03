@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.settings;
 
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +58,16 @@ public final class ConfigUtilsTest extends OryxTest {
     overlay.put("foo", "bar");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
     assertEquals("bar", config.getString("foo"));
+  }
+
+  @Test
+  public void testSetPath() throws Exception {
+    Path cwd = Paths.get(".");
+    Map<String,String> map = new HashMap<>();
+    ConfigUtils.set(map, "cwd", cwd);
+    ConfigUtils.set(map, "temp", Paths.get("/tmp"));
+    assertEquals("\"" + cwd.toRealPath(LinkOption.NOFOLLOW_LINKS).toUri() + "\"", map.get("cwd"));
+    assertEquals("\"file:///tmp/\"", map.get("temp"));
   }
 
 }

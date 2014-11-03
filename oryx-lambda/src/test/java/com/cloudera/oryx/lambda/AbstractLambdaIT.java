@@ -104,8 +104,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
     overlay.put("update-queue.broker", queueBroker);
     overlay.put("update-queue.lock.master", queueLockMaster);
     // TODO re-enable checkpointing in tests once it works?
-    //overlay.put("batch.storage.checkpoint-dir", "\"" + batchCheckpointDir.toAbsolutePath() + '"');
-    //overlay.put("speed.storage.checkpoint-dir", "\"" + speedCheckpointDir.toAbsolutePath() + '"');
+    //ConfigUtils.set(overlay, "batch.storage.checkpoint-dir", batchCheckpointDir);
+    //ConfigUtils.set(overlay, "speed.storage.checkpoint-dir", speedCheckpointDir);
     return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
   }
 

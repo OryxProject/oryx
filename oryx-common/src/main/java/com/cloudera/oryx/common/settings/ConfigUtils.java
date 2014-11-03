@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.settings;
 
+import java.io.IOException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.Map;
 
 import com.typesafe.config.Config;
@@ -72,6 +75,18 @@ public final class ConfigUtils {
    */
   public static String getOptionalString(Config config, String key) {
     return config.hasPath(key) ? config.getString(key) : null;
+  }
+
+  /**
+   * Helper to set a {@link Path} value correctly for use with {@link #overlayOn(Map,Config)}.
+   *
+   * @param overlay key-value pairs to overlay on a {@link Config}
+   * @param key key to set
+   * @param value {@link Path} value
+   * @throws IOException if {@link Path} can't be made canonical
+   */
+  public static void set(Map<String,String> overlay, String key, Path value) throws IOException {
+    overlay.put(key, "\"" + value.toRealPath(LinkOption.NOFOLLOW_LINKS).toUri() + "\"");
   }
 
   /**

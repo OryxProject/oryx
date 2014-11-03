@@ -53,10 +53,8 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
     Path modelDir = tempDir.resolve("model");
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("batch.update-class", MockMLUpdate.class.getName());
-    overlayConfig.put("batch.storage.data-dir",
-                      "\"" + dataDir.toUri() + "\"");
-    overlayConfig.put("batch.storage.model-dir",
-                      "\"" + modelDir.toUri() + "\"");
+    ConfigUtils.set(overlayConfig, "batch.storage.data-dir", dataDir);
+    ConfigUtils.set(overlayConfig, "batch.storage.model-dir", modelDir);
     overlayConfig.put("batch.generation-interval-sec",
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",

@@ -61,10 +61,8 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("batch.update-class", ALSUpdate.class.getName());
-    overlayConfig.put("batch.storage.data-dir",
-                      "\"" + dataDir.toUri() + "\"");
-    overlayConfig.put("batch.storage.model-dir",
-                      "\"" + modelDir.toUri() + "\"");
+    ConfigUtils.set(overlayConfig, "batch.storage.data-dir", dataDir);
+    ConfigUtils.set(overlayConfig, "batch.storage.model-dir", modelDir);
     overlayConfig.put("batch.generation-interval-sec",
                       Integer.toString(GEN_INTERVAL_SEC));
     overlayConfig.put("batch.block-interval-sec",
@@ -90,9 +88,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
     checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
     List<Collection<Integer>> userIDs = new ArrayList<>();
-    userIDs.add(Collections.<Integer>emptySet());
+    userIDs.add(Collections.<Integer>emptySet()); // Add dummy empty set as prior value
     List<Collection<Integer>> productIDs = new ArrayList<>();
-    productIDs.add(Collections.<Integer>emptySet());
+    productIDs.add(Collections.<Integer>emptySet()); // Add dummy empty set as prior value
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       log.info("Testing model instance dir {}", modelInstanceDir);
@@ -106,6 +104,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       assertTrue(Files.exists(yDir));
       productIDs.add(checkFeatures(yDir, productIDs.get(productIDs.size() - 1)));
     }
+    // Remove dummy empty sets
     userIDs.remove(0);
     productIDs.remove(0);
 
@@ -129,10 +128,14 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       if (isUpdate) {
 
+        assertNotNull(seenUsers);
+        assertNotNull(seenProducts);
+
         List<?> update = MAPPER.readValue(value, List.class);
         // First field is X or Y, depending on whether it's a user or item vector
-        boolean isUser = "X".equals(update.get(0).toString());
-        boolean isProduct = "Y".equals(update.get(0).toString());
+        String whichMatrixField = update.get(0).toString();
+        boolean isUser = "X".equals(whichMatrixField);
+        boolean isProduct = "Y".equals(whichMatrixField);
         // Next is user/item ID
         Integer id = Integer.valueOf(update.get(1).toString());
         assertTrue(isUser || isProduct);
