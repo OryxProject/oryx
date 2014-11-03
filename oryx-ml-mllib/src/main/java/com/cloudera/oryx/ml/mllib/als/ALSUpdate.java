@@ -49,6 +49,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
+import com.cloudera.oryx.ml.mllib.common.fn.MLFunctions;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -99,7 +100,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
 
-    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(trainData.map(PARSE_FN));
+    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(trainData.map(MLFunctions.PARSE_FN));
     trainRatingData = aggregateScores(trainRatingData);
     MatrixFactorizationModel model;
     if (implicit) {
@@ -116,7 +117,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                          Path modelParentPath,
                          JavaRDD<String> testData) {
     log.info("Evaluating model");
-    JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(PARSE_FN));
+    JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(MLFunctions.PARSE_FN));
     testRatingData = aggregateScores(testRatingData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
@@ -401,7 +402,7 @@ public final class ALSUpdate extends MLUpdate<String> {
       new Function<String,Long>() {
         @Override
         public Long call(String line) throws Exception {
-          return Long.valueOf(PARSE_FN.call(line)[3]);
+          return Long.valueOf(MLFunctions.PARSE_FN.call(line)[3]);
         }
       };
 

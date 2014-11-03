@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.ml.MLUpdate;
+import com.cloudera.oryx.ml.mllib.common.fn.MLFunctions;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
 
@@ -93,7 +94,7 @@ public class KMeansUpdate extends MLUpdate<String> {
     int numClusters = hyperParams.get(0).intValue();
     Preconditions.checkArgument(numClusters > 0);
 
-    JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(PARSE_FN));
+    JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
     KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
                                            numberOfRuns, initializationMode);
 
@@ -114,7 +115,6 @@ public class KMeansUpdate extends MLUpdate<String> {
                          JavaRDD<String> testData) {
     return 0;
   }
-
 
 
   private static PMML kMeansModelToPMML(KMeansModel model) {
@@ -143,9 +143,11 @@ public class KMeansUpdate extends MLUpdate<String> {
         @Override
         public Vector call(String[] tokens) {
           int numTokens = tokens.length;
+          int i = 0;
           double[] values = new double[numTokens];
-          for (int i = 0; i < numTokens; i++) {
-            values[i] = Double.parseDouble(tokens[i]);
+          for (String token : tokens) {
+            values[i]  = Double.parseDouble(token);
+            i++;
           }
           return Vectors.dense(values);
         }

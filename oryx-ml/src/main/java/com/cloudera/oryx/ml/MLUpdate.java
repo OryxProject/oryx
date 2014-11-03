@@ -29,11 +29,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.FileSystem;
@@ -41,7 +39,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.rdd.RDD;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
@@ -67,8 +64,6 @@ import com.cloudera.oryx.ml.param.HyperParamRanges;
 public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 
   private static final Logger log = LoggerFactory.getLogger(MLUpdate.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Pattern COMMA = Pattern.compile(",");
 
   public static final String MODEL_FILE_NAME = "model.pmml.gz";
 
@@ -369,26 +364,5 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     return new Pair<>(newData.wrapRDD(testTrainRDDs[0]),
                       newData.wrapRDD(testTrainRDDs[1]));
   }
-
-  /**
-   * Parses 4-element CSV or JSON array to 4-element String[]
-   */
-  protected static final Function<String,String[]> PARSE_FN =
-      new Function<String,String[]>() {
-        @Override
-        public String[] call(String line) throws IOException {
-          // Hacky, but effective way of differentiating simple CSV from JSON array
-          String[] result;
-          if (line.endsWith("]")) {
-            // JSON
-            result = MAPPER.readValue(line, String[].class);
-          } else {
-            // CSV
-            result = COMMA.split(line);
-          }
-          Preconditions.checkArgument(result.length == 4);
-          return result;
-        }
-      };
 
 }
