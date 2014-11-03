@@ -102,8 +102,9 @@ public final class LocalZKServer implements Closeable {
     zkServer.setMinSessionTimeout(serverConfig.getMinSessionTimeout());
     zkServer.setMaxSessionTimeout(serverConfig.getMaxSessionTimeout());
 
-    transactionLog = new FileTxnSnapLog(new File(serverConfig.getDataLogDir()),
-                                        new File(serverConfig.getDataDir()));
+    // These two ServerConfig methods returned String in 3.4.x and File in 3.5.x
+    transactionLog = new FileTxnSnapLog(new File(serverConfig.getDataLogDir().toString()),
+                                        new File(serverConfig.getDataDir().toString()));
     zkServer.setTxnLogFactory(transactionLog);
 
     connectionFactory = ServerCnxnFactory.createFactory();
