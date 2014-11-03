@@ -39,7 +39,7 @@ public abstract class AbstractOryxResource {
   private ServingModelManager<?> servingModelManager;
 
   @SuppressWarnings("unchecked")
-  public void init() {
+  protected void init() {
     servingModelManager = (ServingModelManager<?>)
         servletContext.getAttribute(MODEL_MANAGER_KEY);
     inputProducer = (QueueProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);

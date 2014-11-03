@@ -31,6 +31,7 @@ import org.junit.Assert;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 import com.cloudera.oryx.ml.serving.IDCount;
 import com.cloudera.oryx.ml.serving.IDValue;
 import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
@@ -63,8 +64,8 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractALSResource.MODEL_MANAGER_KEY, getModelManager());
-      context.setAttribute(AbstractALSResource.INPUT_PRODUCER_KEY, new MockQueueProducer());
+      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, getModelManager());
+      context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockQueueProducer());
     }
     protected MockServingModelManager getModelManager() {
       return new MockServingModelManager();

@@ -31,26 +31,27 @@ public abstract class AbstractALSResource extends AbstractOryxResource {
 
   private ALSServingModel alsServingModel;
 
+  @Override
   @PostConstruct
   public void init() {
     super.init();
     alsServingModel = (ALSServingModel) getServingModelManager().getModel();
   }
 
-  protected final ALSServingModel getALSServingModel() {
+  final ALSServingModel getALSServingModel() {
     return alsServingModel;
   }
 
-  protected static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {
+  static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {
     if (values.size() < offset) {
       return Collections.emptyList();
     }
     return values.subList(offset, Math.min(offset + howMany, values.size()));
   }
 
-  protected static List<IDValue> toIDValueResponse(List<Pair<String,Double>> pairs,
-                                                   int howMany,
-                                                   int offset) {
+  static List<IDValue> toIDValueResponse(List<Pair<String,Double>> pairs,
+                                         int howMany,
+                                         int offset) {
     List<Pair<String,Double>> sublist = selectedSublist(pairs, howMany, offset);
     return Lists.transform(sublist,
         new Function<Pair<String,Double>,IDValue>() {

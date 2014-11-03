@@ -32,7 +32,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
-import com.cloudera.oryx.ml.serving.als.AbstractALSResource;
+import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 
 public final class ALSServingInputProducerIT extends AbstractServingIT {
 
@@ -52,7 +52,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
     @SuppressWarnings("unchecked")
     QueueProducer<String,String> inputProducer = (QueueProducer<String,String>)
         getServingLayer().getContext().getServletContext().getAttribute(
-            AbstractALSResource.INPUT_PRODUCER_KEY);
+            AbstractOryxResource.INPUT_PRODUCER_KEY);
 
     String[] inputs = {
         "abc,123,1.5",

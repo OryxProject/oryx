@@ -16,26 +16,21 @@
 package com.cloudera.oryx.common.collection;
 
 import com.carrotsearch.hppc.predicates.ObjectPredicate;
-import com.google.common.base.Preconditions;
 
 public final class AndPredicate<T> implements ObjectPredicate<T> {
 
-  private final ObjectPredicate<T>[] clauses;
+  // Consider supporting arbitrary # later
+  private final ObjectPredicate<T> a;
+  private final ObjectPredicate<T> b;
 
-  public AndPredicate(ObjectPredicate<T>... clauses) {
-    Preconditions.checkNotNull(clauses);
-    Preconditions.checkArgument(clauses.length > 0);
-    this.clauses = clauses;
+  public AndPredicate(ObjectPredicate<T> a, ObjectPredicate<T> b) {
+    this.a = a;
+    this.b = b;
   }
 
   @Override
   public boolean apply(T value) {
-    for (ObjectPredicate<T> clause : clauses) {
-      if (!clause.apply(value)) {
-        return false;
-      }
-    }
-    return true;
+    return a.apply(value) && b.apply(value);
   }
 
 }

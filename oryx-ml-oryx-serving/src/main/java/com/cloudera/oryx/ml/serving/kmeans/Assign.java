@@ -37,7 +37,7 @@ public final class Assign extends AbstractKMeansResource {
   @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Response get(@PathParam("datum") String datum) throws OryxServingException {
 
-    check(datum != null && datum.length() > 0, "Data is needed to cluster");
+    check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
 
     return Response.status(200).entity("").build();
   }

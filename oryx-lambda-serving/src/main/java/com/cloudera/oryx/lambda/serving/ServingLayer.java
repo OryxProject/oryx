@@ -228,7 +228,7 @@ public final class ServingLayer implements Closeable {
     return null;
   }
 
-  private Context makeContext(Tomcat tomcat, Path noSuchBaseDir) throws IOException {
+  private void makeContext(Tomcat tomcat, Path noSuchBaseDir) throws IOException {
     Path contextPath = noSuchBaseDir.resolve("context");
     Files.createDirectories(contextPath);
 
@@ -286,8 +286,6 @@ public final class ServingLayer implements Closeable {
     }
 
     context.setCookies(false);
-
-    return context;
   }
 }
 

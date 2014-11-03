@@ -22,6 +22,7 @@ import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 public abstract class AbstractKMeansResource extends AbstractOryxResource {
 
   // TODO: add code to fetch KMeansServingModel
+  @Override
   @PostConstruct
   public void init() {
     super.init();
