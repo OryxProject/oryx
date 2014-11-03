@@ -16,6 +16,7 @@
 package com.cloudera.oryx.common.settings;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Map;
@@ -82,11 +83,14 @@ public final class ConfigUtils {
    *
    * @param overlay key-value pairs to overlay on a {@link Config}
    * @param key key to set
-   * @param value {@link Path} value
+   * @param path {@link Path} value
    * @throws IOException if {@link Path} can't be made canonical
    */
-  public static void set(Map<String,String> overlay, String key, Path value) throws IOException {
-    overlay.put(key, "\"" + value.toRealPath(LinkOption.NOFOLLOW_LINKS).toUri() + "\"");
+  public static void set(Map<String,String> overlay, String key, Path path) throws IOException {
+    Path finalPath = Files.exists(path, LinkOption.NOFOLLOW_LINKS) ?
+        path.toRealPath(LinkOption.NOFOLLOW_LINKS) :
+        path;
+    overlay.put(key, "\"" + finalPath.toUri() + "\"");
   }
 
   /**
