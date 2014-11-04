@@ -16,47 +16,30 @@
 package com.cloudera.oryx.ml.serving.kmeans;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.MatrixParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
  * <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
  * delimited, like "1,-4,3.0". The response body contains the distance to the nearest cluster, on one line.</p>
  */
 @Path("/distanceToNearest")
-public final class DistanceToNearest {
+public final class DistanceToNearest extends AbstractKMeansResource {
 
   @GET
   @Path("{datum}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response post(@MatrixParam("datum") String datum) {
-/*
-    CharSequence pathInfo = request.getPathInfo();
-    if (pathInfo == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No path");
-      return;
-    }
-    String line = pathInfo.subSequence(1, pathInfo.length()).toString();
-    Generation generation = getGenerationManager().getCurrentGeneration();
-    if (generation == null) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                         "API method unavailable until model has been built and loaded");
-      return;
-    }
+  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  public Response get(@PathParam("datum") String datum) throws OryxServingException {
 
-    RealVector vec = generation.toVector(DelimitedDataUtils.decode(line));
-    if (vec == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong column count");
-      return;
-    }
+    check(datum != null && !datum.isEmpty(), "Missing input data");
 
-    int assignment = DistanceToNearestServlet.findClosest(generation, vec).getClosestCenterId();
-    response.getWriter().write(Integer.toString(assignment));
-  */
-    return Response.status(200).entity("").build();
+    return Response.ok().build();
   }
 
 }

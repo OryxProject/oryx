@@ -39,7 +39,7 @@ public final class Assign extends AbstractKMeansResource {
 
     check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
 
-    return Response.status(200).entity("").build();
+    return Response.ok().build();
   }
 
 }

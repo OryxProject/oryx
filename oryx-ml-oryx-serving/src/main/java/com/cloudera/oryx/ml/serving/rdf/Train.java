@@ -15,12 +15,32 @@
 
 package com.cloudera.oryx.ml.serving.rdf;
 
-import javax.ws.rs.MatrixParam;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
  * <p>Responds to POST request to {@code /train}. The input is one or more data points
@@ -28,61 +48,46 @@ import javax.ws.rs.core.Response;
  * "1,foo,3.0". The classifier updates to learn in some way from the new data. The response is empty.</p>
  */
 @Path("/train")
-public final class Train {
+public final class Train extends AbstractRDFResource {
 
-  @POST
-  @Path("{input}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response post(@MatrixParam("input") String input) {
-/*
-    RDFGenerationManager generationManager = getGenerationManager();
-    Generation generation = generationManager.getCurrentGeneration();
-    if (generation == null) {
-      response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                         "API method unavailable until model has been built and loaded");
-      return;
-    }
+  private DiskFileItemFactory fileItemFactory;
 
-    InboundSettings inboundSettings = getInboundSettings();
-
-    TreeBasedClassifier forest = generation.getForest();
-    Map<Integer,BiMap<String,Integer>> columnToCategoryNameToIDMapping =
-        generation.getColumnToCategoryNameToIDMapping();
-
-    int totalColumns = getTotalColumns();
-
-    for (CharSequence line : CharStreams.readLines(request.getReader())) {
-
-      generationManager.append(line);
-
-      String[] tokens = DelimitedDataUtils.decode(line);
-      if (tokens.length != totalColumns) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Wrong column count");
-        return;
-      }
-
-      Feature target = null;
-      Feature[] features = new Feature[totalColumns]; // Too big by 1 but makes math easier
-      try {
-        for (int col = 0; col < features.length; col++) {
-          if (col == inboundSettings.getTargetColumn()) {
-            target = buildFeature(col, tokens[col], columnToCategoryNameToIDMapping);
-            features[col] = IgnoredFeature.INSTANCE;
-          } else {
-            features[col] = buildFeature(col, tokens[col], columnToCategoryNameToIDMapping);
-          }
-        }
-      } catch (IllegalArgumentException iae) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad input line");
-        return;
-      }
-
-      Preconditions.checkNotNull(target);
-      Example example = new Example(target, features);
-
-      forest.update(example);
-  */
-    return Response.status(200).entity("").build();
+  @Override
+  @PostConstruct
+  public void init() {
+    super.init();
+    ServletContext context = getServletContext();
+    fileItemFactory = new DiskFileItemFactory(
+        1 << 16, (File) context.getAttribute("javax.servlet.context.tempdir"));
+    fileItemFactory.setFileCleaningTracker(FileCleanerCleanup.getFileCleaningTracker(context));
   }
 
+  @POST
+  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  public void post(Reader reader) throws IOException {
+    doPost(reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader));
+  }
+
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public void post(@Context HttpServletRequest request)
+      throws IOException, FileUploadException, OryxServingException {
+    // JAX-RS does not by itself support multipart form data yet, so doing it manually.
+    // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
+    // Good old Commons FileUpload it is:
+    List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
+    check(!fileItems.isEmpty(), "No parts");
+    for (FileItem item : fileItems) {
+      InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
+      doPost(new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8)));
+    }
+  }
+
+  private void doPost(BufferedReader buffered) throws IOException {
+    QueueProducer<?,String> inputQueue = getInputProducer();
+    String line;
+    while ((line = buffered.readLine()) != null) {
+      inputQueue.send(line);
+    }
+  }
 }
