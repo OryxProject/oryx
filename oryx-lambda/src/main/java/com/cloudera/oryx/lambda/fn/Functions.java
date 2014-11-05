@@ -54,8 +54,7 @@ public final class Functions {
       new Function2<Double,Double,Double>() {
         @Override
         public Double call(Double a, Double b) {
-          // Special behavior: NaN + b = b, not NaN
-          return Double.isNaN(a) ? b : a + b;
+          return a + b;
         }
       };
 

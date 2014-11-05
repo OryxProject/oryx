@@ -236,22 +236,31 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
     if (implicit) {
-      // For implicit, values are scores to be summed. Relies on the values being encountered
-      // order to handle deletes correctly. When encountering NaN (delete), the sum will
-      // become NaN and be removed. Except that NaN + b = b according to this function to
-      // account for brand new values after a delete.
-      aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
+
+      // TODO can we avoid groupByKey? reduce, combine, fold don't seem viable since
+      // they don't guarantee the delete elements are properly handled
+      aggregated = tuples.groupByKey().mapValues(new Function<Iterable<Double>, Double>() {
+        @Override
+        public Double call(Iterable<Double> orderedStrengths) {
+          double finalStrength = Double.NaN;
+          for (double strength : orderedStrengths) {
+            if (Double.isNaN(finalStrength)) {
+              finalStrength = strength;
+            } else {
+              // If strength is NaN, this will make the tally NaN
+              finalStrength += strength;
+            }
+          }
+          return finalStrength;
+        }
+      }).filter(NOT_NAN_VALUE);
+
     } else {
       // For non-implicit, last wins.
       aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    return aggregated.filter(new Function<Tuple2<Tuple2<Integer, Integer>, Double>, Boolean>() {
-      @Override
-      public Boolean call(Tuple2<Tuple2<Integer,Integer>,Double> userItemScore) {
-        return !Double.isNaN(userItemScore._2());
-      }
-    }).map(TUPLE_TO_RATING_FN);
+    return aggregated.filter(NOT_NAN_VALUE).map(TUPLE_TO_RATING_FN);
   }
 
   /**
@@ -410,5 +419,12 @@ public final class ALSUpdate extends MLUpdate<String> {
         }
       };
 
+  private static final Function<Tuple2<Tuple2<Integer,Integer>,Double>, Boolean> NOT_NAN_VALUE =
+      new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Boolean>() {
+        @Override
+        public Boolean call(Tuple2<Tuple2<Integer,Integer>,Double> kv) {
+          return !Double.isNaN(kv._2());
+        }
+      };
 
 }
