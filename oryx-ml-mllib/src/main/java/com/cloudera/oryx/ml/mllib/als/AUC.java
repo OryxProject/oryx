@@ -25,6 +25,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
@@ -37,16 +38,12 @@ import scala.Tuple2;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.fn.Functions;
 
+/**
+ * Computes AUC (area under the ROC curve) as a recommender evaluation metric.
+ * Really, it computes what might be described as "Mean AUC", as it computes AUC per
+ * user and averages them.
+ */
 final class AUC {
-
-  private static final Function<Rating,Integer> RATING_TO_USER = new Function<Rating,Integer>() {
-    @Override
-    public Integer call(Rating r) {
-      return r.user();
-    }
-  };
-
-  private static final int NUM_NEGATIVE = 100;
 
   private AUC() {
   }
@@ -54,6 +51,11 @@ final class AUC {
   static double areaUnderCurve(JavaSparkContext sparkContext,
                                MatrixFactorizationModel mfModel,
                                JavaRDD<Rating> positiveData) {
+
+    // This does not use Spark's BinaryClassificationMetrics.areaUnderROC because it
+    // is intended to operate on one large set of (score,label) pairs. The computation
+    // here is really many small AUC problems, for which a much faster direct computation
+    // is available.
 
     // Extract all positive (user,product) pairs
     JavaPairRDD<Integer,Integer> positiveUserProducts =
@@ -80,11 +82,12 @@ final class AUC {
               Tuple2<Integer,Iterable<Integer>> userIDsAndItemIDs) {
             Integer userID = userIDsAndItemIDs._1();
             Collection<Integer> positiveItemIDs = Sets.newHashSet(userIDsAndItemIDs._2());
-            Collection<Tuple2<Integer,Integer>> negative = new ArrayList<>(NUM_NEGATIVE);
+            int numPositive = positiveItemIDs.size();
+            Collection<Tuple2<Integer,Integer>> negative = new ArrayList<>(numPositive);
             List<Integer> allItemIDs = allItemIDsBC.value();
             int numItems = allItemIDs.size();
-            // The number of iterations is a bit arbitrary
-            for (int i = 0; i < numItems && negative.size() < NUM_NEGATIVE; i++) {
+            // Sample about as many negative examples as positive
+            for (int i = 0; i < numItems && negative.size() < numPositive; i++) {
               Integer itemID = allItemIDs.get(random.nextInt(numItems));
               if (!positiveItemIDs.contains(itemID)) {
                 negative.add(new Tuple2<>(userID, itemID));
@@ -97,32 +100,27 @@ final class AUC {
     JavaPairRDD<Integer,Iterable<Rating>> negativePredictions =
         predictAll(mfModel, positiveData, negativeUserProducts);
 
-    // Join positive and negative predictions
-    JavaPairRDD<Long,Long> correctAndTotal = positivePredictions.join(negativePredictions).mapToPair(
-        new PairFunction<Tuple2<Integer, Tuple2<Iterable<Rating>, Iterable<Rating>>>, Long, Long>() {
+    return positivePredictions.join(negativePredictions).values().mapToDouble(
+        new DoubleFunction<Tuple2<Iterable<Rating>, Iterable<Rating>>>() {
           @Override
-          public Tuple2<Long,Long> call(
-              Tuple2<Integer, Tuple2<Iterable<Rating>, Iterable<Rating>>> t) {
-            // AUC is estimated by probability that random positive examples
+          public double call(Tuple2<Iterable<Rating>, Iterable<Rating>> t) {
+            // AUC is also the probability that random positive examples
             // rank higher than random examples at large. Here we compare all random negative
-            // examples to all positive examples and report the totals
-            List<Rating> positiveRatings = Lists.newArrayList(t._2()._1());
-            List<Rating> negativeRatings = Lists.newArrayList(t._2()._2());
+            // examples to all positive examples and report the totals as an alternative
+            // computation for AUC
             long correct = 0;
-            for (Rating negative : negativeRatings) {
-              for (Rating positive : positiveRatings) {
+            long total = 0;
+            for (Rating positive : t._1()) {
+              for (Rating negative : t._2()) {
                 if (positive.rating() > negative.rating()) {
                   correct++;
                 }
+                total++;
               }
             }
-            return new Tuple2<>(correct, (long) positiveRatings.size() * negativeRatings.size());
+            return (double) correct / total;
           }
-        });
-
-    double correct = correctAndTotal.keys().fold(0L, Functions.SUM_LONG);
-    double total = correctAndTotal.values().fold(0L, Functions.SUM_LONG);
-    return correct / total;
+        }).mean();
   }
 
   private static JavaPairRDD<Integer,Iterable<Rating>> predictAll(
@@ -132,7 +130,12 @@ final class AUC {
     @SuppressWarnings("unchecked")
     RDD<Tuple2<Object,Object>> userProductsRDD =
         (RDD<Tuple2<Object,Object>>) (RDD<?>) userProducts.rdd();
-    return data.wrapRDD(mfModel.predict(userProductsRDD)).groupBy(RATING_TO_USER);
+    return data.wrapRDD(mfModel.predict(userProductsRDD)).groupBy(new Function<Rating,Integer>() {
+      @Override
+      public Integer call(Rating r) {
+        return r.user();
+      }
+    });
   }
 
 }
