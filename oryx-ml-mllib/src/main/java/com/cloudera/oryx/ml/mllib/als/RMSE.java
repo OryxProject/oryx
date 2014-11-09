@@ -28,6 +28,8 @@ final class RMSE {
   private RMSE() {
   }
 
+  // TODO use RegressionMetrics in Spark 1.2+
+
   static double rmse(MatrixFactorizationModel mfModel, JavaRDD<Rating> testData) {
     JavaPairRDD<Tuple2<Integer,Integer>,Double> testUserProductValues =
         testData.mapToPair(new RatingToTupleDouble());

@@ -36,6 +36,7 @@ import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
 import org.apache.spark.rdd.RDD;
+import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.util.StatCounter;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
@@ -105,7 +106,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     } else {
       model = ALS.train(trainRatingData.rdd(), features, iterations, lambda);
     }
-    return mfModelToPMML(model, features, lambda, alpha, implicit, candidatePath);
+
+    PMML pmml = mfModelToPMML(model, features, lambda, alpha, implicit, candidatePath);
+    unpersist(model);
+    return pmml;
   }
 
   @Override
@@ -127,7 +131,18 @@ public final class ALSUpdate extends MLUpdate<String> {
       log.info("RMSE: {}", rmse);
       eval = 1.0 / rmse;
     }
+    unpersist(mfModel);
     return eval;
+  }
+
+  /**
+   * Manually unpersists the RDDs that are persisted inside a model.
+   *
+   * @param model model whose RDDs were persisted
+   */
+  private static void unpersist(MatrixFactorizationModel model) {
+    model.userFeatures().unpersist(false);
+    model.productFeatures().unpersist(false);
   }
 
   @Override
@@ -320,6 +335,9 @@ public final class ALSUpdate extends MLUpdate<String> {
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
     RDD<Tuple2<Integer,double[]>> productRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
+    // This mimics the persistence level establish by ALS training methods
+    userRDD.persist(StorageLevel.MEMORY_AND_DISK());
+    productRDD.persist(StorageLevel.MEMORY_AND_DISK());
 
     // Cast is needed for some reason with this Scala API returning array
     @SuppressWarnings("unchecked")
