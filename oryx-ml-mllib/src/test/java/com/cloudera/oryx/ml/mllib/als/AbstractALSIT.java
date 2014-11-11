@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.mllib.als;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +31,7 @@ import com.cloudera.oryx.lambda.AbstractBatchIT;
 public abstract class AbstractALSIT extends AbstractBatchIT {
 
   @Override
-  protected Config getConfig() {
+  protected Config getConfig() throws IOException {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("als.iterations", "10");
     overlayConfig.put("als.hyperparams.features", "10");

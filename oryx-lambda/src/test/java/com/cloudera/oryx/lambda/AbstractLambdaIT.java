@@ -95,7 +95,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
     }
   }
 
-  protected Config getConfig() {
+  protected Config getConfig() throws IOException {
     Map<String,String> overlay = new HashMap<>();
     String queueBroker = "\"localhost:" + localKafkaBrokerPort + '"';
     String queueLockMaster = "\"localhost:" + localZKPort + '"';

@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.mllib.kmeans;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ import com.cloudera.oryx.lambda.AbstractBatchIT;
 public abstract class AbstractKMeansIT extends AbstractBatchIT {
 
   @Override
-  protected Config getConfig() {
+  protected Config getConfig() throws IOException {
     Map<String,String> overlayConfig = new HashMap<>();
     overlayConfig.put("kmeans.iterations", "30");
     overlayConfig.put("kmeans.runs", "1");

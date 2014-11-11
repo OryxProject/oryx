@@ -24,13 +24,18 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import kafka.serializer.Decoder;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
+import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.api.java.JavaStreamingContextFactory;
@@ -118,31 +123,29 @@ public final class BatchLayer<K,M,U> implements Closeable {
     final long batchDurationMS =
        TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
     final JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
-
-    JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
-      @Override
-      public JavaStreamingContext create() {
-        return new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-      }
-    };
+    Configuration hadoopConf = sparkContext.hadoopConfiguration();
 
     if (checkpointDirString == null) {
       log.info("Not using a streaming checkpoint dir");
-      streamingContext = streamingContextFactory.create();
+      streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
     } else {
       log.info("Using streaming checkpoint dir {}", checkpointDirString);
+      JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
+        @Override
+        public JavaStreamingContext create() {
+          JavaStreamingContext jssc =
+              new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
+          jssc.checkpoint(checkpointDirString);
+          return jssc;
+        }
+      };
       streamingContext = JavaStreamingContext.getOrCreate(
-          checkpointDirString, sparkContext.hadoopConfiguration(), streamingContextFactory, false);
-      streamingContext.checkpoint(checkpointDirString);
+          checkpointDirString, hadoopConf, streamingContextFactory, false);
     }
 
     log.info("Creating message queue stream");
 
     JavaPairDStream<K,M> dStream = buildDStream();
-    
-    if (checkpointDirString != null) {
-      dStream.checkpoint(new Duration(batchDurationMS));
-    }
 
     dStream.foreachRDD(
         new BatchUpdateFunction<>(config,

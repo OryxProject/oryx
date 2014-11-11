@@ -36,6 +36,7 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.storage.StorageLevel;
@@ -127,30 +128,30 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     final long batchDurationMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
     final JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
-
-    JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
-      @Override
-      public JavaStreamingContext create() {
-        return new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-      }
-    };
+    Configuration hadoopConf = sparkContext.hadoopConfiguration();
 
     if (checkpointDirString == null) {
       log.info("Not using a streaming checkpoint dir");
-      streamingContext = streamingContextFactory.create();
+      streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
     } else {
       log.info("Using streaming checkpoint dir {}", checkpointDirString);
+      JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
+        @Override
+        public JavaStreamingContext create() {
+          JavaStreamingContext jssc =
+              new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
+          jssc.checkpoint(checkpointDirString);
+          return jssc;
+        }
+      };
       streamingContext = JavaStreamingContext.getOrCreate(
-          checkpointDirString, sparkContext.hadoopConfiguration(), streamingContextFactory, false);
+          checkpointDirString, hadoopConf, streamingContextFactory, false);
       streamingContext.checkpoint(checkpointDirString);
     }
 
     log.info("Creating message queue stream");
 
     JavaPairDStream<K,M> dStream = buildDStream();
-    if (checkpointDirString != null) {
-      dStream.checkpoint(new Duration(batchDurationMS));
-    }
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
