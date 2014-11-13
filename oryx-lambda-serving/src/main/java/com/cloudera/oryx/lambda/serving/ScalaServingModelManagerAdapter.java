@@ -18,7 +18,7 @@ package com.cloudera.oryx.lambda.serving;
 import java.util.Iterator;
 
 import com.google.common.base.Preconditions;
-import scala.collection.JavaConversions$;
+import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 
@@ -33,7 +33,7 @@ public final class ScalaServingModelManagerAdapter<U> implements ServingModelMan
 
   @Override
   public void consume(Iterator<KeyMessage<String,U>> updateIterator) {
-    scalaManager.consume(JavaConversions$.MODULE$.asScalaIterator(updateIterator));
+    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator));
   }
 
   @Override

@@ -28,7 +28,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
-import kafka.consumer.Consumer$;
+import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -157,7 +157,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
-    consumer = Consumer$.MODULE$.createJavaConsumerConnector(consumerConfig);
+    consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),

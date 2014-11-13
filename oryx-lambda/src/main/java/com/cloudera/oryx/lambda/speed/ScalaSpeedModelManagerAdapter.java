@@ -19,7 +19,7 @@ import java.util.Iterator;
 
 import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
-import scala.collection.JavaConversions$;
+import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.lambda.KeyMessage;
 
@@ -34,12 +34,12 @@ public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelMan
 
   @Override
   public void consume(Iterator<KeyMessage<String, U>> updateIterator) {
-    scalaManager.consume(JavaConversions$.MODULE$.asScalaIterator(updateIterator));
+    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator));
   }
 
   @Override
   public Iterable<U> buildUpdates(JavaPairRDD<K, M> newData) {
-    return JavaConversions$.MODULE$.asJavaIterable(scalaManager.buildUpdates(newData.rdd()));
+    return JavaConversions.asJavaIterable(scalaManager.buildUpdates(newData.rdd()));
   }
 
   @Override
