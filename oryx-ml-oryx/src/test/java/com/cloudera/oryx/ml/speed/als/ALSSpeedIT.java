@@ -42,9 +42,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
     overlayConfig.put("speed.model-manager-class", ALSSpeedModelManager.class.getName());
     overlayConfig.put("speed.generation-interval-sec", "5");
     overlayConfig.put("speed.block-interval-sec", "1");
-    overlayConfig.put("als.implicit", "true");
     overlayConfig.put("als.hyperparams.features", "2");
-    overlayConfig.put("als.no-known-items", "false");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

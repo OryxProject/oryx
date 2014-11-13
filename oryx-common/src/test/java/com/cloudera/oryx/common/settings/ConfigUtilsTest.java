@@ -34,7 +34,7 @@ public final class ConfigUtilsTest extends OryxTest {
   @Test
   public void testDefaultConfig() {
     Config config = ConfigUtils.getDefault();
-    assertEquals("local[2]", config.getString("batch.streaming.master"));
+    assertEquals("yarn-client", config.getString("batch.streaming.master"));
   }
 
   @Test

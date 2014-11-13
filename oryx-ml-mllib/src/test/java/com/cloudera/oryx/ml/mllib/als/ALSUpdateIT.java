@@ -70,7 +70,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
     overlayConfig.put("als.implicit", "false");
     overlayConfig.put("als.hyperparams.lambda", Double.toString(LAMBDA));
     overlayConfig.put("als.hyperparams.features", Integer.toString(FEATURES));
-    overlayConfig.put("als.no-known-items", "false");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

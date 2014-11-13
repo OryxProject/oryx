@@ -103,6 +103,9 @@ public abstract class AbstractLambdaIT extends OryxTest {
     overlay.put("input-queue.lock.master", queueLockMaster);
     overlay.put("update-queue.broker", queueBroker);
     overlay.put("update-queue.lock.master", queueLockMaster);
+    String masterLocalAllCores = "\"local[*]\"";
+    overlay.put("batch.streaming.master", masterLocalAllCores);
+    overlay.put("speed.streaming.master", masterLocalAllCores);
     // TODO re-enable checkpointing in tests once it works?
     //ConfigUtils.set(overlay, "batch.storage.checkpoint-dir", batchCheckpointDir);
     //ConfigUtils.set(overlay, "speed.storage.checkpoint-dir", speedCheckpointDir);

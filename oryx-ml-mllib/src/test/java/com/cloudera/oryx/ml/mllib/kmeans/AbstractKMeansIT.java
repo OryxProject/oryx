@@ -15,24 +15,10 @@
 
 package com.cloudera.oryx.ml.mllib.kmeans;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.typesafe.config.Config;
-
-import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.AbstractBatchIT;
 
 public abstract class AbstractKMeansIT extends AbstractBatchIT {
 
-  @Override
-  protected Config getConfig() throws IOException {
-    Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("kmeans.iterations", "30");
-    overlayConfig.put("kmeans.runs", "1");
-    overlayConfig.put("kmeans.initialization-strategy", "k-means||");
-    overlayConfig.put("kmeans.hyperparams.k", "10");
-    return ConfigUtils.overlayOn(overlayConfig, super.getConfig());
-  }
+  // Nothing at the moment
+
 }

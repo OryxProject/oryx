@@ -55,7 +55,6 @@ public final class ALSModelContentIT extends AbstractALSIT {
     overlayConfig.put("als.implicit", "false");
     overlayConfig.put("als.hyperparams.lambda", "0.0001");
     overlayConfig.put("als.hyperparams.features", "2");
-    overlayConfig.put("als.no-known-items", "false");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

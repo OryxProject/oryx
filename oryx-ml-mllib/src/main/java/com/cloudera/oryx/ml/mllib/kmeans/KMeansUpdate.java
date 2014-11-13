@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.ml.MLUpdate;
-import com.cloudera.oryx.ml.mllib.common.fn.MLFunctions;
+import com.cloudera.oryx.ml.common.fn.MLFunctions;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
 
@@ -49,14 +49,14 @@ public class KMeansUpdate extends MLUpdate<String> {
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdate.class);
   private static final Pattern COMMA = Pattern.compile(",");
 
-  private final String initializatioStrategy;
+  private final String initializationStrategy;
   private final int maxIterations;
   private final int numberOfRuns;
   private final List<HyperParamRange> hyperParamRanges;
 
   protected KMeansUpdate(Config config) {
     super(config);
-    initializatioStrategy = config.getString("kmeans.initialization-strategy");
+    initializationStrategy = config.getString("kmeans.initialization-strategy");
     numberOfRuns = config.getInt("kmeans.runs");
     maxIterations = config.getInt("kmeans.iterations");
     hyperParamRanges = Arrays.asList(
@@ -65,8 +65,8 @@ public class KMeansUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(maxIterations > 0);
     Preconditions.checkArgument(numberOfRuns > 0);
     Preconditions.checkArgument(
-        initializatioStrategy.equals(KMeans.K_MEANS_PARALLEL()) ||
-            initializatioStrategy.equals(KMeans.RANDOM()));
+        initializationStrategy.equals(KMeans.K_MEANS_PARALLEL()) ||
+            initializationStrategy.equals(KMeans.RANDOM()));
   }
 
   /**
@@ -98,7 +98,7 @@ public class KMeansUpdate extends MLUpdate<String> {
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
     KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
-                                           numberOfRuns, initializatioStrategy);
+                                           numberOfRuns, initializationStrategy);
 
     return kMeansModelToPMML(kMeansModel);
   }

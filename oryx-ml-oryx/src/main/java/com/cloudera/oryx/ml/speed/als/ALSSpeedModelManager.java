@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -43,12 +42,12 @@ import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
+import com.cloudera.oryx.ml.common.fn.MLFunctions;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Pattern COMMA = Pattern.compile(",");
 
   private ALSSpeedModel model;
   private final boolean implicit;
@@ -123,20 +122,21 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
-        newData.values().sortBy(TO_TIMESTAMP_FN, true, newData.partitions().size());
+        newData.values().sortBy(MLFunctions.TO_TIMESTAMP_FN, true, newData.partitions().size());
     JavaPairRDD<Tuple2<String,String>,Double> tuples = sortedValues.mapToPair(TO_TUPLE_FN);
 
     JavaPairRDD<Tuple2<String,String>,Double> aggregated;
     if (implicit) {
-      // For implicit, values are scores to be summed
       // See comments in ALSUpdate for explanation of how deletes are handled by this.
-      aggregated = tuples.reduceByKey(Functions.SUM_DOUBLE);
+      aggregated = tuples.groupByKey().mapValues(MLFunctions.SUM_WITH_NAN);
     } else {
       // For non-implicit, last wins.
       aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    Collection<UserItemStrength> input = aggregated.map(TO_UIS_FN).collect();
+    Collection<UserItemStrength> input = aggregated
+        .filter(MLFunctions.<Tuple2<String,String>>notNaNValue())
+        .map(TO_UIS_FN).collect();
 
     Solver XTXsolver;
     Solver YTYsolver;
@@ -253,7 +253,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       new PairFunction<String,Tuple2<String,String>,Double>() {
         @Override
         public Tuple2<Tuple2<String,String>,Double> call(String line) throws Exception {
-          String[] tokens = PARSE_FN.call(line);
+          String[] tokens = MLFunctions.PARSE_FN.call(line);
           String user = tokens[0];
           String item = tokens[1];
           Double strength = Double.valueOf(tokens[2]);
@@ -266,38 +266,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
         @Override
         public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> tuple) {
           return new UserItemStrength(tuple._1()._1(), tuple._1()._2(), tuple._2().floatValue());
-        }
-      };
-
-  /**
-   * Parses with PARSE_FN and returns fourth field as timestamp
-   */
-  private static final Function<String,Long> TO_TIMESTAMP_FN =
-      new Function<String,Long>() {
-        @Override
-        public Long call(String line) throws Exception {
-          return Long.valueOf(PARSE_FN.call(line)[3]);
-        }
-      };
-
-  /**
-   * Parses 4-element CSV or JSON array to 4-element String[]
-   */
-  private static final Function<String,String[]> PARSE_FN =
-      new Function<String,String[]>() {
-        @Override
-        public String[] call(String line) throws IOException {
-          // Hacky, but effective way of differentiating simple CSV from JSON array
-          String[] result;
-          if (line.endsWith("]")) {
-            // JSON
-            result = MAPPER.readValue(line, String[].class);
-          } else {
-            // CSV
-            result = COMMA.split(line);
-          }
-          Preconditions.checkArgument(result.length == 4);
-          return result;
         }
       };
 

@@ -48,7 +48,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.QueueProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
-import com.cloudera.oryx.ml.mllib.common.fn.MLFunctions;
+import com.cloudera.oryx.ml.common.fn.MLFunctions;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -197,7 +197,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     StatCounter maxMin = newData.mapToDouble(new DoubleFunction<String>() {
       @Override
       public double call(String line) throws Exception {
-        return TO_TIMESTAMP_FN.call(line).doubleValue();
+        return MLFunctions.TO_TIMESTAMP_FN.call(line).doubleValue();
       }
     }).stats();
 
@@ -210,13 +210,13 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaRDD<String> newTrainData = newData.filter(new Function<String,Boolean>() {
       @Override
       public Boolean call(String line) throws Exception {
-        return TO_TIMESTAMP_FN.call(line) < approxTestTrainBoundary;
+        return MLFunctions.TO_TIMESTAMP_FN.call(line) < approxTestTrainBoundary;
       }
     });
     JavaRDD<String> testData = newData.filter(new Function<String,Boolean>() {
       @Override
       public Boolean call(String line) throws Exception {
-        return TO_TIMESTAMP_FN.call(line) >= approxTestTrainBoundary;
+        return MLFunctions.TO_TIMESTAMP_FN.call(line) >= approxTestTrainBoundary;
       }
     });
 
@@ -251,32 +251,24 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
     if (implicit) {
-
       // TODO can we avoid groupByKey? reduce, combine, fold don't seem viable since
       // they don't guarantee the delete elements are properly handled
-      aggregated = tuples.groupByKey().mapValues(new Function<Iterable<Double>, Double>() {
-        @Override
-        public Double call(Iterable<Double> orderedStrengths) {
-          double finalStrength = Double.NaN;
-          for (double strength : orderedStrengths) {
-            if (Double.isNaN(finalStrength)) {
-              finalStrength = strength;
-            } else {
-              // If strength is NaN, this will make the tally NaN
-              finalStrength += strength;
-            }
-          }
-          return finalStrength;
-        }
-      }).filter(NOT_NAN_VALUE);
-
+      aggregated = tuples.groupByKey().mapValues(MLFunctions.SUM_WITH_NAN);
     } else {
       // For non-implicit, last wins.
       aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
     }
 
-    return aggregated.filter(NOT_NAN_VALUE).map(TUPLE_TO_RATING_FN);
-  }
+    return aggregated
+        .filter(MLFunctions.<Tuple2<Integer,Integer>>notNaNValue())
+        .map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating>() {
+               @Override
+               public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
+                 Tuple2<Integer,Integer> userProduct = userProductScore._1();
+                 return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
+               }
+             });
+      }
 
   /**
    * There is no actual serialization of a massive factored matrix model into PMML.
@@ -416,33 +408,5 @@ public final class ALSUpdate extends MLUpdate<String> {
                                ClassTag$.MODULE$.<K>apply(Object.class),
                                ClassTag$.MODULE$.<V>apply(Object.class));
   }
-
-  private static final Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating> TUPLE_TO_RATING_FN =
-      new Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating>() {
-        @Override
-        public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
-          Tuple2<Integer,Integer> userProduct = userProductScore._1();
-          return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
-        }
-      };
-
-  /**
-   * Parses with PARSE_FN and returns fourth field as timestamp
-   */
-  private static final Function<String,Long> TO_TIMESTAMP_FN =
-      new Function<String,Long>() {
-        @Override
-        public Long call(String line) throws Exception {
-          return Long.valueOf(MLFunctions.PARSE_FN.call(line)[3]);
-        }
-      };
-
-  private static final Function<Tuple2<Tuple2<Integer,Integer>,Double>, Boolean> NOT_NAN_VALUE =
-      new Function<Tuple2<Tuple2<Integer,Integer>,Double>, Boolean>() {
-        @Override
-        public Boolean call(Tuple2<Tuple2<Integer,Integer>,Double> kv) {
-          return !Double.isNaN(kv._2());
-        }
-      };
 
 }
