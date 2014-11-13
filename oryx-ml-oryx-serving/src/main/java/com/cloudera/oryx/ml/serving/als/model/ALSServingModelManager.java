@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,9 @@ public final class ALSServingModelManager implements ServingModelManager<String>
       String message = km.getMessage();
       switch (key) {
         case "UP":
-          Preconditions.checkNotNull(model);
+          if (model == null) {
+            continue; // No model to interpret with yet, so skip it
+          }
           List<?> update = MAPPER.readValue(message, List.class);
           // Update
           String id = update.get(1).toString();
