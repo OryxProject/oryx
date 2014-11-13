@@ -15,15 +15,20 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ProduceData;
 import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
 import com.cloudera.oryx.lambda.AbstractLambdaIT;
 import com.typesafe.config.Config;
 import org.junit.After;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractServingIT extends AbstractLambdaIT {
 
@@ -31,6 +36,23 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
 
   private ServingLayer servingLayer;
   private ProduceData updateProducer;
+  private int httpPort;
+  private int httpsPort;
+
+  @Before
+  public final void allocateHTTPPorts() throws IOException {
+    httpPort = IOUtils.chooseFreePort();
+    httpsPort = IOUtils.chooseFreePort();
+  }
+
+  @Override
+  protected Config getConfig() throws IOException {
+    Map<String, String> overlay = new HashMap<>();
+    // Non-privileged ports
+    overlay.put("serving.api.port", Integer.toString(httpPort));
+    overlay.put("serving.api.secure-port", Integer.toString(httpsPort));
+    return ConfigUtils.overlayOn(overlay, super.getConfig());
+  }
 
   protected final void startServer(Config config) throws IOException, InterruptedException {
     int bufferMS = WAIT_BUFFER_IN_WRITES * 10;

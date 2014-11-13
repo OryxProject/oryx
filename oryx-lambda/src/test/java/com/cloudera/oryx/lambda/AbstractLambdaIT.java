@@ -53,7 +53,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
   private Path speedCheckpointDir;
 
   @Before
-  public final void allocatePorts() throws IOException {
+  public final void allocateZKKafkaPorts() throws IOException {
     localZKPort = IOUtils.chooseFreePort();
     localKafkaBrokerPort = IOUtils.chooseFreePort();
   }
