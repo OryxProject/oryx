@@ -220,7 +220,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.1.7</version>
+        <version>1.1.8</version>
       </dependency>
 
       <dependency>
@@ -355,7 +355,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.12-beta-2</version>
+        <version>4.12-beta-3</version>
         <scope>test</scope>
       </dependency>
 
@@ -388,7 +388,7 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
-    <hadoop.version>2.5.1</hadoop.version>
+    <hadoop.version>2.5.2</hadoop.version>
     <jackson.version>2.4.3</jackson.version>
     <jersey.version>2.13</jersey.version>
     <kafka.version>0.8.2-beta</kafka.version>
