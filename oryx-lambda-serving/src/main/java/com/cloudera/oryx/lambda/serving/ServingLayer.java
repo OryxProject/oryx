@@ -58,6 +58,7 @@ public final class ServingLayer implements Closeable {
   private final String keystorePassword;
   private final String contextPathURIBase;
   private final String appResourcesPackages;
+  private final boolean doNotInitQueues;
   private Tomcat tomcat;
   private Context context;
   private Path noSuchBaseDir;
@@ -74,7 +75,7 @@ public final class ServingLayer implements Closeable {
     this.userName = ConfigUtils.getOptionalString(config, "serving.api.user-name");
     this.password = ConfigUtils.getOptionalString(config, "serving.api.password");
     String keystoreFileString =
-        ConfigUtils.getOptionalString(config, "serving.api.password");
+        ConfigUtils.getOptionalString(config, "serving.api.keystore-file");
     this.keystoreFile = keystoreFileString == null ? null : Paths.get(keystoreFileString);
     this.keystorePassword =
         ConfigUtils.getOptionalString(config, "serving.api.keystore-password");
@@ -86,6 +87,8 @@ public final class ServingLayer implements Closeable {
     }
     this.contextPathURIBase = contextPathString;
     this.appResourcesPackages = config.getString("serving.application-resources");
+    // For tests only:
+    this.doNotInitQueues = config.getBoolean("serving.no-init-queues");
   }
 
   public synchronized void start() throws IOException {
@@ -250,7 +253,9 @@ public final class ServingLayer implements Closeable {
     wrapper.addMapping("/*");
     wrapper.setLoadOnStartup(1);
 
-    context.addApplicationListener(ModelManagerListener.class.getName());
+    if (!doNotInitQueues) { // Only for tests
+      context.addApplicationListener(ModelManagerListener.class.getName());
+    }
 
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;

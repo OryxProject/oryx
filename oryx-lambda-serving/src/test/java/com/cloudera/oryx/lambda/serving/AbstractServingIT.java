@@ -101,4 +101,12 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     }
   }
 
+  protected final int getHTTPPort() {
+    return httpPort;
+  }
+
+  protected final int getHTTPSPort() {
+    return httpsPort;
+  }
+
 }
