@@ -29,8 +29,6 @@
         <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-api</artifactId>
         <version>${project.version}</version>
-        <!-- See comments in child. Makes sure spark-core doesn't inherit everywhere in project -->
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
@@ -153,6 +151,7 @@
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka_${scala.minor.version}</artifactId>
         <version>${kafka.version}</version>
+        <scope>provided</scope>
       </dependency>
 
       <dependency>

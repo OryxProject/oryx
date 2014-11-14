@@ -35,7 +35,7 @@
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-api</artifactId>
-      <scope>compile</scope>
+      <scope>provided</scope>
       <!-- Set this to the version of Oryx you use -->
       <version>${project.version}</version>
     </dependency>

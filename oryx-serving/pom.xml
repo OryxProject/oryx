@@ -34,6 +34,16 @@
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-core_${scala.minor.version}</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda-serving</artifactId>
     </dependency>
     <dependency>
@@ -74,6 +84,9 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>reference.conf</resource>
+                </transformer>
               </transformers>
             </configuration>
           </execution>
