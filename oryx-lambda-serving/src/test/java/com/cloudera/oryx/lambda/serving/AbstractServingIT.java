@@ -49,8 +49,8 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
   protected Config getConfig() throws IOException {
     Map<String, String> overlay = new HashMap<>();
     // Non-privileged ports
-    overlay.put("serving.api.port", Integer.toString(httpPort));
-    overlay.put("serving.api.secure-port", Integer.toString(httpsPort));
+    overlay.put("oryx.serving.api.port", Integer.toString(httpPort));
+    overlay.put("oryx.serving.api.secure-port", Integer.toString(httpsPort));
     return ConfigUtils.overlayOn(overlay, super.getConfig());
   }
 

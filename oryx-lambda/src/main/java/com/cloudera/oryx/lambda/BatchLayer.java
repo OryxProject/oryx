@@ -29,13 +29,9 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.api.java.JavaStreamingContextFactory;
@@ -81,28 +77,29 @@ public final class BatchLayer<K,M,U> implements Closeable {
     Preconditions.checkNotNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
-    this.streamingMaster = config.getString("batch.streaming.master");
-    this.queueLockMaster = config.getString("input-queue.lock.master");
-    this.messageTopic = config.getString("input-queue.message.topic");
-    this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
-    this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
+    this.streamingMaster = config.getString("oryx.batch.streaming.master");
+    this.queueLockMaster = config.getString("oryx.input-queue.lock.master");
+    this.messageTopic = config.getString("oryx.input-queue.message.topic");
+    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-queue.message.key-class"));
+    this.messageClass =
+        ClassUtils.loadClass(config.getString("oryx.input-queue.message.message-class"));
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("input-queue.message.key-decoder-class"), Decoder.class);
+        config.getString("oryx.input-queue.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("input-queue.message.message-decoder-class"), Decoder.class);
+        config.getString("oryx.input-queue.message.message-decoder-class"), Decoder.class);
     this.keyWritableClass = ClassUtils.loadClass(
-        config.getString("batch.storage.key-writable-class"), Writable.class);
+        config.getString("oryx.batch.storage.key-writable-class"), Writable.class);
     this.messageWritableClass = ClassUtils.loadClass(
-        config.getString("batch.storage.message-writable-class"), Writable.class);
-    this.updateClassName = config.getString("batch.update-class");
-    this.dataDirString = config.getString("batch.storage.data-dir");
-    this.modelDirString = config.getString("batch.storage.model-dir");
-    this.checkpointDirString = config.hasPath("batch.storage.checkpoint-dir") ?
-        config.getString("batch.storage.checkpoint-dir") :
+        config.getString("oryx.batch.storage.message-writable-class"), Writable.class);
+    this.updateClassName = config.getString("oryx.batch.update-class");
+    this.dataDirString = config.getString("oryx.batch.storage.data-dir");
+    this.modelDirString = config.getString("oryx.batch.storage.model-dir");
+    this.checkpointDirString = config.hasPath("oryx.batch.storage.checkpoint-dir") ?
+        config.getString("oryx.batch.storage.checkpoint-dir") :
         null;
-    this.generationIntervalSec = config.getInt("batch.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("batch.block-interval-sec");
-    this.storagePartitions = config.getInt("batch.storage.partitions");
+    this.generationIntervalSec = config.getInt("oryx.batch.generation-interval-sec");
+    this.blockIntervalSec = config.getInt("oryx.batch.block-interval-sec");
+    this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
 
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);

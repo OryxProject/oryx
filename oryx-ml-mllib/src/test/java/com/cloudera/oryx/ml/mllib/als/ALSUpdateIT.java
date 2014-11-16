@@ -60,16 +60,14 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Path modelDir = tempDir.resolve("model");
 
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("batch.update-class", ALSUpdate.class.getName());
-    ConfigUtils.set(overlayConfig, "batch.storage.data-dir", dataDir);
-    ConfigUtils.set(overlayConfig, "batch.storage.model-dir", modelDir);
-    overlayConfig.put("batch.generation-interval-sec",
-                      Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("batch.block-interval-sec",
-                      Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("als.implicit", "false");
-    overlayConfig.put("als.hyperparams.lambda", Double.toString(LAMBDA));
-    overlayConfig.put("als.hyperparams.features", Integer.toString(FEATURES));
+    overlayConfig.put("oryx.batch.update-class", ALSUpdate.class.getName());
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
+    overlayConfig.put("oryx.batch.generation-interval-sec", Integer.toString(GEN_INTERVAL_SEC));
+    overlayConfig.put("oryx.batch.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
+    overlayConfig.put("oryx.als.implicit", "false");
+    overlayConfig.put("oryx.als.hyperparams.lambda", Double.toString(LAMBDA));
+    overlayConfig.put("oryx.als.hyperparams.features", Integer.toString(FEATURES));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

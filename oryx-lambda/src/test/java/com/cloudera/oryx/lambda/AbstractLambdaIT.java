@@ -99,16 +99,16 @@ public abstract class AbstractLambdaIT extends OryxTest {
     Map<String,String> overlay = new HashMap<>();
     String queueBroker = "\"localhost:" + localKafkaBrokerPort + '"';
     String queueLockMaster = "\"localhost:" + localZKPort + '"';
-    overlay.put("input-queue.broker", queueBroker);
-    overlay.put("input-queue.lock.master", queueLockMaster);
-    overlay.put("update-queue.broker", queueBroker);
-    overlay.put("update-queue.lock.master", queueLockMaster);
+    overlay.put("oryx.input-queue.broker", queueBroker);
+    overlay.put("oryx.input-queue.lock.master", queueLockMaster);
+    overlay.put("oryx.update-queue.broker", queueBroker);
+    overlay.put("oryx.update-queue.lock.master", queueLockMaster);
     String masterLocalAllCores = "\"local[*]\"";
-    overlay.put("batch.streaming.master", masterLocalAllCores);
-    overlay.put("speed.streaming.master", masterLocalAllCores);
+    overlay.put("oryx.batch.streaming.master", masterLocalAllCores);
+    overlay.put("oryx.speed.streaming.master", masterLocalAllCores);
     // TODO re-enable checkpointing in tests once it works?
-    //ConfigUtils.set(overlay, "batch.storage.checkpoint-dir", batchCheckpointDir);
-    //ConfigUtils.set(overlay, "speed.storage.checkpoint-dir", speedCheckpointDir);
+    //ConfigUtils.set(overlay, "oryx.batch.storage.checkpoint-dir", batchCheckpointDir);
+    //ConfigUtils.set(overlay, "oryx.speed.storage.checkpoint-dir", speedCheckpointDir);
     return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
   }
 

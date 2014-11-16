@@ -72,9 +72,9 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   private final int evalParallelism;
 
   protected MLUpdate(Config config) {
-    this.testFraction = config.getDouble("ml.eval.test-fraction");
-    this.candidates = config.getInt("ml.eval.candidates");
-    this.evalParallelism = config.getInt("ml.eval.parallelism");
+    this.testFraction = config.getDouble("oryx.ml.eval.test-fraction");
+    this.candidates = config.getInt("oryx.ml.eval.candidates");
+    this.evalParallelism = config.getInt("oryx.ml.eval.parallelism");
     Preconditions.checkArgument(testFraction >= 0.0 && testFraction <= 1.0);
     Preconditions.checkArgument(candidates > 0);
     Preconditions.checkArgument(evalParallelism > 0);

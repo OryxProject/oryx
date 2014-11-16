@@ -71,13 +71,13 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     String serializedConfig = context.getInitParameter(ConfigUtils.class.getName() + ".serialized");
     Preconditions.checkNotNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);
-    this.updateTopic = config.getString("update-queue.message.topic");
-    this.updateQueueLockMaster = config.getString("update-queue.lock.master");
-    this.inputTopic = config.getString("input-queue.message.topic");
-    this.inputQueueBroker = config.getString("input-queue.broker");
-    this.modelManagerClassName = config.getString("serving.model-manager-class");
+    this.updateTopic = config.getString("oryx.update-queue.message.topic");
+    this.updateQueueLockMaster = config.getString("oryx.update-queue.lock.master");
+    this.inputTopic = config.getString("oryx.input-queue.message.topic");
+    this.inputQueueBroker = config.getString("oryx.input-queue.broker");
+    this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("update-queue.message.decoder-class"), Decoder.class);
+        config.getString("oryx.update-queue.message.decoder-class"), Decoder.class);
   }
 
   @Override

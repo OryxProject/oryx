@@ -53,8 +53,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   private final boolean noKnownItems;
 
   public ALSSpeedModelManager(Config config) {
-    implicit = config.getBoolean("als.implicit");
-    noKnownItems = config.getBoolean("als.no-known-items");
+    implicit = config.getBoolean("oryx.als.implicit");
+    noKnownItems = config.getBoolean("oryx.als.no-known-items");
   }
 
   @Override

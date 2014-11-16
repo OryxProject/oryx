@@ -69,14 +69,14 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   public ALSUpdate(Config config) {
     super(config);
-    iterations = config.getInt("als.iterations");
-    implicit = config.getBoolean("als.implicit");
+    iterations = config.getInt("oryx.als.iterations");
+    implicit = config.getBoolean("oryx.als.implicit");
     Preconditions.checkArgument(iterations > 0);
     hyperParamRanges = Arrays.asList(
-        HyperParamRanges.fromConfig(config, "als.hyperparams.features"),
-        HyperParamRanges.fromConfig(config, "als.hyperparams.lambda"),
-        HyperParamRanges.fromConfig(config, "als.hyperparams.alpha"));
-    noKnownItems = config.getBoolean("als.no-known-items");
+        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.features"),
+        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.lambda"),
+        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.alpha"));
+    noKnownItems = config.getBoolean("oryx.als.no-known-items");
   }
 
   @Override

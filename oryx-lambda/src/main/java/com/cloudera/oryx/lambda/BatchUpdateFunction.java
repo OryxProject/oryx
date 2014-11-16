@@ -72,8 +72,8 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
     this.messageWritableClass = messageWritableClass;
     this.dataDirString = dataDirString;
     this.modelDirString = modelDirString;
-    this.updateBroker = config.getString("update-queue.broker");
-    this.updateTopic = config.getString("update-queue.message.topic");
+    this.updateBroker = config.getString("oryx.update-queue.broker");
+    this.updateTopic = config.getString("oryx.update-queue.message.topic");
     this.updateInstance = updateInstance;
     this.sparkContext = streamingContext.sparkContext();
   }

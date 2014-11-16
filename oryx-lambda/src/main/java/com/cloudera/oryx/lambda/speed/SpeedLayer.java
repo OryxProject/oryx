@@ -89,26 +89,27 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     Preconditions.checkNotNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
-    this.streamingMaster = config.getString("speed.streaming.master");
-    this.inputQueueLockMaster = config.getString("input-queue.lock.master");
-    this.messageTopic = config.getString("input-queue.message.topic");
-    this.updateBroker = config.getString("update-queue.broker");
-    this.updateTopic = config.getString("update-queue.message.topic");
-    this.updateQueueLockMaster = config.getString("update-queue.lock.master");
-    this.modelManagerClassName = config.getString("speed.model-manager-class");
-    this.checkpointDirString = config.hasPath("speed.storage.checkpoint-dir") ?
-        config.getString("speed.storage.checkpoint-dir") :
+    this.streamingMaster = config.getString("oryx.speed.streaming.master");
+    this.inputQueueLockMaster = config.getString("oryx.input-queue.lock.master");
+    this.messageTopic = config.getString("oryx.input-queue.message.topic");
+    this.updateBroker = config.getString("oryx.update-queue.broker");
+    this.updateTopic = config.getString("oryx.update-queue.message.topic");
+    this.updateQueueLockMaster = config.getString("oryx.update-queue.lock.master");
+    this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
+    this.checkpointDirString = config.hasPath("oryx.speed.storage.checkpoint-dir") ?
+        config.getString("oryx.speed.storage.checkpoint-dir") :
         null;
-    this.generationIntervalSec = config.getInt("speed.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("speed.block-interval-sec");
+    this.generationIntervalSec = config.getInt("oryx.speed.generation-interval-sec");
+    this.blockIntervalSec = config.getInt("oryx.speed.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("input-queue.message.key-decoder-class"), Decoder.class);
+        config.getString("oryx.input-queue.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("input-queue.message.message-decoder-class"), Decoder.class);
+        config.getString("oryx.input-queue.message.message-decoder-class"), Decoder.class);
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("update-queue.message.decoder-class"), Decoder.class);
-    this.keyClass = ClassUtils.loadClass(config.getString("input-queue.message.key-class"));
-    this.messageClass = ClassUtils.loadClass(config.getString("input-queue.message.message-class"));
+        config.getString("oryx.update-queue.message.decoder-class"), Decoder.class);
+    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-queue.message.key-class"));
+    this.messageClass =
+        ClassUtils.loadClass(config.getString("oryx.input-queue.message.message-class"));
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);

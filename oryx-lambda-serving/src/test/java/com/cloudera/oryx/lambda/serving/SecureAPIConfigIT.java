@@ -61,7 +61,7 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
     } finally {
       // Restore original SSL factory
       HttpsURLConnection.setDefaultSSLSocketFactory(originalFactory);
-      Files.delete(Paths.get(config.getString("serving.api.keystore-file")));
+      Files.delete(Paths.get(config.getString("oryx.serving.api.keystore-file")));
     }
   }
 
@@ -75,7 +75,7 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
           new URL("https://localhost:" + getHTTPSPort() + "/helloWorld"),
           StandardCharsets.UTF_8);
     } finally {
-      Files.delete(Paths.get(config.getString("serving.api.keystore-file")));
+      Files.delete(Paths.get(config.getString("oryx.serving.api.keystore-file")));
     }
   }
 
@@ -85,10 +85,10 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
                StandardCopyOption.REPLACE_EXISTING);
 
     Map<String, String> overlay = new HashMap<>();
-    overlay.put("serving.api.keystore-file", "\"" + keystoreFile + "\"");
-    overlay.put("serving.api.keystore-password", "oryxpass");
-    overlay.put("serving.application-resources", HelloWorld.class.getPackage().getName());
-    overlay.put("serving.no-init-queues", "true");
+    overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
+    overlay.put("oryx.serving.api.keystore-password", "oryxpass");
+    overlay.put("oryx.serving.application-resources", HelloWorld.class.getPackage().getName());
+    overlay.put("oryx.serving.no-init-queues", "true");
     return ConfigUtils.overlayOn(overlay, getConfig());
   }
 
@@ -123,10 +123,10 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
 
   private Config buildUserPasswordConfig() throws IOException {
     Map<String, String> overlay = new HashMap<>();
-    overlay.put("serving.api.user-name", "oryx");
-    overlay.put("serving.api.password", "pass");
-    overlay.put("serving.application-resources", HelloWorld.class.getPackage().getName());
-    overlay.put("serving.no-init-queues", "true");
+    overlay.put("oryx.serving.api.user-name", "oryx");
+    overlay.put("oryx.serving.api.password", "pass");
+    overlay.put("oryx.serving.application-resources", HelloWorld.class.getPackage().getName());
+    overlay.put("oryx.serving.no-init-queues", "true");
     return ConfigUtils.overlayOn(overlay, getConfig());
   }
 

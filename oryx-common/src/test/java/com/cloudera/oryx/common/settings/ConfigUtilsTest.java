@@ -34,7 +34,7 @@ public final class ConfigUtilsTest extends OryxTest {
   @Test
   public void testDefaultConfig() {
     Config config = ConfigUtils.getDefault();
-    assertEquals("yarn-client", config.getString("batch.streaming.master"));
+    assertEquals("yarn-client", config.getString("oryx.batch.streaming.master"));
   }
 
   @Test
@@ -43,8 +43,8 @@ public final class ConfigUtilsTest extends OryxTest {
     assertTrue(serialized.contains("update-class"));
     Config deserialized = ConfigUtils.deserialize(serialized);
     assertEquals(
-        ConfigUtils.getDefault().getString("serving.api.port"),
-        deserialized.getString("serving.api.port"));
+        ConfigUtils.getDefault().getString("oryx.serving.api.port"),
+        deserialized.getString("oryx.serving.api.port"));
   }
 
   @Test

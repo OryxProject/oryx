@@ -44,14 +44,12 @@ public final class BatchLayerIT extends AbstractBatchIT {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("batch.update-class", MockBatchUpdate.class.getName());
-    ConfigUtils.set(overlayConfig, "batch.storage.data-dir", dataDir);
-    ConfigUtils.set(overlayConfig, "batch.storage.model-dir", tempDir.resolve("model"));
-    overlayConfig.put("batch.generation-interval-sec",
-                      Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("batch.block-interval-sec",
-                      Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("batch.storage.partitions", "2");
+    overlayConfig.put("oryx.batch.update-class", MockBatchUpdate.class.getName());
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
+    overlayConfig.put("oryx.batch.generation-interval-sec", Integer.toString(GEN_INTERVAL_SEC));
+    overlayConfig.put("oryx.batch.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
+    overlayConfig.put("oryx.batch.storage.partitions", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessageQueue();

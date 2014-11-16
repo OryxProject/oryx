@@ -56,11 +56,11 @@ public class KMeansUpdate extends MLUpdate<String> {
 
   protected KMeansUpdate(Config config) {
     super(config);
-    initializationStrategy = config.getString("kmeans.initialization-strategy");
-    numberOfRuns = config.getInt("kmeans.runs");
-    maxIterations = config.getInt("kmeans.iterations");
+    initializationStrategy = config.getString("oryx.kmeans.initialization-strategy");
+    numberOfRuns = config.getInt("oryx.kmeans.runs");
+    maxIterations = config.getInt("oryx.kmeans.iterations");
     hyperParamRanges = Arrays.asList(
-        HyperParamRanges.fromConfig(config, "kmeans.hyperparams.k"));
+        HyperParamRanges.fromConfig(config, "oryx.kmeans.hyperparams.k"));
 
     Preconditions.checkArgument(maxIterations > 0);
     Preconditions.checkArgument(numberOfRuns > 0);

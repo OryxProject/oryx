@@ -72,25 +72,25 @@ public final class ServingLayer implements Closeable {
     Preconditions.checkNotNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
-    this.port = config.getInt("serving.api.port");
-    this.securePort = config.getInt("serving.api.secure-port");
-    this.userName = ConfigUtils.getOptionalString(config, "serving.api.user-name");
-    this.password = ConfigUtils.getOptionalString(config, "serving.api.password");
+    this.port = config.getInt("oryx.serving.api.port");
+    this.securePort = config.getInt("oryx.serving.api.secure-port");
+    this.userName = ConfigUtils.getOptionalString(config, "oryx.serving.api.user-name");
+    this.password = ConfigUtils.getOptionalString(config, "oryx.serving.api.password");
     String keystoreFileString =
-        ConfigUtils.getOptionalString(config, "serving.api.keystore-file");
+        ConfigUtils.getOptionalString(config, "oryx.serving.api.keystore-file");
     this.keystoreFile = keystoreFileString == null ? null : Paths.get(keystoreFileString);
     this.keystorePassword =
-        ConfigUtils.getOptionalString(config, "serving.api.keystore-password");
-    String contextPathString = config.getString("serving.api.context-path");
+        ConfigUtils.getOptionalString(config, "oryx.serving.api.keystore-password");
+    String contextPathString = config.getString("oryx.serving.api.context-path");
     if (contextPathString == null ||
         contextPathString.isEmpty() ||
         "/".equals(contextPathString)) {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
-    this.appResourcesPackages = config.getString("serving.application-resources");
+    this.appResourcesPackages = config.getString("oryx.serving.application-resources");
     // For tests only:
-    this.doNotInitQueues = config.getBoolean("serving.no-init-queues");
+    this.doNotInitQueues = config.getBoolean("oryx.serving.no-init-queues");
   }
 
   public synchronized void start() throws IOException {
