@@ -122,7 +122,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
     SparkConf sparkConf = new SparkConf();
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    sparkConf.setIfMissing("spark.streaming.blockInterval", Long.toString(blockIntervalMS));
+    String blockIntervalString = Long.toString(blockIntervalMS);
+    sparkConf.setIfMissing("spark.streaming.blockInterval", blockIntervalString);
+    // Turn this down to prevent long blocking at shutdown
+    sparkConf.setIfMissing("spark.streaming.gracefulStopTimeout", blockIntervalString);
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setMaster(streamingMaster);
