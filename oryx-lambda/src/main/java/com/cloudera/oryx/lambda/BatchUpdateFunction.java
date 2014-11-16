@@ -17,7 +17,6 @@ package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -56,8 +55,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   private final BatchLayerUpdate<K,M,U> updateInstance;
   private final String updateBroker;
   private final String updateTopic;
-  // Can't be serialized, but shouldn't need to be (?)
-  private final transient JavaSparkContext sparkContext;
+  private final JavaSparkContext sparkContext;
 
   BatchUpdateFunction(Config config,
                       Class<K> keyClass,
@@ -84,7 +82,6 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   public Void call(JavaPairRDD<K,M> newData, Time timestamp)
       throws IOException, InterruptedException {
 
-    Preconditions.checkNotNull(sparkContext, "SparkConfiguration required but not available");
     Configuration hadoopConf = sparkContext.hadoopConfiguration();
 
     JavaPairRDD<K,M> pastData;
