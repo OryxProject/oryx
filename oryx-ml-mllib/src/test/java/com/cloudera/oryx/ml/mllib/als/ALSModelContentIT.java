@@ -64,7 +64,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
         config,
         generator,
         generator.getSentData().size(),
-        10);
+        100);
 
     Collection<Integer> modelUsers = null;
     Collection<Integer> modelItems = null;
