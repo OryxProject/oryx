@@ -106,8 +106,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_${scala.minor.version}</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>zk-util</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
       <scope>test</scope>
     </dependency>
 
