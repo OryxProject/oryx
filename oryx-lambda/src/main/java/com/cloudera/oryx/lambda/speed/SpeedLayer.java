@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 
 /**
@@ -86,6 +87,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
     Preconditions.checkNotNull(config);
+    log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.streamingMaster = config.getString("speed.streaming.master");
     this.inputQueueLockMaster = config.getString("input-queue.lock.master");

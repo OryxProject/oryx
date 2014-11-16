@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * Main entry point for Oryx Batch Layer.
@@ -78,6 +79,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
   @SuppressWarnings("unchecked")
   public BatchLayer(Config config) {
     Preconditions.checkNotNull(config);
+    log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.streamingMaster = config.getString("batch.streaming.master");
     this.queueLockMaster = config.getString("input-queue.lock.master");

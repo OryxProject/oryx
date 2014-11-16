@@ -99,11 +99,7 @@ public final class ConfigUtils {
    *  inherited from the local JVM environment
    */
   public static String serialize(Config config) {
-    ConfigObject serialized = config.root();
-    for (String prefix : CONFIG_PREFIXES_TO_IGNORE) {
-      serialized = serialized.withoutKey(prefix);
-    }
-    return serialized.render(ConfigRenderOptions.concise());
+    return serializeWithoutIgnoredPrefixes(config).render(ConfigRenderOptions.concise());
   }
 
   /**
@@ -112,6 +108,28 @@ public final class ConfigUtils {
    */
   public static Config deserialize(String serialized) {
     return ConfigFactory.parseString(serialized).resolve().withFallback(DEFAULT_CONFIG);
+  }
+
+  /**
+   * @param config {@link Config} to print
+   * @return pretty-printed version of config values, excluding those
+   *  inherited from the local JVM environment
+   */
+  public static String prettyPrint(Config config) {
+    ConfigRenderOptions options = ConfigRenderOptions.defaults()
+        .setComments(false)
+        .setOriginComments(false)
+        .setFormatted(true)
+        .setJson(false);
+    return serializeWithoutIgnoredPrefixes(config).render(options);
+  }
+
+  private static ConfigObject serializeWithoutIgnoredPrefixes(Config config) {
+    ConfigObject serialized = config.root();
+    for (String prefix : CONFIG_PREFIXES_TO_IGNORE) {
+      serialized = serialized.withoutKey(prefix);
+    }
+    return serialized;
   }
 
 }

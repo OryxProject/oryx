@@ -70,4 +70,12 @@ public final class ConfigUtilsTest extends OryxTest {
     assertEquals("\"file:///tmp/\"", map.get("temp"));
   }
 
+  @Test
+  public void testPrettyPrint() {
+    String pretty = ConfigUtils.prettyPrint(ConfigUtils.getDefault());
+    // Spot checks:
+    assertTrue(pretty.contains("batch {"));
+    assertTrue(pretty.contains("checkpoint-dir=null"));
+  }
+
 }

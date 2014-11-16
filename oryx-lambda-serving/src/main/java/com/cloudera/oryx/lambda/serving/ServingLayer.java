@@ -69,6 +69,8 @@ public final class ServingLayer implements Closeable {
    * @param config configuration for the serving layer
    */
   public ServingLayer(Config config) {
+    Preconditions.checkNotNull(config);
+    log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.port = config.getInt("serving.api.port");
     this.securePort = config.getInt("serving.api.secure-port");
