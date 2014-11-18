@@ -27,7 +27,6 @@ public final class AndPredicateTest extends OryxTest {
   public void testAnd() {
     NotContainsPredicate<String> a = new NotContainsPredicate<>(Arrays.asList("foo"));
     NotContainsPredicate<String> b = new NotContainsPredicate<>(Arrays.asList("bar", "baz"));
-    @SuppressWarnings("unchecked")
     AndPredicate<String> and = new AndPredicate<>(a, b);
     assertFalse(and.apply("foo"));
     assertFalse(and.apply("bar"));

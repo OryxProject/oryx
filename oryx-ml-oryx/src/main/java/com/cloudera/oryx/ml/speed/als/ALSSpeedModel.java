@@ -126,7 +126,6 @@ public final class ALSSpeedModel {
 
   public void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    @SuppressWarnings("unchecked")
     ObjectPredicate<String> predicate = new AndPredicate<>(
         new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock lock = xLock.writeLock();
@@ -141,7 +140,6 @@ public final class ALSSpeedModel {
 
   public void pruneY(Collection<String> items) {
     // Keep all items in the new model, or, that have been added since last model
-    @SuppressWarnings("unchecked")
     ObjectPredicate<String> predicate = new AndPredicate<>(
         new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems));
     Lock lock = yLock.writeLock();

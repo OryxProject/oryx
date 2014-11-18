@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -36,7 +35,6 @@ import org.apache.spark.rdd.RDD;
 import scala.Tuple2;
 
 import com.cloudera.oryx.common.random.RandomManager;
-import com.cloudera.oryx.lambda.fn.Functions;
 
 /**
  * Computes AUC (area under the ROC curve) as a recommender evaluation metric.

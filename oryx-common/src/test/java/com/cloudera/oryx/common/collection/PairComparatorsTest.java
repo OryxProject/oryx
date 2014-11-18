@@ -15,10 +15,10 @@
 
 package com.cloudera.oryx.common.collection;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -27,8 +27,7 @@ public final class PairComparatorsTest extends OryxTest {
 
   @Test
   public void testByFirst() {
-    @SuppressWarnings("unchecked")
-    List<Pair<Integer,String>> pairs = Lists.newArrayList(
+    List<Pair<Integer,String>> pairs = Arrays.asList(
         new Pair<>(3, "foo"),
         new Pair<>(4, "bing"),
         new Pair<>(1, "baz"),
@@ -43,8 +42,7 @@ public final class PairComparatorsTest extends OryxTest {
 
   @Test
   public void testBySecond() {
-    @SuppressWarnings("unchecked")
-    List<Pair<Integer,String>> pairs = Lists.newArrayList(
+    List<Pair<Integer,String>> pairs = Arrays.asList(
         new Pair<>(3, "foo"),
         new Pair<>(4, "bing"),
         new Pair<>(1, "baz"),

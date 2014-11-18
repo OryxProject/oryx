@@ -99,26 +99,21 @@ public final class ALSServingModel {
    * @param features number of features expected for user/item feature vectors
    * @param implicit whether model implements implicit feedback
    */
+  @SuppressWarnings("unchecked")
   ALSServingModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
 
     X = new ObjectObjectOpenHashMap<>();
-    @SuppressWarnings("unchecked")
-    ObjectObjectMap<String,float[]>[] theY =
-        (ObjectObjectMap<String,float[]>[]) Array.newInstance(ObjectObjectMap.class, PARTITIONS);
-    for (int i = 0; i < theY.length; i++) {
-      theY[i] = new ObjectObjectOpenHashMap<>();
+    Y = (ObjectObjectMap<String,float[]>[]) Array.newInstance(ObjectObjectMap.class, PARTITIONS);
+    for (int i = 0; i < Y.length; i++) {
+      Y[i] = new ObjectObjectOpenHashMap<>();
     }
-    Y = theY;
 
     recentNewUsers = new HashSet<>();
-    @SuppressWarnings("unchecked")
-    Collection<String>[] theRecentNewItems =
-        (Collection<String>[]) Array.newInstance(HashSet.class, PARTITIONS);
-    for (int i = 0; i < theRecentNewItems.length; i++) {
-      theRecentNewItems[i] = new HashSet<>();
+    recentNewItems = (Collection<String>[]) Array.newInstance(HashSet.class, PARTITIONS);
+    for (int i = 0; i < recentNewItems.length; i++) {
+      recentNewItems[i] = new HashSet<>();
     }
-    recentNewItems = theRecentNewItems;
 
     knownItems = new ObjectObjectOpenHashMap<>();
 
@@ -394,7 +389,6 @@ public final class ALSServingModel {
    */
   void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    @SuppressWarnings("unchecked")
     ObjectPredicate<String> predicate = new AndPredicate<>(
         new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock lock = xLock.writeLock();
@@ -418,7 +412,6 @@ public final class ALSServingModel {
     ObjectPredicate<String> itemsPredicate = new NotContainsPredicate<>(items);
     for (int partition = 0; partition < Y.length; partition++) {
       // Keep all items in the new model, or, that have been added since last model
-      @SuppressWarnings("unchecked")
       ObjectPredicate<String> predicate = new AndPredicate<>(
           itemsPredicate, new NotContainsPredicate<>(recentNewItems[partition]));
       Lock lock = yLocks[partition].writeLock();
@@ -438,7 +431,6 @@ public final class ALSServingModel {
    */
   void pruneKnownItems(Collection<String> users, Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
-    @SuppressWarnings("unchecked")
     ObjectPredicate<String> predicate = new AndPredicate<>(
         new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock xWriteLock = xLock.writeLock();

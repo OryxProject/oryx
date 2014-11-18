@@ -230,43 +230,33 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         StorageLevel.MEMORY_AND_DISK_2());
   }
 
+  @SuppressWarnings("unchecked")
   private SpeedModelManager<K,M,U> loadManagerInstance() {
     Class<?> managerClass = ClassUtils.loadClass(modelManagerClassName);
 
     if (SpeedModelManager.class.isAssignableFrom(managerClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        SpeedModelManager<K,M,U> instance = ClassUtils.loadInstanceOf(
+        return ClassUtils.loadInstanceOf(
             modelManagerClassName,
             SpeedModelManager.class,
             new Class<?>[] { Config.class },
             new Object[] { config });
-        return instance;
-
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        SpeedModelManager<K,M,U> instance =
-            ClassUtils.loadInstanceOf(modelManagerClassName, SpeedModelManager.class);
-        return instance;
+        return ClassUtils.loadInstanceOf(modelManagerClassName, SpeedModelManager.class);
       }
 
     } else if (ScalaSpeedModelManager.class.isAssignableFrom(managerClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        ScalaSpeedModelManager<K,M,U> instance = ClassUtils.loadInstanceOf(
+        return new ScalaSpeedModelManagerAdapter<>(ClassUtils.loadInstanceOf(
             modelManagerClassName,
             ScalaSpeedModelManager.class,
             new Class<?>[] { Config.class },
-            new Object[] { config });
-        return new ScalaSpeedModelManagerAdapter<>(instance);
-
+            new Object[] { config }));
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        ScalaSpeedModelManager<K,M,U> instance =
-            ClassUtils.loadInstanceOf(modelManagerClassName, ScalaSpeedModelManager.class);
-        return new ScalaSpeedModelManagerAdapter<>(instance);
+        return new ScalaSpeedModelManagerAdapter<>(ClassUtils.loadInstanceOf(
+            modelManagerClassName, ScalaSpeedModelManager.class));
       }
 
     } else {

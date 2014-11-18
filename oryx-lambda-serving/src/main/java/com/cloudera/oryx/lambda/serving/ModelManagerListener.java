@@ -143,43 +143,33 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     }
   }
 
+  @SuppressWarnings("unchecked")
   private ServingModelManager<U> loadManagerInstance() {
     Class<?> managerClass = ClassUtils.loadClass(modelManagerClassName);
 
     if (ServingModelManager.class.isAssignableFrom(managerClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        ServingModelManager<U> instance = ClassUtils.loadInstanceOf(
+        return ClassUtils.loadInstanceOf(
             modelManagerClassName,
             ServingModelManager.class,
             new Class<?>[] { Config.class },
             new Object[] { config });
-        return instance;
-
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        ServingModelManager<U> instance =
-            ClassUtils.loadInstanceOf(modelManagerClassName, ServingModelManager.class);
-        return instance;
+        return ClassUtils.loadInstanceOf(modelManagerClassName, ServingModelManager.class);
       }
 
     } else if (ScalaServingModelManager.class.isAssignableFrom(managerClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        ScalaServingModelManager<U> instance = ClassUtils.loadInstanceOf(
+        return new ScalaServingModelManagerAdapter<>(ClassUtils.loadInstanceOf(
             modelManagerClassName,
             ScalaServingModelManager.class,
             new Class<?>[] { Config.class },
-            new Object[] { config });
-        return new ScalaServingModelManagerAdapter<>(instance);
-
+            new Object[] { config }));
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        ScalaServingModelManager<U> instance =
-            ClassUtils.loadInstanceOf(modelManagerClassName, ScalaServingModelManager.class);
-        return new ScalaServingModelManagerAdapter<>(instance);
+        return new ScalaServingModelManagerAdapter<>(ClassUtils.loadInstanceOf(
+            modelManagerClassName, ScalaServingModelManager.class));
       }
 
     } else {

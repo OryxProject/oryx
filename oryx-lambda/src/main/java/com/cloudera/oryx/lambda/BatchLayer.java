@@ -214,43 +214,33 @@ public final class BatchLayer<K,M,U> implements Closeable {
         StorageLevel.MEMORY_AND_DISK_2());
   }
 
+  @SuppressWarnings("unchecked")
   private BatchLayerUpdate<K,M,U> loadUpdateInstance() {
     Class<?> updateClass = ClassUtils.loadClass(updateClassName);
 
     if (BatchLayerUpdate.class.isAssignableFrom(updateClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        BatchLayerUpdate<K,M,U> instance = ClassUtils.loadInstanceOf(
+        return ClassUtils.loadInstanceOf(
             updateClassName,
             BatchLayerUpdate.class,
             new Class<?>[]{Config.class},
             new Object[]{config});
-        return instance;
-
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        BatchLayerUpdate<K,M,U> instance =
-            ClassUtils.loadInstanceOf(updateClassName, BatchLayerUpdate.class);
-        return instance;
+        return ClassUtils.loadInstanceOf(updateClassName, BatchLayerUpdate.class);
       }
 
     } else if (ScalaBatchLayerUpdate.class.isAssignableFrom(updateClass)) {
 
       try {
-        @SuppressWarnings("unchecked")
-        ScalaBatchLayerUpdate<K,M,U> instance = ClassUtils.loadInstanceOf(
-              updateClassName,
+        return new ScalaBatchLayerUpdateAdapter<>(ClassUtils.loadInstanceOf(
+            updateClassName,
             ScalaBatchLayerUpdate.class,
-              new Class<?>[]{Config.class},
-              new Object[]{config});
-        return new ScalaBatchLayerUpdateAdapter<>(instance);
-
+            new Class<?>[]{Config.class},
+            new Object[]{config}));
       } catch (IllegalArgumentException iae) {
-        @SuppressWarnings("unchecked")
-        ScalaBatchLayerUpdate<K,M,U> instance =
-            ClassUtils.loadInstanceOf(updateClassName, ScalaBatchLayerUpdate.class);
-        return new ScalaBatchLayerUpdateAdapter<>(instance);
+        return new ScalaBatchLayerUpdateAdapter<>(ClassUtils.loadInstanceOf(
+            updateClassName, ScalaBatchLayerUpdate.class));
       }
 
     } else {
