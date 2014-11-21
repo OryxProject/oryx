@@ -26,12 +26,14 @@ import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
- * <p>Responds to a GET request to {@code /classify/[datum]}. The input is one data point to classify,
- * delimited, like "1,foo,3.0". The response body contains the result of classification on one line.
- * The result depends on the classifier or regressor --  could be a number or a category name.</p>
+ * <p>Responds to a GET request to {@code /classificationDistribution/[datum]}.
+ * Like {@link Classify} but this returns not just the most probable category,
+ * but all categories and their associated probability. In the case of regression,
+ * this may or may not return multiple values.
+ * The output is "category,probability", one per line for each value.</p>
  */
-@Path("/classify")
-public final class Classify extends AbstractRDFResource {
+@Path("/classificationDistribution")
+public final class ClassificationDistribution extends AbstractRDFResource {
 
   @GET
   @Path("{datum}")
