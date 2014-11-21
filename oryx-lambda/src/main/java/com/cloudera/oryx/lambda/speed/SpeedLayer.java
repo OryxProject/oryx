@@ -83,6 +83,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private SpeedModelManager<K,M,U> modelManager;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
+  private final int uiPort;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
@@ -110,9 +111,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
+    this.uiPort = config.getInt("oryx.speed.ui.port");
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);
+    Preconditions.checkArgument(uiPort > 0);
   }
 
   public synchronized void start() {
@@ -129,6 +132,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.streaming.gracefulStopTimeout", blockIntervalString);
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
+    sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
     final long batchDurationMS =

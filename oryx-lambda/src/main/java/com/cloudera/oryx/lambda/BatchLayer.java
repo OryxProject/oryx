@@ -70,6 +70,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int storagePartitions;
+  private final int uiPort;
   private JavaStreamingContext streamingContext;
 
   @SuppressWarnings("unchecked")
@@ -100,10 +101,12 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.generationIntervalSec = config.getInt("oryx.batch.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.batch.block-interval-sec");
     this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
+    this.uiPort = config.getInt("oryx.batch.ui.port");
 
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(storagePartitions > 0);
+    Preconditions.checkArgument(uiPort > 0);
   }
 
   public synchronized void start() {
@@ -120,6 +123,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.streaming.gracefulStopTimeout", blockIntervalString);
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
+    sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
     final long batchDurationMS =
