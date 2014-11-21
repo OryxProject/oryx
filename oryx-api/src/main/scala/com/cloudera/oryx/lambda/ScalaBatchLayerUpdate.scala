@@ -25,6 +25,6 @@ trait ScalaBatchLayerUpdate[K,M,U] {
                       newData: RDD[(K,M)],
                       pastData: RDD[(K,M)],
                       modelDirString: String,
-                      modelUpdateQueue: QueueProducer[String,U]): Unit
+                      modelUpdateTopic: TopicProducer[String,U]): Unit
 
 }

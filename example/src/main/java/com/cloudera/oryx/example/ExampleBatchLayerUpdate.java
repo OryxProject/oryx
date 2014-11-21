@@ -16,7 +16,7 @@
 package com.cloudera.oryx.example;
 
 import com.cloudera.oryx.lambda.BatchLayerUpdate;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -30,7 +30,7 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
                               JavaPairRDD<String,String> newData,
                               JavaPairRDD<String,String> pastData,
                               String modelDirString,
-                              QueueProducer<String,String> modelUpdateQueue)
+                              TopicProducer<String,String> modelUpdateTopic)
       throws IOException, InterruptedException {
 
   }

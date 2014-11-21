@@ -44,7 +44,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 
 @WebListener
 public final class ModelManagerListener<K,M,U> implements ServletContextListener {
@@ -57,27 +57,27 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
   private Config config;
   private String updateTopic;
-  private String updateQueueLockMaster;
+  private String updateTopicLockMaster;
   private String inputTopic;
-  private String inputQueueBroker;
+  private String inputTopicBroker;
   private String modelManagerClassName;
   private Class<? extends Decoder<U>> updateDecoderClass;
   private ConsumerConnector consumer;
   private ServingModelManager<U> modelManager;
-  private QueueProducer<K,M> inputProducer;
+  private TopicProducer<K,M> inputProducer;
 
   @SuppressWarnings("unchecked")
   public void init(ServletContext context) {
     String serializedConfig = context.getInitParameter(ConfigUtils.class.getName() + ".serialized");
     Preconditions.checkNotNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);
-    this.updateTopic = config.getString("oryx.update-queue.message.topic");
-    this.updateQueueLockMaster = config.getString("oryx.update-queue.lock.master");
-    this.inputTopic = config.getString("oryx.input-queue.message.topic");
-    this.inputQueueBroker = config.getString("oryx.input-queue.broker");
+    this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
+    this.inputTopic = config.getString("oryx.input-topic.message.topic");
+    this.inputTopicBroker = config.getString("oryx.input-topic.broker");
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("oryx.update-queue.message.decoder-class"), Decoder.class);
+        config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
   }
 
   @Override
@@ -86,12 +86,12 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     ServletContext context = sce.getServletContext();
     init(context);
 
-    inputProducer = new QueueProducerImpl<>(inputQueueBroker, inputTopic);
+    inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
     context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
-    consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
+    consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
     consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =

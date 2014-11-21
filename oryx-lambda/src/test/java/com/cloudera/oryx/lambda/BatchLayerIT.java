@@ -52,11 +52,11 @@ public final class BatchLayerIT extends AbstractBatchIT {
     overlayConfig.put("oryx.batch.storage.partitions", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
     List<IntervalData<String,String>> intervalData = MockBatchUpdate.getIntervalDataHolder();
 
-    startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeTopics(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 
     int numIntervals = intervalData.size();
     log.info("{} intervals: {}", numIntervals, intervalData);

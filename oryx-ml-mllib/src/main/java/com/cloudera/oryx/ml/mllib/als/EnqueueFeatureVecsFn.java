@@ -22,25 +22,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 
 final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<Integer,double[]>> {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final String whichMatrix;
-  private final QueueProducer<String, String> modelUpdateQueue;
+  private final TopicProducer<String, String> modelUpdateTopic;
 
-  EnqueueFeatureVecsFn(String whichMatrix, QueueProducer<String, String> modelUpdateQueue) {
+  EnqueueFeatureVecsFn(String whichMatrix, TopicProducer<String, String> modelUpdateTopic) {
     this.whichMatrix = whichMatrix;
-    this.modelUpdateQueue = modelUpdateQueue;
+    this.modelUpdateTopic = modelUpdateTopic;
   }
 
   @Override
   public void call(Tuple2<Integer,double[]> keyAndVector) throws IOException {
     Integer id = keyAndVector._1();
     double[] vector = keyAndVector._2();
-    modelUpdateQueue.send("UP", MAPPER.writeValueAsString(Arrays.asList(whichMatrix, id, vector)));
+    modelUpdateTopic.send("UP", MAPPER.writeValueAsString(Arrays.asList(whichMatrix, id, vector)));
   }
 
 }

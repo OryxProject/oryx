@@ -57,10 +57,10 @@ public final class ALSModelContentIT extends AbstractALSIT {
     overlayConfig.put("oryx.als.hyperparams.features", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
     ModelContentDataGenerator generator = new ModelContentDataGenerator();
-    List<Pair<String, String>> updates = startServerProduceConsumeQueues(
+    List<Pair<String, String>> updates = startServerProduceConsumeTopics(
         config,
         generator,
         generator.getSentData().size(),

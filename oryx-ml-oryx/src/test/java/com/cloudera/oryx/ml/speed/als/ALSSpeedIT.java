@@ -45,10 +45,10 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
     overlayConfig.put("oryx.als.hyperparams.features", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
     List<Pair<String,String>> updates =
-        startServerProduceConsumeQueues(config,
+        startServerProduceConsumeTopics(config,
                                         new MockInputGenerator(),
                                         new MockModelUpdateGenerator(),
                                         9, 10);

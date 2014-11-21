@@ -33,7 +33,7 @@ public final class PreferenceTest extends AbstractALSServingTest {
 
   @Before
   public void clearProducerData() {
-    MockQueueProducer.getData().clear();
+    MockTopicProducer.getData().clear();
   }
 
   @Test
@@ -73,7 +73,7 @@ public final class PreferenceTest extends AbstractALSServingTest {
                                     String expectedItem,
                                     String expectedValue) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-    List<Pair<String,String>> data = MockQueueProducer.getData();
+    List<Pair<String,String>> data = MockTopicProducer.getData();
     Assert.assertEquals(1, data.size());
     Assert.assertNull(data.get(0).getFirst());
     String[] tokens = data.get(0).getSecond().split(",");

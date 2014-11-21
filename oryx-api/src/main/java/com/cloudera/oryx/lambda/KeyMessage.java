@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Simple value class encapsulating a key and message in a queue.
+ * Simple value class encapsulating a key and message in a topic.
  */
 public final class KeyMessage<K,M> implements Serializable {
 

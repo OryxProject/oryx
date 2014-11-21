@@ -42,7 +42,7 @@ public final class MockBatchUpdate implements BatchLayerUpdate<String,String,Str
                               JavaPairRDD<String,String> newData,
                               JavaPairRDD<String,String> pastData,
                               String modelDirString,
-                              QueueProducer<String,String> modelUpdateQueue) {
+                              TopicProducer<String,String> modelUpdateTopic) {
     holder.add(new IntervalData<>(timestamp, collect(newData), collect(pastData)));
   }
 

@@ -15,8 +15,7 @@ designs, with batch, speed and serving layers
   - Hyper-parameter selection
 1. Use newer technologies like Spark and Streaming in order to simplify:
   - Remove separate in-core implementations for scale-down
-  - Remove custom data transport implementation in favor of message queues like 
-  [Apache Kafka](http://kafka.apache.org/)
+  - Remove custom data transport implementation in favor of [Apache Kafka](http://kafka.apache.org/)
   - Use a 'real' streaming framework instead of reimplementing a simple one
   - Remove complex MapReduce-based implementations in favor of 
   [Apache Spark](http://spark.apache.org/)-based implementations
@@ -75,33 +74,33 @@ Lambda Tier Implementation
 Data transport
 --------------
 
-The data transport mechanism is an [Apache Kafka](http://kafka.apache.org/) queue. 
-Any process -- including but not limited to the serving layer -- can put data onto the queue, 
-to be seen by the speed and batch layers. Kafka queues are also used to publish both
+The data transport mechanism is an [Apache Kafka](http://kafka.apache.org/) topic. 
+Any process -- including but not limited to the serving layer -- can put data onto the topic, 
+to be seen by the speed and batch layers. Kafka topics are also used to publish both
 *models* and *model updates*, for consumption by the speed and serving layers.
 
 Batch Layer
 -----------
 
 The batch layer is implemented as a [Spark Streaming](http://spark.apache.org/streaming/) 
-process on a Hadoop cluster, which reads data from the input Kafka queue. The Streaming process 
+process on a Hadoop cluster, which reads data from the input Kafka topic. The Streaming process 
 necessarily has a very long period -- hours or even a day. It uses Spark to save the 
 current window of data to HDFS, and then combine with all historical data on HDFS, and 
 initiate building of a new result. The result is written to HDFS, and, also published
-to a Kafka queue.
+to a Kafka update topic.
 
 Speed Layer
 -----------
 
 The speed layer is implemented as a Spark Streaming process as well, which also listens for
-data from the input Kafka queue. It has a much shorter period, on the order of seconds. 
-It periodically loads a new model from the model queue and continually produces model updates.
-These are put back onto the model queue too.
+data from the input Kafka topic. It has a much shorter period, on the order of seconds. 
+It periodically loads a new model from the update topic and continually produces model updates.
+These are put back onto the update topic too.
 
 Serving Layer
 -------------
 
-The serving layer listens for model and model updates on the model queue. It maintains model
+The serving layer listens for model and model updates on the update topic. It maintains model
 state in memory. It exposes an HTTP 
 [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) API on top of methods 
 that query the model in memory. There will be many of these deployed for scale. Each may 

@@ -41,13 +41,13 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
 /**
  * <p>Responds to a POST to {@code /ingest}. For each line in the request body, a line of CSV text
- * is written to the input Kafka queue, in the form {@code userID,itemID,strength,timestamp}.
+ * is written to the input Kafka topic, in the form {@code userID,itemID,strength,timestamp}.
  * Strength must be a number and defaults to 1; an empty strength value signifies a delete.
  * Timestamp must be a number of milliseconds since Jany 1, 1970.
  * These values are parsed directly from the request body line, which may be in one of
@@ -110,7 +110,7 @@ public final class Ingest extends AbstractALSResource {
   }
 
   private void doPost(BufferedReader buffered) throws IOException, OryxServingException {
-    QueueProducer<?,String> inputQueue = getInputProducer();
+    TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
       Iterator<String> tokens = COMMA.split(line).iterator();
@@ -144,7 +144,7 @@ public final class Ingest extends AbstractALSResource {
         strength = "1";
         timestamp = System.currentTimeMillis();
       }
-      inputQueue.send(userID + "," + itemID + "," + strength + "," + timestamp);
+      inputTopic.send(userID + "," + itemID + "," + strength + "," + timestamp);
     }
   }
 }

@@ -43,9 +43,9 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     overlayConfig.put("oryx.serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
     startServer(config);
-    startUpdateQueues(new MockModelUpdateGenerator(), 10);
+    startUpdateTopics(new MockModelUpdateGenerator(), 10);
 
     ALSServingModelManager manager = (ALSServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(

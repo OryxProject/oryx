@@ -58,7 +58,7 @@ public final class ServingLayer implements Closeable {
   private final String keystorePassword;
   private final String contextPathURIBase;
   private final String appResourcesPackages;
-  private final boolean doNotInitQueues;
+  private final boolean doNotInitTopics;
   private Tomcat tomcat;
   private Context context;
   private Path noSuchBaseDir;
@@ -90,7 +90,7 @@ public final class ServingLayer implements Closeable {
     this.contextPathURIBase = contextPathString;
     this.appResourcesPackages = config.getString("oryx.serving.application-resources");
     // For tests only:
-    this.doNotInitQueues = config.getBoolean("oryx.serving.no-init-queues");
+    this.doNotInitTopics = config.getBoolean("oryx.serving.no-init-topics");
   }
 
   public synchronized void start() throws IOException {
@@ -255,7 +255,7 @@ public final class ServingLayer implements Closeable {
     wrapper.addMapping("/*");
     wrapper.setLoadOnStartup(1);
 
-    if (!doNotInitQueues) { // Only for tests
+    if (!doNotInitTopics) { // Only for tests
       context.addApplicationListener(ModelManagerListener.class.getName());
     }
 

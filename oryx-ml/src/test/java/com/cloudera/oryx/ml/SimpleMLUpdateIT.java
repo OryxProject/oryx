@@ -60,14 +60,14 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
     overlayConfig.put("oryx.ml.eval.test-fraction", Double.toString(TEST_FRACTION));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
     List<Integer> trainCounts = new ArrayList<>();
     List<Integer> testCounts = new ArrayList<>();
 
     MockMLUpdate.setCountHolders(trainCounts, testCounts);
 
-    startServerProduceConsumeQueues(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeTopics(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 
     // If lists are unequal at this point, there must have been an empty test set
     // which yielded no call to evaluate(). Fill in the blank

@@ -45,8 +45,8 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 /**
  * Main entry point for Oryx Batch Layer.
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of model message written
  */
 public final class BatchLayer<K,M,U> implements Closeable {
@@ -55,7 +55,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
 
   private final Config config;
   private final String streamingMaster;
-  private final String queueLockMaster;
+  private final String topicLockMaster;
   private final String messageTopic;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
@@ -78,15 +78,15 @@ public final class BatchLayer<K,M,U> implements Closeable {
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.streamingMaster = config.getString("oryx.batch.streaming.master");
-    this.queueLockMaster = config.getString("oryx.input-queue.lock.master");
-    this.messageTopic = config.getString("oryx.input-queue.message.topic");
-    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-queue.message.key-class"));
+    this.topicLockMaster = config.getString("oryx.input-topic.lock.master");
+    this.messageTopic = config.getString("oryx.input-topic.message.topic");
+    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
-        ClassUtils.loadClass(config.getString("oryx.input-queue.message.message-class"));
+        ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-queue.message.key-decoder-class"), Decoder.class);
+        config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-queue.message.message-decoder-class"), Decoder.class);
+        config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
     this.keyWritableClass = ClassUtils.loadClass(
         config.getString("oryx.batch.storage.key-writable-class"), Writable.class);
     this.messageWritableClass = ClassUtils.loadClass(
@@ -145,7 +145,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
           checkpointDirString, hadoopConf, streamingContextFactory, false);
     }
 
-    log.info("Creating message queue stream");
+    log.info("Creating message stream from topic");
 
     JavaPairDStream<K,M> dStream = buildDStream();
 
@@ -201,7 +201,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
 
   private JavaPairDStream<K,M> buildDStream() {
     Map<String,String> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", queueLockMaster);
+    kafkaParams.put("zookeeper.connect", topicLockMaster);
     kafkaParams.put("group.id", "OryxGroup-BatchLayer-" + System.currentTimeMillis());
     return KafkaUtils.createStream(
         streamingContext,

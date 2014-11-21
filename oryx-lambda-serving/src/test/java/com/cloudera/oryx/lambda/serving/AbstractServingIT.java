@@ -66,7 +66,7 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     Thread.sleep(bufferMS);
   }
 
-  protected final void startUpdateQueues(
+  protected final void startUpdateTopics(
       RandomDatumGenerator<String,String> updateGenerator,
       int howManyUpdate) throws IOException, InterruptedException {
 

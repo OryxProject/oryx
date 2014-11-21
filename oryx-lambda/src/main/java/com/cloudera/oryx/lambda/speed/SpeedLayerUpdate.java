@@ -20,12 +20,12 @@ import java.io.IOException;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
 
-import com.cloudera.oryx.lambda.QueueProducer;
-import com.cloudera.oryx.lambda.QueueProducerImpl;
+import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 /**
  * Main Spark Streaming function for the speed layer that collects and publishes update to
- * a Kafka queue.
+ * a Kafka topic.
  */
 public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
 
@@ -43,7 +43,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
 
   @Override
   public Void call(JavaPairRDD<K,M> newData) throws IOException {
-    try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
+    try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
       for (U update : modelManager.buildUpdates(newData)) {
         producer.send("UP", update);
       }

@@ -36,18 +36,18 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
-  protected final List<Pair<String,String>> startServerProduceConsumeQueues(
+  protected final List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
       int howManyUpdate) throws IOException, InterruptedException {
-    return startServerProduceConsumeQueues(config,
+    return startServerProduceConsumeTopics(config,
                                            new DefaultCSVDatumGenerator(),
                                            new MockModelGenerator(),
                                            howMany,
                                            howManyUpdate);
   }
 
-  protected final List<Pair<String,String>> startServerProduceConsumeQueues(
+  protected final List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       RandomDatumGenerator<String,String> inputGenerator,
       RandomDatumGenerator<String,String> updateGenerator,

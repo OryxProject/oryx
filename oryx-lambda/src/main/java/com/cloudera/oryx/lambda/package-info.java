@@ -15,6 +15,6 @@
 
 /**
  * Contains the core support for the Lambda tier of the Batch Layers. This is the lowest layer
- * of support, managing Spark Streaming updates and data movement to/from HDFS and Kafka queues.
+ * of support, managing Spark Streaming updates and data movement to/from HDFS and Kafka topics.
  */
 package com.cloudera.oryx.lambda;

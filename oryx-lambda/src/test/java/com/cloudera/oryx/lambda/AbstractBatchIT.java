@@ -43,17 +43,17 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   protected static final int WAIT_BUFFER_IN_WRITES = 100;
 
-  protected List<Pair<String,String>> startServerProduceConsumeQueues(
+  protected List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
       int intervalMsec) throws IOException, InterruptedException {
-    return startServerProduceConsumeQueues(config,
+    return startServerProduceConsumeTopics(config,
                                            new DefaultCSVDatumGenerator(),
                                            howMany,
                                            intervalMsec);
   }
 
-  protected List<Pair<String,String>> startServerProduceConsumeQueues(
+  protected List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       RandomDatumGenerator<String,String> datumGenerator,
       int howMany,

@@ -18,11 +18,11 @@ package com.cloudera.oryx.lambda;
 import java.io.Closeable;
 
 /**
- * Wraps access to a message queue {@code Producer}, including logic to instantiate the
+ * Wraps access to a message topic {@code Producer}, including logic to instantiate the
  * object. This is a wrapper that can be serialized and re-create the {@code Producer}
  * remotely.
  */
-public interface QueueProducer<K, M> extends Closeable {
+public interface TopicProducer<K, M> extends Closeable {
 
   void send(K key, M message);
 

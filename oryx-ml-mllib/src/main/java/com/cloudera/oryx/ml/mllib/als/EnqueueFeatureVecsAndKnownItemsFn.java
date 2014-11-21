@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 
 final class EnqueueFeatureVecsAndKnownItemsFn
     implements VoidFunction<Tuple2<Integer,Tuple2<double[],Collection<Integer>>>> {
@@ -32,12 +32,12 @@ final class EnqueueFeatureVecsAndKnownItemsFn
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final String whichMatrix;
-  private final QueueProducer<String, String> modelUpdateQueue;
+  private final TopicProducer<String, String> modelUpdateTopic;
 
   EnqueueFeatureVecsAndKnownItemsFn(String whichMatrix,
-                                    QueueProducer<String,String> modelUpdateQueue) {
+                                    TopicProducer<String,String> modelUpdateTopic) {
     this.whichMatrix = whichMatrix;
-    this.modelUpdateQueue = modelUpdateQueue;
+    this.modelUpdateTopic = modelUpdateTopic;
   }
 
   @Override
@@ -51,7 +51,7 @@ final class EnqueueFeatureVecsAndKnownItemsFn
     for (Integer i : knowItemIDs) {
       knownItemIDsStrings.add(i.toString());
     }
-    modelUpdateQueue.send("UP", MAPPER.writeValueAsString(
+    modelUpdateTopic.send("UP", MAPPER.writeValueAsString(
         Arrays.asList(whichMatrix, id, vector, knownItemIDsStrings)));
   }
 

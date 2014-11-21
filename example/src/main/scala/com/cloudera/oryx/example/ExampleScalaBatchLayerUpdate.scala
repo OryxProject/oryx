@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.example
 
-import com.cloudera.oryx.lambda.{QueueProducer, ScalaBatchLayerUpdate}
+import com.cloudera.oryx.lambda.{TopicProducer, ScalaBatchLayerUpdate}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
@@ -26,7 +26,7 @@ class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,S
                       newData: RDD[(String,String)],
                       pastData: RDD[(String,String)],
                       modelDirString: String,
-                      modelUpdateQueue: QueueProducer[String,String]): Unit = {
+                      modelUpdateTopic: TopicProducer[String,String]): Unit = {
 
   }
 

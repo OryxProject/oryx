@@ -27,8 +27,8 @@ import org.apache.spark.api.java.JavaSparkContext;
  * the time, and access to both past and current data, it defines some update process
  * in Spark, which produces some output (e.g. a machine learning model in PMML).
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of model message written
  */
 public interface BatchLayerUpdate<K,M,U> extends Serializable {
@@ -39,7 +39,7 @@ public interface BatchLayerUpdate<K,M,U> extends Serializable {
    * @param newData data that has arrived in current interval
    * @param pastData all previously-known data (may be {@code null})
    * @param modelDirString String representation of path where models should be output, if desired
-   * @param modelUpdateQueue queue to push models onto, if desired
+   * @param modelUpdateTopic topic to push models onto, if desired
    * @throws IOException if an error occurs during execution of the update function
    * @throws InterruptedException if the caller is interrupted waiting for parallel tasks
    *  to complete
@@ -49,7 +49,7 @@ public interface BatchLayerUpdate<K,M,U> extends Serializable {
                        JavaPairRDD<K,M> newData,
                        JavaPairRDD<K,M> pastData,
                        String modelDirString,
-                       QueueProducer<String,U> modelUpdateQueue)
+                       TopicProducer<String,U> modelUpdateTopic)
       throws IOException, InterruptedException;
 
 }

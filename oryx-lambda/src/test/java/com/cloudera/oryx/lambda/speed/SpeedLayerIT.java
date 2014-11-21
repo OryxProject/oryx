@@ -42,9 +42,9 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
     overlayConfig.put("oryx.speed.block-interval-sec", "1");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
-    List<Pair<String,String>> updates = startServerProduceConsumeQueues(config, 1000, 10);
+    List<Pair<String,String>> updates = startServerProduceConsumeTopics(config, 1000, 10);
 
     int inputToUpdate = 0;
     int receivedUpdates = 0;

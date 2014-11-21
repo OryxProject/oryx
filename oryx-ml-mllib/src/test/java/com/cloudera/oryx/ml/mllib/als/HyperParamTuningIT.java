@@ -62,9 +62,9 @@ public final class HyperParamTuningIT extends AbstractALSIT {
     overlayConfig.put("oryx.ml.eval.parallelism", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
-    startServerProduceConsumeQueues(config,
+    startServerProduceConsumeTopics(config,
                                     new FeaturesALSDataGenerator(TEST_ELEMENTS,
                                                                  TEST_ELEMENTS,
                                                                  TEST_FEATURES),

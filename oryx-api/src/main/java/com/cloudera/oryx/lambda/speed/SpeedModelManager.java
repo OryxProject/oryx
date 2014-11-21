@@ -28,16 +28,16 @@ import com.cloudera.oryx.lambda.KeyMessage;
  * speed layer. It is given a reference to stream of updates during initialization, and consumes
  * models and new input, updates in-memory state, and produces updates accordingly.
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
  */
 public interface SpeedModelManager<K,M,U> extends Closeable {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
-   * from the input queue and updating model state in memory, and issuing updates to the
-   * update queue. This will be executed asynchronously and may block.
+   * from the input topic and updating model state in memory, and issuing updates to the
+   * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
    * @throws IOException if an error occurs while reading updates
@@ -45,8 +45,8 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
   void consume(Iterator<KeyMessage<String,U>> updateIterator) throws IOException;
 
   /**
-   * @param newData RDD of raw new data from the queue
-   * @return updates to publish on the update queue
+   * @param newData RDD of raw new data from the topic
+   * @return updates to publish on the update topic
    * @throws IOException if an error occurs while building updates
    */
   Iterable<U> buildUpdates(JavaPairRDD<K,M> newData) throws IOException;

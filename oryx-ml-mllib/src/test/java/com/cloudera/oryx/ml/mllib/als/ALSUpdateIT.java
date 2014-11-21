@@ -70,9 +70,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
     overlayConfig.put("oryx.als.hyperparams.features", Integer.toString(FEATURES));
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
 
-    List<Pair<String,String>> updates = startServerProduceConsumeQueues(
+    List<Pair<String,String>> updates = startServerProduceConsumeTopics(
         config,
         new RandomALSDataGenerator(NUM_USERS_ITEMS, NUM_USERS_ITEMS, 1, 5),
         DATA_TO_WRITE,

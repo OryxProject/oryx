@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 
-public final class MockQueueProducer implements QueueProducer<String,String> {
+public final class MockTopicProducer implements TopicProducer<String,String> {
 
   private static final List<Pair<String,String>> DATA = new ArrayList<>();
 

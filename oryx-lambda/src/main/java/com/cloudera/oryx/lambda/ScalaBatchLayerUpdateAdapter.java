@@ -34,13 +34,13 @@ public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpda
                               JavaPairRDD<K,M> newData,
                               JavaPairRDD<K,M> pastData,
                               String modelDirString,
-                              QueueProducer<String,U> modelUpdateQueue) {
+                              TopicProducer<String,U> modelUpdateTopic) {
     scalaUpdate.configureUpdate(sparkContext.sc(),
                                 timestamp,
                                 newData.rdd(),
                                 pastData.rdd(),
                                 modelDirString,
-                                modelUpdateQueue);
+                                modelUpdateTopic);
   }
 
 }

@@ -13,11 +13,8 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.serving;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
@@ -25,34 +22,24 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.StringEncoder;
 
+import com.cloudera.oryx.lambda.TopicProducer;
+
 /**
- * Wraps access to a Kafka message queue {@link Producer}, including logic to instantiate the
- * object. This is a wrapper that can be serialized and re-create the {@link Producer}
- * remotely.
+ * Wraps access to a Kafka message topic {@link Producer}.
  */
-public final class QueueProducerImpl<K,M> implements QueueProducer<K,M>, Serializable {
+public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
 
-  private final String updateBroker;
   private final String topic;
-  private transient Producer<K,M> producer;
+  private final Producer<K,M> producer;
 
-  public QueueProducerImpl(String updateBroker, String topic) {
-    this.updateBroker = updateBroker;
+  public TopicProducerImpl(String updateBroker, String topic) {
     this.topic = topic;
-    initProducer();
-  }
-
-  private void initProducer() {
     Properties producerProps = new Properties();
     producerProps.setProperty("metadata.broker.list", updateBroker);
     producerProps.setProperty("serializer.class", StringEncoder.class.getName());
     producer = new Producer<>(new ProducerConfig(producerProps));
   }
 
-  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    in.defaultReadObject();
-    initProducer();
-  }
 
   @Override
   public void send(K key, M message) {

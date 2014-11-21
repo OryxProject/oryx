@@ -30,7 +30,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
 import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 
@@ -46,11 +46,11 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
     overlayConfig.put("oryx.serving.model-manager-class", ALSServingModelManager.class.getName());
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessageQueue();
+    startMessaging();
     startServer(config);
 
     @SuppressWarnings("unchecked")
-    QueueProducer<String,String> inputProducer = (QueueProducer<String,String>)
+    TopicProducer<String,String> inputProducer = (TopicProducer<String,String>)
         getServingLayer().getContext().getServletContext().getAttribute(
             AbstractOryxResource.INPUT_PRODUCER_KEY);
 

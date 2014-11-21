@@ -65,7 +65,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
       context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, getModelManager());
-      context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockQueueProducer());
+      context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
     protected MockServingModelManager getModelManager() {
       return new MockServingModelManager();

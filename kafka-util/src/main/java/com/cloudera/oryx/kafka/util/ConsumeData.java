@@ -27,7 +27,7 @@ import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 
 /**
- * A iterator that consumes data from a Kafka queue. When run on the command line, logs
+ * A iterator that consumes data from a Kafka topic. When run on the command line, logs
  * the results to the console.
  */
 public final class ConsumeData implements Iterable<Pair<String,String>> {

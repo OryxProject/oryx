@@ -49,7 +49,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.BatchLayerUpdate;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.ml.param.HyperParamRange;
 import com.cloudera.oryx.ml.param.HyperParamRanges;
 
@@ -106,7 +106,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                   Path candidatePath);
 
   /**
-   * Optionally, publish additional model-related information to the update queue,
+   * Optionally, publish additional model-related information to the update topic,
    * after the model has been written. This is needed only in specific cases, like the
    * ALS algorithm, where the model serialization in PMML can't contain all of the info.
    *
@@ -115,14 +115,14 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
    * @param newData data that has arrived in current interval
    * @param pastData all previously-known data (may be {@code null})
    * @param modelParentPath directory containing model files, if applicable
-   * @param modelUpdateQueue message queue to write to
+   * @param modelUpdateTopic message topic to write to
    */
   public void publishAdditionalModelData(JavaSparkContext sparkContext,
                                          PMML pmml,
                                          JavaRDD<M> newData,
                                          JavaRDD<M> pastData,
                                          Path modelParentPath,
-                                         QueueProducer<String, String> modelUpdateQueue) {
+                                         TopicProducer<String, String> modelUpdateTopic) {
     // Do nothing by default
   }
 
@@ -144,7 +144,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                               JavaPairRDD<Object,M> newKeyMessageData,
                               JavaPairRDD<Object,M> pastKeyMessageData,
                               String modelDirString,
-                              QueueProducer<String,String> modelUpdateQueue)
+                              TopicProducer<String,String> modelUpdateTopic)
       throws IOException, InterruptedException {
 
     Preconditions.checkNotNull(newKeyMessageData);
@@ -179,16 +179,16 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     // Then delete everything else
     fs.delete(candidatesPath, true);
 
-    // Push PMML model onto model queue, if it exists
+    // Push PMML model onto update topic, if it exists
     Path bestModelPath = new Path(finalPath, MODEL_FILE_NAME);
     if (fs.exists(bestModelPath)) {
       PMML bestModel;
       try (InputStream in = new GZIPInputStream(fs.open(bestModelPath), 1 << 16)) {
         bestModel = PMMLUtils.read(in);
       }
-      modelUpdateQueue.send("MODEL", PMMLUtils.toString(bestModel));
+      modelUpdateTopic.send("MODEL", PMMLUtils.toString(bestModel));
       publishAdditionalModelData(
-          sparkContext, bestModel, newData, pastData, finalPath, modelUpdateQueue);
+          sparkContext, bestModel, newData, pastData, finalPath, modelUpdateTopic);
     }
   }
 

@@ -51,7 +51,7 @@ public final class Preference extends AbstractALSResource {
         reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
     String line = bufferedReader.readLine();
     String value = validateAndStandardizeStrength(line);
-    sendToQueue(userID, itemID, value);
+    sendToTopic(userID, itemID, value);
   }
 
   @DELETE
@@ -59,10 +59,10 @@ public final class Preference extends AbstractALSResource {
   public void delete(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID) {
-    sendToQueue(userID, itemID, "");
+    sendToTopic(userID, itemID, "");
   }
 
-  private void sendToQueue(String userID, String itemID, String value) {
+  private void sendToTopic(String userID, String itemID, String value) {
     getInputProducer().send(userID + "," + itemID + "," + value + "," + System.currentTimeMillis());
   }
 

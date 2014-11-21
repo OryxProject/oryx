@@ -64,7 +64,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
     speedCheckpointDir = getTempDir().resolve("speed-checkpoint");
   }
 
-  protected final void startMessageQueue() throws IOException, InterruptedException {
+  protected final void startMessaging() throws IOException, InterruptedException {
     log.info("Starting local test Zookeeper server");
     localZKServer = new LocalZKServer(localZKPort);
     localZKServer.start();
@@ -97,12 +97,12 @@ public abstract class AbstractLambdaIT extends OryxTest {
 
   protected Config getConfig() throws IOException {
     Map<String,String> overlay = new HashMap<>();
-    String queueBroker = "\"localhost:" + localKafkaBrokerPort + '"';
-    String queueLockMaster = "\"localhost:" + localZKPort + '"';
-    overlay.put("oryx.input-queue.broker", queueBroker);
-    overlay.put("oryx.input-queue.lock.master", queueLockMaster);
-    overlay.put("oryx.update-queue.broker", queueBroker);
-    overlay.put("oryx.update-queue.lock.master", queueLockMaster);
+    String topicBroker = "\"localhost:" + localKafkaBrokerPort + '"';
+    String topicLockMaster = "\"localhost:" + localZKPort + '"';
+    overlay.put("oryx.input-topic.broker", topicBroker);
+    overlay.put("oryx.input-topic.lock.master", topicLockMaster);
+    overlay.put("oryx.update-topic.broker", topicBroker);
+    overlay.put("oryx.update-topic.lock.master", topicLockMaster);
     String masterLocalAllCores = "\"local[*]\"";
     overlay.put("oryx.batch.streaming.master", masterLocalAllCores);
     overlay.put("oryx.speed.streaming.master", masterLocalAllCores);

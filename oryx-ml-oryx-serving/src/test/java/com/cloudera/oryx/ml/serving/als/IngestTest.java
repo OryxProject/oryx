@@ -43,7 +43,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 public final class IngestTest extends AbstractALSServingTest {
 
   private static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\nc,D,\na,C,2,123456789";
-  private static final String[][] EXPECTED_QUEUE = {
+  private static final String[][] EXPECTED_TOPIC = {
       {"a", "B", "1.0"},
       {"c", "B", "1"},
       {"c", "D", "5.5"},
@@ -53,7 +53,7 @@ public final class IngestTest extends AbstractALSServingTest {
 
   @Before
   public void clearProducerData() {
-    MockQueueProducer.getData().clear();
+    MockTopicProducer.getData().clear();
   }
 
   @Test
@@ -145,14 +145,14 @@ public final class IngestTest extends AbstractALSServingTest {
 
   private static void checkResponse(Response response) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-    List<Pair<String,String>> data = MockQueueProducer.getData();
+    List<Pair<String,String>> data = MockTopicProducer.getData();
     for (int i = 0; i < data.size(); i++) {
       Pair<String,String> actual = data.get(i);
       Assert.assertNull(actual.getFirst());
       String[] tokens = actual.getSecond().split(",");
-      Assert.assertEquals(EXPECTED_QUEUE[i][0], tokens[0]);
-      Assert.assertEquals(EXPECTED_QUEUE[i][1], tokens[1]);
-      Assert.assertEquals(EXPECTED_QUEUE[i][2], tokens[2]);
+      Assert.assertEquals(EXPECTED_TOPIC[i][0], tokens[0]);
+      Assert.assertEquals(EXPECTED_TOPIC[i][1], tokens[1]);
+      Assert.assertEquals(EXPECTED_TOPIC[i][2], tokens[2]);
     }
   }
 

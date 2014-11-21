@@ -45,7 +45,7 @@ import scala.Tuple2;
 import scala.reflect.ClassTag$;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.common.fn.MLFunctions;
@@ -151,7 +151,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                                          JavaRDD<String> newData,
                                          JavaRDD<String> pastData,
                                          Path modelParentPath,
-                                         QueueProducer<String, String> modelUpdateQueue) {
+                                         TopicProducer<String, String> modelUpdateTopic) {
 
     JavaRDD<String[]> allData =
         (pastData == null ? newData : newData.union(pastData)).map(MLFunctions.PARSE_FN);
@@ -162,12 +162,12 @@ public final class ALSUpdate extends MLUpdate<String> {
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
 
     if (noKnownItems) {
-      userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateQueue));
+      userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateTopic));
     } else {
       log.info("Sending known item data with model updates");
       JavaPairRDD<Integer,Collection<Integer>> knownItems = knownsRDD(allData, true);
       userRDD.join(knownItems).foreach(
-          new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateQueue));
+          new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateTopic));
     }
 
     log.info("Sending item / Y data as model updates");
@@ -177,12 +177,12 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     // For now, there is no use in sending known users for each item
     //if (noKnownItems) {
-    productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateQueue));
+    productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateTopic));
     //} else {
     //  log.info("Sending known user data with model updates");
     //  JavaPairRDD<Integer,Collection<Integer>> knownUsers = knownsRDD(allData, false);
     //  productRDD.join(knownUsers).foreach(
-    //      new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateQueue));
+    //      new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateTopic));
     //}
   }
 

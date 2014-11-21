@@ -32,8 +32,8 @@ public class RDFServingModelManager implements ServingModelManager<String> {
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
-   * from the input queue and updating model state in memory, and issuing updates to the
-   * update queue. This will be executed asynchronously and may block.
+   * from the input topic and updating model state in memory, and issuing updates to the
+   * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
    * @throws java.io.IOException if an error occurs while reading updates

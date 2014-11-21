@@ -38,7 +38,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
 
@@ -84,10 +84,10 @@ public final class Train extends AbstractRDFResource {
   }
 
   private void doPost(BufferedReader buffered) throws IOException {
-    QueueProducer<?,String> inputQueue = getInputProducer();
+    TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
-      inputQueue.send(line);
+      inputTopic.send(line);
     }
   }
 }

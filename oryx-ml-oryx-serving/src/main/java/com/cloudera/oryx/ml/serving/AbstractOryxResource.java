@@ -23,7 +23,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.lambda.QueueProducer;
+import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public abstract class AbstractOryxResource {
@@ -35,14 +35,14 @@ public abstract class AbstractOryxResource {
 
   @Context
   private ServletContext servletContext;
-  private QueueProducer<String,String> inputProducer;
+  private TopicProducer<String,String> inputProducer;
   private ServingModelManager<?> servingModelManager;
 
   @SuppressWarnings("unchecked")
   protected void init() {
     servingModelManager = (ServingModelManager<?>)
         servletContext.getAttribute(MODEL_MANAGER_KEY);
-    inputProducer = (QueueProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
+    inputProducer = (TopicProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
   }
 
   protected final ServletContext getServletContext() {
@@ -53,7 +53,7 @@ public abstract class AbstractOryxResource {
     return servingModelManager;
   }
 
-  protected final QueueProducer<?,String> getInputProducer() {
+  protected final TopicProducer<?,String> getInputProducer() {
     return inputProducer;
   }
 

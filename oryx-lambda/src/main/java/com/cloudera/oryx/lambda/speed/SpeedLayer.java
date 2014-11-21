@@ -56,8 +56,8 @@ import com.cloudera.oryx.lambda.KeyMessage;
 /**
  * Main entry point for Oryx Speed Layer.
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
  */
 public final class SpeedLayer<K,M,U> implements Closeable {
@@ -66,11 +66,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
   private final Config config;
   private final String streamingMaster;
-  private final String inputQueueLockMaster;
+  private final String inputTopicLockMaster;
   private final String messageTopic;
   private final String updateBroker;
   private final String updateTopic;
-  private final String updateQueueLockMaster;
+  private final String updateTopicLockMaster;
   private final String modelManagerClassName;
   private final String checkpointDirString;
   private final int generationIntervalSec;
@@ -90,11 +90,11 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.streamingMaster = config.getString("oryx.speed.streaming.master");
-    this.inputQueueLockMaster = config.getString("oryx.input-queue.lock.master");
-    this.messageTopic = config.getString("oryx.input-queue.message.topic");
-    this.updateBroker = config.getString("oryx.update-queue.broker");
-    this.updateTopic = config.getString("oryx.update-queue.message.topic");
-    this.updateQueueLockMaster = config.getString("oryx.update-queue.lock.master");
+    this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
+    this.messageTopic = config.getString("oryx.input-topic.message.topic");
+    this.updateBroker = config.getString("oryx.update-topic.broker");
+    this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
     this.checkpointDirString = config.hasPath("oryx.speed.storage.checkpoint-dir") ?
         config.getString("oryx.speed.storage.checkpoint-dir") :
@@ -102,14 +102,14 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.generationIntervalSec = config.getInt("oryx.speed.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.speed.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-queue.message.key-decoder-class"), Decoder.class);
+        config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-queue.message.message-decoder-class"), Decoder.class);
+        config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("oryx.update-queue.message.decoder-class"), Decoder.class);
-    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-queue.message.key-class"));
+        config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
-        ClassUtils.loadClass(config.getString("oryx.input-queue.message.message-class"));
+        ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
 
     Preconditions.checkArgument(this.generationIntervalSec > 0);
     Preconditions.checkArgument(this.blockIntervalSec > 0);
@@ -155,13 +155,13 @@ public final class SpeedLayer<K,M,U> implements Closeable {
       streamingContext.checkpoint(checkpointDirString);
     }
 
-    log.info("Creating message queue stream");
+    log.info("Creating message stream from topic");
 
     JavaPairDStream<K,M> dStream = buildDStream();
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
-    consumerProps.setProperty("zookeeper.connect", updateQueueLockMaster);
+    consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
     consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =
@@ -217,7 +217,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
   private JavaPairDStream<K,M> buildDStream() {
     Map<String,String> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", inputQueueLockMaster);
+    kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
     kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     return KafkaUtils.createStream(
         streamingContext,

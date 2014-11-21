@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
  * Framework for executing the batch layer update, and storing data to persistent storage,
  * in the context of a streaming framework.
  *
- * @param <K> type of key read from input queue
- * @param <M> type of message read from input queue
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of model message written
  */
 final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Time,Void> {
@@ -72,8 +72,8 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
     this.messageWritableClass = messageWritableClass;
     this.dataDirString = dataDirString;
     this.modelDirString = modelDirString;
-    this.updateBroker = config.getString("oryx.update-queue.broker");
-    this.updateTopic = config.getString("oryx.update-queue.message.topic");
+    this.updateBroker = config.getString("oryx.update-topic.broker");
+    this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateInstance = updateInstance;
     this.sparkContext = streamingContext.sparkContext();
   }
@@ -113,7 +113,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                                         messageWritableClass));
     }
 
-    try (QueueProducer<String,U> producer = new QueueProducerImpl<>(updateBroker, updateTopic)) {
+    try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
       updateInstance.configureUpdate(sparkContext,
                                      timestamp.milliseconds(),
                                      newData,
