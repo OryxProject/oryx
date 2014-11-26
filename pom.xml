@@ -136,6 +136,12 @@
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
+        <artifactId>spark-streaming_${scala.minor.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.spark</groupId>
         <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>

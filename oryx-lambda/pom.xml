@@ -42,6 +42,10 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming_${scala.minor.version}</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
       <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
     </dependency>
     <dependency>
