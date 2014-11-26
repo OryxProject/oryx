@@ -17,7 +17,6 @@ package com.cloudera.oryx.common.math;
 
 import java.util.Collection;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
@@ -37,7 +36,6 @@ public final class VectorMath {
    */
   public static double dot(float[] x, float[] y) {
     int length = x.length;
-    Preconditions.checkArgument(length > 0 && length == y.length);
     double dot = 0.0;
     for (int i = 0; i < length; i++) {
       dot += (double) x[i] * (double) y[i];
@@ -53,7 +51,6 @@ public final class VectorMath {
    */
   public static double dot(double[] x, float[] y) {
     int length = x.length;
-    Preconditions.checkArgument(length > 0 && length == y.length);
     double dot = 0.0;
     for (int i = 0; i < length; i++) {
       dot += x[i] * (double) y[i];
@@ -67,7 +64,6 @@ public final class VectorMath {
    * @throws IllegalArgumentException if x is of 0 length
    */
   public static double norm(float[] x) {
-    Preconditions.checkArgument(x.length > 0);
     double total = 0.0;
     for (float f : x) {
       total += (double) f * (double) f;
