@@ -92,6 +92,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
+    // Do start from the beginning of the update queue
+    consumerProps.setProperty("auto.offset.reset", "smallest");
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
     consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =

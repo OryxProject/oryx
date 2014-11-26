@@ -141,6 +141,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
+    // Do start from the beginning of the update queue
+    consumerProps.setProperty("auto.offset.reset", "smallest");
     ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
     consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     KafkaStream<String,U> stream =
@@ -198,6 +200,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     Map<String,String> kafkaParams = new HashMap<>();
     kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
     kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
+    // Don't re-consume old messages from input
+    kafkaParams.put("auto.offset.reset", "largest");
     return KafkaUtils.createStream(
         streamingContext,
         keyClass,

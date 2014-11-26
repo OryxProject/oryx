@@ -184,6 +184,8 @@ public final class BatchLayer<K,M,U> implements Closeable {
     Map<String,String> kafkaParams = new HashMap<>();
     kafkaParams.put("zookeeper.connect", topicLockMaster);
     kafkaParams.put("group.id", "OryxGroup-BatchLayer-" + System.currentTimeMillis());
+    // Don't re-consume old messages from input
+    kafkaParams.put("auto.offset.reset", "largest");
     return KafkaUtils.createStream(
         streamingContext,
         keyClass,
