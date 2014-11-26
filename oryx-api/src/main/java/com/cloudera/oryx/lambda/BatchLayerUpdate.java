@@ -44,12 +44,12 @@ public interface BatchLayerUpdate<K,M,U> extends Serializable {
    * @throws InterruptedException if the caller is interrupted waiting for parallel tasks
    *  to complete
    */
-  void configureUpdate(JavaSparkContext sparkContext,
-                       long timestamp,
-                       JavaPairRDD<K,M> newData,
-                       JavaPairRDD<K,M> pastData,
-                       String modelDirString,
-                       TopicProducer<String,U> modelUpdateTopic)
+  void runUpdate(JavaSparkContext sparkContext,
+                 long timestamp,
+                 JavaPairRDD<K,M> newData,
+                 JavaPairRDD<K,M> pastData,
+                 String modelDirString,
+                 TopicProducer<String,U> modelUpdateTopic)
       throws IOException, InterruptedException;
 
 }

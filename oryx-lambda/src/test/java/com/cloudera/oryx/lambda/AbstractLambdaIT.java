@@ -16,7 +16,6 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,19 +48,11 @@ public abstract class AbstractLambdaIT extends OryxTest {
   private int localKafkaBrokerPort;
   private LocalZKServer localZKServer;
   private LocalKafkaBroker localKafkaBroker;
-  private Path batchCheckpointDir;
-  private Path speedCheckpointDir;
 
   @Before
   public final void allocateZKKafkaPorts() throws IOException {
     localZKPort = IOUtils.chooseFreePort();
     localKafkaBrokerPort = IOUtils.chooseFreePort();
-  }
-
-  @Before
-  public final void setupCheckpointDirs() throws IOException {
-    batchCheckpointDir = getTempDir().resolve("batch-checkpoint");
-    speedCheckpointDir = getTempDir().resolve("speed-checkpoint");
   }
 
   protected final void startMessaging() throws IOException, InterruptedException {
@@ -108,9 +99,6 @@ public abstract class AbstractLambdaIT extends OryxTest {
     overlay.put("oryx.speed.streaming.master", masterLocalAllCores);
     overlay.put("oryx.batch.ui.port", Integer.toString(IOUtils.chooseFreePort()));
     overlay.put("oryx.speed.ui.port", Integer.toString(IOUtils.chooseFreePort()));
-    // TODO re-enable checkpointing in tests once it works?
-    //ConfigUtils.set(overlay, "oryx.batch.storage.checkpoint-dir", batchCheckpointDir);
-    //ConfigUtils.set(overlay, "oryx.speed.storage.checkpoint-dir", speedCheckpointDir);
     return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
   }
 

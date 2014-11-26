@@ -37,12 +37,12 @@ public final class MockBatchUpdate implements BatchLayerUpdate<String,String,Str
   }
 
   @Override
-  public void configureUpdate(JavaSparkContext sparkContext,
-                              long timestamp,
-                              JavaPairRDD<String,String> newData,
-                              JavaPairRDD<String,String> pastData,
-                              String modelDirString,
-                              TopicProducer<String,String> modelUpdateTopic) {
+  public void runUpdate(JavaSparkContext sparkContext,
+                        long timestamp,
+                        JavaPairRDD<String,String> newData,
+                        JavaPairRDD<String,String> pastData,
+                        String modelDirString,
+                        TopicProducer<String,String> modelUpdateTopic) {
     holder.add(new IntervalData<>(timestamp, collect(newData), collect(pastData)));
   }
 

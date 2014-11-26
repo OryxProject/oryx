@@ -36,14 +36,12 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.api.java.JavaStreamingContextFactory;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +70,6 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final String updateTopic;
   private final String updateTopicLockMaster;
   private final String modelManagerClassName;
-  private final String checkpointDirString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final Class<? extends Decoder<?>> keyDecoderClass;
@@ -97,9 +94,6 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
-    this.checkpointDirString = config.hasPath("oryx.speed.storage.checkpoint-dir") ?
-        config.getString("oryx.speed.storage.checkpoint-dir") :
-        null;
     this.generationIntervalSec = config.getInt("oryx.speed.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.speed.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
@@ -135,29 +129,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
-    final long batchDurationMS =
-        TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    final JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
-    Configuration hadoopConf = sparkContext.hadoopConfiguration();
+    long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
+    JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-    if (checkpointDirString == null) {
-      log.info("Not using a streaming checkpoint dir");
-      streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-    } else {
-      log.info("Using streaming checkpoint dir {}", checkpointDirString);
-      JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
-        @Override
-        public JavaStreamingContext create() {
-          JavaStreamingContext jssc =
-              new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-          jssc.checkpoint(checkpointDirString);
-          return jssc;
-        }
-      };
-      streamingContext = JavaStreamingContext.getOrCreate(
-          checkpointDirString, hadoopConf, streamingContextFactory, false);
-      streamingContext.checkpoint(checkpointDirString);
-    }
+    streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
 
     log.info("Creating message stream from topic");
 

@@ -114,12 +114,12 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
     }
 
     try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
-      updateInstance.configureUpdate(sparkContext,
-                                     timestamp.milliseconds(),
-                                     newData,
-                                     pastData,
-                                     modelDirString,
-                                     producer);
+      updateInstance.runUpdate(sparkContext,
+                               timestamp.milliseconds(),
+                               newData,
+                               pastData,
+                               modelDirString,
+                               producer);
     }
 
     return null;

@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import kafka.serializer.Decoder;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -34,7 +33,6 @@ import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.api.java.JavaStreamingContextFactory;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +64,6 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
-  private final String checkpointDirString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int storagePartitions;
@@ -95,9 +92,6 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.updateClassName = config.getString("oryx.batch.update-class");
     this.dataDirString = config.getString("oryx.batch.storage.data-dir");
     this.modelDirString = config.getString("oryx.batch.storage.model-dir");
-    this.checkpointDirString = config.hasPath("oryx.batch.storage.checkpoint-dir") ?
-        config.getString("oryx.batch.storage.checkpoint-dir") :
-        null;
     this.generationIntervalSec = config.getInt("oryx.batch.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.batch.block-interval-sec");
     this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
@@ -126,28 +120,11 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
-    final long batchDurationMS =
+    long batchDurationMS =
        TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    final JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
-    Configuration hadoopConf = sparkContext.hadoopConfiguration();
+    JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-    if (checkpointDirString == null) {
-      log.info("Not using a streaming checkpoint dir");
-      streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-    } else {
-      log.info("Using streaming checkpoint dir {}", checkpointDirString);
-      JavaStreamingContextFactory streamingContextFactory = new JavaStreamingContextFactory() {
-        @Override
-        public JavaStreamingContext create() {
-          JavaStreamingContext jssc =
-              new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
-          jssc.checkpoint(checkpointDirString);
-          return jssc;
-        }
-      };
-      streamingContext = JavaStreamingContext.getOrCreate(
-          checkpointDirString, hadoopConf, streamingContextFactory, false);
-    }
+    streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
 
     log.info("Creating message stream from topic");
 

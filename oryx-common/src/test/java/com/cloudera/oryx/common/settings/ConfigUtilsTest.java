@@ -74,8 +74,9 @@ public final class ConfigUtilsTest extends OryxTest {
   public void testPrettyPrint() {
     String pretty = ConfigUtils.prettyPrint(ConfigUtils.getDefault());
     // Spot checks:
+    assertTrue(pretty.contains("oryx {"));
     assertTrue(pretty.contains("batch {"));
-    assertTrue(pretty.contains("checkpoint-dir=null"));
+    assertTrue(pretty.contains("block-interval-sec=60"));
   }
 
 }

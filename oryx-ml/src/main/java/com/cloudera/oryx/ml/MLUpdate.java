@@ -139,12 +139,12 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                   JavaRDD<M> testData);
 
   @Override
-  public void configureUpdate(JavaSparkContext sparkContext,
-                              long timestamp,
-                              JavaPairRDD<Object,M> newKeyMessageData,
-                              JavaPairRDD<Object,M> pastKeyMessageData,
-                              String modelDirString,
-                              TopicProducer<String,String> modelUpdateTopic)
+  public void runUpdate(JavaSparkContext sparkContext,
+                        long timestamp,
+                        JavaPairRDD<Object,M> newKeyMessageData,
+                        JavaPairRDD<Object,M> pastKeyMessageData,
+                        String modelDirString,
+                        TopicProducer<String,String> modelUpdateTopic)
       throws IOException, InterruptedException {
 
     Preconditions.checkNotNull(newKeyMessageData);

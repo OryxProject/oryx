@@ -29,12 +29,12 @@ public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpda
   }
 
   @Override
-  public void configureUpdate(JavaSparkContext sparkContext,
-                              long timestamp,
-                              JavaPairRDD<K,M> newData,
-                              JavaPairRDD<K,M> pastData,
-                              String modelDirString,
-                              TopicProducer<String,U> modelUpdateTopic) {
+  public void runUpdate(JavaSparkContext sparkContext,
+                        long timestamp,
+                        JavaPairRDD<K,M> newData,
+                        JavaPairRDD<K,M> pastData,
+                        String modelDirString,
+                        TopicProducer<String,U> modelUpdateTopic) {
     scalaUpdate.configureUpdate(sparkContext.sc(),
                                 timestamp,
                                 newData.rdd(),

@@ -25,12 +25,12 @@ import java.io.IOException;
 public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,String,String> {
 
   @Override
-  public void configureUpdate(JavaSparkContext sparkContext,
-                              long timestamp,
-                              JavaPairRDD<String,String> newData,
-                              JavaPairRDD<String,String> pastData,
-                              String modelDirString,
-                              TopicProducer<String,String> modelUpdateTopic)
+  public void runUpdate(JavaSparkContext sparkContext,
+                        long timestamp,
+                        JavaPairRDD<String,String> newData,
+                        JavaPairRDD<String,String> pastData,
+                        String modelDirString,
+                        TopicProducer<String,String> modelUpdateTopic)
       throws IOException, InterruptedException {
 
   }
