@@ -28,10 +28,10 @@ public final class AndPredicateTest extends OryxTest {
     NotContainsPredicate<String> a = new NotContainsPredicate<>(Arrays.asList("foo"));
     NotContainsPredicate<String> b = new NotContainsPredicate<>(Arrays.asList("bar", "baz"));
     AndPredicate<String> and = new AndPredicate<>(a, b);
-    assertFalse(and.apply("foo"));
-    assertFalse(and.apply("bar"));
-    assertFalse(and.apply("baz"));
-    assertTrue(and.apply("bing"));
+    assertFalse(and.test("foo"));
+    assertFalse(and.test("bar"));
+    assertFalse(and.test("baz"));
+    assertTrue(and.test("bing"));
   }
 
 }

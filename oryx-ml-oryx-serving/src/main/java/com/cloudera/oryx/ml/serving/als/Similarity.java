@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -25,9 +27,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.carrotsearch.hppc.ObjectOpenHashSet;
-import com.carrotsearch.hppc.ObjectSet;
-
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -66,7 +66,7 @@ public final class Similarity extends AbstractALSResource {
 
     ALSServingModel alsServingModel = getALSServingModel();
     float[][] itemFeatureVectors = new float[pathSegmentsList.size()][];
-    ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
+    Collection<String> knownItems = new HashSet<>();
 
     for (int i = 0; i < itemFeatureVectors.length; i++) {
       String itemID = pathSegmentsList.get(i).getPath();
@@ -79,7 +79,7 @@ public final class Similarity extends AbstractALSResource {
     List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
         new CosineAverageFunction(itemFeatureVectors),
         howMany + offset,
-        new NotKnownPredicate(knownItems));
+        new NotContainsPredicate<>(knownItems));
 
     return toIDValueResponse(topIDCosines, howMany, offset);
   }

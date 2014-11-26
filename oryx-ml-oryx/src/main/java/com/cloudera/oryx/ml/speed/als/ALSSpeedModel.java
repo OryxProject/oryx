@@ -21,13 +21,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.carrotsearch.hppc.ObjectObjectMap;
-import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
-import com.carrotsearch.hppc.predicates.ObjectPredicate;
 import com.google.common.base.Preconditions;
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.collection.AndPredicate;
+import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
@@ -40,9 +40,9 @@ import com.cloudera.oryx.common.math.VectorMath;
 public final class ALSSpeedModel {
 
   /** User-feature matrix, where row is keyed by user ID string and row is a dense float array. */
-  private final ObjectObjectMap<String,float[]> X;
+  private final ObjObjMap<String,float[]> X;
   /** Item-feature matrix, where row is keyed by item ID string and row is a dense float array. */
-  private final ObjectObjectMap<String,float[]> Y;
+  private final ObjObjMap<String,float[]> Y;
   /** Remembers user IDs added since last model. */
   private final Collection<String> recentNewUsers;
   /** Remembers item IDs added since last model. Partitioned like Y. */
@@ -61,8 +61,8 @@ public final class ALSSpeedModel {
    */
   ALSSpeedModel(int features) {
     Preconditions.checkArgument(features > 0);
-    X = new ObjectObjectOpenHashMap<>();
-    Y = new ObjectObjectOpenHashMap<>();
+    X = HashObjObjMaps.newMutableMap();
+    Y = HashObjObjMaps.newMutableMap();
     recentNewUsers = new HashSet<>();
     recentNewItems = new HashSet<>();
     xLock = new ReentrantReadWriteLock();
@@ -126,12 +126,11 @@ public final class ALSSpeedModel {
 
   public void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    ObjectPredicate<String> predicate = new AndPredicate<>(
-        new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.removeAll(predicate);
+      X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
     } finally {
       lock.unlock();
@@ -140,12 +139,11 @@ public final class ALSSpeedModel {
 
   public void pruneY(Collection<String> items) {
     // Keep all items in the new model, or, that have been added since last model
-    ObjectPredicate<String> predicate = new AndPredicate<>(
-        new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems));
     Lock lock = yLock.writeLock();
     lock.lock();
     try {
-      Y.removeAll(predicate);
+      Y.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+          new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems))));
       recentNewItems.clear();
     } finally {
       lock.unlock();

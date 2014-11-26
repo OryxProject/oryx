@@ -20,13 +20,11 @@ import com.cloudera.oryx.lambda.serving.AbstractServingIT;
 import com.cloudera.oryx.ml.serving.AbstractOryxResource;
 import com.cloudera.oryx.ml.speed.als.MockModelUpdateGenerator;
 
-import com.carrotsearch.hppc.ObjectSet;
 import com.typesafe.config.Config;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,10 +72,9 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     }
     for (Map.Entry<String,Collection<String>> entry : MockModelUpdateGenerator.A.entrySet()) {
       Collection<String> expected = entry.getValue();
-      ObjectSet<String> actual = model.getKnownItems(entry.getKey());
-      Collection<String> actualSet = Arrays.asList(actual.toArray(String.class));
-      assertTrue(expected.containsAll(actualSet));
-      assertTrue(actualSet.containsAll(expected));
+      Collection<String> actual = model.getKnownItems(entry.getKey());
+      assertTrue(expected.containsAll(actual));
+      assertTrue(actual.containsAll(expected));
     }
   }
 

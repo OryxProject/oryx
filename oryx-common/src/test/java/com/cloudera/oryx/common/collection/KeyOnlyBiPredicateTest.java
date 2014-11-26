@@ -15,21 +15,29 @@
 
 package com.cloudera.oryx.common.collection;
 
-import java.util.Arrays;
-import java.util.Collection;
-
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import net.openhft.koloboke.function.Predicate;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
 
-public final class NotContainsPredicateTest extends OryxTest {
+public final class KeyOnlyBiPredicateTest extends OryxTest {
 
   @Test
-  public void testPredicate() {
-    Collection<Integer> contains = Arrays.asList(1, 3, 5);
-    NotContainsPredicate<Integer> predicate = new NotContainsPredicate<>(contains);
-    assertTrue(predicate.test(2));
-    assertFalse(predicate.test(5));
+  public void testKeyOnly() {
+    ObjObjMap<String,String> map = HashObjObjMaps.newMutableMap(
+        new String[]{"foo", "bar", "baz"},
+        new String[]{"1", "3", "4"}
+    );
+    map.removeIf(new KeyOnlyBiPredicate<String, String>(new Predicate<String>() {
+      @Override
+      public boolean test(String s) {
+        return s.startsWith("b");
+      }
+    }));
+    assertEquals(1, map.size());
+    assertEquals("1", map.get("foo"));
   }
 
 }

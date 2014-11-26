@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -25,10 +27,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.carrotsearch.hppc.ObjectOpenHashSet;
-import com.carrotsearch.hppc.ObjectSet;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
@@ -66,7 +65,7 @@ public final class RecommendToMany extends AbstractALSResource {
 
     ALSServingModel alsServingModel = getALSServingModel();
     double[][] userFeaturesVectors = new double[pathSegmentsList.size()][];
-    ObjectSet<String> userKnownItems = new ObjectOpenHashSet<>();
+    Collection<String> userKnownItems = new HashSet<>();
 
     for (int i = 0; i < userFeaturesVectors.length; i++) {
       String userID = pathSegmentsList.get(i).getPath();
@@ -74,12 +73,10 @@ public final class RecommendToMany extends AbstractALSResource {
       checkExists(userFeatureVector != null, userID);
       userFeaturesVectors[i] = VectorMath.toDoubles(userFeatureVector);
       if (!considerKnownItems) {
-        ObjectSet<String> knownItems = alsServingModel.getKnownItems(userID);
+        Collection<String> knownItems = alsServingModel.getKnownItems(userID);
         if (knownItems != null && !knownItems.isEmpty()) {
           synchronized (knownItems) {
-            for (ObjectCursor<String> knownItem : knownItems) {
-              userKnownItems.add(knownItem.value);
-            }
+            userKnownItems.addAll(knownItems);
           }
         }
       }
@@ -88,7 +85,7 @@ public final class RecommendToMany extends AbstractALSResource {
     List<Pair<String,Double>> topIDDots = alsServingModel.topN(
         new DotsFunction(userFeaturesVectors),
         howMany + offset,
-        new NotKnownPredicate(userKnownItems));
+        new NotContainsPredicate<>(userKnownItems));
 
     return toIDValueResponse(topIDDots, howMany, offset);
   }

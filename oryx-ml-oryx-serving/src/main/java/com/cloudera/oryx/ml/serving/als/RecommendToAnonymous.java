@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -25,9 +27,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.carrotsearch.hppc.ObjectOpenHashSet;
-import com.carrotsearch.hppc.ObjectSet;
-
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -65,7 +65,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     double[] anonymousUserFeatures =
         EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
 
-    ObjectSet<String> knownItems = new ObjectOpenHashSet<>();
+    Collection<String> knownItems = new HashSet<>();
     for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {
       knownItems.add(itemValue.getFirst());
     }
@@ -73,7 +73,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     List<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(anonymousUserFeatures),
         howMany + offset,
-        new NotKnownPredicate(knownItems));
+        new NotContainsPredicate<>(knownItems));
     return toIDValueResponse(topIDDots, howMany, offset);
   }
 

@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.serving.als;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -24,10 +26,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.carrotsearch.hppc.ObjectOpenHashSet;
-import com.carrotsearch.hppc.ObjectSet;
-import com.google.common.base.Predicate;
+import net.openhft.koloboke.function.Predicate;
 
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.IDValue;
@@ -81,10 +82,11 @@ public final class Recommend extends AbstractALSResource {
 
     Predicate<String> allowedFn = null;
     if (!considerKnownItems) {
-      ObjectSet<String> knownItems = model.getKnownItems(userID);
+      Collection<String> knownItems = model.getKnownItems(userID);
       if (knownItems != null && !knownItems.isEmpty()) {
         synchronized (knownItems) {
-          allowedFn = new NotKnownPredicate(new ObjectOpenHashSet<>(knownItems));
+          // Must copy since knownItems is synchronized
+          allowedFn = new NotContainsPredicate<>(new ArrayList<>(knownItems));
         }
       }
     }

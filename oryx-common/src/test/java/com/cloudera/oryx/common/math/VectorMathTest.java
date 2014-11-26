@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.common.math;
 
-import com.carrotsearch.hppc.IntObjectMap;
-import com.carrotsearch.hppc.IntObjectOpenHashMap;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.cloudera.oryx.common.OryxTest;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
@@ -81,7 +83,7 @@ public final class VectorMathTest extends OryxTest {
 
   @Test
   public void testTransposeTimesSelf() {
-    IntObjectMap<float[]> a = new IntObjectOpenHashMap<>();
+    Map<Integer,float[]> a = new HashMap<>();
     a.put(-1, new float[] {1.3f, -2.0f, 3.0f});
     a.put(1, new float[] {2.0f, 0.0f, 5.0f});
     a.put(3, new float[] {0.0f, -1.5f, 5.5f});

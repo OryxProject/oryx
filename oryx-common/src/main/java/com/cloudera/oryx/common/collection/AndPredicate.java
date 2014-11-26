@@ -15,22 +15,21 @@
 
 package com.cloudera.oryx.common.collection;
 
-import com.carrotsearch.hppc.predicates.ObjectPredicate;
+import net.openhft.koloboke.function.Predicate;
 
-public final class AndPredicate<T> implements ObjectPredicate<T> {
+public final class AndPredicate<T> implements Predicate<T> {
 
   // Consider supporting arbitrary # later
-  private final ObjectPredicate<T> a;
-  private final ObjectPredicate<T> b;
+  private final Predicate<T> a;
+  private final Predicate<T> b;
 
-  public AndPredicate(ObjectPredicate<T> a, ObjectPredicate<T> b) {
+  public AndPredicate(Predicate<T> a, Predicate<T> b) {
     this.a = a;
     this.b = b;
   }
 
   @Override
-  public boolean apply(T value) {
-    return a.apply(value) && b.apply(value);
+  public boolean test(T value) {
+    return a.test(value) && b.test(value);
   }
-
 }

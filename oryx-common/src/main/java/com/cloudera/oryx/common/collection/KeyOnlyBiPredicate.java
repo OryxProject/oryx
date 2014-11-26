@@ -13,26 +13,22 @@
  * License.
  */
 
-package com.cloudera.oryx.ml.serving.als;
+package com.cloudera.oryx.common.collection;
 
-import com.carrotsearch.hppc.ObjectSet;
-import com.google.common.base.Predicate;
+import net.openhft.koloboke.function.BiPredicate;
+import net.openhft.koloboke.function.Predicate;
 
-final class NotKnownPredicate implements Predicate<String> {
+public final class KeyOnlyBiPredicate<K,V> implements BiPredicate<K,V> {
 
-  private final ObjectSet<String> knownItemsForUser;
+  private final Predicate<K> keyPredicate;
 
-  /**
-   * @param knownItemsForUser items which are already known to the user. The object should
-   *  be safely accessible without synchronization.
-   */
-  NotKnownPredicate(ObjectSet<String> knownItemsForUser) {
-    this.knownItemsForUser = knownItemsForUser;
+  public KeyOnlyBiPredicate(Predicate<K> keyPredicate) {
+    this.keyPredicate = keyPredicate;
   }
 
   @Override
-  public boolean apply(String input) {
-    return !knownItemsForUser.contains(input);
+  public boolean test(K key, V value) {
+    return keyPredicate.test(key);
   }
 
 }

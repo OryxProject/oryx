@@ -17,14 +17,12 @@ package com.cloudera.oryx.ml.serving.als;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
-import com.carrotsearch.hppc.ObjectSet;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
 
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 
@@ -40,16 +38,15 @@ public final class KnownItems extends AbstractALSResource {
   @Path("{userID}")
   @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Collection<String> get(@PathParam("userID") String userID) {
-    ObjectSet<String> knownItems = getALSServingModel().getKnownItems(userID);
-    Collection<String> itemIDs = new ArrayList<>();
-    if (knownItems != null) {
+    Collection<String> knownItems = getALSServingModel().getKnownItems(userID);
+    if (knownItems == null) {
+      return Collections.emptyList();
+    } else {
       synchronized (knownItems) {
-        for (ObjectCursor<String> itemID : knownItems) {
-          itemIDs.add(itemID.value);
-        }
+        // Must copy since the original object is synchronized
+        return new ArrayList<>(knownItems);
       }
     }
-    return itemIDs;
   }
 
 }

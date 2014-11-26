@@ -19,8 +19,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
@@ -32,23 +32,22 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.carrotsearch.hppc.ObjectIntMap;
-import com.carrotsearch.hppc.ObjectIntOpenHashMap;
-import com.carrotsearch.hppc.ObjectObjectMap;
-import com.carrotsearch.hppc.ObjectObjectOpenHashMap;
-import com.carrotsearch.hppc.ObjectOpenHashSet;
-import com.carrotsearch.hppc.ObjectSet;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.carrotsearch.hppc.predicates.ObjectPredicate;
-import com.carrotsearch.hppc.procedures.ObjectObjectProcedure;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import net.openhft.koloboke.collect.map.ObjIntMap;
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjIntMaps;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import net.openhft.koloboke.collect.set.ObjSet;
+import net.openhft.koloboke.collect.set.hash.HashObjSets;
+import net.openhft.koloboke.function.BiConsumer;
+import net.openhft.koloboke.function.Predicate;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.collection.AndPredicate;
+import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
@@ -71,18 +70,18 @@ public final class ALSServingModel {
           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSServingModel-%d").build());
 
   /** User-feature matrix, where row is keyed by user ID string and row is a dense float array. */
-  private final ObjectObjectMap<String,float[]> X;
+  private final ObjObjMap<String,float[]> X;
   /**
    * Item-feature matrix, where row is keyed by item ID string and row is a dense float array.
    * This is partitioned into several maps for parallel access.
    */
-  private final ObjectObjectMap<String,float[]>[] Y;
+  private final ObjObjMap<String,float[]>[] Y;
   /** Remembers user IDs added since last model. */
   private final Collection<String> recentNewUsers;
   /** Remembers item IDs added since last model. Partitioned like Y. */
   private final Collection<String>[] recentNewItems;
   /** Remembers items that each user has interacted with*/
-  private final ObjectObjectMap<String,ObjectSet<String>> knownItems;
+  private final ObjObjMap<String,ObjSet<String>> knownItems;
   // Right now no corresponding "knownUsers" object
   /** Controls access to X, knownItems, and recentNewUsers. */
   private final ReadWriteLock xLock;
@@ -103,10 +102,10 @@ public final class ALSServingModel {
   ALSServingModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
 
-    X = new ObjectObjectOpenHashMap<>();
-    Y = (ObjectObjectMap<String,float[]>[]) Array.newInstance(ObjectObjectMap.class, PARTITIONS);
+    X = HashObjObjMaps.newMutableMap();
+    Y = (ObjObjMap<String,float[]>[]) Array.newInstance(ObjObjMap.class, PARTITIONS);
     for (int i = 0; i < Y.length; i++) {
-      Y[i] = new ObjectObjectOpenHashMap<>();
+      Y[i] = HashObjObjMaps.newMutableMap();
     }
 
     recentNewUsers = new HashSet<>();
@@ -115,7 +114,7 @@ public final class ALSServingModel {
       recentNewItems[i] = new HashSet<>();
     }
 
-    knownItems = new ObjectObjectOpenHashMap<>();
+    knownItems = HashObjObjMaps.newMutableMap();
 
     xLock = new ReentrantReadWriteLock();
     yLocks = new ReentrantReadWriteLock[Y.length];
@@ -196,7 +195,11 @@ public final class ALSServingModel {
    * @return set of known items for the user. Note that this object is not thread-safe and
    *  access must be {@code synchronized}
    */
-  public ObjectSet<String> getKnownItems(String user) {
+  public Collection<String> getKnownItems(String user) {
+    return doGetKnownItems(user);
+  }
+
+  private ObjSet<String> doGetKnownItems(String user) {
     Lock lock = xLock.readLock();
     lock.lock();
     try {
@@ -206,16 +209,15 @@ public final class ALSServingModel {
     }
   }
 
-  public ObjectIntMap<String> getItemCounts() {
-    ObjectIntMap<String> counts = new ObjectIntOpenHashMap<>();
+  public Map<String,Integer> getItemCounts() {
+    ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
     Lock lock = xLock.readLock();
     lock.lock();
     try {
-      for (ObjectCursor<ObjectSet<String>> idsCursor : knownItems.values()) {
-        ObjectSet<String> ids = idsCursor.value;
+      for (Collection<String> ids : knownItems.values()) {
         synchronized (ids) {
-          for (ObjectCursor<String> idCursor : ids) {
-            counts.addTo(idCursor.value, 1);
+          for (String id : ids) {
+            counts.addValue(id, 1);
           }
         }
       }
@@ -226,7 +228,7 @@ public final class ALSServingModel {
   }
 
   void addKnownItems(String user, Collection<String> items) {
-    ObjectSet<String> knownItemsForUser = getKnownItems(user);
+    ObjSet<String> knownItemsForUser = doGetKnownItems(user);
 
     if (knownItemsForUser == null) {
       Lock writeLock = xLock.writeLock();
@@ -235,7 +237,7 @@ public final class ALSServingModel {
         // Check again
         knownItemsForUser = knownItems.get(user);
         if (knownItemsForUser == null) {
-          knownItemsForUser = new ObjectOpenHashSet<>();
+          knownItemsForUser = HashObjSets.newMutableSet();
           knownItems.put(user, knownItemsForUser);
         }
       } finally {
@@ -244,9 +246,7 @@ public final class ALSServingModel {
     }
 
     synchronized (knownItemsForUser) {
-      for (String item : items) {
-        knownItemsForUser.add(item);
-      }
+      knownItemsForUser.addAll(items);
     }
   }
 
@@ -255,14 +255,13 @@ public final class ALSServingModel {
     if (userVector == null) {
       return null;
     }
-    ObjectSet<String> knownItems = getKnownItems(user);
+    Collection<String> knownItems = getKnownItems(user);
     if (knownItems == null || knownItems.isEmpty()) {
       return null;
     }
     List<Pair<String,float[]>> idVectors = new ArrayList<>(knownItems.size());
     synchronized (knownItems) {
-      for (ObjectCursor<String> knownItem : knownItems) {
-        String itemID = knownItem.value;
+      for (String itemID : knownItems) {
         int partition = partition(itemID);
         float[] vector;
         Lock lock = yLocks[partition].readLock();
@@ -292,23 +291,22 @@ public final class ALSServingModel {
           final Queue<Pair<String,Double>> topN =
               new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
 
-          ObjectObjectProcedure<String,float[]> topNProc =
-              new ObjectObjectProcedure<String,float[]>() {
-                @Override
-                public void apply(String key, float[] value) {
-                  if (allowedPredicate == null || allowedPredicate.apply(key)) {
-                    double score = scoreFn.apply(value);
-                    if (topN.size() >= howMany) {
-                      if (score > topN.peek().getSecond()) {
-                        topN.poll();
-                        topN.add(new Pair<>(key, score));
-                      }
-                    } else {
-                      topN.add(new Pair<>(key, score));
-                    }
+          BiConsumer<String,float[]> topNProc = new BiConsumer<String,float[]>() {
+            @Override
+            public void accept(String key, float[] value) {
+              if (allowedPredicate == null || allowedPredicate.test(key)) {
+                double score = scoreFn.apply(value);
+                if (topN.size() >= howMany) {
+                  if (score > topN.peek().getSecond()) {
+                    topN.poll();
+                    topN.add(new Pair<>(key, score));
                   }
+                } else {
+                  topN.add(new Pair<>(key, score));
                 }
-              };
+              }
+            }
+          };
 
           Lock lock = yLocks[thePartition].readLock();
           lock.lock();
@@ -352,9 +350,7 @@ public final class ALSServingModel {
       Lock lock = yLocks[partition].readLock();
       lock.lock();
       try {
-        for (ObjectCursor<String> intCursor : Y[partition].keys()) {
-          itemsList.add(intCursor.value);
-        }
+        itemsList.addAll(Y[partition].keySet());
       } finally {
         lock.unlock();
       }
@@ -389,12 +385,11 @@ public final class ALSServingModel {
    */
   void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    ObjectPredicate<String> predicate = new AndPredicate<>(
-        new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock lock = xLock.writeLock();
     lock.lock();
     try {
-      X.removeAll(predicate);
+      X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
     } finally {
       lock.unlock();
@@ -409,15 +404,14 @@ public final class ALSServingModel {
    * @param items items that should be retained, which are coming in the new model updates
    */
   void pruneY(Collection<String> items) {
-    ObjectPredicate<String> itemsPredicate = new NotContainsPredicate<>(items);
     for (int partition = 0; partition < Y.length; partition++) {
       // Keep all items in the new model, or, that have been added since last model
-      ObjectPredicate<String> predicate = new AndPredicate<>(
-          itemsPredicate, new NotContainsPredicate<>(recentNewItems[partition]));
       Lock lock = yLocks[partition].writeLock();
       lock.lock();
       try {
-        Y[partition].removeAll(predicate);
+        Y[partition].removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+            new NotContainsPredicate<>(items),
+            new NotContainsPredicate<>(recentNewItems[partition]))));
         recentNewItems[partition].clear();
       } finally {
         lock.unlock();
@@ -429,21 +423,20 @@ public final class ALSServingModel {
    * Like {@link #pruneX(Collection)} and {@link #pruneY(Collection)} but prunes the
    * known-items data structure.
    */
-  void pruneKnownItems(Collection<String> users, Collection<String> items) {
+  void pruneKnownItems(Collection<String> users, final Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
-    ObjectPredicate<String> predicate = new AndPredicate<>(
-        new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers));
     Lock xWriteLock = xLock.writeLock();
     xWriteLock.lock();
     try {
-      knownItems.removeAll(predicate);
+      knownItems.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
     } finally {
       xWriteLock.unlock();
     }
 
     // This will be easier to quickly copy the whole (smallish) set rather than
     // deal with locks below
-    Collection<String> allRecentKnownItems = new HashSet<>();
+    final Collection<String> allRecentKnownItems = new HashSet<>();
     for (int partition = 0; partition < Y.length; partition++) {
       Lock yWriteLock = yLocks[partition].writeLock();
       yWriteLock.lock();
@@ -457,16 +450,14 @@ public final class ALSServingModel {
     Lock xReadLock = xLock.readLock();
     xReadLock.lock();
     try {
-      for (ObjectCursor<ObjectSet<String>> collectionObjectCursor : knownItems.values()) {
-        ObjectSet<String> knownItemsForUser = collectionObjectCursor.value;
+      for (ObjSet<String> knownItemsForUser : knownItems.values()) {
         synchronized (knownItemsForUser) {
-          Iterator<ObjectCursor<String>> it = knownItemsForUser.iterator();
-          while (it.hasNext()) {
-            String value = it.next().value;
-            if (!items.contains(value) && !allRecentKnownItems.contains(value)) {
-              it.remove();
+          knownItemsForUser.removeIf(new Predicate<String>() {
+            @Override
+            public boolean test(String value) {
+              return !items.contains(value) && !allRecentKnownItems.contains(value);
             }
-          }
+          });
         }
       }
     } finally {
@@ -477,7 +468,7 @@ public final class ALSServingModel {
   @Override
   public String toString() {
     int numItems = 0;
-    for (ObjectObjectMap<?,?> partition : Y) {
+    for (Map<?,?> partition : Y) {
       numItems += partition.size();
     }
     return "ALSServingModel[features:" + features + ", implicit:" + implicit +

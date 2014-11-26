@@ -16,6 +16,7 @@
 package com.cloudera.oryx.ml.serving.als;
 
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,8 +24,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.carrotsearch.hppc.ObjectIntMap;
-import com.carrotsearch.hppc.cursors.ObjectIntCursor;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -54,14 +53,14 @@ public final class MostPopularItems extends AbstractALSResource {
                            @DefaultValue("0") @QueryParam("offset") int offset) {
 
     ALSServingModel model = getALSServingModel();
-    ObjectIntMap<String> itemCounts = model.getItemCounts();
+    Map<String,Integer> itemCounts = model.getItemCounts();
 
     Iterable<Pair<String,Integer>> countPairs =
-        Iterables.transform(itemCounts,
-            new Function<ObjectIntCursor<String>, Pair<String,Integer>>() {
+        Iterables.transform(itemCounts.entrySet(),
+            new Function<Map.Entry<String,Integer>, Pair<String,Integer>>() {
               @Override
-              public Pair<String,Integer> apply(ObjectIntCursor<String> input) {
-                return new Pair<>(input.key, input.value);
+              public Pair<String,Integer> apply(Map.Entry<String,Integer> input) {
+                return new Pair<>(input.getKey(), input.getValue());
               }
             });
 

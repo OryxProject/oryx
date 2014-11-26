@@ -15,6 +15,6 @@
 
 /**
  * Collection-related utility methods and support classes, related to the Java Collections API
- * but also Carrot HPPC.
+ * and other collections libraries like Koloboke.
  */
 package com.cloudera.oryx.common.collection;

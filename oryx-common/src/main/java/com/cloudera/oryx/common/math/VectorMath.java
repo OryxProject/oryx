@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.common.math;
 
-import com.carrotsearch.hppc.ObjectContainer;
-import com.carrotsearch.hppc.cursors.ObjectCursor;
+import java.util.Collection;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -79,14 +79,13 @@ public final class VectorMath {
    * @param M tall, skinny matrix
    * @return MT * M as a dense matrix
    */
-  public static RealMatrix transposeTimesSelf(ObjectContainer<float[]> M) {
+  public static RealMatrix transposeTimesSelf(Collection<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }
     int features = 0;
     RealMatrix result = null;
-    for (ObjectCursor<float[]> entry : M) {
-      float[] vector = entry.value;
+    for (float[] vector : M) {
       if (result == null) {
         features = vector.length;
         result = new Array2DRowRealMatrix(features, features);

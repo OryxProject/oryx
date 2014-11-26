@@ -52,10 +52,6 @@
       <artifactId>commons-math3</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.carrotsearch</groupId>
-      <artifactId>hppc</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jpmml</groupId>
       <artifactId>pmml-model</artifactId>
     </dependency>
@@ -66,5 +62,37 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>java1.7</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>net.openhft</groupId>
+          <artifactId>koloboke-api-jdk6-7</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>net.openhft</groupId>
+          <artifactId>koloboke-impl-jdk6-7</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>java1.8</id>
+      <dependencies>
+        <dependency>
+          <groupId>net.openhft</groupId>
+          <artifactId>koloboke-api-jdk8</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>net.openhft</groupId>
+          <artifactId>koloboke-impl-jdk8</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
