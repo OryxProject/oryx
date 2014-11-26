@@ -415,7 +415,7 @@
     <scala.minor.version>2.10</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <hadoop.version>2.5.2</hadoop.version>
-    <jackson.version>2.4.3</jackson.version>
+    <jackson.version>2.4.4</jackson.version>
     <jersey.version>2.13</jersey.version>
     <kafka.version>0.8.2-beta</kafka.version>
     <koloboke.version>0.6.5</koloboke.version>
@@ -586,7 +586,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.5.1</version>
+          <version>2.5.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
