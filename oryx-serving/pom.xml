@@ -46,10 +46,7 @@
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda-serving</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-ml-oryx-serving</artifactId>
-    </dependency>
+    <!-- See app-tier profile below for more dependencies -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
@@ -99,5 +96,21 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>app-tier</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.cloudera.oryx</groupId>
+          <artifactId>oryx-ml-oryx-serving</artifactId>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>

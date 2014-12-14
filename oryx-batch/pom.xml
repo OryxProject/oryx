@@ -45,16 +45,7 @@
       <artifactId>oryx-ml</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-ml-mllib</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-ml-oryx</artifactId>
-      <scope>runtime</scope>
-    </dependency>
+    <!-- See app-tier profile below for more dependencies -->
   </dependencies>
 
   <build>
@@ -89,5 +80,26 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>app-tier</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.cloudera.oryx</groupId>
+          <artifactId>oryx-ml-mllib</artifactId>
+          <scope>runtime</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.cloudera.oryx</groupId>
+          <artifactId>oryx-ml-oryx</artifactId>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
