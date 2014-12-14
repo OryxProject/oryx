@@ -898,30 +898,6 @@
         <enabled>true</enabled>
       </releases>
     </repository>
-    <!--
-    <repository>
-      <id>oryx.repo</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
-      <name>Cloudera Repositories</name>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>oryx.snapshots.repo</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
-      <name>Cloudera Snapshots Repository</name>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>
-    -->
   </repositories>
   <pluginRepositories>
     <pluginRepository>
@@ -934,7 +910,6 @@
   </pluginRepositories>
 
   <distributionManagement>
-    <!--
     <repository>
       <id>oryx.repo</id>
       <url>https://repository.cloudera.com/artifactory/libs-release-local</url>
@@ -943,7 +918,6 @@
       <id>oryx.snapshots.repo</id>
       <url>https://repository.cloudera.com/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
-    -->
     <site>
       <id>oryx.website</id>
       <name>Oryx documentation</name>
@@ -953,25 +927,29 @@
 
   <profiles>
     <profile>
-      <id>java1.8</id>
+      <id>java8</id>
       <properties>
         <java.version>1.8</java.version>
       </properties>
     </profile>
     <profile>
-      <id>cdh5.3</id>
+      <id>cdh5</id>
       <repositories>
         <repository>
           <id>cloudera</id>
           <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
           <snapshots>
             <enabled>true</enabled>
           </snapshots>
         </repository>
       </repositories>
+      <!-- Latest version; can be overridden -->
       <properties>
-        <hadoop.version>2.5.0-cdh5.3.0-SNAPSHOT</hadoop.version>
-        <spark.version>1.2.0-cdh5.3.0-SNAPSHOT</spark.version>
+        <hadoop.version>2.5.0-cdh5.3.0</hadoop.version>
+        <spark.version>1.2.0-cdh5.3.0</spark.version>
       </properties>
     </profile>
     <!--
