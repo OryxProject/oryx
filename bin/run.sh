@@ -15,6 +15,12 @@
 
 # Usage: run.sh --layer-jar [Oryx .jar file] --conf [Oryx .conf file] --app-jar [user .jar file]
 
+function usageAndExit {
+  echo "Error: $1"
+  echo "usage: run.sh --layer-jar oryx-{serving,speed,batch}-x.y.z.jar --conf my.conf [--app-jar my-app.jar]"
+  exit 1
+}
+
 while (($#)); do
   if [ "$1" = "--layer-jar" ]; then
     LAYER_JAR=$2
@@ -27,20 +33,16 @@ while (($#)); do
 done
 
 if [ "${LAYER_JAR}" == "" ]; then
-  echo "No layer JAR specified"
-  exit 1
+  usageAndExit "No layer JAR specified"
 fi
 if [ "${CONFIG_FILE}" == "" ]; then
-  echo "No config file specified"
-  exit 1
+  usageAndExit "No config file specified"
 fi
 if [ ! -f "${LAYER_JAR}" ]; then
-  echo "Layer JAR does not exist"
-  exit 1
+  usageAndExit "Layer JAR does not exist"
 fi
 if [ ! -f "${CONFIG_FILE}" ]; then
-  echo "Config file does not exist"
-  exit 1
+  usageAndExit "Config file does not exist"
 fi
 
 LAYER=`echo ${LAYER_JAR} | grep -oE "oryx-[^-]+"`
@@ -70,8 +72,7 @@ case "${LAYER}" in
     MAIN_CLASS="com.cloudera.oryx.serving.Main"
     ;;
   *)
-    echo "Bad layer ${LAYER}"
-    exit 1
+    usageAndExit "Bad layer ${LAYER}"
     ;;
 esac
 
