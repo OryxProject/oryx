@@ -30,6 +30,7 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.JreMemoryLeakPreventionListener;
 import org.apache.catalina.core.ThreadLocalLeakPreventionListener;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
@@ -44,10 +45,20 @@ import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import javax.net.ssl.SSLContext;
+import javax.servlet.http.HttpServletResponse;
 
 public final class ServingLayer implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);
+
+  private static final int[] ERROR_PAGE_STATUSES = {
+      HttpServletResponse.SC_BAD_REQUEST,
+      HttpServletResponse.SC_UNAUTHORIZED,
+      HttpServletResponse.SC_NOT_FOUND,
+      HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+      HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+      HttpServletResponse.SC_SERVICE_UNAVAILABLE,
+  };
 
   private final Config config;
   private final int port;
@@ -88,7 +99,9 @@ public final class ServingLayer implements Closeable {
       contextPathString = "";
     }
     this.contextPathURIBase = contextPathString;
-    this.appResourcesPackages = config.getString("oryx.serving.application-resources");
+    this.appResourcesPackages =
+        config.getString("oryx.serving.application-resources") + "," +
+        "com.cloudera.oryx.lambda.serving"; // Always append package for e.g. error page
     // For tests only:
     this.doNotInitTopics = config.getBoolean("oryx.serving.no-init-topics");
   }
@@ -242,6 +255,8 @@ public final class ServingLayer implements Closeable {
     context.setWebappVersion("3.1");
     context.setName("Oryx");
 
+    addErrorPages(context);
+
     // OryxApplication only needs one config value, so just pass it
     context.addParameter(OryxApplication.class.getName() + ".packages", appResourcesPackages);
     // ModelManagerListener will need whole config
@@ -294,5 +309,19 @@ public final class ServingLayer implements Closeable {
 
     context.setCookies(false);
   }
+
+  private static void addErrorPages(Context context) {
+    for (int errorCode : ERROR_PAGE_STATUSES) {
+      ErrorPage errorPage = new ErrorPage();
+      errorPage.setErrorCode(errorCode);
+      errorPage.setLocation("/error");
+      context.addErrorPage(errorPage);
+    }
+    ErrorPage errorPage = new ErrorPage();
+    errorPage.setExceptionType(Throwable.class.getName());
+    errorPage.setLocation("/error");
+    context.addErrorPage(errorPage);
+  }
+
 }
 
