@@ -15,8 +15,10 @@
 
 package com.cloudera.oryx.ml.serving;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.servlet.ServletContext;
@@ -73,6 +75,10 @@ public abstract class AbstractOryxResource {
   protected static void checkExists(boolean condition,
                                     String entity) throws OryxServingException {
     check(condition, Response.Status.NOT_FOUND, entity);
+  }
+
+  protected static BufferedReader maybeBuffer(Reader reader) {
+    return reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
   }
 
   protected static InputStream maybeDecompress(String contentType,

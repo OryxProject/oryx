@@ -91,7 +91,7 @@ public final class Ingest extends AbstractALSResource {
   @POST
   @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON, CSVMessageBodyWriter.TEXT_CSV})
   public void post(Reader reader) throws IOException, OryxServingException {
-    doPost(reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader));
+    doPost(maybeBuffer(reader));
   }
 
   @POST

@@ -47,8 +47,7 @@ public final class Preference extends AbstractALSResource {
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,
       Reader reader) throws IOException, OryxServingException {
-    BufferedReader bufferedReader =
-        reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+    BufferedReader bufferedReader = maybeBuffer(reader);
     String line = bufferedReader.readLine();
     String value = validateAndStandardizeStrength(line);
     sendToTopic(userID, itemID, value);
