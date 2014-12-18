@@ -70,6 +70,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final String updateTopic;
   private final String updateTopicLockMaster;
   private final String modelManagerClassName;
+  private final int numExecutors;
+  private final int executorCores;
+  private final String executorMemoryString;
+  private final String driverMemoryString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final Class<? extends Decoder<?>> keyDecoderClass;
@@ -94,6 +98,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
+    this.numExecutors = config.getInt("oryx.speed.streaming.num-executors");
+    this.executorCores = config.getInt("oryx.speed.streaming.executor-cores");
+    this.executorMemoryString = config.getString("oryx.speed.streaming.executor-memory");
+    this.driverMemoryString = config.getString("oryx.speed.streaming.driver-memory");
     this.generationIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.speed.streaming.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
@@ -107,8 +115,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
     this.uiPort = config.getInt("oryx.speed.ui.port");
 
-    Preconditions.checkArgument(this.generationIntervalSec > 0);
-    Preconditions.checkArgument(this.blockIntervalSec > 0);
+    Preconditions.checkArgument(numExecutors >= 1);
+    Preconditions.checkArgument(executorCores >= 1);
+    Preconditions.checkArgument(generationIntervalSec > 0);
+    Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(uiPort > 0);
   }
 
@@ -119,7 +129,14 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     long blockIntervalMS = TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS);
 
     SparkConf sparkConf = new SparkConf();
+
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+
+    sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
+    sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
+    sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
+    sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
+
     String blockIntervalString = Long.toString(blockIntervalMS);
     sparkConf.setIfMissing("spark.streaming.blockInterval", blockIntervalString);
     // Turn this down to prevent long blocking at shutdown
@@ -127,6 +144,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
+
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
     long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);

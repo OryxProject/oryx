@@ -64,6 +64,10 @@ public final class BatchLayer<K,M,U> implements Closeable {
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
+  private final int numExecutors;
+  private final int executorCores;
+  private final String executorMemoryString;
+  private final String driverMemoryString;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int storagePartitions;
@@ -92,11 +96,19 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.updateClassName = config.getString("oryx.batch.update-class");
     this.dataDirString = config.getString("oryx.batch.storage.data-dir");
     this.modelDirString = config.getString("oryx.batch.storage.model-dir");
+    this.numExecutors = config.getInt("oryx.batch.streaming.num-executors");
+    this.executorCores = config.getInt("oryx.batch.streaming.executor-cores");
+    this.executorMemoryString = config.getString("oryx.batch.streaming.executor-memory");
+    this.driverMemoryString = config.getString("oryx.batch.streaming.driver-memory");
     this.generationIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.batch.streaming.block-interval-sec");
     this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
     this.uiPort = config.getInt("oryx.batch.ui.port");
 
+    Preconditions.checkArgument(!dataDirString.isEmpty());
+    Preconditions.checkArgument(!modelDirString.isEmpty());
+    Preconditions.checkArgument(numExecutors >= 1);
+    Preconditions.checkArgument(executorCores >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(storagePartitions > 0);
@@ -110,7 +122,14 @@ public final class BatchLayer<K,M,U> implements Closeable {
     long blockIntervalMS = TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS);
 
     SparkConf sparkConf = new SparkConf();
+
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+
+    sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
+    sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
+    sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
+    sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
+
     String blockIntervalString = Long.toString(blockIntervalMS);
     sparkConf.setIfMissing("spark.streaming.blockInterval", blockIntervalString);
     // Turn this down to prevent long blocking at shutdown
@@ -118,6 +137,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
+
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
     long batchDurationMS =
