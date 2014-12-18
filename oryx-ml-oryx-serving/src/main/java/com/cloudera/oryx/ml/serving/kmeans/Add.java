@@ -63,7 +63,7 @@ public final class Add extends AbstractKMeansResource {
   }
 
   @POST
-  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException {
     doPost(maybeBuffer(reader));
   }

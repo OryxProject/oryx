@@ -42,7 +42,7 @@ public final class Preference extends AbstractALSResource {
 
   @POST
   @Path("{userID}/{itemID}")
-  @Consumes({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+  @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,

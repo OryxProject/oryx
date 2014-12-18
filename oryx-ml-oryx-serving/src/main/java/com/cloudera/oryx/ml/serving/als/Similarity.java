@@ -53,7 +53,7 @@ public final class Similarity extends AbstractALSResource {
 
   @GET
   @Path("{itemID : .+}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("itemID") List<PathSegment> pathSegmentsList,
       @DefaultValue("10") @QueryParam("howMany") int howMany,

@@ -47,7 +47,7 @@ public final class EstimateForAnonymous extends AbstractALSResource {
 
   @GET
   @Path("{toItemID}/{itemID : .+}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Double get(
       @PathParam("toItemID") String toItemID,
       @PathParam("itemID") List<PathSegment> pathSegments) throws OryxServingException {

@@ -55,7 +55,7 @@ public final class MostSurprising extends AbstractALSResource {
 
   @GET
   @Path("{userID}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("userID") String userID,
       @DefaultValue("10") @QueryParam("howMany") int howMany,

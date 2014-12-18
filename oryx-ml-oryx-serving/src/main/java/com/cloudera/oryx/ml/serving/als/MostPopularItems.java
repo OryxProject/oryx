@@ -48,7 +48,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 public final class MostPopularItems extends AbstractALSResource {
 
   @GET
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
                            @DefaultValue("0") @QueryParam("offset") int offset) {
 

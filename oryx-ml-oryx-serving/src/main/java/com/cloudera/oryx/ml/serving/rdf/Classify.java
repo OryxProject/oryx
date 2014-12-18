@@ -35,7 +35,7 @@ public final class Classify extends AbstractRDFResource {
 
   @GET
   @Path("{datum}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Response get(@PathParam("datum") String datum) throws OryxServingException {
 
     check(datum != null && !datum.isEmpty(), "Input Data needed to classify");

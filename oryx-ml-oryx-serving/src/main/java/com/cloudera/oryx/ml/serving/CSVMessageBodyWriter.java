@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 
-@Produces("text/csv")
+@Produces({MediaType.TEXT_PLAIN, "text/csv"})
 public final class CSVMessageBodyWriter implements MessageBodyWriter<Object> {
 
   public static final String TEXT_CSV = "text/csv";
@@ -38,7 +38,7 @@ public final class CSVMessageBodyWriter implements MessageBodyWriter<Object> {
                              Type genericType,
                              Annotation[] annotations,
                              MediaType mediaType) {
-    return TEXT_CSV_TYPE.equals(mediaType);
+    return MediaType.TEXT_PLAIN_TYPE.equals(mediaType) || TEXT_CSV_TYPE.equals(mediaType);
   }
 
   @Override

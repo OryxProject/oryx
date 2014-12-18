@@ -53,7 +53,7 @@ public final class Because extends AbstractALSResource {
 
   @GET
   @Path("{userID}/{itemID}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,

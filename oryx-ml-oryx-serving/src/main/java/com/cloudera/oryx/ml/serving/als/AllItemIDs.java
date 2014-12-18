@@ -33,7 +33,7 @@ public final class AllItemIDs extends AbstractALSResource {
 
   @GET
   @Path("/allIDs")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Collection<String> get() {
     return getALSServingModel().getAllItemIDs();
   }

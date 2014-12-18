@@ -34,7 +34,7 @@ public final class DistanceToNearest extends AbstractKMeansResource {
 
   @GET
   @Path("{datum}")
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Response get(@PathParam("datum") String datum) throws OryxServingException {
 
     check(datum != null && !datum.isEmpty(), "Missing input data");

@@ -40,7 +40,7 @@ import com.cloudera.oryx.ml.serving.als.model.ALSServingModel;
 public final class PopularRepresentativeItems extends AbstractALSResource {
 
   @GET
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<String> get() {
     ALSServingModel model = getALSServingModel();
     int features = model.getFeatures();
