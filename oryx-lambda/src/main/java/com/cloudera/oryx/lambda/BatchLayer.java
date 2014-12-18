@@ -92,8 +92,8 @@ public final class BatchLayer<K,M,U> implements Closeable {
     this.updateClassName = config.getString("oryx.batch.update-class");
     this.dataDirString = config.getString("oryx.batch.storage.data-dir");
     this.modelDirString = config.getString("oryx.batch.storage.model-dir");
-    this.generationIntervalSec = config.getInt("oryx.batch.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("oryx.batch.block-interval-sec");
+    this.generationIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
+    this.blockIntervalSec = config.getInt("oryx.batch.streaming.block-interval-sec");
     this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
     this.uiPort = config.getInt("oryx.batch.ui.port");
 

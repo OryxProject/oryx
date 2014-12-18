@@ -49,8 +49,8 @@ public final class ALSModelContentIT extends AbstractALSIT {
     overlayConfig.put("oryx.batch.update-class", ALSUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", tempDir.resolve("data"));
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
-    overlayConfig.put("oryx.batch.generation-interval-sec", "10");
-    overlayConfig.put("oryx.batch.block-interval-sec", "1");
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", "10");
+    overlayConfig.put("oryx.batch.streaming.block-interval-sec", "1");
     overlayConfig.put("oryx.ml.eval.test-fraction", "0");
     overlayConfig.put("oryx.als.implicit", "false");
     overlayConfig.put("oryx.als.hyperparams.lambda", "0.0001");

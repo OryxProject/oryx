@@ -94,8 +94,8 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
-    this.generationIntervalSec = config.getInt("oryx.speed.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("oryx.speed.block-interval-sec");
+    this.generationIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
+    this.blockIntervalSec = config.getInt("oryx.speed.streaming.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
         config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(

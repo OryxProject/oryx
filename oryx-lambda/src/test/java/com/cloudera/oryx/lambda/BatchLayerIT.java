@@ -47,8 +47,10 @@ public final class BatchLayerIT extends AbstractBatchIT {
     overlayConfig.put("oryx.batch.update-class", MockBatchUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
-    overlayConfig.put("oryx.batch.generation-interval-sec", Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("oryx.batch.block-interval-sec", Integer.toString(BLOCK_INTERVAL_SEC));
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec",
+                      Integer.toString(GEN_INTERVAL_SEC));
+    overlayConfig.put("oryx.batch.streaming.block-interval-sec",
+                      Integer.toString(BLOCK_INTERVAL_SEC));
     overlayConfig.put("oryx.batch.storage.partitions", "2");
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
