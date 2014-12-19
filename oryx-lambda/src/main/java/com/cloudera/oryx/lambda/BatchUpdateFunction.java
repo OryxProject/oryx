@@ -82,6 +82,14 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   public Void call(JavaPairRDD<K,M> newData, Time timestamp)
       throws IOException, InterruptedException {
 
+    long count = newData.count();
+    if (count == 0) {
+      log.info("No data in current generation's RDD; nothing to do");
+      return null;
+    }
+
+    log.info("Beginning update with RDD of {} elements", count);
+
     Configuration hadoopConf = sparkContext.hadoopConfiguration();
 
     JavaPairRDD<K,M> pastData;
@@ -95,7 +103,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
 
     } else {
 
-      log.info("Found past data at path(s) like {} , ...", inputPathStatuses[0].getPath());
+      log.info("Found past data at path(s) like {}", inputPathStatuses[0].getPath());
       Configuration updatedConf = new Configuration(hadoopConf);
       updatedConf.set(FileInputFormat.INPUT_DIR, joinFSPaths(fs, inputPathStatuses));
 

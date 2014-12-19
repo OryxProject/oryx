@@ -142,9 +142,9 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setAppName("OryxBatchLayer");
     long batchDurationMS =
        TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-    streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
+    streamingContext = new JavaStreamingContext(new JavaSparkContext(sparkConf),
+                                                new Duration(batchDurationMS));
 
     log.info("Creating message stream from topic");
 
@@ -173,12 +173,15 @@ public final class BatchLayer<K,M,U> implements Closeable {
     @SuppressWarnings("unchecked")
     Class<? extends OutputFormat<?,?>> outputFormatClass =
         (Class<? extends OutputFormat<?,?>>) (Class<?>) SequenceFileOutputFormat.class;
-    writableDStream.saveAsNewAPIHadoopFiles(dataDirString + "/oryx",
-                                            "data",
-                                            keyWritableClass,
-                                            messageWritableClass,
-                                            outputFormatClass,
-                                            streamingContext.sparkContext().hadoopConfiguration());
+
+    // "Inline" saveAsNewAPIHadoopFiles to be able to skip saving empty RDDs
+    writableDStream.foreachRDD(
+        new SaveToHDFSFunction(dataDirString + "/oryx",
+                               "data",
+                               keyWritableClass,
+                               messageWritableClass,
+                               outputFormatClass,
+                               streamingContext.sparkContext().hadoopConfiguration()));
 
     log.info("Starting streaming");
 

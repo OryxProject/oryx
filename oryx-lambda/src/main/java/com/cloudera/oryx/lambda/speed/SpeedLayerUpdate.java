@@ -19,6 +19,8 @@ import java.io.IOException;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.TopicProducerImpl;
@@ -28,6 +30,8 @@ import com.cloudera.oryx.lambda.TopicProducerImpl;
  * a Kafka topic.
  */
 public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
+
+  private static final Logger log = LoggerFactory.getLogger(SpeedLayerUpdate.class);
 
   private final SpeedModelManager<K,M,U> modelManager;
   private final String updateBroker;
@@ -43,10 +47,16 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
 
   @Override
   public Void call(JavaPairRDD<K,M> newData) throws IOException {
-    try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
-      for (U update : modelManager.buildUpdates(newData)) {
-        producer.send("UP", update);
+    long count = newData.count();
+    if (count > 0) {
+      log.info("Beginning update with RDD of {} elements", count);
+      try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
+        for (U update : modelManager.buildUpdates(newData)) {
+          producer.send("UP", update);
+        }
       }
+    } else {
+      log.info("RDD was empty, not saving to HDFS");
     }
     return null;
   }

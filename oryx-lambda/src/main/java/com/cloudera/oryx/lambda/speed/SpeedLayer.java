@@ -148,9 +148,9 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxSpeedLayer");
     long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-    JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 
-    streamingContext = new JavaStreamingContext(sparkContext, new Duration(batchDurationMS));
+    streamingContext = new JavaStreamingContext(new JavaSparkContext(sparkConf),
+                                                new Duration(batchDurationMS));
 
     log.info("Creating message stream from topic");
 
