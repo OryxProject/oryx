@@ -17,7 +17,6 @@ package com.cloudera.oryx.ml.mllib.kmeans;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -39,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.common.fn.MLFunctions;
 import com.cloudera.oryx.ml.param.HyperParamRange;
@@ -47,7 +47,6 @@ import com.cloudera.oryx.ml.param.HyperParamRanges;
 public class KMeansUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdate.class);
-  private static final Pattern COMMA = Pattern.compile(",");
 
   private final String initializationStrategy;
   private final int maxIterations;
@@ -190,7 +189,7 @@ public class KMeansUpdate extends MLUpdate<String> {
    */
   // TODO: figure out how to regenerate a sparse vector from org.dmg.pmml.Array
   private static Vector toVectorFromPMMLArray(Array array) {
-    String[] values = COMMA.split(array.getValue());
+    String[] values = TextUtils.parseCSV(array.getValue());
     double[] doubles = new double[values.length];
     for (int i = 0; i < values.length; i++) {
       doubles[i] = Double.valueOf(values[i]);

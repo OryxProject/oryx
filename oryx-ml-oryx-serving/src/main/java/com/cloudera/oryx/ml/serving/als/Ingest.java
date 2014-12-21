@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
@@ -34,13 +33,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Splitter;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.ml.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.ml.serving.OryxServingException;
@@ -72,9 +71,6 @@ import com.cloudera.oryx.ml.serving.OryxServingException;
  */
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
-
-  // Use Splitter to handle blank trailing field, unlike Pattern
-  private static final Splitter COMMA = Splitter.on(',');
 
   private DiskFileItemFactory fileItemFactory;
 
@@ -113,16 +109,15 @@ public final class Ingest extends AbstractALSResource {
     TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
-      Iterator<String> tokens = COMMA.split(line).iterator();
-      check(tokens.hasNext(), line);
-      String userID = tokens.next();
-      check(tokens.hasNext(), line);
-      String itemID = tokens.next();
+      String[] tokens = TextUtils.parseCSV(line);
+      check(tokens.length >= 2, line);
+      String userID = tokens[0];
+      String itemID = tokens[1];
       String strength;
       long timestamp;
       // Has a strength?
-      if (tokens.hasNext()) {
-        String rawStrength = tokens.next();
+      if (tokens.length >= 3) {
+        String rawStrength = tokens[2];
         // Special case deletes:
         if (rawStrength.isEmpty()) {
           strength = "";
@@ -130,9 +125,9 @@ public final class Ingest extends AbstractALSResource {
           strength = Preference.validateAndStandardizeStrength(rawStrength);
         }
         // Has a timestamp?
-        if (tokens.hasNext()) {
+        if (tokens.length >= 4) {
           try {
-            timestamp = Long.parseLong(tokens.next());
+            timestamp = Long.parseLong(tokens[3]);
           } catch (NumberFormatException nfe) {
             throw new OryxServingException(Response.Status.BAD_REQUEST, nfe.getMessage());
           }

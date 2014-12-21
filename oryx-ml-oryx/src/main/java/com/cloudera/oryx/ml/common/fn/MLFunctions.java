@@ -17,11 +17,10 @@ package com.cloudera.oryx.ml.common.fn;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import org.apache.spark.api.java.function.Function;
 import scala.Tuple2;
+
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * Contains some reusable functions that are useful for ML-related apps from this project itself,
@@ -31,9 +30,6 @@ public final class MLFunctions {
 
   private MLFunctions() {}
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final Splitter COMMA = Splitter.on(',');
-
   /**
    * Parses a CSV or JSON array to String[]
    */
@@ -42,15 +38,13 @@ public final class MLFunctions {
         @Override
         public String[] call(String line) throws IOException {
           // Hacky, but effective way of differentiating simple CSV from JSON array
-          String[] result;
-          if (line.endsWith("]")) {
+          if (line.startsWith("[") && line.endsWith("]")) {
             // JSON
-            result = MAPPER.readValue(line, String[].class);
+            return TextUtils.parseJSONArray(line);
           } else {
             // CSV
-            result = Iterables.toArray(COMMA.split(line), String.class);
+            return TextUtils.parseCSV(line);
           }
-          return result;
         }
       };
 
