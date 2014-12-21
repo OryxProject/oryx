@@ -37,12 +37,12 @@ public final class HyperParamTuningIT extends AbstractALSIT {
 
   private static final Logger log = LoggerFactory.getLogger(HyperParamTuningIT.class);
 
-  private static final int DATA_TO_WRITE = 2000;
+  private static final int DATA_TO_WRITE = 10000;
   private static final int WRITE_INTERVAL_MSEC = 10;
   private static final int GEN_INTERVAL_SEC = 30;
   private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int TEST_FEATURES = 7;
-  private static final int TEST_ELEMENTS = 1000;
+  private static final int TEST_ELEMENTS = 100;
 
   @Test
   public void testALS() throws Exception {
