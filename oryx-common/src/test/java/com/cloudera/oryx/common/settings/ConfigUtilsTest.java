@@ -48,8 +48,13 @@ public final class ConfigUtilsTest extends OryxTest {
   }
 
   @Test
-  public void testOptional() {
+  public void testOptionalString() {
     assertNull(ConfigUtils.getOptionalString(ConfigUtils.getDefault(), "nonexistent"));
+  }
+
+  @Test
+  public void testOptionalStringList() {
+    assertNull(ConfigUtils.getOptionalStringList(ConfigUtils.getDefault(), "nonexistent"));
   }
 
   @Test

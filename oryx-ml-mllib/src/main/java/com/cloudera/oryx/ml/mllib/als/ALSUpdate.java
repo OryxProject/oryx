@@ -87,13 +87,11 @@ public final class ALSUpdate extends MLUpdate<String> {
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParams,
+                         List<Number> hyperParameters,
                          Path candidatePath) {
-    log.info("Building model with params {}", hyperParams);
-
-    int features = hyperParams.get(0).intValue();
-    double lambda = hyperParams.get(1).doubleValue();
-    double alpha = hyperParams.get(2).doubleValue();
+    int features = hyperParameters.get(0).intValue();
+    double lambda = hyperParameters.get(1).doubleValue();
+    double alpha = hyperParameters.get(2).doubleValue();
     Preconditions.checkArgument(features > 0);
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
@@ -117,7 +115,6 @@ public final class ALSUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
-    log.info("Evaluating model");
     JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(MLFunctions.PARSE_FN));
     testRatingData = aggregateScores(testRatingData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);

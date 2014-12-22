@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
@@ -71,6 +72,15 @@ public final class ConfigUtils {
    */
   public static String getOptionalString(Config config, String key) {
     return config.hasPath(key) ? config.getString(key) : null;
+  }
+
+  /**
+   * @param config configuration to query for value
+   * @param key configuration path key
+   * @return value for given key, or {@code null} if none exists
+   */
+  public static List<String> getOptionalStringList(Config config, String key) {
+    return config.hasPath(key) ? config.getStringList(key) : null;
   }
 
   /**

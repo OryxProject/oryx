@@ -323,6 +323,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
           if (testDataSize == 0) {
             log.info("No test data available to evaluate model");
           } else {
+            log.info("Evaluating model");
             double thisEval = evaluate(sparkContext, model, candidatePath, testData);
             eval = Double.isNaN(thisEval) ? null : thisEval;
           }

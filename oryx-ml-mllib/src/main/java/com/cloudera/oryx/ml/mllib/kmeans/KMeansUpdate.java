@@ -92,18 +92,16 @@ public class KMeansUpdate extends MLUpdate<String> {
   /**
    * @param sparkContext    active Spark Context
    * @param trainData       training data on which to build a model
-   * @param hyperParams ordered list of hyper parameter values to use in building model
+   * @param hyperParameters ordered list of hyper parameter values to use in building model
    * @param candidatePath   directory where additional model files can be written
-   * @return a {@link org.dmg.pmml.PMML} representation of a model trained on the given data
+   * @return a {@link PMML} representation of a model trained on the given data
    */
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParams,
+                         List<Number> hyperParameters,
                          Path candidatePath) {
-    log.info("Building model with params {}", hyperParams);
-
-    int numClusters = hyperParams.get(0).intValue();
+    int numClusters = hyperParameters.get(0).intValue();
     Preconditions.checkArgument(numClusters > 1);
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
@@ -131,9 +129,8 @@ public class KMeansUpdate extends MLUpdate<String> {
   }
 
   /**
-   * Returns a PMML representation of a KMeans cluster model
-   * @param model - {@link org.apache.spark.mllib.clustering.KMeansModel}
-   * @return {@link org.dmg.pmml.PMML}
+   * @param model {@link KMeansModel} to translate to PMML
+   * @return PMML representation of a KMeans cluster model
    */
   private static PMML kMeansModelToPMML(KMeansModel model) {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
@@ -151,9 +148,8 @@ public class KMeansUpdate extends MLUpdate<String> {
             .withNumberOfClusters(model.k());
 
     Vector[] clusterCenters = model.clusterCenters();
-    FieldName field;
     for (int i = 0; i < clusterCenters.length; i++) {
-      field = FieldName.create("field_" + i);
+      FieldName field = FieldName.create("field_" + i);
       dataDictionary.withDataFields(
           new DataField(field, OpType.CONTINUOUS, DataType.DOUBLE));
       miningSchema.withMiningFields(
@@ -169,9 +165,8 @@ public class KMeansUpdate extends MLUpdate<String> {
   }
 
   /**
-   * Retrieves {@link KMeansModel} from PMML
-   * @param pmml - PMML model to retrieve the original {@link KMeansModel} from
-   * @return {@link KMeansModel}
+   * @param pmml PMML model to retrieve the original {@link KMeansModel} from
+   * @return {@link KMeansModel} from PMML
    */
   private static KMeansModel pmmlToKMeansModel(PMML pmml) {
     ClusteringModel clusteringModel = (ClusteringModel) pmml.getModels().get(0);
@@ -201,7 +196,7 @@ public class KMeansUpdate extends MLUpdate<String> {
     String s = Arrays.toString(clusterCenter.toArray());
     return new Cluster()
         .withId(String.valueOf(clusterId))
-        .withName(("cluster_" + clusterId))
+        .withName("cluster_" + clusterId)
         .withArray(new Array()
             .withType(Array.Type.REAL)
             .withValue(s.substring(1, s.length() - 1))
@@ -209,9 +204,8 @@ public class KMeansUpdate extends MLUpdate<String> {
   }
 
   /**
-   * Retrieve a {@link org.apache.spark.mllib.linalg.Vector} from PMML
-   * @param array - {@link org.dmg.pmml.Array}
-   * @return {@link org.apache.spark.mllib.linalg.Vector}
+   * @param array PMML {@link Array} of values
+   * @return a {@link Vector} from PMML {@link Array}
    */
   private static Vector toVectorFromPMMLArray(Array array) {
     String[] values = TextUtils.parseCSV(array.getValue());
