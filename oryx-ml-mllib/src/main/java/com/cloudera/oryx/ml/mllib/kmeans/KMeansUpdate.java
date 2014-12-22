@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml.mllib.kmeans;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,8 +53,8 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.common.fn.MLFunctions;
-import com.cloudera.oryx.ml.param.HyperParamRange;
-import com.cloudera.oryx.ml.param.HyperParamRanges;
+import com.cloudera.oryx.ml.param.HyperParamValues;
+import com.cloudera.oryx.ml.param.HyperParams;
 
 public class KMeansUpdate extends MLUpdate<String> {
 
@@ -62,15 +63,16 @@ public class KMeansUpdate extends MLUpdate<String> {
   private final String initializationStrategy;
   private final int maxIterations;
   private final int numberOfRuns;
-  private final List<HyperParamRange> hyperParamRanges;
+  private final List<HyperParamValues<?>> hyperParamValues;
 
   protected KMeansUpdate(Config config) {
     super(config);
     initializationStrategy = config.getString("oryx.kmeans.initialization-strategy");
     numberOfRuns = config.getInt("oryx.kmeans.runs");
     maxIterations = config.getInt("oryx.kmeans.iterations");
-    hyperParamRanges = Arrays.asList(
-        HyperParamRanges.fromConfig(config, "oryx.kmeans.hyperparams.k"));
+
+    hyperParamValues = new ArrayList<>();
+    hyperParamValues.add(HyperParams.fromConfig(config, "oryx.kmeans.hyperparams.k"));
 
     Preconditions.checkArgument(maxIterations > 0);
     Preconditions.checkArgument(numberOfRuns > 0);
@@ -80,13 +82,13 @@ public class KMeansUpdate extends MLUpdate<String> {
   }
 
   /**
-   * @return a list of hyperparameter value ranges to try, one {@link HyperParamRange} per
+   * @return a list of hyperparameter value ranges to try, one {@link HyperParamValues} per
    *  hyperparameter. Different combinations of the values derived from the list will be
    *  passed back into {@link #buildModel(JavaSparkContext,JavaRDD,List,Path)}
    */
   @Override
-  public List<HyperParamRange> getHyperParameterRanges() {
-    return hyperParamRanges;
+  public List<HyperParamValues<?>> getHyperParameterValues() {
+    return hyperParamValues;
   }
 
   /**
@@ -99,9 +101,9 @@ public class KMeansUpdate extends MLUpdate<String> {
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParameters,
+                         List<?> hyperParameters,
                          Path candidatePath) {
-    int numClusters = hyperParameters.get(0).intValue();
+    int numClusters = (Integer) hyperParameters.get(0);
     Preconditions.checkArgument(numClusters > 1);
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));

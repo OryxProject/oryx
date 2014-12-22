@@ -15,10 +15,30 @@
 
 package com.cloudera.oryx.ml.param;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface HyperParamRange {
+import com.google.common.base.Preconditions;
 
-  List<Number> getTrialValues(int num);
+final class Unordered<T> implements HyperParamValues<T>, Serializable {
+
+  private final List<T> values;
+
+  Unordered(List<T> values) {
+    Preconditions.checkNotNull(values);
+    Preconditions.checkArgument(!values.isEmpty());
+    this.values = values;
+  }
+
+  @Override
+  public List<T> getTrialValues(int num) {
+    Preconditions.checkArgument(num > 0);
+    return num < values.size() ? values.subList(0, num) : values;
+  }
+
+  @Override
+  public String toString() {
+    return "Unordered[..." + getTrialValues(3) + "...]";
+  }
 
 }

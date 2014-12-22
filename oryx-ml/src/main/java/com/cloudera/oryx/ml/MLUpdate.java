@@ -50,8 +50,8 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.BatchLayerUpdate;
 import com.cloudera.oryx.lambda.TopicProducer;
-import com.cloudera.oryx.ml.param.HyperParamRange;
-import com.cloudera.oryx.ml.param.HyperParamRanges;
+import com.cloudera.oryx.ml.param.HyperParamValues;
+import com.cloudera.oryx.ml.param.HyperParams;
 
 /**
  * A specialization of {@link BatchLayerUpdate} for machine learning-oriented
@@ -85,11 +85,11 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   }
 
   /**
-   * @return a list of hyperparameter value ranges to try, one {@link HyperParamRange} per
+   * @return a list of hyperparameter value ranges to try, one {@link HyperParamValues} per
    *  hyperparameter. Different combinations of the values derived from the list will be
    *  passed back into {@link #buildModel(JavaSparkContext,JavaRDD,List,Path)}
    */
-  public List<HyperParamRange> getHyperParameterRanges() {
+  public List<HyperParamValues<?>> getHyperParameterValues() {
     return Collections.emptyList();
   }
 
@@ -102,7 +102,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
    */
   public abstract PMML buildModel(JavaSparkContext sparkContext,
                                   JavaRDD<M> trainData,
-                                  List<Number> hyperParameters,
+                                  List<?> hyperParameters,
                                   Path candidatePath);
 
   /**
@@ -152,12 +152,12 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> newData = newKeyMessageData.values();
     JavaRDD<M> pastData = pastKeyMessageData == null ? null : pastKeyMessageData.values();
 
-    List<HyperParamRange> hyperParamRanges = getHyperParameterRanges();
-    int valuesPerHyperParam = chooseValuesPerHyperParam(hyperParamRanges.size());
-    List<List<Number>> hyperParameterCombos =
-        HyperParamRanges.chooseHyperParameterCombos(hyperParamRanges,
-                                                    candidates,
-                                                    valuesPerHyperParam);
+    List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
+    int valuesPerHyperParam = chooseValuesPerHyperParam(hyperParamValues.size());
+    List<List<?>> hyperParameterCombos =
+        HyperParams.chooseHyperParameterCombos(hyperParamValues,
+                                               candidates,
+                                               valuesPerHyperParam);
 
     FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
 
@@ -215,7 +215,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   private Path findBestCandidatePath(JavaSparkContext sparkContext,
                                      JavaRDD<M> newData,
                                      JavaRDD<M> pastData,
-                                     List<List<Number>> hyperParameterCombos,
+                                     List<List<?>> hyperParameterCombos,
                                      Path candidatesPath) throws InterruptedException, IOException {
     Map<Path,Double> pathToEval = new HashMap<>(candidates);
     if (evalParallelism > 1) {
@@ -270,14 +270,14 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   final class BuildAndEvalWorker implements Callable<Tuple2<Path,Double>> {
 
     private final int i;
-    private final List<List<Number>> hyperParameterCombos;
+    private final List<List<?>> hyperParameterCombos;
     private final JavaSparkContext sparkContext;
     private final JavaRDD<M> newData;
     private final JavaRDD<M> pastData;
     private final Path candidatesPath;
 
     BuildAndEvalWorker(int i,
-                       List<List<Number>> hyperParameterCombos,
+                       List<List<?>> hyperParameterCombos,
                        JavaSparkContext sparkContext,
                        JavaRDD<M> newData,
                        JavaRDD<M> pastData,
@@ -293,7 +293,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     @Override
     public Tuple2<Path,Double> call() throws IOException {
       // % = cycle through combinations if needed
-      List<Number> hyperParameters = hyperParameterCombos.get(i % hyperParameterCombos.size());
+      List<?> hyperParameters = hyperParameterCombos.get(i % hyperParameterCombos.size());
       Path candidatePath = new Path(candidatesPath, Integer.toString(i));
       log.info("Building candidate {} with params {}", i, hyperParameters);
 

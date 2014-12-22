@@ -49,8 +49,8 @@ import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.common.fn.MLFunctions;
-import com.cloudera.oryx.ml.param.HyperParamRange;
-import com.cloudera.oryx.ml.param.HyperParamRanges;
+import com.cloudera.oryx.ml.param.HyperParamValues;
+import com.cloudera.oryx.ml.param.HyperParams;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
@@ -64,7 +64,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private final int iterations;
   private final boolean implicit;
-  private final List<HyperParamRange> hyperParamRanges;
+  private final List<HyperParamValues<?>> hyperParamValues;
   private final boolean noKnownItems;
 
   public ALSUpdate(Config config) {
@@ -72,26 +72,26 @@ public final class ALSUpdate extends MLUpdate<String> {
     iterations = config.getInt("oryx.als.iterations");
     implicit = config.getBoolean("oryx.als.implicit");
     Preconditions.checkArgument(iterations > 0);
-    hyperParamRanges = Arrays.asList(
-        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.features"),
-        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.lambda"),
-        HyperParamRanges.fromConfig(config, "oryx.als.hyperparams.alpha"));
+    hyperParamValues = Arrays.asList(
+        HyperParams.fromConfig(config, "oryx.als.hyperparams.features"),
+        HyperParams.fromConfig(config, "oryx.als.hyperparams.lambda"),
+        HyperParams.fromConfig(config, "oryx.als.hyperparams.alpha"));
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
   }
 
   @Override
-  public List<HyperParamRange> getHyperParameterRanges() {
-    return hyperParamRanges;
+  public List<HyperParamValues<?>> getHyperParameterValues() {
+    return hyperParamValues;
   }
 
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParameters,
+                         List<?> hyperParameters,
                          Path candidatePath) {
-    int features = hyperParameters.get(0).intValue();
-    double lambda = hyperParameters.get(1).doubleValue();
-    double alpha = hyperParameters.get(2).doubleValue();
+    int features = (Integer) hyperParameters.get(0);
+    double lambda = (Double) hyperParameters.get(1);
+    double alpha = (Double) hyperParameters.get(2);
     Preconditions.checkArgument(features > 0);
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);

@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-final class ContinuousRange implements HyperParamRange, Serializable {
+final class ContinuousRange implements HyperParamValues<Double>, Serializable {
 
   private final double min;
   private final double max;
@@ -35,25 +35,30 @@ final class ContinuousRange implements HyperParamRange, Serializable {
   }
 
   @Override
-  public List<Number> getTrialValues(int num) {
+  public List<Double> getTrialValues(int num) {
     Preconditions.checkArgument(num > 0);
     if (max == min) {
-      return Collections.<Number>singletonList(min);
+      return Collections.singletonList(min);
     }
     if (num == 1) {
-      return Collections.<Number>singletonList((max + min) / 2.0);
+      return Collections.singletonList((max + min) / 2.0);
     }
     if (num == 2) {
-      return Arrays.<Number>asList(min, max);
+      return Arrays.asList(min, max);
     }
-    List<Number> values = new ArrayList<>(num);
+    List<Double> values = new ArrayList<>(num);
     double diff = (max - min) / (num - 1.0);
     values.add(min);
     for (int i = 1; i < num - 1; i++) {
-      values.add(values.get(i - 1).doubleValue() + diff);
+      values.add(values.get(i - 1) + diff);
     }
     values.add(max);
     return values;
+  }
+
+  @Override
+  public String toString() {
+    return "ContinuousRange[..." + getTrialValues(3) + "...]";
   }
 
 }

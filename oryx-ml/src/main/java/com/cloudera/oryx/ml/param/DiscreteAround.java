@@ -22,30 +22,35 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-final class DiscreteAroundRange implements HyperParamRange, Serializable {
+final class DiscreteAround implements HyperParamValues<Integer>, Serializable {
 
   private final int around;
   private final int step;
 
-  DiscreteAroundRange(int around, int step) {
+  DiscreteAround(int around, int step) {
     Preconditions.checkArgument(step > 0);
     this.around = around;
     this.step = step;
   }
 
   @Override
-  public List<Number> getTrialValues(int num) {
+  public List<Integer> getTrialValues(int num) {
     Preconditions.checkArgument(num > 0);
     if (num == 1) {
-      return Collections.<Number>singletonList(around);
+      return Collections.singletonList(around);
     }
-    List<Number> values = new ArrayList<>(num);
+    List<Integer> values = new ArrayList<>(num);
     int value = around - ((num - 1) * step / 2);
     for (int i = 0; i < num; i++) {
       values.add(value);
       value += step;
     }
     return values;
+  }
+
+  @Override
+  public String toString() {
+    return "DiscreteAround[..." + getTrialValues(3) + "...]";
   }
 
 }

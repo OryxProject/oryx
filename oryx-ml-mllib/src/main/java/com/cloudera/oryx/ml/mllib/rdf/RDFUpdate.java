@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.common.fn.MLFunctions;
-import com.cloudera.oryx.ml.param.HyperParamRange;
-import com.cloudera.oryx.ml.param.HyperParamRanges;
+import com.cloudera.oryx.ml.param.HyperParamValues;
+import com.cloudera.oryx.ml.param.HyperParams;
 import com.cloudera.oryx.ml.schema.InputSchema;
 
 public final class RDFUpdate extends MLUpdate<String> {
@@ -41,7 +41,7 @@ public final class RDFUpdate extends MLUpdate<String> {
   private static final Logger log = LoggerFactory.getLogger(RDFUpdate.class);
 
   private final int numTrees;
-  private final List<HyperParamRange> hyperParamRanges;
+  private final List<HyperParamValues<?>> hyperParamValueses;
   private final InputSchema inputSchema;
 
 
@@ -49,25 +49,25 @@ public final class RDFUpdate extends MLUpdate<String> {
     super(config);
     numTrees = config.getInt("oryx.rdf.hyperparams.num-trees");
     Preconditions.checkArgument(numTrees >= 1);
-    hyperParamRanges = Arrays.asList(
-        HyperParamRanges.fromConfig(config, "oryx.rdf.hyperparams.max-split-candidates"),
-        HyperParamRanges.fromConfig(config, "oryx.rdf.hyperparams.max-depth"));
+    hyperParamValueses = Arrays.asList(
+        HyperParams.fromConfig(config, "oryx.rdf.hyperparams.max-split-candidates"),
+        HyperParams.fromConfig(config, "oryx.rdf.hyperparams.max-depth"));
 
     inputSchema = new InputSchema(config);
   }
 
   @Override
-  public List<HyperParamRange> getHyperParameterRanges() {
-    return hyperParamRanges;
+  public List<HyperParamValues<?>> getHyperParameterValues() {
+    return hyperParamValueses;
   }
 
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParameters,
+                         List<?> hyperParameters,
                          Path candidatePath) {
-    int maxSplitCandidates = hyperParameters.get(0).intValue();
-    int maxDepth = hyperParameters.get(0).intValue();
+    int maxSplitCandidates = (Integer) hyperParameters.get(0);
+    int maxDepth = (Integer) hyperParameters.get(1);
     Preconditions.checkArgument(maxSplitCandidates > 0);
     Preconditions.checkArgument(maxDepth > 0);
 

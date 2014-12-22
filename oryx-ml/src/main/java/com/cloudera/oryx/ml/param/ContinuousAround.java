@@ -22,24 +22,24 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-final class ContinuousAroundRange implements HyperParamRange, Serializable {
+final class ContinuousAround implements HyperParamValues<Double>, Serializable {
 
   private final double around;
   private final double step;
 
-  ContinuousAroundRange(double around, double step) {
+  ContinuousAround(double around, double step) {
     Preconditions.checkArgument(step > 0.0);
     this.around = around;
     this.step = step;
   }
 
   @Override
-  public List<Number> getTrialValues(int num) {
+  public List<Double> getTrialValues(int num) {
     Preconditions.checkArgument(num > 0);
     if (num == 1) {
-      return Collections.<Number>singletonList(around);
+      return Collections.singletonList(around);
     }
-    List<Number> values = new ArrayList<>(num);
+    List<Double> values = new ArrayList<>(num);
     double value = around - ((num - 1.0) / 2.0) * step;
     for (int i = 0; i < num; i++) {
       values.add(value);
@@ -50,6 +50,11 @@ final class ContinuousAroundRange implements HyperParamRange, Serializable {
       values.set(num / 2, around);
     }
     return values;
+  }
+
+  @Override
+  public String toString() {
+    return "ContinuousAround[..." + getTrialValues(3) + "...]";
   }
 
 }

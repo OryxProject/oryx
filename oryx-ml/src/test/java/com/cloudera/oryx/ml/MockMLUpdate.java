@@ -50,7 +50,7 @@ public final class MockMLUpdate extends MLUpdate<String> {
   @Override
   public PMML buildModel(JavaSparkContext sparkContext,
                          JavaRDD<String> trainData,
-                         List<Number> hyperParameters,
+                         List<?> hyperParameters,
                          Path candidatePath) {
     // If lists are unequal at this point, there must have been an empty test set
     // which yielded no call to evaluate(). Fill in the blank

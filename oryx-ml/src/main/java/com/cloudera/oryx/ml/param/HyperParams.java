@@ -26,62 +26,66 @@ import org.apache.commons.math3.random.RandomDataGenerator;
 
 import com.cloudera.oryx.common.random.RandomManager;
 
-public final class HyperParamRanges {
+public final class HyperParams {
 
   private static final int MAX_COMBOS = 65536;
 
-  private HyperParamRanges() {}
+  private HyperParams() {}
 
-  public static HyperParamRange fixed(double fixedValue) {
+  public static HyperParamValues<Double> fixed(double fixedValue) {
     return new ContinuousRange(fixedValue, fixedValue);
   }
 
-  public static HyperParamRange range(double min, double max) {
+  public static HyperParamValues<Double> range(double min, double max) {
     return new ContinuousRange(min, max);
   }
 
-  public static HyperParamRange around(double value, double step) {
-    return new ContinuousAroundRange(value, step);
+  public static HyperParamValues<Double> around(double value, double step) {
+    return new ContinuousAround(value, step);
   }
 
-  public static HyperParamRange fixed(int fixedValue) {
+  public static HyperParamValues<Integer> fixed(int fixedValue) {
     return new DiscreteRange(fixedValue, fixedValue);
   }
 
-  public static HyperParamRange range(int min, int max) {
+  public static HyperParamValues<Integer> range(int min, int max) {
     return new DiscreteRange(min, max);
   }
 
-  public static HyperParamRange around(int value, int step) {
-    return new DiscreteAroundRange(value, step);
+  public static HyperParamValues<Integer> around(int value, int step) {
+    return new DiscreteAround(value, step);
+  }
+
+  public static <T> HyperParamValues<T> unordered(List<T> values) {
+    return new Unordered<>(values);
   }
 
   /**
    * @param config application configuration
    * @param key config key to access
-   * @return a {@link HyperParamRange} appropriate to the value. If an {@code int} or
+   * @return a {@link HyperParamValues} appropriate to the value. If an {@code int} or
    *  {@code double}, returns {@link #fixed(int)} or {@link #fixed(double)} respectively.
    *  If a {@code List<int>} or {@code List<double>}, returns {@link #range(int,int)} or
    *  {@link #range(double,double)} respectively.
    */
-  public static HyperParamRange fromConfig(Config config, String key) {
+  public static HyperParamValues<?> fromConfig(Config config, String key) {
     switch (config.getValue(key).valueType()) {
       case LIST:
-        List<String> minMax = config.getStringList(key);
+        List<String> stringValues = config.getStringList(key);
         // Have to distinguish int and double manually
         try {
-          return range(Integer.parseInt(minMax.get(0)),
-                       Integer.parseInt(minMax.get(1)));
+          return range(Integer.parseInt(stringValues.get(0)),
+                       Integer.parseInt(stringValues.get(1)));
         } catch (NumberFormatException nfe) {
           // continue
         }
         try {
-          return range(Double.parseDouble(minMax.get(0)),
-                       Double.parseDouble(minMax.get(1)));
+          return range(Double.parseDouble(stringValues.get(0)),
+                       Double.parseDouble(stringValues.get(1)));
         } catch (NumberFormatException nfe) {
           // continue
         }
-        break;
+        return unordered(stringValues);
       case STRING:
       case NUMBER:
         // Have to distinguish int and double manually
@@ -96,7 +100,7 @@ public final class HyperParamRanges {
         } catch (NumberFormatException nfe) {
           // continue
         }
-        break;
+        return unordered(Collections.singletonList(stringValue));
     }
     throw new IllegalArgumentException("No valid parameter range for key " + key);
   }
@@ -112,31 +116,32 @@ public final class HyperParamRanges {
    *  subset of all combinations are returned. The order is shuffled randomly. If no parameters
    *  are specified or {@code perParam} is 0, a single empty combination is returned.
    */
-  public static List<List<Number>> chooseHyperParameterCombos(Collection<HyperParamRange> ranges,
-                                                              int howMany,
-                                                              int perParam) {
+  public static List<List<?>> chooseHyperParameterCombos(
+      Collection<HyperParamValues<?>> ranges,
+      int howMany,
+      int perParam) {
     Preconditions.checkArgument(howMany > 0);
     Preconditions.checkArgument(perParam >= 0);
 
     int numParams = ranges.size();
     if (numParams == 0 || perParam == 0) {
-      return Collections.singletonList(Collections.<Number>emptyList());
+      return Collections.<List<?>>singletonList(Collections.emptyList());
     }
 
     // Put some reasonable upper limit on the number of combos
     Preconditions.checkArgument(Math.pow(perParam, numParams) <= MAX_COMBOS);
 
     int howManyCombos = 1;
-    List<List<Number>> paramRanges = new ArrayList<>(numParams);
-    for (HyperParamRange range : ranges) {
-      List<Number> values = range.getTrialValues(perParam);
+    List<List<?>> paramRanges = new ArrayList<>(numParams);
+    for (HyperParamValues<?> range : ranges) {
+      List<?> values = range.getTrialValues(perParam);
       paramRanges.add(values);
       howManyCombos *= values.size();
     }
 
-    List<List<Number>> allCombinations = new ArrayList<>(howManyCombos);
+    List<List<?>> allCombinations = new ArrayList<>(howManyCombos);
     for (int combo = 0; combo < howManyCombos; combo++) {
-      List<Number> combination = new ArrayList<>(numParams);
+      List<Object> combination = new ArrayList<>(numParams);
       for (int param = 0; param < numParams; param++) {
         int whichValueToTry = combo;
         for (int i = 0; i < param; i++) {
@@ -154,7 +159,7 @@ public final class HyperParamRanges {
     }
     RandomDataGenerator rdg = new RandomDataGenerator(RandomManager.getRandom());
     int[] indices = rdg.nextPermutation(howManyCombos, howMany);
-    List<List<Number>> result = new ArrayList<>(indices.length);
+    List<List<?>> result = new ArrayList<>(indices.length);
     for (int i = 0; i < indices.length; i++) {
       result.add(allCombinations.get(i));
     }

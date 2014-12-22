@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-final class DiscreteRange implements HyperParamRange, Serializable {
+final class DiscreteRange implements HyperParamValues<Integer>, Serializable {
 
   private final int min;
   private final int max;
@@ -35,18 +35,18 @@ final class DiscreteRange implements HyperParamRange, Serializable {
   }
 
   @Override
-  public List<Number> getTrialValues(int num) {
+  public List<Integer> getTrialValues(int num) {
     Preconditions.checkArgument(num > 0);
     if (max == min) {
-      return Collections.<Number>singletonList(min);
+      return Collections.singletonList(min);
     }
     if (num == 1) {
-      return Collections.<Number>singletonList((max + min) / 2);
+      return Collections.singletonList((max + min) / 2);
     }
     if (num == 2) {
-      return Arrays.<Number>asList(min, max);
+      return Arrays.asList(min, max);
     }
-    List<Number> values;
+    List<Integer> values;
     if (num > (max - min)) {
       values = new ArrayList<>(max - min + 1);
       for (int i = min; i <= max; i++) {
@@ -57,11 +57,16 @@ final class DiscreteRange implements HyperParamRange, Serializable {
       double diff = (max - min) / (num - 1.0);
       values.add(min);
       for (int i = 1; i < num - 1; i++) {
-        values.add((int) Math.round(values.get(i-1).intValue() + diff));
+        values.add((int) Math.round(values.get(i-1) + diff));
       }
       values.add(max);
     }
     return values;
+  }
+
+  @Override
+  public String toString() {
+    return "DiscreteRange[..." + getTrialValues(3) + "...]";
   }
 
 }
