@@ -40,13 +40,15 @@ public final class TextUtils {
    * @return delimited strings, parsed according to RFC 4180
    */
   public static String[] parseCSV(String csv) {
-    Iterator<CSVRecord> records;
-    try {
-      records = CSVParser.parse(csv, CSV_FORMAT).iterator();
-    } catch (IOException e) {
-      throw new IllegalStateException(e); // Can't happen
+    Iterator<CSVRecord> records = null;
+    if (csv != null) {
+      try {
+				records = CSVParser.parse(csv, CSV_FORMAT).iterator();
+			} catch (IOException e) {
+				throw new IllegalStateException(e); // Can't happen
+			}
     }
-    if (records.hasNext()) {
+    if (records != null && records.hasNext()) {
       return Iterators.toArray(records.next().iterator(), String.class);
     } else {
       return EMPTY_STRING;
@@ -59,7 +61,11 @@ public final class TextUtils {
    * @throws IOException if JSON parsing fails
    */
   public static String[] parseJSONArray(String json) throws IOException {
-    return MAPPER.readValue(json, String[].class);
+    if (json != null) {
+      return MAPPER.readValue(json, String[].class);
+    } else {
+      return EMPTY_STRING;
+    }
   }
 
 }
