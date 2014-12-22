@@ -81,7 +81,7 @@ public final class ConfigUtilsTest extends OryxTest {
     // Spot checks:
     assertTrue(pretty.contains("oryx {"));
     assertTrue(pretty.contains("batch {"));
-    assertTrue(pretty.contains("block-interval-sec=60"));
+    assertTrue(pretty.contains("master=yarn-client"));
   }
 
 }
