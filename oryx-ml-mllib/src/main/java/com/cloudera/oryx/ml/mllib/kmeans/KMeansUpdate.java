@@ -30,8 +30,19 @@ import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.dmg.pmml.Array;
 import org.dmg.pmml.Cluster;
+import org.dmg.pmml.ClusteringField;
 import org.dmg.pmml.ClusteringModel;
+import org.dmg.pmml.CompareFunctionType;
 import org.dmg.pmml.ComparisonMeasure;
+import org.dmg.pmml.DataDictionary;
+import org.dmg.pmml.DataField;
+import org.dmg.pmml.DataType;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.FieldUsageType;
+import org.dmg.pmml.MiningField;
+import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningSchema;
+import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
 import org.slf4j.Logger;
@@ -126,18 +137,34 @@ public class KMeansUpdate extends MLUpdate<String> {
    */
   private static PMML kMeansModelToPMML(KMeansModel model) {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    ClusteringModel clusteringModel = new ClusteringModel();
-    clusteringModel.setAlgorithmName("K-Means||");
-    clusteringModel.setComparisonMeasure(
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()));
-    clusteringModel.setNumberOfClusters(model.k());
+    DataDictionary dataDictionary = new DataDictionary();
+    MiningSchema miningSchema = new MiningSchema();
+
+    ClusteringModel clusteringModel =
+        new ClusteringModel(miningSchema,
+            new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+            MiningFunctionType.CLUSTERING,
+            ClusteringModel.ModelClass.CENTER_BASED,
+            model.clusterCenters().length)
+            .withModelName("Oryx KMeans")
+            .withAlgorithmName("K-Means||")
+            .withNumberOfClusters(model.k());
 
     Vector[] clusterCenters = model.clusterCenters();
+    FieldName field;
     for (int i = 0; i < clusterCenters.length; i++) {
-      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i));
+      field = FieldName.create("field_" + i);
+      dataDictionary.withDataFields(
+          new DataField(field, OpType.CONTINUOUS, DataType.DOUBLE));
+      miningSchema.withMiningFields(
+          new MiningField(field).withUsageType(FieldUsageType.ACTIVE));
+      clusteringModel.withClusteringFields(
+          new ClusteringField(field).withCompareFunction(CompareFunctionType.ABS_DIFF));
+      clusteringModel.withClusters(toCluster(clusterCenters[i], i));
     }
-    // TODO: Add MiningSchema, Dictionary, Clustering Fields, Transformations to the PMML
-    pmml.getModels().add(clusteringModel);
+
+    pmml.setDataDictionary(dataDictionary);
+    pmml.withModels(clusteringModel);
     return pmml;
   }
 
@@ -159,27 +186,26 @@ public class KMeansUpdate extends MLUpdate<String> {
 
   private static JavaRDD<Vector> parsedToVectorRDD(JavaRDD<String[]> parsedRDD) {
     return parsedRDD.map(new Function<String[], Vector>() {
-        @Override
-        public Vector call(String[] tokens) {
-          double[] values = new double[tokens.length];
-          for (int i = 0; i < tokens.length; i++) {
-            values[i] = Double.parseDouble(tokens[i]);
-          }
-          return Vectors.dense(values);
+      @Override
+      public Vector call(String[] tokens) {
+        double[] values = new double[tokens.length];
+        for (int i = 0; i < tokens.length; i++) {
+          values[i] = Double.parseDouble(tokens[i]);
         }
+        return Vectors.dense(values);
+      }
     });
   }
 
-  private static Cluster toCluster(Vector center, int clusterId) {
-    Cluster cluster = new Cluster();
-    cluster.setId(String.valueOf(clusterId));
-    String s = Arrays.toString(center.toArray());
-    // Strip the beginning '[' and end ']'
-    Array array = new Array(s.substring(1, s.length() - 1), Array.Type.REAL);
-    // TODO: figure out how to set this when its a sparse vector
-    array.setN(center.size());
-    cluster.setArray(array);
-    return cluster;
+  private static Cluster toCluster(Vector clusterCenter, int clusterId) {
+    String s = Arrays.toString(clusterCenter.toArray());
+    return new Cluster()
+        .withId(String.valueOf(clusterId))
+        .withName(("cluster_" + clusterId))
+        .withArray(new Array()
+            .withType(Array.Type.REAL)
+            .withValue(s.substring(1, s.length() - 1))
+            .withN(clusterCenter.size()));
   }
 
   /**
@@ -187,7 +213,6 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @param array - {@link org.dmg.pmml.Array}
    * @return {@link org.apache.spark.mllib.linalg.Vector}
    */
-  // TODO: figure out how to regenerate a sparse vector from org.dmg.pmml.Array
   private static Vector toVectorFromPMMLArray(Array array) {
     String[] values = TextUtils.parseCSV(array.getValue());
     double[] doubles = new double[values.length];
