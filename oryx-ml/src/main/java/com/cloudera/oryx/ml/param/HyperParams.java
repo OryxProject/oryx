@@ -16,6 +16,7 @@
 package com.cloudera.oryx.ml.param;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +57,12 @@ public final class HyperParams {
     return new DiscreteAround(value, step);
   }
 
-  public static <T> HyperParamValues<T> unordered(List<T> values) {
+  @SafeVarargs
+  public static <T> HyperParamValues<T> unorderedFromValues(T... values) {
+    return new Unordered<>(Arrays.asList(values));
+  }
+
+  public static <T> HyperParamValues<T> unorderedFromCollection(Collection<T> values) {
     return new Unordered<>(values);
   }
 
@@ -85,7 +91,7 @@ public final class HyperParams {
         } catch (NumberFormatException nfe) {
           // continue
         }
-        return unordered(stringValues);
+        return unorderedFromCollection(stringValues);
       case STRING:
       case NUMBER:
         // Have to distinguish int and double manually
@@ -100,7 +106,7 @@ public final class HyperParams {
         } catch (NumberFormatException nfe) {
           // continue
         }
-        return unordered(Collections.singletonList(stringValue));
+        return unorderedFromCollection(Collections.singletonList(stringValue));
     }
     throw new IllegalArgumentException("No valid parameter range for key " + key);
   }

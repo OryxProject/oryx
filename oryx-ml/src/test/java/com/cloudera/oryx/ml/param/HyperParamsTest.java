@@ -29,7 +29,7 @@ import org.junit.Test;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
-public final class HyperParamValuesTest extends OryxTest {
+public final class HyperParamsTest extends OryxTest {
 
   @Test
   public void testFixedContinuous() {
@@ -103,6 +103,13 @@ public final class HyperParamValuesTest extends OryxTest {
            -8, 2);
     doTest(HyperParams.around(-3, 10), 3,
            -13, -3, 7);
+  }
+
+  @Test
+  public void testUnordered() {
+    doTest(HyperParams.unorderedFromValues("foo", "bar"), 1, "foo");
+    doTest(HyperParams.unorderedFromValues("foo", "bar"), 2, "foo", "bar");
+    doTest(HyperParams.unorderedFromValues("foo", "bar"), 3, "foo", "bar");
   }
 
   @Test

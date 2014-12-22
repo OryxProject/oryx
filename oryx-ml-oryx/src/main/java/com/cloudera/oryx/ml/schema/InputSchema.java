@@ -131,8 +131,16 @@ public final class InputSchema implements Serializable {
     return targetFeature != null && targetFeature.equals(featureName);
   }
 
+  public String getTargetFeature() {
+    return targetFeature;
+  }
+
   public boolean isTarget(int featureIndex) {
     return isTarget(featureNames.get(featureIndex));
+  }
+
+  public boolean isClassification() {
+    return isCategorical(featureNames.indexOf(targetFeature));
   }
 
   @Override
