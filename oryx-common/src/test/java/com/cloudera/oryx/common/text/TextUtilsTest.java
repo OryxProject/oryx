@@ -32,6 +32,7 @@ public final class TextUtilsTest extends OryxTest {
                       TextUtils.parseJSONArray("[\"a\",\"1\",\"foo\",\"\"]"));
     assertArrayEquals(new String[] {"2.3"}, TextUtils.parseJSONArray("[\"2.3\"]"));
     assertArrayEquals(new String[] {}, TextUtils.parseJSONArray("[]"));
+    assertArrayEquals(new String[] {""}, TextUtils.parseJSONArray(null));
   }
 
   @Test
@@ -41,6 +42,7 @@ public final class TextUtilsTest extends OryxTest {
     assertArrayEquals(new String[] {"2.3"}, TextUtils.parseCSV("2.3"));
     // Different from JSON, sort of:
     assertArrayEquals(new String[] {""}, TextUtils.parseCSV(""));
+    assertArrayEquals(new String[] {""}, TextUtils.parseCSV(null));
   }
 
 }
