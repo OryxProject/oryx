@@ -26,26 +26,26 @@ public final class MLFunctionsTest extends OryxTest {
 
   @Test
   public void testParseJSON() throws Exception {
-    assertArrayEquals(new String[] {"a", "1", "foo"},
+    assertArrayEquals(new String[]{"a", "1", "foo"},
                       MLFunctions.PARSE_FN.call("[\"a\",\"1\",\"foo\"]"));
-    assertArrayEquals(new String[] {"a", "1", "foo", ""},
+    assertArrayEquals(new String[]{"a", "1", "foo", ""},
                       MLFunctions.PARSE_FN.call("[\"a\",\"1\",\"foo\",\"\"]"));
-    assertArrayEquals(new String[] {"2.3"},
+    assertArrayEquals(new String[]{"2.3"},
                       MLFunctions.PARSE_FN.call("[\"2.3\"]"));
-    assertArrayEquals(new String[] {},
+    assertArrayEquals(new String[]{},
                       MLFunctions.PARSE_FN.call("[]"));
   }
 
   @Test
   public void testParseCSV() throws Exception {
-    assertArrayEquals(new String[] {"a", "1", "foo"},
+    assertArrayEquals(new String[]{"a", "1", "foo"},
                       MLFunctions.PARSE_FN.call("a,1,foo"));
-    assertArrayEquals(new String[] {"a", "1", "foo", ""},
+    assertArrayEquals(new String[]{"a", "1", "foo", ""},
                       MLFunctions.PARSE_FN.call("a,1,foo,"));
-    assertArrayEquals(new String[] {"2.3"},
+    assertArrayEquals(new String[]{"2.3"},
                       MLFunctions.PARSE_FN.call("2.3"));
     // Different from JSON, sort of:
-    assertArrayEquals(new String[] {""},
+    assertArrayEquals(new String[]{""},
                       MLFunctions.PARSE_FN.call(""));
   }
 
@@ -54,8 +54,7 @@ public final class MLFunctionsTest extends OryxTest {
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("a,b,c,123").longValue());
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("a,b,c,123,").longValue());
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("[\"a\",\"b\",\"c\",123]").longValue());
-    assertEquals(123L,
-                 MLFunctions.TO_TIMESTAMP_FN.call("[\"a\",\"b\",\"c\",123,\"d\"]").longValue());
+    assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("[\"a\",\"b\",\"c\",123,\"d\"]").longValue());
   }
 
   @Test
@@ -66,10 +65,9 @@ public final class MLFunctionsTest extends OryxTest {
 
   @Test
   public void testSumWithNaN() throws Exception {
-    assertEquals(1.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0)).doubleValue());
-    assertEquals(6.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, 3.0)).doubleValue());
-    assertEquals(3.0,
-                 MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, Double.NaN, 3.0)).doubleValue());
+    OryxTest.assertEquals(1.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0)).doubleValue());
+    OryxTest.assertEquals(6.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, 3.0)).doubleValue());
+    OryxTest.assertEquals(3.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, Double.NaN, 3.0)).doubleValue());
     assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, Double.NaN))));
     assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(Double.NaN))));
   }

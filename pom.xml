@@ -57,6 +57,32 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-ml</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-app-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-app-mllib</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-app</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-app-serving</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-common</artifactId>
         <version>${project.version}</version>
         <classifier>tests</classifier>
@@ -82,26 +108,6 @@
         <version>${project.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-ml</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-app-mllib</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-app</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-app-serving</artifactId>
-        <version>${project.version}</version>
       </dependency>
 
       <dependency>
@@ -408,6 +414,7 @@
     <module>oryx-lambda</module>
     <module>oryx-lambda-serving</module>
     <module>oryx-ml</module>
+    <module>oryx-app-common</module>
     <module>oryx-app-mllib</module>
     <module>oryx-app</module>
     <module>oryx-app-serving</module>

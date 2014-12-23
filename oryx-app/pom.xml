@@ -41,6 +41,10 @@
       <artifactId>oryx-ml</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-app-common</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.minor.version}</artifactId>
     </dependency>

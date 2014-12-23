@@ -24,29 +24,20 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>oryx-app-mllib</artifactId>
+  <artifactId>oryx-app-common</artifactId>
   <packaging>jar</packaging>
-  <name>Apps: Spark MLlib</name>
-  <description>Speed and batch components of machine learning applications built on
-  Spark MLlib</description>
+  <name>Apps: Common</name>
+  <description>Common code supporting all layers of apps in this project</description>
   <version>2.0.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-ml</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-app-common</artifactId>
+      <artifactId>oryx-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-mllib_${scala.minor.version}</artifactId>
+      <artifactId>spark-core_${scala.minor.version}</artifactId>
     </dependency>
 
     <dependency>
@@ -55,46 +46,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-streaming_${scala.minor.version}</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>oryx-lambda</artifactId>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>kafka-util</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>zk-util</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>
