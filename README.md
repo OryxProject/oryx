@@ -32,7 +32,7 @@ specific to machine learning
 1. An end-to-end implementation of the same standard ML algorithms as an application
 ([ALS](labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf), 
 [random decision forests](http://en.wikipedia.org/wiki/Random_forest), 
-[k-means++](http://en.wikipedia.org/wiki/K-means_clustering)) on top
+[k-means](http://en.wikipedia.org/wiki/K-means_clustering)) on top
 
 The lambda architecture tier is most fundamental, and itself has three standard components and
 one connecting component:
@@ -53,20 +53,23 @@ Availability
 
 |          | *Serving*        | *Speed*          | *Batch*          |
 | --------:| ---------------- | ---------------- | ---------------- |
-| *ML app* | alpha (ALS only) | alpha (ALS only) | alpha (ALS only) |
+| *App*    | alpha (ALS only) | alpha (ALS only) | alpha (ALS only) |
 | *ML*     | alpha            | alpha            | alpha            |
 | *Lambda* | alpha            | alpha            | alpha            |
 
 Module Mapping
 --------------
 
+Major modules and their relation to tiers and layers:
+
 |                   | *Serving*               | *Speed*                         | *Batch*                         |
 | -----------------:| ----------------------- | ------------------------------- | ------------------------------- |
 | *Packaged binary* | `oryx-serving`          | `oryx-speed`                    | `oryx-batch`                    |
-| *ML app*          | `oryx-ml-oryx-serving`  | `oryx-ml-mllib`, `oryx-ml-oryx` | `oryx-ml-mllib`, `oryx-ml-oryx` |
+| *App*             | `oryx-app-serving`      | `oryx-app-mllib`, `oryx-app`    | `oryx-app-mllib`, `oryx-app`    |
 | *ML*              |                         | `oryx-ml`                       | `oryx-ml`                       |
 | *Lambda*          | `oryx-lambda-serving`   | `oryx-lambda`                   | `oryx-lambda`                   |
 
+Supporting modules like `oryx-common`, `oryx-app-common` are not shown.
 
 Lambda Tier Implementation
 ==========================
@@ -113,9 +116,9 @@ by providing a command line argument which specifies a config file to load (eg -
 Usage and Deployment
 --------------------
 
-The application will be written in Java, using Spark 1.x, 
-[Hadoop](http://hadoop.apache.org/) 2.4.x+, [Tomcat](http://tomcat.apache.org/) 8.x, 
-Kafka 0.8.x, [Zookeeper](http://zookeeper.apache.org/), etc. Configuration will again 
+The application will be written in Java, using Spark 1.2.x+, 
+[Hadoop](http://hadoop.apache.org/) 2.5.x+, [Tomcat](http://tomcat.apache.org/) 8.x+, 
+Kafka 0.8.x+, [Zookeeper](http://zookeeper.apache.org/), etc. Configuration will again 
 use a single [Typesafe Config](https://github.com/typesafehub/config) config file, wherein 
 applications configure an entire deployment of the system. This includes implementations of 
 key interface classes which implement the batch, speed, and serving logic. Applications will 
@@ -144,14 +147,14 @@ This implementation will consist of the core model build in Spark, an in-memory
 model update function adapted from existing code, and a port of REST APIs from the existing 
 implementation.
 
-Similarly for k-means++ and random decision forests, as before.
+Similarly for k-means and random decision forests, as before.
 
 
 Contributors
 ------------
 
-- Sean Owen (Cloudera)
-- Suneel Marthi and Kam Kasravi (Intel)
+- [Sean Owen](https://github.com/srowen) (Cloudera)
+- [Suneel Marthi](https://github.com/smarthi) and [Kam Kasravi](https://github.com/kkasravi) (Intel)
 
 [![Build Status](https://travis-ci.org/OryxProject/oryx.png?branch=master)](https://travis-ci.org/OryxProject/oryx)
 [![codecov.io](https://codecov.io/github/OryxProject/oryx/coverage.svg?branch=master)](https://codecov.io/github/OryxProject/oryx?branch=master)

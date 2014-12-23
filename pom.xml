@@ -78,7 +78,7 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-ml-oryx</artifactId>
+        <artifactId>oryx-app</artifactId>
         <version>${project.version}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
@@ -90,17 +90,17 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-ml-mllib</artifactId>
+        <artifactId>oryx-app-mllib</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-ml-oryx</artifactId>
+        <artifactId>oryx-app</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
-        <artifactId>oryx-ml-oryx-serving</artifactId>
+        <artifactId>oryx-app-serving</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -408,9 +408,9 @@
     <module>oryx-lambda</module>
     <module>oryx-lambda-serving</module>
     <module>oryx-ml</module>
-    <module>oryx-ml-mllib</module>
-    <module>oryx-ml-oryx</module>
-    <module>oryx-ml-oryx-serving</module>
+    <module>oryx-app-mllib</module>
+    <module>oryx-app</module>
+    <module>oryx-app-serving</module>
     <module>oryx-batch</module>
     <module>oryx-speed</module>
     <module>oryx-serving</module>

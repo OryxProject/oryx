@@ -111,7 +111,7 @@
       <dependencies>
         <dependency>
           <groupId>com.cloudera.oryx</groupId>
-          <artifactId>oryx-ml-oryx-serving</artifactId>
+          <artifactId>oryx-app-serving</artifactId>
           <scope>runtime</scope>
         </dependency>
       </dependencies>

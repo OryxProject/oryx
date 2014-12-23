@@ -90,12 +90,12 @@
       <dependencies>
         <dependency>
           <groupId>com.cloudera.oryx</groupId>
-          <artifactId>oryx-ml-mllib</artifactId>
+          <artifactId>oryx-app-mllib</artifactId>
           <scope>runtime</scope>
         </dependency>
         <dependency>
           <groupId>com.cloudera.oryx</groupId>
-          <artifactId>oryx-ml-oryx</artifactId>
+          <artifactId>oryx-app</artifactId>
           <scope>runtime</scope>
         </dependency>
       </dependencies>
