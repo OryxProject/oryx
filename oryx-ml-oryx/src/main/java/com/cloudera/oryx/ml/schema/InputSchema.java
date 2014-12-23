@@ -135,12 +135,18 @@ public final class InputSchema implements Serializable {
     return targetFeature;
   }
 
+  public int getTargetFeatureIndex() {
+    int index = featureNames.indexOf(targetFeature);
+    Preconditions.checkArgument(index >= 0);
+    return index;
+  }
+
   public boolean isTarget(int featureIndex) {
     return isTarget(featureNames.get(featureIndex));
   }
 
   public boolean isClassification() {
-    return isCategorical(featureNames.indexOf(targetFeature));
+    return isCategorical(getTargetFeatureIndex());
   }
 
   @Override
