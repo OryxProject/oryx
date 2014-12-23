@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -92,8 +93,8 @@ public final class ALSModelContentIT extends AbstractALSIT {
       } else { // "MODEL"
 
         PMML pmml = PMMLUtils.fromString(value);
-        modelUsers = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-        modelItems = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+        modelUsers = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+        modelItems = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
 
       }
 

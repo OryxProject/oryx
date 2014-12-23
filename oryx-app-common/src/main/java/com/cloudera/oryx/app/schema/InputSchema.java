@@ -39,6 +39,7 @@ public final class InputSchema implements Serializable {
   private final Collection<String> numericFeatures;
   private final Collection<String> categoricalFeatures;
   private final String targetFeature;
+  private final int targetFeatureIndex;
 
   public InputSchema(Config config) {
     List<String> givenFeatureNames = config.getStringList("oryx.input-schema.feature-names");
@@ -53,6 +54,9 @@ public final class InputSchema implements Serializable {
     } else {
       featureNames = ImmutableList.copyOf(givenFeatureNames);
     }
+
+    Preconditions.checkArgument(new HashSet<>(featureNames).size() == featureNames.size(),
+                                "Feature names must be unique: %s", featureNames);
 
     idFeatures = ImmutableSet.copyOf(config.getStringList("oryx.input-schema.id-features"));
     Preconditions.checkArgument(featureNames.containsAll(idFeatures));
@@ -85,6 +89,8 @@ public final class InputSchema implements Serializable {
     }
 
     targetFeature = ConfigUtils.getOptionalString(config, "oryx.input-schema.target-feature");
+    Preconditions.checkArgument(targetFeature == null || activeFeatures.contains(targetFeature));
+    targetFeatureIndex = targetFeature == null ? -1 : featureNames.indexOf(targetFeature);
   }
 
   public List<String> getFeatureNames() {
@@ -123,12 +129,16 @@ public final class InputSchema implements Serializable {
     return categoricalFeatures.contains(featureName);
   }
 
-  public boolean isCategorical(int featureIndex) {
-    return isCategorical(featureNames.get(featureIndex));
+  public boolean isTarget(String featureName) {
+    return featureName.equals(targetFeature);
   }
 
-  public boolean isTarget(String featureName) {
-    return targetFeature != null && targetFeature.equals(featureName);
+  public boolean isTarget(int featureIndex) {
+    return targetFeatureIndex == featureIndex;
+  }
+
+  public boolean isCategorical(int featureIndex) {
+    return isCategorical(featureNames.get(featureIndex));
   }
 
   public String getTargetFeature() {
@@ -136,17 +146,16 @@ public final class InputSchema implements Serializable {
   }
 
   public int getTargetFeatureIndex() {
-    int index = featureNames.indexOf(targetFeature);
-    Preconditions.checkArgument(index >= 0);
-    return index;
+    Preconditions.checkState(targetFeatureIndex >= 0);
+    return targetFeatureIndex;
   }
 
-  public boolean isTarget(int featureIndex) {
-    return isTarget(featureNames.get(featureIndex));
+  public boolean hasTarget() {
+    return targetFeature != null;
   }
 
   public boolean isClassification() {
-    return isCategorical(getTargetFeatureIndex());
+    return isCategorical(targetFeature);
   }
 
   @Override

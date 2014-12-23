@@ -19,13 +19,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.lambda.AbstractBatchIT;
 
 public abstract class AbstractALSIT extends AbstractBatchIT {
 
   static Collection<Integer> parseIDsFromContent(List<?> content) {
-    List<String> values = PMMLUtils.parseArray(content);
+    List<String> values = AppPMMLUtils.parseArray(content);
     Collection<Integer> result = new HashSet<>(values.size());
     for (String s : values) {
       result.add(Integer.valueOf(s));

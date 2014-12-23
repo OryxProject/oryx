@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.mllib.rdf;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,9 +25,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
@@ -37,26 +41,48 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.mllib.tree.RandomForest;
+import org.apache.spark.mllib.tree.configuration.Algo;
+import org.apache.spark.mllib.tree.configuration.FeatureType;
+import org.apache.spark.mllib.tree.model.DecisionTreeModel;
+import org.apache.spark.mllib.tree.model.Predict;
 import org.apache.spark.mllib.tree.model.RandomForestModel;
+import org.apache.spark.mllib.tree.model.Split;
+import org.dmg.pmml.Array;
+import org.dmg.pmml.DataDictionary;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningModel;
+import org.dmg.pmml.MissingValueStrategyType;
+import org.dmg.pmml.Model;
+import org.dmg.pmml.MultipleModelMethodType;
+import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dmg.pmml.Predicate;
+import org.dmg.pmml.ScoreDistribution;
+import org.dmg.pmml.Segment;
+import org.dmg.pmml.Segmentation;
+import org.dmg.pmml.SimplePredicate;
+import org.dmg.pmml.SimpleSetPredicate;
+import org.dmg.pmml.TreeModel;
+import org.dmg.pmml.True;
+import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
 public final class RDFUpdate extends MLUpdate<String> {
 
-  private static final Logger log = LoggerFactory.getLogger(RDFUpdate.class);
-
   private final int numTrees;
   private final List<HyperParamValues<?>> hyperParamValues;
   private final InputSchema inputSchema;
-
 
   public RDFUpdate(Config config) {
     super(config);
@@ -68,7 +94,7 @@ public final class RDFUpdate extends MLUpdate<String> {
         HyperParams.fromConfig(config, "oryx.rdf.hyperparams.impurity"));
 
     inputSchema = new InputSchema(config);
-    Preconditions.checkNotNull(inputSchema.getTargetFeature());
+    Preconditions.checkArgument(inputSchema.hasTarget());
   }
 
   @Override
@@ -89,11 +115,11 @@ public final class RDFUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(maxDepth > 0);
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
-    Map<Integer,Map<String,Double>> distinctValueMaps = getDistinctValueMap(parsedRDD);
+    Map<Integer,BiMap<String,Double>> distinctValueMaps = getDistinctValueMap(parsedRDD);
     JavaRDD<LabeledPoint> trainPointData = parsedToRatingRDD(parsedRDD, distinctValueMaps);
 
     Map<Integer,Integer> categoryInfo = new HashMap<>();
-    for (Map.Entry<Integer,Map<String,Double>> e : distinctValueMaps.entrySet()) {
+    for (Map.Entry<Integer,BiMap<String,Double>> e : distinctValueMaps.entrySet()) {
       categoryInfo.put(e.getKey(), e.getValue().size());
     }
 
@@ -121,11 +147,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                                           maxSplitCandidates,
                                           seed);
     }
-    // TODO
-
-
-
-    return null;
+    return rdfModelToPMML(model, distinctValueMaps);
   }
 
   @Override
@@ -136,9 +158,9 @@ public final class RDFUpdate extends MLUpdate<String> {
     return 0;
   }
 
-  private Map<Integer,Map<String,Double>> getDistinctValueMap(JavaRDD<String[]> parsedRDD) {
+  private Map<Integer,BiMap<String,Double>> getDistinctValueMap(JavaRDD<String[]> parsedRDD) {
     Map<Integer,Set<String>> distinctValues = getDistinctValues(parsedRDD);
-    Map<Integer,Map<String,Double>> distinctValueMaps = new HashMap<>(distinctValues.size());
+    Map<Integer,BiMap<String,Double>> distinctValueMaps = new HashMap<>(distinctValues.size());
     for (Map.Entry<Integer,Set<String>> e : distinctValues.entrySet()) {
       distinctValueMaps.put(e.getKey(), mapDistinctValues(e.getValue()));
     }
@@ -184,10 +206,10 @@ public final class RDFUpdate extends MLUpdate<String> {
         });
   }
 
-  private static <T extends Comparable<T>> Map<T,Double> mapDistinctValues(Collection<T> distinct) {
+  private static <T extends Comparable<T>> BiMap<T,Double> mapDistinctValues(Collection<T> distinct) {
     List<T> sortedDistinct = new ArrayList<>(distinct);
     Collections.sort(sortedDistinct);
-    Map<T,Double> mapping = new HashMap<>();
+    BiMap<T,Double> mapping = HashBiMap.create();
     for (int i = 0; i < sortedDistinct.size(); i++) {
       mapping.put(sortedDistinct.get(i), (double) i);
     }
@@ -197,7 +219,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private JavaRDD<LabeledPoint> parsedToRatingRDD(
       JavaRDD<String[]> parsedRDD,
-      final Map<Integer,Map<String,Double>> distinctValueMaps) {
+      final Map<Integer,BiMap<String,Double>> distinctValueMaps) {
 
     return parsedRDD.map(new Function<String[],LabeledPoint>() {
       @Override
@@ -226,6 +248,173 @@ public final class RDFUpdate extends MLUpdate<String> {
     });
   }
 
+  private PMML rdfModelToPMML(RandomForestModel rfModel,
+                              Map<Integer,BiMap<String,Double>> distinctValueMaps) {
 
+    boolean classificationTask = rfModel.algo().equals(Algo.Classification());
+    Preconditions.checkState(classificationTask == inputSchema.isClassification());
+
+    DecisionTreeModel[] trees = rfModel.trees();
+
+    Model model;
+    if (trees.length == 1) {
+      model = toTreeModel(trees[0], distinctValueMaps);
+    } else {
+      MiningModel miningModel = new MiningModel();
+      model = miningModel;
+      // MLlib doesn't support confidences, otherwise these could be WEIGHTED_...
+      MultipleModelMethodType multipleModelMethodType = classificationTask ?
+          MultipleModelMethodType.MAJORITY_VOTE :
+          MultipleModelMethodType.AVERAGE;
+      Segmentation segmentation = new Segmentation(multipleModelMethodType);
+      miningModel.setSegmentation(segmentation);
+      for (int treeID = 0; treeID < trees.length; treeID++) {
+        TreeModel treeModel = toTreeModel(trees[treeID], distinctValueMaps);
+        Segment segment = new Segment();
+        segment.setId(Integer.toString(treeID));
+        segment.setPredicate(new True());
+        segment.setModel(treeModel);
+        //segment.setWeight(1.0); // No weights in MLlib impl now
+        segmentation.getSegments().add(segment);
+        treeID++;
+      }
+    }
+
+    model.setFunctionName(classificationTask ?
+                          MiningFunctionType.CLASSIFICATION :
+                          MiningFunctionType.REGRESSION);
+    model.setMiningSchema(AppPMMLUtils.buildMiningSchema(inputSchema));
+    DataDictionary dictionary = AppPMMLUtils.buildDataDictionary(inputSchema, distinctValueMaps);
+
+    PMML pmml = PMMLUtils.buildSkeletonPMML();
+    pmml.setDataDictionary(dictionary);
+    pmml.getModels().add(model);
+    return pmml;
+  }
+
+  private TreeModel toTreeModel(DecisionTreeModel dtModel,
+                                Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+
+    List<String> featureNames = inputSchema.getFeatureNames();
+    boolean classificationTask = dtModel.algo().equals(Algo.Classification());
+    Preconditions.checkState(classificationTask == inputSchema.isClassification());
+
+    Map<Double,String> targetEncodingToValue =
+        distinctValueMaps.get(inputSchema.getTargetFeatureIndex()).inverse();
+
+    Node root = new Node();
+    root.setId("r");
+
+    Queue<Node> modelNodes = new ArrayDeque<>();
+    modelNodes.add(root);
+
+    Queue<Pair<org.apache.spark.mllib.tree.model.Node,Split>> treeNodes = new ArrayDeque<>();
+    treeNodes.add(new Pair<>(dtModel.topNode(), (Split) null));
+
+    while (!treeNodes.isEmpty()) {
+
+      Pair<org.apache.spark.mllib.tree.model.Node,Split> treeNodePredicate = treeNodes.remove();
+      Node modelNode = modelNodes.remove();
+
+      // This is the decision that got us here from the parent, if any;
+      // not the predicate at this node
+      Predicate predicate = buildPredicate(treeNodePredicate.getSecond(),
+                                           featureNames,
+                                           distinctValueMaps);
+      modelNode.setPredicate(predicate);
+
+      org.apache.spark.mllib.tree.model.Node treeNode = treeNodePredicate.getFirst();
+      if (treeNode.isLeaf()) { // Hacky conversion from Scala
+
+        // modelNode.setRecordCount(...); // Unsupported in MLlib
+        Predict prediction = treeNode.predict();
+        double targetEncodedValue = prediction.predict();
+        if (classificationTask) {
+          String predictedCategoricalValue = targetEncodingToValue.get(targetEncodedValue);
+          double confidence = prediction.prob();
+          // Not really correct to pass confidence as record count but it's required
+          // and we have nothing else
+          ScoreDistribution distribution =
+              new ScoreDistribution(predictedCategoricalValue, confidence);
+          distribution.setConfidence(confidence);
+          modelNode.getScoreDistributions().add(distribution);
+        } else {
+          modelNode.setScore(Double.toString(targetEncodedValue));
+        }
+
+      } else {
+
+        Split split = treeNode.split().get();
+
+        Node positiveModelNode = new Node();
+        positiveModelNode.setId(modelNode.getId() + '+');
+        modelNode.getNodes().add(positiveModelNode);
+        Node negativeModelNode = new Node();
+        negativeModelNode.setId(modelNode.getId() + '-');
+        modelNode.getNodes().add(negativeModelNode);
+        // Unsupported in MLlib
+        //modelNode.setDefaultChild(
+        //  decision.getDefaultDecision() ? positiveModelNode.getId() : negativeModelNode.getId());
+
+        // Right node is "positive", so carries the predicate. It must evaluate first
+        // and therefore come first in the tree
+        modelNodes.add(positiveModelNode);
+        modelNodes.add(negativeModelNode);
+        treeNodes.add(new Pair<>(treeNode.rightNode().get(), split));
+        treeNodes.add(new Pair<>(treeNode.leftNode().get(), (Split) null));
+
+      }
+
+    }
+
+    TreeModel treeModel = new TreeModel();
+    treeModel.setNode(root);
+    treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
+    // Unsupported in MLlib
+    // treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
+    treeModel.setMissingValueStrategy(MissingValueStrategyType.NONE);
+    return treeModel;
+  }
+
+  private static Predicate buildPredicate(Split split,
+                                          List<String> featureNames,
+                                          Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+    if (split == null) {
+      // Left child always applies, but is evaluated second
+      return new True();
+    }
+
+    int featureIndex = split.feature();
+    FieldName fieldName = new FieldName(featureNames.get(featureIndex));
+
+    if (split.featureType().equals(FeatureType.Categorical())) {
+      // Note that categories in MLlib model select the *left* child but the
+      // convention here will be that the predicate selects the *right* child
+      // So the predicate will evaluate "not in" this set
+      // More ugly casting
+      @SuppressWarnings("unchecked")
+      List<Double> javaCategories = (List<Double>) (List<?>)
+          JavaConversions.seqAsJavaList(split.categories());
+      Set<Double> negativeEncodings = new HashSet<>(javaCategories);
+
+      Map<Double,String> encodingToValue = distinctValueMaps.get(featureIndex).inverse();
+      List<String> negativeValues = new ArrayList<>();
+      for (Double negativeEncoding : negativeEncodings) {
+        negativeValues.add(encodingToValue.get(negativeEncoding));
+      }
+
+      String joinedValues = TextUtils.joinDelimited(negativeValues, ' ');
+      return new SimpleSetPredicate(new Array(joinedValues, Array.Type.STRING),
+                                    fieldName,
+                                    SimpleSetPredicate.BooleanOperator.IS_NOT_IN);
+
+    } else {
+      // For MLlib, left means <= threshold, so right means >
+      SimplePredicate numericPredicate =
+          new SimplePredicate(fieldName, SimplePredicate.Operator.GREATER_THAN);
+      numericPredicate.setValue(Double.toString(split.threshold()));
+      return numericPredicate;
+    }
+  }
 
 }

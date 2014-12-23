@@ -61,6 +61,7 @@ public final class InputSchemaTest extends OryxTest {
       assertFalse(schema.isTarget(i));
       assertFalse(schema.isTarget(schema.getFeatureNames().get(i)));
     }
+    assertFalse(schema.hasTarget());
     assertNull(schema.getTargetFeature());
   }
 
@@ -96,7 +97,9 @@ public final class InputSchemaTest extends OryxTest {
       assertEquals(i == 1, schema.isTarget(i));
       assertEquals(i == 1, schema.isTarget(schema.getFeatureNames().get(i)));
     }
+    assertTrue(schema.hasTarget());
     assertEquals("bar", schema.getTargetFeature());
+    assertEquals(1, schema.getTargetFeatureIndex());
   }
 
 }

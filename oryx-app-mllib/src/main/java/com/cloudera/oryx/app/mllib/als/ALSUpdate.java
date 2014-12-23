@@ -45,6 +45,7 @@ import scala.Tuple2;
 import scala.reflect.ClassTag$;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
@@ -154,7 +155,7 @@ public final class ALSUpdate extends MLUpdate<String> {
         (pastData == null ? newData : newData.union(pastData)).map(MLFunctions.PARSE_FN);
 
     log.info("Sending user / X data as model updates");
-    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
+    String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
     JavaPairRDD<Integer,double[]> userRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
 
@@ -168,7 +169,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     }
 
     log.info("Sending item / Y data as model updates");
-    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
+    String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
     JavaPairRDD<Integer,double[]> productRDD =
         fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
 
@@ -282,13 +283,13 @@ public final class ALSUpdate extends MLUpdate<String> {
     saveFeaturesRDD(model.productFeatures(), new Path(candidatePath, "Y"));
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    PMMLUtils.addExtension(pmml, "X", "X/");
-    PMMLUtils.addExtension(pmml, "Y", "Y/");
-    PMMLUtils.addExtension(pmml, "features", Integer.toString(features));
-    PMMLUtils.addExtension(pmml, "lambda", Double.toString(lambda));
-    PMMLUtils.addExtension(pmml, "implicit", Boolean.toString(implicit));
+    AppPMMLUtils.addExtension(pmml, "X", "X/");
+    AppPMMLUtils.addExtension(pmml, "Y", "Y/");
+    AppPMMLUtils.addExtension(pmml, "features", Integer.toString(features));
+    AppPMMLUtils.addExtension(pmml, "lambda", Double.toString(lambda));
+    AppPMMLUtils.addExtension(pmml, "implicit", Boolean.toString(implicit));
     if (implicit) {
-      PMMLUtils.addExtension(pmml, "alpha", Double.toString(alpha));
+      AppPMMLUtils.addExtension(pmml, "alpha", Double.toString(alpha));
     }
     addIDsExtension(pmml, "XIDs", model.userFeatures());
     addIDsExtension(pmml, "YIDs", model.productFeatures());
@@ -299,7 +300,7 @@ public final class ALSUpdate extends MLUpdate<String> {
                                       String key,
                                       RDD<Tuple2<Object,double[]>> features) {
     List<String> ids = fromRDD(features).keys().map(Functions.toStringValue()).collect();
-    PMMLUtils.addExtensionContent(pmml, key, ids);
+    AppPMMLUtils.addExtensionContent(pmml, key, ids);
   }
 
   private static void saveFeaturesRDD(RDD<Tuple2<Object,double[]>> features, Path path) {
@@ -317,8 +318,8 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static MatrixFactorizationModel pmmlToMFModel(JavaSparkContext sparkContext,
                                                         PMML pmml,
                                                         Path modelParentPath) {
-    String xPathString = PMMLUtils.getExtensionValue(pmml, "X");
-    String yPathString = PMMLUtils.getExtensionValue(pmml, "Y");
+    String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
+    String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
 
     RDD<Tuple2<Integer,double[]>> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));

@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -85,12 +86,12 @@ public final class HyperParamTuningIT extends AbstractALSIT {
     PMML pmml = PMMLUtils.read(modelFile);
     List<Extension> extensions = pmml.getExtensions();
     assertEquals(8, extensions.size());
-    assertNotNull(PMMLUtils.getExtensionValue(pmml, "X"));
-    assertNotNull(PMMLUtils.getExtensionValue(pmml, "Y"));
-    assertTrue(Boolean.parseBoolean(PMMLUtils.getExtensionValue(pmml, "implicit")));
-    assertEquals(0.001, Double.parseDouble(PMMLUtils.getExtensionValue(pmml, "lambda")));
-    assertEquals(1.0, Double.parseDouble(PMMLUtils.getExtensionValue(pmml, "alpha")));
-    assertEquals(TEST_FEATURES, Integer.parseInt(PMMLUtils.getExtensionValue(pmml, "features")));
+    assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "X"));
+    assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "Y"));
+    assertTrue(Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit")));
+    assertEquals(0.001, Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "lambda")));
+    assertEquals(1.0, Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "alpha")));
+    assertEquals(TEST_FEATURES, Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features")));
   }
 
 }

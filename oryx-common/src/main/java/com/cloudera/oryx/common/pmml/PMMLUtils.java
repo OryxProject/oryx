@@ -25,16 +25,10 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import org.dmg.pmml.Application;
-import org.dmg.pmml.Extension;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
@@ -48,8 +42,8 @@ public final class PMMLUtils {
   }
 
   /**
-   * @return {@link PMML} with basic common header fields like Application and Timestamp, and
-   *  version filled out
+   * @return {@link PMML} with common {@link Header} fields like {@link Application},
+   *  {@link Timestamp}, and version filled out
    */
   public static PMML buildSkeletonPMML() {
     String formattedDate =
@@ -133,57 +127,6 @@ public final class PMMLUtils {
     } catch (JAXBException e) {
       throw new IOException(e);
     }
-  }
-
-  public static String getExtensionValue(PMML pmml, String name) {
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        return extension.getValue();
-      }
-    }
-    return null;
-  }
-
-  public static List<Object> getExtensionContent(PMML pmml, String name) {
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        return extension.getContent();
-      }
-    }
-    return null;
-  }
-
-  public static void addExtension(PMML pmml, String key, String value) {
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.setValue(value);
-    pmml.getExtensions().add(extension);
-  }
-
-  public static void addExtensionContent(PMML pmml, String key, Collection<?> content) {
-    if (content.isEmpty()) {
-      return;
-    }
-    Collection<String> stringContent = new ArrayList<>(content.size());
-    for (Object o : content) {
-      stringContent.add(o.toString());
-    }
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.getContent().addAll(stringContent);
-    pmml.getExtensions().add(extension);
-  }
-
-  /**
-   * @param pmmlArrayContent the content of a node that serializes an array PMML-style
-   * @return array values in order
-   */
-  public static List<String> parseArray(List<?> pmmlArrayContent) {
-    String spaceSeparated = pmmlArrayContent.get(0).toString();
-    if (spaceSeparated.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return Arrays.asList(spaceSeparated.split(" "));
   }
 
 }

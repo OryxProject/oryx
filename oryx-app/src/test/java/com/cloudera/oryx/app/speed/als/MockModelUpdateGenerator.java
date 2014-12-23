@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -82,10 +83,10 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
   public Pair<String,String> generate(int id, RandomGenerator random) throws IOException {
     if (id % 10 == 0) {
       PMML pmml = PMMLUtils.buildSkeletonPMML();
-      PMMLUtils.addExtension(pmml, "features", "2");
-      PMMLUtils.addExtension(pmml, "implicit", "true");
-      PMMLUtils.addExtensionContent(pmml, "XIDs", X.keySet());
-      PMMLUtils.addExtensionContent(pmml, "YIDs", Y.keySet());
+      AppPMMLUtils.addExtension(pmml, "features", "2");
+      AppPMMLUtils.addExtension(pmml, "implicit", "true");
+      AppPMMLUtils.addExtensionContent(pmml, "XIDs", X.keySet());
+      AppPMMLUtils.addExtensionContent(pmml, "YIDs", Y.keySet());
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
       int xOrYID = id % 10;

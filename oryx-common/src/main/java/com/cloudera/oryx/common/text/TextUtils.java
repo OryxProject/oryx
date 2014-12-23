@@ -16,12 +16,14 @@
 package com.cloudera.oryx.common.text;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 /**
@@ -40,9 +42,18 @@ public final class TextUtils {
    * @return delimited strings, parsed according to RFC 4180
    */
   public static String[] parseCSV(String csv) {
+    return parseDelimited(csv, ',');
+  }
+
+  /**
+   * @param delimited line of delimited text
+   * @return delimited strings, parsed according to RFC 4180 but with the given delimiter
+   */
+  public static String[] parseDelimited(String delimited, char delimiter) {
+    CSVFormat format = formatForDelimiter(delimiter);
     Iterator<CSVRecord> records;
     try {
-      records = CSVParser.parse(csv, CSV_FORMAT).iterator();
+      records = CSVParser.parse(delimited, format).iterator();
     } catch (IOException e) {
       throw new IllegalStateException(e); // Can't happen
     }
@@ -60,6 +71,40 @@ public final class TextUtils {
    */
   public static String[] parseJSONArray(String json) throws IOException {
     return MAPPER.readValue(json, String[].class);
+  }
+
+  /**
+   * @param elements values to join by comma to make one line of CSV
+   * @return one line of CSV, with RFC 4180 escaping (values with comma are quoted; double-quotes
+   *  are escaped by doubling)
+   */
+  public static String joinCSV(Iterable<?> elements) {
+    return joinDelimited(elements, ',');
+  }
+
+  /**
+   * @param elements values to join by the delimiter to make one line of text
+   * @return one line of text, with RFC 4180 escaping (values with comma are quoted; double-quotes
+   *  are escaped by doubling) and using the given delimiter
+   */
+  public static String joinDelimited(Iterable<?> elements, char delimiter) {
+    CSVFormat format = formatForDelimiter(delimiter);
+    StringWriter out = new StringWriter();
+    try (CSVPrinter printer = new CSVPrinter(out, format)) {
+      for (Object element : elements) {
+        printer.print(element);
+      }
+      printer.flush();
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+    return out.toString();
+  }
+
+  private static CSVFormat formatForDelimiter(char delimiter) {
+    return delimiter == CSV_FORMAT.getDelimiter() ?
+        CSV_FORMAT :
+        CSV_FORMAT.withDelimiter(delimiter);
   }
 
 }

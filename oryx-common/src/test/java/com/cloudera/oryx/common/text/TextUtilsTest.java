@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.text;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -41,6 +44,28 @@ public final class TextUtilsTest extends OryxTest {
     assertArrayEquals(new String[] {"2.3"}, TextUtils.parseCSV("2.3"));
     // Different from JSON, sort of:
     assertArrayEquals(new String[] {""}, TextUtils.parseCSV(""));
+  }
+
+  @Test
+  public void testParseDelimited() throws Exception {
+    assertArrayEquals(new String[] {"a", "1,", ",foo"},
+                      TextUtils.parseDelimited("a\t1,\t,foo", '\t'));
+    assertArrayEquals(new String[] {"a", "1", "foo", ""},
+                      TextUtils.parseDelimited("a 1 foo ", ' '));
+  }
+
+  @Test
+  public void testJoinCSV() {
+    assertEquals("1,2,3", TextUtils.joinCSV(Arrays.asList("1", "2", "3")));
+    assertEquals("\"a,b\"", TextUtils.joinCSV(Arrays.asList("a,b")));
+    assertEquals("\"\"\"a\"\"\"", TextUtils.joinCSV(Arrays.asList("\"a\"")));
+  }
+
+  @Test
+  public void testJoinDelimited() {
+    assertEquals("1 2 3", TextUtils.joinDelimited(Arrays.asList("1", "2", "3"), ' '));
+    assertEquals("\"1 \" \"2 \" 3", TextUtils.joinDelimited(Arrays.asList("1 ", "2 ", "3"), ' '));
+    assertEquals("", TextUtils.joinDelimited(Collections.emptyList(), '\t'));
   }
 
 }

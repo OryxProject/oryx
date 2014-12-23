@@ -17,8 +17,6 @@ package com.cloudera.oryx.common.pmml;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.dmg.pmml.MiningFunctionType;
@@ -61,31 +59,6 @@ public final class PMMLUtilsTest extends OryxTest {
     TreeModel treeModel = (TreeModel) models.get(0);
     assertEquals(123.0, treeModel.getNode().getRecordCount().doubleValue());
     assertEquals(MiningFunctionType.CLASSIFICATION, treeModel.getFunctionName());
-  }
-
-  @Test
-  public void testExtensionValue() {
-    PMML model = buildDummyModel();
-    assertNull(PMMLUtils.getExtensionValue(model, "foo"));
-    PMMLUtils.addExtension(model, "foo", "bar");
-    assertEquals("bar", PMMLUtils.getExtensionValue(model, "foo"));
-  }
-
-  @Test
-  public void testExtensionContent() {
-    PMML model = buildDummyModel();
-    assertNull(PMMLUtils.getExtensionContent(model, "foo"));
-    PMMLUtils.addExtensionContent(model, "foo", Arrays.asList("bar", "baz"));
-    assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
-    PMMLUtils.addExtensionContent(model, "foo", Collections.emptyList());
-    assertEquals(Arrays.<Object>asList("bar", "baz"), PMMLUtils.getExtensionContent(model, "foo"));
-  }
-
-  @Test
-  public void testParseArray() {
-    assertEquals(Arrays.asList("foo", "bar", "baz"),
-        PMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
-    assertTrue(PMMLUtils.parseArray(Collections.singletonList("")).isEmpty());
   }
 
   @Test

@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -87,7 +88,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
         case "MODEL":
           // New model
           PMML pmml = PMMLUtils.fromString(message);
-          int features = Integer.parseInt(PMMLUtils.getExtensionValue(pmml, "features"));
+          int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           if (model == null) {
 
             log.info("No previous model");
@@ -101,8 +102,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           } else {
 
             // First, remove users/items no longer in the model
-            List<String> XIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-            List<String> YIDs = PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+            List<String> XIDs = AppPMMLUtils.parseArray(
+                AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+            List<String> YIDs = AppPMMLUtils.parseArray(
+                AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
             model.pruneX(XIDs);
             model.pruneY(YIDs);
 

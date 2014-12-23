@@ -26,6 +26,7 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
@@ -73,8 +74,8 @@ public final class ALSServingModelManager implements ServingModelManager<String>
         case "MODEL":
           // New model
           PMML pmml = PMMLUtils.fromString(message);
-          int features = Integer.parseInt(PMMLUtils.getExtensionValue(pmml, "features"));
-          boolean implicit = Boolean.valueOf(PMMLUtils.getExtensionValue(pmml, "implicit"));
+          int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
+          boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
           if (model == null) {
 
             log.info("No previous model");
@@ -88,10 +89,10 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           } else {
 
             // Remove users/items no longer in the model
-            Collection<String> XIDs =
-                new HashSet<>(PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "XIDs")));
-            Collection<String> YIDs =
-                new HashSet<>(PMMLUtils.parseArray(PMMLUtils.getExtensionContent(pmml, "YIDs")));
+            Collection<String> XIDs = new HashSet<>(
+                AppPMMLUtils.parseArray(AppPMMLUtils.getExtensionContent(pmml, "XIDs")));
+            Collection<String> YIDs = new HashSet<>(
+                AppPMMLUtils.parseArray(AppPMMLUtils.getExtensionContent(pmml, "YIDs")));
             model.pruneKnownItems(XIDs, YIDs);
             model.pruneX(XIDs);
             model.pruneY(YIDs);

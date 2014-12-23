@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -165,9 +166,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
         List<Extension> extensions = pmml.getExtensions();
         assertEquals(7, extensions.size());
         // Basic hyperparameters should match
-        assertEquals(Integer.toString(FEATURES), PMMLUtils.getExtensionValue(pmml, "features"));
-        assertEquals(Double.toString(LAMBDA),PMMLUtils.getExtensionValue(pmml, "lambda"));
-        assertEquals("false", PMMLUtils.getExtensionValue(pmml, "implicit"));
+        assertEquals(Integer.toString(FEATURES), AppPMMLUtils.getExtensionValue(pmml, "features"));
+        assertEquals(Double.toString(LAMBDA),AppPMMLUtils.getExtensionValue(pmml, "lambda"));
+        assertEquals("false", AppPMMLUtils.getExtensionValue(pmml, "implicit"));
 
         // See if users/item sets seen in updates match what was expected from output
         assertEquals(expectedUsers, seenUsers);
@@ -183,8 +184,8 @@ public final class ALSUpdateIT extends AbstractALSIT {
         expectedProducts = productIDs.get(whichGeneration);
         seenUsers = new HashSet<>();
         seenProducts = new HashSet<>();
-        lastModelUsers = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "XIDs"));
-        lastModelProducts = parseIDsFromContent(PMMLUtils.getExtensionContent(pmml, "YIDs"));
+        lastModelUsers = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+        lastModelProducts = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
 
       }
     }
