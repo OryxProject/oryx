@@ -22,7 +22,7 @@ import com.cloudera.oryx.common.collection.Pair;
 /**
  * Interface which generates one random datum.
  */
-public final class DefaultCSVDatumGenerator implements RandomDatumGenerator<String,String> {
+public final class DefaultCSVDatumGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {

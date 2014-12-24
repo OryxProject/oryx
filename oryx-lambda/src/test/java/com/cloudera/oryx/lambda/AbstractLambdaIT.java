@@ -87,7 +87,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
   }
 
   protected Config getConfig() throws IOException {
-    Map<String,String> overlay = new HashMap<>();
+    Map<String,Object> overlay = new HashMap<>();
     String topicBroker = "\"localhost:" + localKafkaBrokerPort + '"';
     String topicLockMaster = "\"localhost:" + localZKPort + '"';
     overlay.put("oryx.input-topic.broker", topicBroker);
@@ -97,8 +97,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
     String masterLocalAllCores = "\"local[*]\"";
     overlay.put("oryx.batch.streaming.master", masterLocalAllCores);
     overlay.put("oryx.speed.streaming.master", masterLocalAllCores);
-    overlay.put("oryx.batch.ui.port", Integer.toString(IOUtils.chooseFreePort()));
-    overlay.put("oryx.speed.ui.port", Integer.toString(IOUtils.chooseFreePort()));
+    overlay.put("oryx.batch.ui.port", IOUtils.chooseFreePort());
+    overlay.put("oryx.speed.ui.port", IOUtils.chooseFreePort());
     return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
   }
 

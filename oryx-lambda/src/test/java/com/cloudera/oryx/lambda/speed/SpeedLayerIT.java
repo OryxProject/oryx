@@ -36,10 +36,10 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
 
   @Test
   public void testSpeedLayer() throws Exception {
-    Map<String,String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", MockSpeedModelManager.class.getName());
-    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", "3");
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", "1");
+    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 3);
+    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();

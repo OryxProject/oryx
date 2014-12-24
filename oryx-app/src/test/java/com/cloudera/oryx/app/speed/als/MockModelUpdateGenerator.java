@@ -15,13 +15,13 @@
 
 package com.cloudera.oryx.app.speed.als;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
@@ -30,9 +30,9 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-public final class MockModelUpdateGenerator implements RandomDatumGenerator<String,String> {
+public final class MockModelUpdateGenerator implements DatumGenerator<String,String> {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -80,11 +80,11 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
   });
 
   @Override
-  public Pair<String,String> generate(int id, RandomGenerator random) throws IOException {
+  public Pair<String,String> generate(int id, RandomGenerator random) {
     if (id % 10 == 0) {
       PMML pmml = PMMLUtils.buildSkeletonPMML();
-      AppPMMLUtils.addExtension(pmml, "features", "2");
-      AppPMMLUtils.addExtension(pmml, "implicit", "true");
+      AppPMMLUtils.addExtension(pmml, "features", 2);
+      AppPMMLUtils.addExtension(pmml, "implicit", true);
       AppPMMLUtils.addExtensionContent(pmml, "XIDs", X.keySet());
       AppPMMLUtils.addExtensionContent(pmml, "YIDs", Y.keySet());
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
@@ -93,12 +93,17 @@ public final class MockModelUpdateGenerator implements RandomDatumGenerator<Stri
       String xOrYIDString = Integer.toString(xOrYID);
       String message;
       boolean isX = xOrYID >= 6;
-      if (isX) {
-        message = MAPPER.writeValueAsString(Arrays.asList(
-            "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
-      } else {
-        message = MAPPER.writeValueAsString(Arrays.asList(
-            "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
+      try {
+        if (isX) {
+          message = MAPPER.writeValueAsString(Arrays.asList(
+              "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
+        } else {
+          message = MAPPER.writeValueAsString(Arrays.asList(
+              "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
+        }
+      } catch (JsonProcessingException jpe) {
+        // Shouldn't happen generating this kind of JSON
+        throw new IllegalStateException(jpe);
       }
       return new Pair<>("UP", message);
     }

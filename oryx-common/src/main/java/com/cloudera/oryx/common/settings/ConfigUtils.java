@@ -55,9 +55,9 @@ public final class ConfigUtils {
    * @param underlying underlying config to overlay new settings on top of
    * @return default config but with key-value pairs added
    */
-  public static Config overlayOn(Map<String,String> overlay, Config underlying) {
+  public static Config overlayOn(Map<String,?> overlay, Config underlying) {
     StringBuilder configFileString = new StringBuilder();
-    for (Map.Entry<String,String> entry : overlay.entrySet()) {
+    for (Map.Entry<String,?> entry : overlay.entrySet()) {
       configFileString.append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
     }
     String configFile = configFileString.toString();
@@ -91,7 +91,7 @@ public final class ConfigUtils {
    * @param path {@link Path} value
    * @throws IOException if {@link Path} can't be made canonical
    */
-  public static void set(Map<String,String> overlay, String key, Path path) throws IOException {
+  public static void set(Map<String,Object> overlay, String key, Path path) throws IOException {
     Path finalPath = Files.exists(path, LinkOption.NOFOLLOW_LINKS) ?
         path.toRealPath(LinkOption.NOFOLLOW_LINKS) :
         path;

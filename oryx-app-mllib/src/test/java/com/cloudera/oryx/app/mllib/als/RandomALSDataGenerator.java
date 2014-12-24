@@ -18,9 +18,14 @@ package com.cloudera.oryx.app.mllib.als;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-final class RandomALSDataGenerator implements RandomDatumGenerator<String,String> {
+/**
+ * Generates random "user,product,rating,timestamp" data. The user is an integer chosen from
+ * [0,numUsers) uniformly at random, and likewise for the product, from [0,numProducts).
+ * Rating is an integer chosen from [minRating,maxRating]. Timestamp is the current time.
+ */
+final class RandomALSDataGenerator implements DatumGenerator<String,String> {
 
   private final int numUsers;
   private final int numProducts;
@@ -42,7 +47,7 @@ final class RandomALSDataGenerator implements RandomDatumGenerator<String,String
     return new Pair<>(Integer.toString(id),
                       random.nextInt(numUsers) + "," +
                       random.nextInt(numProducts) + "," +
-                      (random.nextInt(maxRating - minRating) + minRating) + "," +
+                      (random.nextInt(maxRating - minRating + 1) + minRating) + "," +
                       System.currentTimeMillis());
   }
 

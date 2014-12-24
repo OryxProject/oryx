@@ -29,7 +29,7 @@ import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 import com.cloudera.oryx.lambda.AbstractLambdaIT;
 
 public abstract class AbstractSpeedIT extends AbstractLambdaIT {
@@ -49,8 +49,8 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   protected final List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
-      RandomDatumGenerator<String,String> inputGenerator,
-      RandomDatumGenerator<String,String> updateGenerator,
+      DatumGenerator<String,String> inputGenerator,
+      DatumGenerator<String,String> updateGenerator,
       int howManyInput,
       int howManyUpdate) throws IOException, InterruptedException {
 

@@ -14,7 +14,7 @@
  */
 
 /**
- * Contains an app tier implementation of a Batch Layer, for k-means clustering,
- * using Spark MLlib.
+ * Encapsulation of basic input schema-related information common to many
+ * applications.
  */
-package com.cloudera.oryx.app.mllib.kmeans;
+package com.cloudera.oryx.app.schema;

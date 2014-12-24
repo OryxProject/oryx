@@ -60,10 +60,10 @@ public final class AppPMMLUtils {
     return null;
   }
 
-  public static void addExtension(PMML pmml, String key, String value) {
+  public static void addExtension(PMML pmml, String key, Object value) {
     Extension extension = new Extension();
     extension.setName(key);
-    extension.setValue(value);
+    extension.setValue(value.toString());
     pmml.getExtensions().add(extension);
   }
 

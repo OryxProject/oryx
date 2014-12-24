@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.kmeans.model;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -42,7 +43,7 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
-   * @throws java.io.IOException if an error occurs while reading updates
+   * @throws IOException if an error occurs while reading updates
    */
   @Override
   public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
@@ -63,7 +64,12 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
 
         case "MODEL":
           // New model
-          PMML pmml = PMMLUtils.fromString(message);
+          PMML pmml;
+          try {
+            pmml = PMMLUtils.fromString(message);
+          } catch (JAXBException e) {
+            throw new IOException(e);
+          }
           break;
 
         default:

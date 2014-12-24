@@ -18,14 +18,14 @@ package com.cloudera.oryx.app.mllib.als;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 /**
  * Creates random data where products associated to users fall neatly into
  * a given number of distinct categories, which is most naturally modeled
  * by a factorization with that same number of features.
  */
-final class FeaturesALSDataGenerator implements RandomDatumGenerator<String,String> {
+final class FeaturesALSDataGenerator implements DatumGenerator<String,String> {
 
   private final int numUsers;
   private final int numProducts;

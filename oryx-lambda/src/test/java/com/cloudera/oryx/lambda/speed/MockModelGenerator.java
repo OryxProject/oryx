@@ -18,9 +18,9 @@ package com.cloudera.oryx.lambda.speed;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-final class MockModelGenerator implements RandomDatumGenerator<String,String> {
+final class MockModelGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {

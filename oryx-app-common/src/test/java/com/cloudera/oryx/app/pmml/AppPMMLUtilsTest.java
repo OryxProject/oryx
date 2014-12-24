@@ -81,7 +81,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
   }
 
   private static InputSchema buildTestSchema() {
-    Map<String,String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\",\"baz\",\"bing\"]");
     overlayConfig.put("oryx.input-schema.id-features", "[\"baz\"]");
     overlayConfig.put("oryx.input-schema.ignored-features", "[\"foo\"]");

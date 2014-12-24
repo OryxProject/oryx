@@ -34,8 +34,8 @@ public final class InputSchemaTest extends OryxTest {
 
   @Test
   public void testBasicConfig() {
-    Map<String,String> overlayConfig = new HashMap<>();
-    overlayConfig.put("oryx.input-schema.num-features", "2");
+    Map<String,Object> overlayConfig = new HashMap<>();
+    overlayConfig.put("oryx.input-schema.num-features", 2);
     overlayConfig.put("oryx.input-schema.numeric-features", "[]");
     Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
     InputSchema schema = new InputSchema(config);
@@ -67,7 +67,7 @@ public final class InputSchemaTest extends OryxTest {
 
   @Test
   public void testConfig() {
-    Map<String,String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\",\"baz\",\"bing\"]");
     overlayConfig.put("oryx.input-schema.id-features", "[\"baz\"]");
     overlayConfig.put("oryx.input-schema.ignored-features", "[\"foo\"]");

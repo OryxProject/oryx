@@ -18,7 +18,7 @@ package com.cloudera.oryx.lambda.serving;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ProduceData;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 import com.cloudera.oryx.lambda.AbstractLambdaIT;
 import com.typesafe.config.Config;
 import org.junit.After;
@@ -47,10 +47,10 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
 
   @Override
   protected Config getConfig() throws IOException {
-    Map<String, String> overlay = new HashMap<>();
+    Map<String,Object> overlay = new HashMap<>();
     // Non-privileged ports
-    overlay.put("oryx.serving.api.port", Integer.toString(httpPort));
-    overlay.put("oryx.serving.api.secure-port", Integer.toString(httpsPort));
+    overlay.put("oryx.serving.api.port", httpPort);
+    overlay.put("oryx.serving.api.secure-port", httpsPort);
     return ConfigUtils.overlayOn(overlay, super.getConfig());
   }
 
@@ -66,9 +66,9 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     Thread.sleep(bufferMS);
   }
 
-  protected final void startUpdateTopics(
-      RandomDatumGenerator<String,String> updateGenerator,
-      int howManyUpdate) throws IOException, InterruptedException {
+  protected final void startUpdateTopics(DatumGenerator<String,String> updateGenerator,
+                                         int howManyUpdate)
+      throws IOException, InterruptedException {
 
     int zkPort = getZKPort();
     int kafkaPort = getKafkaBrokerPort();

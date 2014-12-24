@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
-public class KMeansUpdateIT extends AbstractKMeansIT {
+public final class KMeansUpdateIT extends AbstractKMeansIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdateIT.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -43,15 +43,13 @@ public class KMeansUpdateIT extends AbstractKMeansIT {
     Path dataDir = tempDir.resolve("data");
     Path modelDir = tempDir.resolve("model");
 
-    Map<String, String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.batch.update-class", KMeansUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
-    overlayConfig.put("oryx.batch.streaming.generation-interval-sec",
-                      Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec",
-                      Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("oryx.kmeans.hyperparams.k", Integer.toString(CLUSTERS));
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
+    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
+    overlayConfig.put("oryx.kmeans.hyperparams.k", CLUSTERS);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     // TODO: Add the real test when implementation is done

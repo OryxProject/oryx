@@ -37,14 +37,14 @@ public final class ProduceData {
 
   private static final Logger log = LoggerFactory.getLogger(ProduceData.class);
 
-  private final RandomDatumGenerator<String,String> datumGenerator;
+  private final DatumGenerator<String,String> datumGenerator;
   private final int zkPort;
   private final int kafkaPort;
   private final String topic;
   private final int howMany;
   private final int intervalMsec;
 
-  public ProduceData(RandomDatumGenerator<String,String> datumGenerator,
+  public ProduceData(DatumGenerator<String,String> datumGenerator,
                      int zkPort,
                      int kafkaPort,
                      String topic,

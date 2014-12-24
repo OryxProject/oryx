@@ -36,7 +36,7 @@ public class RDFServingModelManager implements ServingModelManager<String> {
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
-   * @throws java.io.IOException if an error occurs while reading updates
+   * @throws IOException if an error occurs while reading updates
    */
   @Override
   public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {

@@ -21,7 +21,7 @@ import java.util.List;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 /**
  * Generates a synthetic data set over users 0-3, items 0-3. Users u interact with all items i
@@ -30,7 +30,7 @@ import com.cloudera.oryx.kafka.util.RandomDatumGenerator;
  *
  * @see ALSModelContentIT
  */
-final class ModelContentDataGenerator implements RandomDatumGenerator<String,String> {
+final class ModelContentDataGenerator implements DatumGenerator<String,String> {
 
   private static final int NUM_USERS_ITEMS = 4;
 

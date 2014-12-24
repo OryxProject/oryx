@@ -35,7 +35,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
 
   @Test
   public void testALSServingModel() throws Exception {
-    Map<String,String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.serving.application-resources",
         "\"com.cloudera.oryx.app.serving,com.cloudera.oryx.app.serving.als\"");
     overlayConfig.put("oryx.serving.model-manager-class", ALSServingModelManager.class.getName());

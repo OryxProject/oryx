@@ -13,8 +13,10 @@
  * License.
  */
 
-/**
- * Contains an app tier implementation of a Batch Layer, for k-means clustering,
- * using Spark MLlib.
- */
-package com.cloudera.oryx.app.mllib.kmeans;
+package com.cloudera.oryx.app.mllib.rdf;
+
+import com.cloudera.oryx.lambda.AbstractBatchIT;
+
+public abstract class AbstractRDFIT extends AbstractBatchIT {
+  // Nothing yet
+}

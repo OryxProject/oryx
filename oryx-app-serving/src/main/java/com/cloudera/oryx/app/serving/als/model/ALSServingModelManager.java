@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -73,7 +74,12 @@ public final class ALSServingModelManager implements ServingModelManager<String>
 
         case "MODEL":
           // New model
-          PMML pmml = PMMLUtils.fromString(message);
+          PMML pmml;
+          try {
+            pmml = PMMLUtils.fromString(message);
+          } catch (JAXBException e) {
+            throw new IOException(e);
+          }
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
           if (model == null) {

@@ -14,7 +14,7 @@
  */
 
 /**
- * Contains an app tier implementation of a Batch Layer, for k-means clustering,
- * using Spark MLlib.
+ * Contains an app tier implementation of a Batch Layer, for random decision forest-based
+ * clustering and regression, using Spark MLlib.
  */
-package com.cloudera.oryx.app.mllib.kmeans;
+package com.cloudera.oryx.app.mllib.rdf;

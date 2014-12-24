@@ -46,16 +46,16 @@ public final class ALSModelContentIT extends AbstractALSIT {
     Path tempDir = getTempDir();
     Path modelDir = tempDir.resolve("model");
 
-    Map<String, String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.batch.update-class", ALSUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", tempDir.resolve("data"));
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
-    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", "10");
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", "1");
-    overlayConfig.put("oryx.ml.eval.test-fraction", "0");
-    overlayConfig.put("oryx.als.implicit", "false");
-    overlayConfig.put("oryx.als.hyperparams.lambda", "0.0001");
-    overlayConfig.put("oryx.als.hyperparams.features", "2");
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", 10);
+    overlayConfig.put("oryx.batch.streaming.block-interval-sec", 1);
+    overlayConfig.put("oryx.ml.eval.test-fraction", 0);
+    overlayConfig.put("oryx.als.implicit", false);
+    overlayConfig.put("oryx.als.hyperparams.lambda", 0.0001);
+    overlayConfig.put("oryx.als.hyperparams.features", 2);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();

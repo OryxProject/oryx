@@ -285,11 +285,11 @@ public final class ALSUpdate extends MLUpdate<String> {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     AppPMMLUtils.addExtension(pmml, "X", "X/");
     AppPMMLUtils.addExtension(pmml, "Y", "Y/");
-    AppPMMLUtils.addExtension(pmml, "features", Integer.toString(features));
-    AppPMMLUtils.addExtension(pmml, "lambda", Double.toString(lambda));
-    AppPMMLUtils.addExtension(pmml, "implicit", Boolean.toString(implicit));
+    AppPMMLUtils.addExtension(pmml, "features", features);
+    AppPMMLUtils.addExtension(pmml, "lambda", lambda);
+    AppPMMLUtils.addExtension(pmml, "implicit", implicit);
     if (implicit) {
-      AppPMMLUtils.addExtension(pmml, "alpha", Double.toString(alpha));
+      AppPMMLUtils.addExtension(pmml, "alpha", alpha);
     }
     addIDsExtension(pmml, "XIDs", model.userFeatures());
     addIDsExtension(pmml, "YIDs", model.productFeatures());

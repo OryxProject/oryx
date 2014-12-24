@@ -59,7 +59,7 @@ public final class ConfigUtilsTest extends OryxTest {
 
   @Test
   public void testOverlayOn() {
-    Map<String,String> overlay = new HashMap<>();
+    Map<String,Object> overlay = new HashMap<>();
     overlay.put("foo", "bar");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
     assertEquals("bar", config.getString("foo"));
@@ -68,7 +68,7 @@ public final class ConfigUtilsTest extends OryxTest {
   @Test
   public void testSetPath() throws Exception {
     Path cwd = Paths.get(".");
-    Map<String,String> map = new HashMap<>();
+    Map<String,Object> map = new HashMap<>();
     ConfigUtils.set(map, "cwd", cwd);
     ConfigUtils.set(map, "temp", Paths.get("/tmp"));
     assertEquals("\"" + cwd.toRealPath(LinkOption.NOFOLLOW_LINKS).toUri() + "\"", map.get("cwd"));

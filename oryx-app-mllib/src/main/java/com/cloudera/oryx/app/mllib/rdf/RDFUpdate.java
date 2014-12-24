@@ -86,7 +86,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   public RDFUpdate(Config config) {
     super(config);
-    numTrees = config.getInt("oryx.rdf.hyperparams.num-trees");
+    numTrees = config.getInt("oryx.rdf.num-trees");
     Preconditions.checkArgument(numTrees >= 1);
     hyperParamValues = Arrays.asList(
         HyperParams.fromConfig(config, "oryx.rdf.hyperparams.max-split-candidates"),
@@ -147,7 +147,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                                           maxSplitCandidates,
                                           seed);
     }
-    return rdfModelToPMML(model, distinctValueMaps);
+    return rdfModelToPMML(model, distinctValueMaps, maxDepth, maxSplitCandidates, impurity);
   }
 
   @Override
@@ -249,7 +249,10 @@ public final class RDFUpdate extends MLUpdate<String> {
   }
 
   private PMML rdfModelToPMML(RandomForestModel rfModel,
-                              Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+                              Map<Integer,BiMap<String,Double>> distinctValueMaps,
+                              int maxDepth,
+                              int maxSplitCandidates,
+                              String impurity) {
 
     boolean classificationTask = rfModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
@@ -289,6 +292,11 @@ public final class RDFUpdate extends MLUpdate<String> {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(dictionary);
     pmml.getModels().add(model);
+
+    AppPMMLUtils.addExtension(pmml, "maxDepth", maxDepth);
+    AppPMMLUtils.addExtension(pmml, "maxSplitCandidates", maxSplitCandidates);
+    AppPMMLUtils.addExtension(pmml, "impurity", impurity);
+
     return pmml;
   }
 

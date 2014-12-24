@@ -15,17 +15,20 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.io.IOException;
-
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
 
 /**
- * Interface which generates one random datum.
+ * Interface which generates one datum.
  */
-public interface RandomDatumGenerator<K,M> {
+public interface DatumGenerator<K,M> {
 
-  Pair<K,M> generate(int id, RandomGenerator random) throws IOException;
+  /**
+   * @param id a unique identifier for datum being generated
+   * @param random random number generator to use if randomness is needed
+   * @return a datum, which may or may not use {@code id} or {@code random}
+   */
+  Pair<K,M> generate(int id, RandomGenerator random);
 
 }

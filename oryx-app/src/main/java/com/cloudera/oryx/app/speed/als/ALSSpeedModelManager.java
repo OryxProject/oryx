@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.speed.als;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,7 +88,12 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
         case "MODEL":
           // New model
-          PMML pmml = PMMLUtils.fromString(message);
+          PMML pmml;
+          try {
+            pmml = PMMLUtils.fromString(message);
+          } catch (JAXBException e) {
+            throw new IOException(e);
+          }
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           if (model == null) {
 

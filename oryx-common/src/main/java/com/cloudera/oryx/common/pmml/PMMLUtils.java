@@ -105,28 +105,25 @@ public final class PMMLUtils {
   /**
    * @param pmml model
    * @return model serialized as an XML document as a string
-   * @throws IOException if XML can't be serialized
    */
-  public static String toString(PMML pmml) throws IOException {
+  public static String toString(PMML pmml) {
     try (StringWriter out = new StringWriter()) {
       JAXBUtil.marshalPMML(pmml, new StreamResult(out));
       return out.toString();
-    } catch (JAXBException e) {
-      throw new IOException(e);
+    } catch (JAXBException | IOException e) {
+      // IOException should not be possible; JAXBException would only happen with XML
+      // config problems.
+      throw new IllegalStateException(e);
     }
   }
 
   /**
    * @param pmmlString PMML model encoded as an XML doc in a string
    * @return {@link PMML} object representing the model
-   * @throws IOException if XML can't be unserialized
+   * @throws JAXBException if XML can't be unserialized
    */
-  public static PMML fromString(String pmmlString) throws IOException {
-    try {
-      return JAXBUtil.unmarshalPMML(new StreamSource(new StringReader(pmmlString)));
-    } catch (JAXBException e) {
-      throw new IOException(e);
-    }
+  public static PMML fromString(String pmmlString) throws JAXBException {
+    return JAXBUtil.unmarshalPMML(new StreamSource(new StringReader(pmmlString)));
   }
 
 }

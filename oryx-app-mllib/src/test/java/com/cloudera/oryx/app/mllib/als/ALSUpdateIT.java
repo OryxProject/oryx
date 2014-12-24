@@ -60,17 +60,15 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Path dataDir =  tempDir.resolve("data");
     Path modelDir = tempDir.resolve("model");
 
-    Map<String,String> overlayConfig = new HashMap<>();
+    Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.batch.update-class", ALSUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
-    overlayConfig.put("oryx.batch.streaming.generation-interval-sec",
-                      Integer.toString(GEN_INTERVAL_SEC));
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec",
-                      Integer.toString(BLOCK_INTERVAL_SEC));
-    overlayConfig.put("oryx.als.implicit", "false");
-    overlayConfig.put("oryx.als.hyperparams.lambda", Double.toString(LAMBDA));
-    overlayConfig.put("oryx.als.hyperparams.features", Integer.toString(FEATURES));
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
+    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
+    overlayConfig.put("oryx.als.implicit", false);
+    overlayConfig.put("oryx.als.hyperparams.lambda", LAMBDA);
+    overlayConfig.put("oryx.als.hyperparams.features", FEATURES);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();

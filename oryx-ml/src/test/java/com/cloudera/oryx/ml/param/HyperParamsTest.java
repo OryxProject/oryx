@@ -149,9 +149,9 @@ public final class HyperParamsTest extends OryxTest {
   @SuppressWarnings("unchecked")
   @Test
   public void testConfig() {
-    Map<String,String> overlay = new HashMap<>();
-    overlay.put("a", "1");
-    overlay.put("b", "2.7");
+    Map<String,Object> overlay = new HashMap<>();
+    overlay.put("a", 1);
+    overlay.put("b", 2.7);
     overlay.put("c", "[3,4]");
     overlay.put("d", "[5.3,6.6]");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
