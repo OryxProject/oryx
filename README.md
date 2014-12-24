@@ -118,7 +118,7 @@ Usage and Deployment
 
 The application will be written in Java, using Spark 1.2.x+, 
 [Hadoop](http://hadoop.apache.org/) 2.5.x+, [Tomcat](http://tomcat.apache.org/) 8.x+, 
-Kafka 0.8.x+, [Zookeeper](http://zookeeper.apache.org/), etc. Configuration will again 
+Kafka 0.8.2+, [Zookeeper](http://zookeeper.apache.org/), etc. Configuration will again 
 use a single [Typesafe Config](https://github.com/typesafehub/config) config file, wherein 
 applications configure an entire deployment of the system. This includes implementations of 
 key interface classes which implement the batch, speed, and serving logic. Applications will 

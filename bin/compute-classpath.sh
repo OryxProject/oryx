@@ -13,7 +13,7 @@
 # the specific language governing permissions and limitations under the
 # License.
 
-# CDH5.2+ specific classpath config
+# CDH5.3+ specific classpath config
 
 HADOOP_CONF_DIR="/etc/hadoop/conf"
 CDH_JARS_DIR="/opt/cloudera/parcels/CDH/jars"
