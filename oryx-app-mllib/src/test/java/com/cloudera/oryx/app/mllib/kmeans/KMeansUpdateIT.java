@@ -14,31 +14,40 @@
  */
 package com.cloudera.oryx.app.mllib.kmeans;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.dmg.pmml.ClusteringModel;
+import org.dmg.pmml.ComparisonMeasure;
+import org.dmg.pmml.Model;
+import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.lambda.AbstractBatchIT;
+import com.cloudera.oryx.ml.MLUpdate;
 
-public final class KMeansUpdateIT extends AbstractKMeansIT {
+public final class KMeansUpdateIT extends AbstractBatchIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdateIT.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  private static final int DATA_TO_WRITE = 2000;
+  private static final int DATA_TO_WRITE = 1000;
   private static final int WRITE_INTERVAL_MSEC = 10;
   private static final int GEN_INTERVAL_SEC = 10;
   private static final int BLOCK_INTERVAL_SEC = 1;
-  private static final int CLUSTERS = 5;
+  private static final int CLUSTERS = 3;
 
   @Test
-  public void testALS() throws Exception {
+  public void testKMeans() throws Exception {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Path modelDir = tempDir.resolve("model");
@@ -50,9 +59,55 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", CLUSTERS);
+    overlayConfig.put("oryx.input-schema.num-features", 2);
+    overlayConfig.put("oryx.input-schema.numeric-features", "[\"0\",\"1\"]");
+    overlayConfig.put("oryx.kmeans.iterations", 5);
+
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    // TODO: Add the real test when implementation is done
+    startMessaging();
+
+    List<Pair<String, String>> updates = startServerProduceConsumeTopics(
+        config,
+        new RandomKMeansDataGenerator(2),
+        DATA_TO_WRITE,
+        WRITE_INTERVAL_MSEC);
+
+    List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
+    log.info("Model instance dirs: {}", modelInstanceDirs);
+    assertFalse("No models?", modelInstanceDirs.isEmpty());
+
+    int generations = modelInstanceDirs.size();
+    checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
+
+    for (Path modelInstanceDir : modelInstanceDirs) {
+      log.info("Testing model instance dir {}", modelInstanceDir);
+      Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
+      assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
+      assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+    }
+
+    for (Pair<String,String> km : updates) {
+      String type = km.getFirst();
+      String value = km.getSecond();
+
+      log.debug("{} = {}", type, value);
+
+      assertEquals("MODEL", type);
+
+      PMML pmml = PMMLUtils.fromString(value);
+      Model rootModel = pmml.getModels().get(0);
+      assertTrue(rootModel instanceof ClusteringModel);
+
+      ClusteringModel clusteringModel = ((ClusteringModel) rootModel);
+
+      // Check if Basic hyperparameters match
+      assertEquals(Integer.valueOf(CLUSTERS), clusteringModel.getNumberOfClusters());
+      assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
+
+      assertTrue(clusteringModel.getClusters().get(0).getArray().getN() == 2);
+
+    }
   }
 
 }

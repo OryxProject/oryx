@@ -46,7 +46,7 @@ public final class HyperParamTuningIT extends AbstractALSIT {
   private static final int TEST_ELEMENTS = 100;
 
   @Test
-  public void testALS() throws Exception {
+  public void testHyperParameterTuning() throws Exception {
     Path tempDir = getTempDir();
     Path dataDir =  tempDir.resolve("data");
     Path modelDir = tempDir.resolve("model");

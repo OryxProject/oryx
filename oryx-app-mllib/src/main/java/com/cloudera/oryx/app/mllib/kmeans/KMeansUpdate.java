@@ -35,21 +35,16 @@ import org.dmg.pmml.ClusteringField;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.CompareFunctionType;
 import org.dmg.pmml.ComparisonMeasure;
-import org.dmg.pmml.DataDictionary;
-import org.dmg.pmml.DataField;
-import org.dmg.pmml.DataType;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
-import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
-import org.dmg.pmml.MiningSchema;
-import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
@@ -64,16 +59,16 @@ public class KMeansUpdate extends MLUpdate<String> {
   private final int maxIterations;
   private final int numberOfRuns;
   private final List<HyperParamValues<?>> hyperParamValues;
+  private final InputSchema inputSchema;
 
-  protected KMeansUpdate(Config config) {
+  public KMeansUpdate(Config config) {
     super(config);
     initializationStrategy = config.getString("oryx.kmeans.initialization-strategy");
     numberOfRuns = config.getInt("oryx.kmeans.runs");
     maxIterations = config.getInt("oryx.kmeans.iterations");
-
     hyperParamValues = new ArrayList<>();
     hyperParamValues.add(HyperParams.fromConfig(config, "oryx.kmeans.hyperparams.k"));
-
+    inputSchema = new InputSchema(config);
     Preconditions.checkArgument(maxIterations > 0);
     Preconditions.checkArgument(numberOfRuns > 0);
     Preconditions.checkArgument(
@@ -105,6 +100,7 @@ public class KMeansUpdate extends MLUpdate<String> {
                          Path candidatePath) {
     int numClusters = (Integer) hyperParameters.get(0);
     Preconditions.checkArgument(numClusters > 1);
+    log.info("Building KMeans Model with {} clusters", numClusters);
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
     KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
@@ -134,43 +130,40 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @param model {@link KMeansModel} to translate to PMML
    * @return PMML representation of a KMeans cluster model
    */
-  private static PMML kMeansModelToPMML(KMeansModel model) {
+  private PMML kMeansModelToPMML(KMeansModel model) {
+    ClusteringModel clusteringModel = pmmlClusteringModel(model);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    DataDictionary dataDictionary = new DataDictionary();
-    MiningSchema miningSchema = new MiningSchema();
+    pmml.setDataDictionary(AppPMMLUtils.buildDataDictionary(inputSchema, null));
+    pmml.getModels().add(clusteringModel);
+    return pmml;
+  }
 
+  private ClusteringModel pmmlClusteringModel(KMeansModel model) {
     ClusteringModel clusteringModel =
-        new ClusteringModel(miningSchema,
-            new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        new ClusteringModel(AppPMMLUtils.buildMiningSchema(inputSchema),
+            new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE)
+                .withMeasure(new SquaredEuclidean()),
             MiningFunctionType.CLUSTERING,
             ClusteringModel.ModelClass.CENTER_BASED,
             model.clusterCenters().length)
-            .withModelName("Oryx KMeans")
             .withAlgorithmName("K-Means||")
             .withNumberOfClusters(model.k());
 
     Vector[] clusterCenters = model.clusterCenters();
     for (int i = 0; i < clusterCenters.length; i++) {
       FieldName field = FieldName.create("field_" + i);
-      dataDictionary.withDataFields(
-          new DataField(field, OpType.CONTINUOUS, DataType.DOUBLE));
-      miningSchema.withMiningFields(
-          new MiningField(field).withUsageType(FieldUsageType.ACTIVE));
-      clusteringModel.withClusteringFields(
+      clusteringModel.getClusteringFields().add(
           new ClusteringField(field).withCompareFunction(CompareFunctionType.ABS_DIFF));
-      clusteringModel.withClusters(toCluster(clusterCenters[i], i));
+      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i));
     }
-
-    pmml.setDataDictionary(dataDictionary);
-    pmml.withModels(clusteringModel);
-    return pmml;
+    return clusteringModel;
   }
 
   /**
    * @param pmml PMML model to retrieve the original {@link KMeansModel} from
    * @return {@link KMeansModel} from PMML
    */
-  private static KMeansModel pmmlToKMeansModel(PMML pmml) {
+  private KMeansModel pmmlToKMeansModel(PMML pmml) {
     ClusteringModel clusteringModel = (ClusteringModel) pmml.getModels().get(0);
     List<Cluster> clusters = clusteringModel.getClusters();
     Vector[] clusterCenters = new Vector[clusters.size()];
