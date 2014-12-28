@@ -138,6 +138,10 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
 
+    // Want to use some versions that may not match Spark or YARN
+    sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
+    sparkConf.setIfMissing("spark.files.userClassPathFirst", "true");
+
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
     long batchDurationMS =
