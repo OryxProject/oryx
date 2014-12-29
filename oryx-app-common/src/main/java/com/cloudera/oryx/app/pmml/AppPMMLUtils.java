@@ -20,10 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.common.collect.BiMap;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
@@ -36,6 +34,7 @@ import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Value;
 
+import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 
 public final class AppPMMLUtils {
@@ -123,7 +122,7 @@ public final class AppPMMLUtils {
 
   public static DataDictionary buildDataDictionary(
       InputSchema schema,
-      Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+      CategoricalValueEncodings categoricalValueEncodings) {
     List<String> featureNames = schema.getFeatureNames();
     DataDictionary dictionary = new DataDictionary();
 
@@ -144,7 +143,7 @@ public final class AppPMMLUtils {
         DataField field = new DataField(new FieldName(featureName), opType, dataType);
         if (schema.isCategorical(featureName)) {
           Collection<String> valuesOrderedByEncoding =
-              new TreeMap<>(distinctValueMaps.get(featureIndex).inverse()).values();
+              new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
           for (String value : valuesOrderedByEncoding) {
             field.getValues().add(new Value(value));
           }

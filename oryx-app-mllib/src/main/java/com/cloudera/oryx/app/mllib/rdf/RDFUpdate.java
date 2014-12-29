@@ -29,8 +29,6 @@ import java.util.Queue;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
@@ -69,6 +67,7 @@ import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -115,22 +114,19 @@ public final class RDFUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(maxDepth > 0);
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
-    Map<Integer,BiMap<String,Double>> distinctValueMaps = getDistinctValueMap(parsedRDD);
-    JavaRDD<LabeledPoint> trainPointData = parsedToRatingRDD(parsedRDD, distinctValueMaps);
+    CategoricalValueEncodings categoricalValueEncodings =
+        new CategoricalValueEncodings(getDistinctValues(parsedRDD));
+    JavaRDD<LabeledPoint> trainPointData = parsedToRatingRDD(parsedRDD, categoricalValueEncodings);
 
-    Map<Integer,Integer> categoryInfo = new HashMap<>();
-    for (Map.Entry<Integer,BiMap<String,Double>> e : distinctValueMaps.entrySet()) {
-      int featureIndex = e.getKey();
-      if (!inputSchema.isTarget(featureIndex)) {
-        categoryInfo.put(featureIndex, e.getValue().size());
-      }
-    }
+    Map<Integer,Integer> categoryInfo = categoricalValueEncodings.getCategoryCounts();
+    categoryInfo.remove(inputSchema.getTargetFeatureIndex()); // Don't specify target count
 
     int seed = RandomManager.getRandom().nextInt();
 
     RandomForestModel model;
     if (inputSchema.isClassification()) {
-      int numTargetClasses = distinctValueMaps.get(inputSchema.getTargetFeatureIndex()).size();
+      int numTargetClasses =
+          categoricalValueEncodings.getValueCount(inputSchema.getTargetFeatureIndex());
       model = RandomForest.trainClassifier(trainPointData,
                                            numTargetClasses,
                                            categoryInfo,
@@ -150,7 +146,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                                           maxSplitCandidates,
                                           seed);
     }
-    return rdfModelToPMML(model, distinctValueMaps, maxDepth, maxSplitCandidates, impurity);
+    return rdfModelToPMML(model, categoricalValueEncodings, maxDepth, maxSplitCandidates, impurity);
   }
 
   @Override
@@ -158,19 +154,10 @@ public final class RDFUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
-    return 0;
+    return 0; // TODO
   }
 
-  private Map<Integer,BiMap<String,Double>> getDistinctValueMap(JavaRDD<String[]> parsedRDD) {
-    Map<Integer,Set<String>> distinctValues = getDistinctValues(parsedRDD);
-    Map<Integer,BiMap<String,Double>> distinctValueMaps = new HashMap<>(distinctValues.size());
-    for (Map.Entry<Integer,Set<String>> e : distinctValues.entrySet()) {
-      distinctValueMaps.put(e.getKey(), mapDistinctValues(e.getValue()));
-    }
-    return distinctValueMaps;
-  }
-
-  private Map<Integer,Set<String>> getDistinctValues(JavaRDD<String[]> parsedRDD) {
+  private Map<Integer,Collection<String>> getDistinctValues(JavaRDD<String[]> parsedRDD) {
     final List<Integer> categoricalIndices = new ArrayList<>();
     for (int i = 0; i < inputSchema.getNumFeatures(); i++) {
       if (inputSchema.isCategorical(i)) {
@@ -178,17 +165,17 @@ public final class RDFUpdate extends MLUpdate<String> {
       }
     }
 
-    JavaRDD<Map<Integer,Set<String>>> distinctValuesByPartition = parsedRDD.mapPartitions(
-        new FlatMapFunction<Iterator<String[]>, Map<Integer,Set<String>>>() {
+    JavaRDD<Map<Integer,Collection<String>>> distinctValuesByPartition = parsedRDD.mapPartitions(
+        new FlatMapFunction<Iterator<String[]>, Map<Integer,Collection<String>>>() {
           @Override
-          public Iterable<Map<Integer,Set<String>>> call(Iterator<String[]> data) {
-            Map<Integer,Set<String>> distinctCategoricalValues = new HashMap<>();
+          public Iterable<Map<Integer,Collection<String>>> call(Iterator<String[]> data) {
+            Map<Integer,Collection<String>> distinctCategoricalValues = new HashMap<>();
             for (int i : categoricalIndices) {
               distinctCategoricalValues.put(i, new HashSet<String>());
             }
             while (data.hasNext()) {
               String[] datum = data.next();
-              for (Map.Entry<Integer,Set<String>> e : distinctCategoricalValues.entrySet()) {
+              for (Map.Entry<Integer,Collection<String>> e : distinctCategoricalValues.entrySet()) {
                 e.getValue().add(datum[e.getKey()]);
               }
             }
@@ -197,11 +184,13 @@ public final class RDFUpdate extends MLUpdate<String> {
         });
 
     return distinctValuesByPartition.reduce(
-        new Function2<Map<Integer,Set<String>>, Map<Integer,Set<String>>, Map<Integer,Set<String>>>() {
+        new Function2<Map<Integer,Collection<String>>,
+                      Map<Integer,Collection<String>>,
+                      Map<Integer,Collection<String>>>() {
           @Override
-          public Map<Integer,Set<String>> call(Map<Integer,Set<String>> v1,
-                                               Map<Integer,Set<String>> v2) {
-            for (Map.Entry<Integer,Set<String>> e : v1.entrySet()) {
+          public Map<Integer,Collection<String>> call(Map<Integer,Collection<String>> v1,
+                                                      Map<Integer,Collection<String>> v2) {
+            for (Map.Entry<Integer,Collection<String>> e : v1.entrySet()) {
               e.getValue().addAll(v2.get(e.getKey()));
             }
             return v1;
@@ -209,20 +198,10 @@ public final class RDFUpdate extends MLUpdate<String> {
         });
   }
 
-  private static <T extends Comparable<T>> BiMap<T,Double> mapDistinctValues(Collection<T> distinct) {
-    List<T> sortedDistinct = new ArrayList<>(distinct);
-    Collections.sort(sortedDistinct);
-    BiMap<T,Double> mapping = HashBiMap.create();
-    for (int i = 0; i < sortedDistinct.size(); i++) {
-      mapping.put(sortedDistinct.get(i), (double) i);
-    }
-    return mapping;
-  }
-
 
   private JavaRDD<LabeledPoint> parsedToRatingRDD(
       JavaRDD<String[]> parsedRDD,
-      final Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+      final CategoricalValueEncodings categoricalValueEncodings) {
 
     return parsedRDD.map(new Function<String[],LabeledPoint>() {
       @Override
@@ -231,12 +210,14 @@ public final class RDFUpdate extends MLUpdate<String> {
         double target = Double.NaN;
         int offset = 0;
         for (int i = 0; i < data.length; i++) {
-          Map<String,Double> mapping = distinctValueMaps.get(i);
+          Map<String,Integer> mapping = categoricalValueEncodings.getValueEncodingMap(i);
           double encoded;
-          if (mapping == null) { // Numeric feature
+          if (inputSchema.isNumeric(i)) {
             encoded = Double.parseDouble(data[i]);
-          } else { // Categorical feature
+          } else if (inputSchema.isCategorical(i)) {
             encoded = mapping.get(data[i]);
+          } else {
+            encoded = Double.NaN; // To be safe, for values that should not be used
           }
           if (inputSchema.isTarget(i)) {
             target = encoded;
@@ -252,7 +233,7 @@ public final class RDFUpdate extends MLUpdate<String> {
   }
 
   private PMML rdfModelToPMML(RandomForestModel rfModel,
-                              Map<Integer,BiMap<String,Double>> distinctValueMaps,
+                              CategoricalValueEncodings categoricalValueEncodings,
                               int maxDepth,
                               int maxSplitCandidates,
                               String impurity) {
@@ -264,7 +245,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     Model model;
     if (trees.length == 1) {
-      model = toTreeModel(trees[0], distinctValueMaps);
+      model = toTreeModel(trees[0], categoricalValueEncodings);
     } else {
       MiningModel miningModel = new MiningModel();
       model = miningModel;
@@ -275,7 +256,7 @@ public final class RDFUpdate extends MLUpdate<String> {
       Segmentation segmentation = new Segmentation(multipleModelMethodType);
       miningModel.setSegmentation(segmentation);
       for (int treeID = 0; treeID < trees.length; treeID++) {
-        TreeModel treeModel = toTreeModel(trees[treeID], distinctValueMaps);
+        TreeModel treeModel = toTreeModel(trees[treeID], categoricalValueEncodings);
         Segment segment = new Segment();
         segment.setId(Integer.toString(treeID));
         segment.setPredicate(new True());
@@ -289,7 +270,8 @@ public final class RDFUpdate extends MLUpdate<String> {
                           MiningFunctionType.CLASSIFICATION :
                           MiningFunctionType.REGRESSION);
     model.setMiningSchema(AppPMMLUtils.buildMiningSchema(inputSchema));
-    DataDictionary dictionary = AppPMMLUtils.buildDataDictionary(inputSchema, distinctValueMaps);
+    DataDictionary dictionary =
+        AppPMMLUtils.buildDataDictionary(inputSchema, categoricalValueEncodings);
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(dictionary);
@@ -303,14 +285,14 @@ public final class RDFUpdate extends MLUpdate<String> {
   }
 
   private TreeModel toTreeModel(DecisionTreeModel dtModel,
-                                Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+                                CategoricalValueEncodings categoricalValueEncodings) {
 
     List<String> featureNames = inputSchema.getFeatureNames();
     boolean classificationTask = dtModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
 
-    Map<Double,String> targetEncodingToValue =
-        distinctValueMaps.get(inputSchema.getTargetFeatureIndex()).inverse();
+    Map<Integer,String> targetEncodingToValue =
+        categoricalValueEncodings.getEncodingValueMap(inputSchema.getTargetFeatureIndex());
 
     Node root = new Node();
     root.setId("r");
@@ -330,7 +312,7 @@ public final class RDFUpdate extends MLUpdate<String> {
       // not the predicate at this node
       Predicate predicate = buildPredicate(treeNodePredicate.getSecond(),
                                            featureNames,
-                                           distinctValueMaps);
+                                           categoricalValueEncodings);
       modelNode.setPredicate(predicate);
 
       org.apache.spark.mllib.tree.model.Node treeNode = treeNodePredicate.getFirst();
@@ -338,7 +320,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
         // modelNode.setRecordCount(...); // Unsupported in MLlib
         Predict prediction = treeNode.predict();
-        double targetEncodedValue = prediction.predict();
+        int targetEncodedValue = (int) prediction.predict();
         if (classificationTask) {
           String predictedCategoricalValue = targetEncodingToValue.get(targetEncodedValue);
           double confidence = prediction.prob();
@@ -388,7 +370,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private static Predicate buildPredicate(Split split,
                                           List<String> featureNames,
-                                          Map<Integer,BiMap<String,Double>> distinctValueMaps) {
+                                          CategoricalValueEncodings categoricalValueEncodings) {
     if (split == null) {
       // Left child always applies, but is evaluated second
       return new True();
@@ -405,11 +387,15 @@ public final class RDFUpdate extends MLUpdate<String> {
       @SuppressWarnings("unchecked")
       List<Double> javaCategories = (List<Double>) (List<?>)
           JavaConversions.seqAsJavaList(split.categories());
-      Set<Double> negativeEncodings = new HashSet<>(javaCategories);
+      Set<Integer> negativeEncodings = new HashSet<>(javaCategories.size());
+      for (double category : javaCategories) {
+        negativeEncodings.add((int) category);
+      }
 
-      Map<Double,String> encodingToValue = distinctValueMaps.get(featureIndex).inverse();
+      Map<Integer,String> encodingToValue =
+          categoricalValueEncodings.getEncodingValueMap(featureIndex);
       List<String> negativeValues = new ArrayList<>();
-      for (Double negativeEncoding : negativeEncodings) {
+      for (int negativeEncoding : negativeEncodings) {
         negativeValues.add(encodingToValue.get(negativeEncoding));
       }
 

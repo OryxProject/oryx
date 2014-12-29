@@ -16,13 +16,12 @@
 package com.cloudera.oryx.app.pmml;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.typesafe.config.Config;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
@@ -37,6 +36,7 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.TreeModel;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -114,17 +114,13 @@ public final class AppPMMLUtilsTest extends OryxTest {
 
   @Test
   public void testBuildDataDictionary() {
-    Map<Integer,BiMap<String,Double>> distinctValueMaps = new HashMap<>();
-    BiMap<String,Double> values = HashBiMap.create();
-    values.put("four", 4.0);
-    values.put("one", 1.0);
-    values.put("five", 5.0);
-    values.put("three", 3.0);
-    values.put("two", 2.0);
-    distinctValueMaps.put(1, values);
+    Map<Integer,Collection<String>> distinctValues = new HashMap<>();
+    distinctValues.put(1, Arrays.asList("one", "two", "three", "four", "five"));
+    CategoricalValueEncodings categoricalValueEncodings =
+        new CategoricalValueEncodings(distinctValues);
 
     DataDictionary dictionary =
-        AppPMMLUtils.buildDataDictionary(buildTestSchema(), distinctValueMaps);
+        AppPMMLUtils.buildDataDictionary(buildTestSchema(), categoricalValueEncodings);
     assertEquals(2, dictionary.getNumberOfFields().intValue());
     DataField df0 = dictionary.getDataFields().get(0);
     assertEquals("bar", df0.getName().getValue());
