@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.Model;
@@ -33,18 +34,17 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractBatchIT;
 import com.cloudera.oryx.ml.MLUpdate;
 
-public final class KMeansUpdateIT extends AbstractBatchIT {
+public final class KMeansUpdateIT extends AbstractKMeansIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdateIT.class);
 
-  private static final int DATA_TO_WRITE = 1000;
+  private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
   private static final int GEN_INTERVAL_SEC = 10;
   private static final int BLOCK_INTERVAL_SEC = 1;
-  private static final int CLUSTERS = 3;
+  private static final int CLUSTERS = 5;
 
   @Test
   public void testKMeans() throws Exception {
@@ -104,8 +104,9 @@ public final class KMeansUpdateIT extends AbstractBatchIT {
       // Check if Basic hyperparameters match
       assertEquals(Integer.valueOf(CLUSTERS), clusteringModel.getNumberOfClusters());
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
-
-      assertTrue(clusteringModel.getClusters().get(0).getArray().getN() == 2);
+      List<Cluster> clusters = clusteringModel.getClusters();
+      Cluster cluster = clusters.get(0);
+      assertTrue(cluster.getArray().getN() == 2);
 
     }
   }

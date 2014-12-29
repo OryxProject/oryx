@@ -147,7 +147,8 @@ public class KMeansUpdate extends MLUpdate<String> {
             ClusteringModel.ModelClass.CENTER_BASED,
             model.clusterCenters().length)
             .withAlgorithmName("K-Means||")
-            .withNumberOfClusters(model.k());
+            .withNumberOfClusters(model.k())
+            .withScorable(true);
 
     Vector[] clusterCenters = model.clusterCenters();
     for (int i = 0; i < clusterCenters.length; i++) {

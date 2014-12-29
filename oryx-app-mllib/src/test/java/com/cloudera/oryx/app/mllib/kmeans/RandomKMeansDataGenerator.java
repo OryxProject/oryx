@@ -39,7 +39,6 @@ final class RandomKMeansDataGenerator implements DatumGenerator<String,String> {
 			double d = random.nextDouble();
 			elements.add(Double.toString(d));
 		}
-		TextUtils.joinCSV(elements);
 		return new Pair<>(Integer.toString(id), TextUtils.joinCSV(elements));
 	}
 }

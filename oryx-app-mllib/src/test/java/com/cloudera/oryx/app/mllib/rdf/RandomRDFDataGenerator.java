@@ -53,7 +53,6 @@ final class RandomRDFDataGenerator implements DatumGenerator<String,String> {
       elements.add(Double.toString(d));
     }
     elements.add(Boolean.toString(positive));
-    TextUtils.joinCSV(elements);
     return new Pair<>(Integer.toString(id), TextUtils.joinCSV(elements));
   }
 
