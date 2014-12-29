@@ -28,18 +28,17 @@ final class RandomKMeansDataGenerator implements DatumGenerator<String,String> {
 
   private final int numberOfDimensions;
 
-	RandomKMeansDataGenerator(int numberOfDimensions) {
-		this.numberOfDimensions = numberOfDimensions;
-	}
+  RandomKMeansDataGenerator(int numberOfDimensions) {
+    this.numberOfDimensions = numberOfDimensions;
+  }
 
-	@Override
-	public Pair<String,String> generate(int id, RandomGenerator random) {
-		List<String> elements = new ArrayList<>(numberOfDimensions);
-		for (int i = 0; i < numberOfDimensions; i++) {
-			double d = random.nextDouble();
-			elements.add(Double.toString(d));
-		}
-		TextUtils.joinCSV(elements);
-		return new Pair<>(Integer.toString(id), TextUtils.joinCSV(elements));
-	}
+  @Override
+  public Pair<String,String> generate(int id, RandomGenerator random) {
+    List<String> elements = new ArrayList<>(numberOfDimensions);
+    for (int i = 0; i < numberOfDimensions; i++) {
+      double d = random.nextDouble();
+      elements.add(Double.toString(d));
+    }
+    return new Pair<>(Integer.toString(id), TextUtils.joinCSV(elements));
+  }
 }
