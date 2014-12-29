@@ -27,7 +27,6 @@ import org.dmg.pmml.MiningModel;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.TreeModel;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +51,6 @@ public final class RDFUpdateIT extends AbstractRDFIT {
   private static final int MAX_SPLIT_CANDIDATES = 100;
   private static final String IMPURITY = "entropy";
 
-  // TODO unignore!
-  @Ignore
   @Test
   public void testRDF() throws Exception {
     Path tempDir = getTempDir();

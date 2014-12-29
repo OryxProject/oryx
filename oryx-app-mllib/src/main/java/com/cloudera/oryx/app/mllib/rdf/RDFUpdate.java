@@ -120,7 +120,10 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     Map<Integer,Integer> categoryInfo = new HashMap<>();
     for (Map.Entry<Integer,BiMap<String,Double>> e : distinctValueMaps.entrySet()) {
-      categoryInfo.put(e.getKey(), e.getValue().size());
+      int featureIndex = e.getKey();
+      if (!inputSchema.isTarget(featureIndex)) {
+        categoryInfo.put(featureIndex, e.getValue().size());
+      }
     }
 
     int seed = RandomManager.getRandom().nextInt();
@@ -279,7 +282,6 @@ public final class RDFUpdate extends MLUpdate<String> {
         segment.setModel(treeModel);
         //segment.setWeight(1.0); // No weights in MLlib impl now
         segmentation.getSegments().add(segment);
-        treeID++;
       }
     }
 
