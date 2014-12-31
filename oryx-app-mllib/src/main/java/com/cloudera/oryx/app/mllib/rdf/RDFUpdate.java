@@ -64,10 +64,18 @@ import org.dmg.pmml.SimplePredicate;
 import org.dmg.pmml.SimpleSetPredicate;
 import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
+import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
+import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.rdf.example.Feature;
+import com.cloudera.oryx.app.rdf.example.NumericFeature;
+import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
@@ -79,6 +87,8 @@ import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
 public final class RDFUpdate extends MLUpdate<String> {
+
+  private static final Logger log = LoggerFactory.getLogger(RDFUpdate.class);
 
   private final int numTrees;
   private final List<HyperParamValues<?>> hyperParamValues;
@@ -117,7 +127,8 @@ public final class RDFUpdate extends MLUpdate<String> {
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
     CategoricalValueEncodings categoricalValueEncodings =
         new CategoricalValueEncodings(getDistinctValues(parsedRDD));
-    JavaRDD<LabeledPoint> trainPointData = parsedToRatingRDD(parsedRDD, categoricalValueEncodings);
+    JavaRDD<LabeledPoint> trainPointData =
+        parseToLabeledPointRDD(parsedRDD, categoricalValueEncodings);
 
     Map<Integer,Integer> categoryInfo = categoricalValueEncodings.getCategoryCounts();
     categoryInfo.remove(inputSchema.getTargetFeatureIndex()); // Don't specify target count
@@ -165,7 +176,46 @@ public final class RDFUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
-    return 0; // TODO
+    Pair<DecisionForest,CategoricalValueEncodings> forestAndEncoding =
+        RDFPMMLUtils.read(model, inputSchema);
+    DecisionForest forest = forestAndEncoding.getFirst();
+    final CategoricalValueEncodings valueEncodings = forestAndEncoding.getSecond();
+
+    JavaRDD<Example> examplesRDD = testData.map(MLFunctions.PARSE_FN).map(
+        new Function<String[],Example>() {
+          @Override
+          public Example call(String[] data) {
+            Feature[] features = new Feature[data.length];
+            Feature target = null;
+            for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+              Feature feature = null;
+              if (inputSchema.isNumeric(featureIndex)) {
+                feature = NumericFeature.forValue(Double.parseDouble(data[featureIndex]));
+              } else if (inputSchema.isCategorical(featureIndex)) {
+                int encoding = valueEncodings.getValueEncodingMap(featureIndex)
+                    .get(data[featureIndex]);
+                feature = CategoricalFeature.forEncoding(encoding);
+              }
+              features[featureIndex] = feature;
+              if (inputSchema.isTarget(featureIndex)) {
+                target = feature;
+              }
+            }
+            return new Example(target, features);
+          }
+        });
+
+    double eval;
+    if (inputSchema.isClassification()) {
+      double accuracy = Evaluation.accuracy(forest, examplesRDD);
+      log.info("Accuracy: {}", accuracy);
+      eval = accuracy;
+    } else {
+      double rmse = Evaluation.rmse(forest, examplesRDD);
+      log.info("RMSE: {}", rmse);
+      eval = 1.0 / rmse;
+    }
+    return eval;
   }
 
   private Map<Integer,Collection<String>> getDistinctValues(JavaRDD<String[]> parsedRDD) {
@@ -210,7 +260,7 @@ public final class RDFUpdate extends MLUpdate<String> {
   }
 
 
-  private JavaRDD<LabeledPoint> parsedToRatingRDD(
+  private JavaRDD<LabeledPoint> parseToLabeledPointRDD(
       JavaRDD<String[]> parsedRDD,
       final CategoricalValueEncodings categoricalValueEncodings) {
 
@@ -249,8 +299,8 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  per tree in the model
    * @see #predictorExampleCounts(JavaRDD,RandomForestModel)
    */
-  private List<Map<Integer,Long>> treeNodeExampleCounts(JavaRDD<LabeledPoint> trainPointData,
-                                                        final RandomForestModel model) {
+  private static List<Map<Integer,Long>> treeNodeExampleCounts(JavaRDD<LabeledPoint> trainPointData,
+                                                               final RandomForestModel model) {
     List<AtomicLongMap<Integer>> maps = trainPointData.mapPartitions(
         new FlatMapFunction<Iterator<LabeledPoint>,List<AtomicLongMap<Integer>>>() {
           @Override
@@ -326,8 +376,8 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  features, since there are fewer predictors than features. That is, the index will
    *  match the one used in the {@link RandomForestModel}.
    */
-  private Map<Integer,Long> predictorExampleCounts(JavaRDD<LabeledPoint> trainPointData,
-                                                   final RandomForestModel model) {
+  private static Map<Integer,Long> predictorExampleCounts(JavaRDD<LabeledPoint> trainPointData,
+                                                          final RandomForestModel model) {
     return trainPointData.mapPartitions(
         new FlatMapFunction<Iterator<LabeledPoint>,AtomicLongMap<Integer>>() {
           @Override
