@@ -41,11 +41,39 @@ import com.cloudera.oryx.common.random.RandomManager;
  * Really, it computes what might be described as "Mean AUC", as it computes AUC per
  * user and averages them.
  */
-final class AUC {
+final class Evaluation {
 
-  private AUC() {
+  private Evaluation() {
   }
 
+  /**
+   * Computes root mean squared error of {@link Rating#rating()} versus predicted value.
+   */
+  static double rmse(MatrixFactorizationModel mfModel, JavaRDD<Rating> testData) {
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> testUserProductValues =
+        testData.mapToPair(new RatingToTupleDouble());
+    @SuppressWarnings("unchecked")
+    RDD<Tuple2<Object,Object>> testUserProducts =
+        (RDD<Tuple2<Object,Object>>) (RDD<?>) testUserProductValues.keys().rdd();
+    JavaRDD<Rating> predictions = testData.wrapRDD(mfModel.predict(testUserProducts));
+    double mse = predictions.mapToPair(
+        new RatingToTupleDouble()
+    ).join(testUserProductValues).values().mapToDouble(
+        new DoubleFunction<Tuple2<Double,Double>>() {
+          @Override
+          public double call(Tuple2<Double,Double> valuePrediction) {
+            double diff = valuePrediction._1() - valuePrediction._2();
+            return diff * diff;
+          }
+        }).mean();
+    return Math.sqrt(mse);
+  }
+
+  /**
+   * Computes AUC (area under the ROC curve) as a recommender evaluation metric.
+   * Really, it computes what might be described as "Mean AUC", as it computes AUC per
+   * user and averages them.
+   */
   static double areaUnderCurve(JavaSparkContext sparkContext,
                                MatrixFactorizationModel mfModel,
                                JavaRDD<Rating> positiveData) {
