@@ -25,6 +25,7 @@ import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +34,9 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractBatchIT;
 import com.cloudera.oryx.ml.MLUpdate;
 
-public final class KMeansUpdateIT extends AbstractBatchIT {
+public final class KMeansUpdateIT extends AbstractKMeansIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdateIT.class);
 
@@ -46,6 +46,7 @@ public final class KMeansUpdateIT extends AbstractBatchIT {
   private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int CLUSTERS = 3;
 
+  @Ignore
   @Test
   public void testKMeans() throws Exception {
     Path tempDir = getTempDir();
@@ -96,6 +97,9 @@ public final class KMeansUpdateIT extends AbstractBatchIT {
       assertEquals("MODEL", type);
 
       PMML pmml = PMMLUtils.fromString(value);
+
+      checkHeader(pmml.getHeader());
+
       Model rootModel = pmml.getModels().get(0);
       assertTrue(rootModel instanceof ClusteringModel);
 
@@ -105,7 +109,7 @@ public final class KMeansUpdateIT extends AbstractBatchIT {
       assertEquals(Integer.valueOf(CLUSTERS), clusteringModel.getNumberOfClusters());
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
 
-      assertTrue(clusteringModel.getClusters().get(0).getArray().getN() == 2);
+      assertEquals(2, clusteringModel.getClusters().get(0).getArray().getN().intValue());
 
     }
   }

@@ -19,9 +19,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.common.base.Preconditions;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
@@ -32,6 +35,7 @@ import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.TypeDefinitionField;
 import org.dmg.pmml.Value;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
@@ -98,9 +102,24 @@ public final class AppPMMLUtils {
    *  {@link InputSchema}
    */
   public static MiningSchema buildMiningSchema(InputSchema schema) {
+    return buildMiningSchema(schema, null);
+  }
+
+  /**
+   * @param schema {@link InputSchema} whose information should be encoded in PMML
+   * @param importances optional feature importances. May be {@code null}, or else the size
+   *  of the array must match the number of predictors in the schema, which may be
+   *  less than the total number of features.
+   * @return a {@link MiningSchema} representing the information contained in an
+   *  {@link InputSchema}
+   */
+  public static MiningSchema buildMiningSchema(InputSchema schema, double[] importances) {
+    Preconditions.checkArgument(
+        importances == null || (importances.length == schema.getNumPredictors()));
     List<String> featureNames = schema.getFeatureNames();
     Collection<MiningField> miningFields = new ArrayList<>();
-    for (String featureName : featureNames) {
+    for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
+      String featureName = featureNames.get(featureIndex);
       MiningField field = new MiningField(new FieldName(featureName));
       if (schema.isNumeric(featureName)) {
         field.setOptype(OpType.CONTINUOUS);
@@ -113,7 +132,13 @@ public final class AppPMMLUtils {
         field.setUsageType(FieldUsageType.SUPPLEMENTARY);
       }
       if (schema.hasTarget() && schema.isTarget(featureName)) {
+        // Override to PREDICTED
         field.setUsageType(FieldUsageType.PREDICTED);
+      }
+      // Will be active if and only if it's a predictor
+      if (field.getUsageType() == FieldUsageType.ACTIVE && importances != null) {
+        int predictorIndex = schema.featureToPredictorIndex(featureIndex);
+        field.setImportance(importances[predictorIndex]);
       }
       miningFields.add(field);
     }
@@ -128,31 +153,53 @@ public final class AppPMMLUtils {
 
     for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
       String featureName = featureNames.get(featureIndex);
-      if (schema.isActive(featureName)) {
-        OpType opType;
-        DataType dataType;
-        if (schema.isNumeric(featureName)) {
-          opType = OpType.CONTINUOUS;
-          dataType = DataType.DOUBLE;
-        } else if (schema.isCategorical(featureName)) {
-          opType = OpType.CATEGORICAL;
-          dataType = DataType.STRING;
-        } else {
-          throw new IllegalStateException("No type for feature " + featureName);
-        }
-        DataField field = new DataField(new FieldName(featureName), opType, dataType);
-        if (schema.isCategorical(featureName)) {
-          Collection<String> valuesOrderedByEncoding =
-              new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
-          for (String value : valuesOrderedByEncoding) {
-            field.getValues().add(new Value(value));
-          }
-        }
-        dictionary.getDataFields().add(field);
+      OpType opType;
+      DataType dataType;
+      if (schema.isNumeric(featureName)) {
+        opType = OpType.CONTINUOUS;
+        dataType = DataType.DOUBLE;
+      } else if (schema.isCategorical(featureName)) {
+        opType = OpType.CATEGORICAL;
+        dataType = DataType.STRING;
+      } else {
+        // Don't know
+        opType = null;
+        dataType = null;
       }
+      DataField field = new DataField(new FieldName(featureName), opType, dataType);
+      if (schema.isCategorical(featureName)) {
+        Collection<String> valuesOrderedByEncoding =
+            new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
+        for (String value : valuesOrderedByEncoding) {
+          field.getValues().add(new Value(value));
+        }
+      }
+      dictionary.getDataFields().add(field);
     }
     dictionary.setNumberOfFields(dictionary.getDataFields().size());
     return dictionary;
+  }
+
+  public static CategoricalValueEncodings buildCategoricalValueEncodings(
+      DataDictionary dictionary,
+      InputSchema schema) {
+    Preconditions.checkNotNull(dictionary);
+    List<String> featureNames = schema.getFeatureNames();
+    Map<Integer,Collection<String>> indexToValues = new HashMap<>();
+    for (TypeDefinitionField field : dictionary.getDataFields()) {
+      Collection<Value> values = field.getValues();
+      if (values != null && !values.isEmpty()) {
+        String featureName = field.getName().getValue();
+        int featureIndex = featureNames.indexOf(featureName);
+        Collection<String> categoricalValues = new ArrayList<>();
+        for (Value value : values) {
+          categoricalValues.add(value.getValue());
+        }
+        indexToValues.put(featureIndex, categoricalValues);
+      }
+    }
+    return new CategoricalValueEncodings(indexToValues);
+
   }
 
 }

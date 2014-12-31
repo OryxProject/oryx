@@ -15,9 +15,9 @@
 
 package com.cloudera.oryx.app.mllib.kmeans;
 
-import com.cloudera.oryx.lambda.AbstractBatchIT;
+import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 
-public abstract class AbstractKMeansIT extends AbstractBatchIT {
+public abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
 
   // Nothing at the moment
 

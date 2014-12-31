@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.typesafe.config.Config;
@@ -40,6 +42,8 @@ public final class InputSchema implements Serializable {
   private final Collection<String> categoricalFeatures;
   private final String targetFeature;
   private final int targetFeatureIndex;
+  /** Map from index among all features, to index among predictor features only. */
+  private final BiMap<Integer,Integer> allToPredictorMap;
 
   public InputSchema(Config config) {
     List<String> givenFeatureNames = config.getStringList("oryx.input-schema.feature-names");
@@ -55,7 +59,8 @@ public final class InputSchema implements Serializable {
       featureNames = ImmutableList.copyOf(givenFeatureNames);
     }
 
-    Preconditions.checkArgument(new HashSet<>(featureNames).size() == featureNames.size(),
+    int numFeatures = featureNames.size();
+    Preconditions.checkArgument(new HashSet<>(featureNames).size() == numFeatures,
                                 "Feature names must be unique: %s", featureNames);
 
     idFeatures = ImmutableSet.copyOf(config.getStringList("oryx.input-schema.id-features"));
@@ -91,71 +96,170 @@ public final class InputSchema implements Serializable {
     targetFeature = ConfigUtils.getOptionalString(config, "oryx.input-schema.target-feature");
     Preconditions.checkArgument(targetFeature == null || activeFeatures.contains(targetFeature));
     targetFeatureIndex = targetFeature == null ? -1 : featureNames.indexOf(targetFeature);
+
+    allToPredictorMap = HashBiMap.create();
+    for (int featureIndex = 0, predictorIndex = 0;
+         featureIndex < featureNames.size();
+         featureIndex++) {
+      if (isActive(featureIndex) && !isTarget(featureIndex)) {
+        allToPredictorMap.put(featureIndex, predictorIndex);
+        predictorIndex++;
+      }
+    }
   }
 
+  /**
+   * @return names of features in the schema, in order
+   */
   public List<String> getFeatureNames() {
     return featureNames;
   }
 
+  /**
+   * @return total number of features described in the schema
+   */
   public int getNumFeatures() {
     return featureNames.size();
   }
 
+  /**
+   * @return number of features that are predictors -- not an ID, not ignored, not the target
+   */
+  public int getNumPredictors() {
+    return activeFeatures.size() - (hasTarget() ? 1 : 0);
+  }
+
+  /**
+   * @param featureName feature name
+   * @return {@code true} iff feature is an ID feature
+   */
   public boolean isID(String featureName) {
     return idFeatures.contains(featureName);
   }
 
+  /**
+   * @param featureIndex feature index
+   * @return {@code true} iff feature is an ID feature
+   */
   public boolean isID(int featureIndex) {
     return isID(featureNames.get(featureIndex));
   }
 
+  /**
+   * @param featureName feature name
+   * @return {@code true} iff feature is active -- not an ID or ignored
+   */
   public boolean isActive(String featureName) {
     return activeFeatures.contains(featureName);
   }
 
+  /**
+   * @param featureIndex feature index
+   * @return {@code true} iff feature is active -- not an ID or ignored
+   */
   public boolean isActive(int featureIndex) {
     return isActive(featureNames.get(featureIndex));
   }
 
+  /**
+   * @param featureName feature name
+   * @return {@code true} iff feature is numeric
+   */
   public boolean isNumeric(String featureName) {
     return numericFeatures.contains(featureName);
   }
 
+  /**
+   * @param featureIndex feature index
+   * @return {@code true} iff feature is a numeric
+   */
   public boolean isNumeric(int featureIndex) {
     return isNumeric(featureNames.get(featureIndex));
   }
 
+  /**
+   * @param featureName feature name
+   * @return {@code true} iff feature is categorical
+   */
   public boolean isCategorical(String featureName) {
     return categoricalFeatures.contains(featureName);
   }
 
-  public boolean isTarget(String featureName) {
-    return featureName.equals(targetFeature);
-  }
-
-  public boolean isTarget(int featureIndex) {
-    return targetFeatureIndex == featureIndex;
-  }
-
+  /**
+   * @param featureIndex feature index
+   * @return {@code true} iff feature is a categorical
+   */
   public boolean isCategorical(int featureIndex) {
     return isCategorical(featureNames.get(featureIndex));
   }
 
+  /**
+   * @param featureName feature name
+   * @return {@code true} iff the feature is the target
+   */
+  public boolean isTarget(String featureName) {
+    return featureName.equals(targetFeature);
+  }
+
+  /**
+   * @param featureIndex feature index
+   * @return {@code true} iff the feature is the target
+   */
+  public boolean isTarget(int featureIndex) {
+    return targetFeatureIndex == featureIndex;
+  }
+
+  /**
+   * @return name of feature that is the target
+   * @throws IllegalStateException if there is no target
+   */
   public String getTargetFeature() {
+    Preconditions.checkState(targetFeature != null);
     return targetFeature;
   }
 
+  /**
+   * @return index of feature that is the target
+   * @throws IllegalStateException if there is no target
+   */
   public int getTargetFeatureIndex() {
     Preconditions.checkState(targetFeatureIndex >= 0);
     return targetFeatureIndex;
   }
 
+  /**
+   * @return {@code true} iff schema defines a target feature
+   */
   public boolean hasTarget() {
     return targetFeature != null;
   }
 
+  /**
+   * @return {@code true} iff the target feature is categorical
+   * @throws IllegalStateException if there is no target
+   */
   public boolean isClassification() {
-    return isCategorical(targetFeature);
+    return isCategorical(getTargetFeature());
+  }
+
+  /**
+   * @param featureIndex index (0-based) among all features
+   * @return index (0-based) among only predictors (not ID, not ignored, not target)
+   */
+  public int featureToPredictorIndex(int featureIndex) {
+    Integer predictorIndex = allToPredictorMap.get(featureIndex);
+    Preconditions.checkArgument(predictorIndex != null);
+    return predictorIndex;
+  }
+
+  /**
+   * @param predictorIndex index (0-based) among only predictors (not ID, not ignored, not target)
+   * @return index (0-based) among all features
+   */
+  public int predictorToFeatureIndex(int predictorIndex) {
+    Integer featureIndex = allToPredictorMap.inverse().get(predictorIndex);
+    Preconditions.checkArgument(featureIndex != null);
+    return featureIndex;
   }
 
   @Override

@@ -34,6 +34,7 @@ import org.dmg.pmml.Node;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.TreeModel;
+import org.dmg.pmml.Value;
 import org.junit.Test;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
@@ -121,20 +122,31 @@ public final class AppPMMLUtilsTest extends OryxTest {
 
     DataDictionary dictionary =
         AppPMMLUtils.buildDataDictionary(buildTestSchema(), categoricalValueEncodings);
-    assertEquals(2, dictionary.getNumberOfFields().intValue());
-    DataField df0 = dictionary.getDataFields().get(0);
-    assertEquals("bar", df0.getName().getValue());
-    assertEquals(OpType.CATEGORICAL, df0.getOptype());
-    assertEquals(DataType.STRING, df0.getDataType());
-    DataField df1 = dictionary.getDataFields().get(1);
-    assertEquals("bing", df1.getName().getValue());
-    assertEquals(OpType.CONTINUOUS, df1.getOptype());
-    assertEquals(DataType.DOUBLE, df1.getDataType());
+    assertEquals(4, dictionary.getNumberOfFields().intValue());
+    checkDataField(dictionary.getDataFields().get(0), "foo", null);
+    checkDataField(dictionary.getDataFields().get(1), "bar", true);
+    checkDataField(dictionary.getDataFields().get(2), "baz", null);
+    checkDataField(dictionary.getDataFields().get(3), "bing", false);
 
-    assertEquals(5, df0.getValues().size());
+    List<Value> dfValues = dictionary.getDataFields().get(1).getValues();
+    assertEquals(5, dfValues.size());
     String[] categoricalValues = { "one", "two", "three", "four", "five" };
     for (int i = 0; i < categoricalValues.length; i++) {
-      assertEquals(categoricalValues[i], df0.getValues().get(i).getValue());
+      assertEquals(categoricalValues[i], dfValues.get(i).getValue());
+    }
+  }
+
+  private static void checkDataField(DataField field, String name, Boolean categorical) {
+    assertEquals(name, field.getName().getValue());
+    if (categorical == null) {
+      assertNull(field.getOptype());
+      assertNull(field.getDataType());
+    } else if (categorical) {
+      assertEquals(OpType.CATEGORICAL, field.getOptype());
+      assertEquals(DataType.STRING, field.getDataType());
+    } else {
+      assertEquals(OpType.CONTINUOUS, field.getOptype());
+      assertEquals(DataType.DOUBLE, field.getDataType());
     }
   }
 

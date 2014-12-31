@@ -22,16 +22,23 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.Extension;
+import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningModel;
+import org.dmg.pmml.MissingValueStrategyType;
 import org.dmg.pmml.Model;
+import org.dmg.pmml.MultipleModelMethodType;
+import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.ScoreDistribution;
+import org.dmg.pmml.Segment;
+import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.TreeModel;
+import org.dmg.pmml.True;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -95,36 +102,95 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
     }
 
+    InputSchema schema = new InputSchema(config);
+
     for (Pair<String,String> km : updates) {
 
       String type = km.getFirst();
       String value = km.getSecond();
 
-      log.debug("{} = {}", type, value);
-
       assertEquals("MODEL", type);
+      log.info("{}", value);
 
       PMML pmml = PMMLUtils.fromString(value);
-      List<Extension> extensions = pmml.getExtensions();
-      assertEquals(3, extensions.size());
-      // Basic hyperparameters should match
-      assertEquals(Integer.toString(MAX_DEPTH), AppPMMLUtils.getExtensionValue(pmml, "maxDepth"));
-      assertEquals(Integer.toString(MAX_SPLIT_CANDIDATES),
-                   AppPMMLUtils.getExtensionValue(pmml, "maxSplitCandidates"));
-      assertEquals(IMPURITY, AppPMMLUtils.getExtensionValue(pmml, "impurity"));
+
+      checkHeader(pmml.getHeader());
+
+      assertEquals(3, pmml.getExtensions().size());
+      Map<String,Object> expected = new HashMap<>();
+      expected.put("maxDepth", MAX_DEPTH);
+      expected.put("maxSplitCandidates", MAX_SPLIT_CANDIDATES);
+      expected.put("impurity", IMPURITY);
+      checkExtensions(pmml, expected);
+
+      checkDataDictionary(schema, pmml.getDataDictionary());
 
       Model rootModel = pmml.getModels().get(0);
-      int actualNumTrees;
       if (rootModel instanceof TreeModel) {
-        actualNumTrees = 1;
+        assertEquals(NUM_TREES, 1);
+        TreeModel treeModel = (TreeModel) rootModel;
+        checkTreeModel(treeModel);
       } else if (rootModel instanceof MiningModel) {
-        actualNumTrees = ((MiningModel) rootModel).getSegmentation().getSegments().size();
+        MiningModel miningModel = (MiningModel) rootModel;
+        Segmentation segmentation = miningModel.getSegmentation();
+        if (schema.isClassification()) {
+          assertEquals(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE,
+                       segmentation.getMultipleModelMethod());
+        } else {
+          assertEquals(MultipleModelMethodType.WEIGHTED_AVERAGE,
+                       segmentation.getMultipleModelMethod());
+        }
+        List<Segment> segments = segmentation.getSegments();
+        assertEquals(NUM_TREES, segments.size());
+        for (int i = 0; i < segments.size(); i++) {
+          Segment segment = segments.get(i);
+          assertEquals(Integer.toString(i), segment.getId());
+          assertTrue(segment.getPredicate() instanceof True);
+          assertEquals(1.0, segment.getWeight());
+          assertTrue(segment.getModel() instanceof TreeModel);
+          checkTreeModel((TreeModel) segment.getModel());
+        }
+
       } else {
-        fail("Wrong model type");
+        fail("Wrong model type: " + rootModel.getClass());
         return;
       }
-      assertEquals(NUM_TREES, actualNumTrees);
 
+      if (schema.isClassification()) {
+        assertEquals(MiningFunctionType.CLASSIFICATION, rootModel.getFunctionName());
+      } else {
+        assertEquals(MiningFunctionType.REGRESSION, rootModel.getFunctionName());
+      }
+
+      checkMiningSchema(schema, rootModel.getMiningSchema());
+
+    }
+  }
+
+  private static void checkTreeModel(TreeModel treeModel) {
+    assertEquals(TreeModel.SplitCharacteristic.BINARY_SPLIT, treeModel.getSplitCharacteristic());
+    assertEquals(MissingValueStrategyType.DEFAULT_CHILD, treeModel.getMissingValueStrategy());
+    checkNode(treeModel.getNode());
+  }
+
+  private static void checkNode(Node node) {
+    List<ScoreDistribution> scoreDists = node.getScoreDistributions();
+    if (scoreDists.isEmpty()) {
+      // Non-leaf
+      List<Node> children = node.getNodes();
+      assertEquals(2, children.size());
+      Node rightChild = children.get(0);
+      Node leftChild = children.get(1);
+      assertTrue(leftChild.getPredicate() instanceof True);
+      assertEquals(node.getRecordCount().doubleValue(),
+                   leftChild.getRecordCount() + rightChild.getRecordCount());
+      assertEquals(node.getId() + "+", rightChild.getId());
+      assertEquals(node.getId() + "-", leftChild.getId());
+      checkNode(rightChild);
+      checkNode(leftChild);
+    } else {
+      // Leaf
+      assertEquals(1, scoreDists.size());
     }
   }
 

@@ -28,7 +28,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
-import org.dmg.pmml.Extension;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -161,12 +160,15 @@ public final class ALSUpdateIT extends AbstractALSIT {
       } else {
 
         PMML pmml = PMMLUtils.fromString(value);
-        List<Extension> extensions = pmml.getExtensions();
-        assertEquals(7, extensions.size());
-        // Basic hyperparameters should match
-        assertEquals(Integer.toString(FEATURES), AppPMMLUtils.getExtensionValue(pmml, "features"));
-        assertEquals(Double.toString(LAMBDA),AppPMMLUtils.getExtensionValue(pmml, "lambda"));
-        assertEquals("false", AppPMMLUtils.getExtensionValue(pmml, "implicit"));
+
+        checkHeader(pmml.getHeader());
+
+        assertEquals(7, pmml.getExtensions().size());
+        Map<String,Object> expected = new HashMap<>();
+        expected.put("features", FEATURES);
+        expected.put("lambda", LAMBDA);
+        expected.put("implicit", false);
+        checkExtensions(pmml, expected);
 
         // See if users/item sets seen in updates match what was expected from output
         assertEquals(expectedUsers, seenUsers);

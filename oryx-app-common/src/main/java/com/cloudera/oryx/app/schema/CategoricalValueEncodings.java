@@ -28,6 +28,10 @@ public final class CategoricalValueEncodings implements Serializable {
 
   private final Map<Integer,BiMap<String,Integer>> encodingsForIndex;
 
+  /**
+   * @param distinctValues map of categorical feature indices, to the set of distinct
+   *  values for that categorical feature. Order matters.
+   */
   public CategoricalValueEncodings(Map<Integer,Collection<String>> distinctValues) {
     encodingsForIndex = new HashMap<>(distinctValues.size());
     for (Map.Entry<Integer,Collection<String>> e : distinctValues.entrySet()) {
@@ -45,18 +49,35 @@ public final class CategoricalValueEncodings implements Serializable {
     return mapping;
   }
 
+  /**
+   * @param index feature index
+   * @return mapping of categorical feature values to numeric encodings for the indicated
+   *  categorical feature
+   */
   public Map<String,Integer> getValueEncodingMap(int index) {
     return doGetMap(index);
   }
 
+  /**
+   * @param index feature index
+   * @return mapping of numeric encodings to categorical feature values for the indicated
+   *  categorical feature
+   */
   public Map<Integer,String> getEncodingValueMap(int index) {
     return doGetMap(index).inverse();
   }
 
+  /**
+   * @param index feature index
+   * @return number of distinct values of the categorical feature
+   */
   public int getValueCount(int index) {
     return doGetMap(index).size();
   }
 
+  /**
+   * @return map of categorical feature index to number of distinct values of the feature
+   */
   public Map<Integer,Integer> getCategoryCounts() {
     Map<Integer,Integer> counts = new HashMap<>(encodingsForIndex.size());
     for (Map.Entry<Integer,BiMap<String,Integer>> entry : encodingsForIndex.entrySet()) {
@@ -68,7 +89,7 @@ public final class CategoricalValueEncodings implements Serializable {
   private BiMap<String,Integer> doGetMap(int index) {
     Preconditions.checkArgument(index >= 0);
     BiMap<String,Integer> map = encodingsForIndex.get(index);
-    Preconditions.checkNotNull(map);
+    Preconditions.checkNotNull(map, "No values for index %s", index);
     return map;
   }
 

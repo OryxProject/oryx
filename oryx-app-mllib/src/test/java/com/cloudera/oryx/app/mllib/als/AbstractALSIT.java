@@ -19,10 +19,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.lambda.AbstractBatchIT;
 
-public abstract class AbstractALSIT extends AbstractBatchIT {
+public abstract class AbstractALSIT extends AbstractAppMLlibIT {
 
   static Collection<Integer> parseIDsFromContent(List<?> content) {
     List<String> values = AppPMMLUtils.parseArray(content);

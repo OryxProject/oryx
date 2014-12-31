@@ -40,6 +40,7 @@ public final class InputSchemaTest extends OryxTest {
     Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
     InputSchema schema = new InputSchema(config);
     assertEquals(2, schema.getNumFeatures());
+    assertEquals(2, schema.getNumPredictors());
     assertTrue(schema.getFeatureNames().containsAll(Arrays.asList("0", "1")));
     for (int i = 0; i < 2; i++) {
       assertFalse(schema.isID(i));
@@ -62,7 +63,18 @@ public final class InputSchemaTest extends OryxTest {
       assertFalse(schema.isTarget(schema.getFeatureNames().get(i)));
     }
     assertFalse(schema.hasTarget());
-    assertNull(schema.getTargetFeature());
+    try {
+      schema.getTargetFeature();
+      fail();
+    } catch (IllegalStateException ise) {
+      // good
+    }
+    try {
+      schema.getTargetFeatureIndex();
+      fail();
+    } catch (IllegalStateException ise) {
+      // good
+    }
   }
 
   @Test
@@ -76,6 +88,7 @@ public final class InputSchemaTest extends OryxTest {
     Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
     InputSchema schema = new InputSchema(config);
     assertEquals(4, schema.getNumFeatures());
+    assertEquals(1, schema.getNumPredictors());
     assertTrue(schema.getFeatureNames().containsAll(Arrays.asList("foo", "bar", "baz", "bing")));
     for (int i = 0; i < 4; i++) {
       assertEquals(i == 2, schema.isID(i));
@@ -100,6 +113,45 @@ public final class InputSchemaTest extends OryxTest {
     assertTrue(schema.hasTarget());
     assertEquals("bar", schema.getTargetFeature());
     assertEquals(1, schema.getTargetFeatureIndex());
+  }
+
+  @Test
+  public void testActiveFeatureIndexMapping() {
+    Map<String, Object> overlayConfig = new HashMap<>();
+    overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\",\"baz\",\"bing\"]");
+    overlayConfig.put("oryx.input-schema.ignored-features", "[\"foo\",\"baz\"]");
+    overlayConfig.put("oryx.input-schema.categorical-features", "[]");
+    Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
+    InputSchema schema = new InputSchema(config);
+    assertEquals(0, schema.featureToPredictorIndex(1));
+    assertEquals(1, schema.featureToPredictorIndex(3));
+    assertEquals(1, schema.predictorToFeatureIndex(0));
+    assertEquals(3, schema.predictorToFeatureIndex(1));
+    try {
+      schema.featureToPredictorIndex(2);
+      fail();
+    } catch (IllegalArgumentException iae) {
+      // good
+    }
+    try {
+      schema.predictorToFeatureIndex(2);
+      fail();
+    } catch (IllegalArgumentException iae) {
+      // good
+    }
+  }
+
+  @Test
+  public void testActiveFeatureIndexMapping2() {
+    Map<String, Object> overlayConfig = new HashMap<>();
+    overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\",\"baz\",\"bing\"]");
+    overlayConfig.put("oryx.input-schema.ignored-features", "[\"foo\",\"baz\"]");
+    overlayConfig.put("oryx.input-schema.target-feature", "\"bar\"");
+    overlayConfig.put("oryx.input-schema.categorical-features", "[]");
+    Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
+    InputSchema schema = new InputSchema(config);
+    assertEquals(0, schema.featureToPredictorIndex(3));
+    assertEquals(3, schema.predictorToFeatureIndex(0));
   }
 
 }

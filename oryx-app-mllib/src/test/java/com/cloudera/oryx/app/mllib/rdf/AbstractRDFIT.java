@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.app.mllib.rdf;
 
-import com.cloudera.oryx.lambda.AbstractBatchIT;
+import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 
-public abstract class AbstractRDFIT extends AbstractBatchIT {
+public abstract class AbstractRDFIT extends AbstractAppMLlibIT {
   // Nothing yet
 }

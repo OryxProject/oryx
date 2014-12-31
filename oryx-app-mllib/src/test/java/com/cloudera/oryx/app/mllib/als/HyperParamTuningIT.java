@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.Extension;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -82,14 +81,15 @@ public final class HyperParamTuningIT extends AbstractALSIT {
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
-    List<Extension> extensions = pmml.getExtensions();
-    assertEquals(8, extensions.size());
+    assertEquals(8, pmml.getExtensions().size());
     assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "X"));
     assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "Y"));
-    assertTrue(Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit")));
-    assertEquals(0.001, Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "lambda")));
-    assertEquals(1.0, Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "alpha")));
-    assertEquals(TEST_FEATURES, Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features")));
+    Map<String,Object> expected = new HashMap<>();
+    expected.put("features", TEST_FEATURES);
+    expected.put("lambda", 0.001);
+    expected.put("implicit", true);
+    expected.put("alpha", 1.0);
+    checkExtensions(pmml, expected);
   }
 
 }
