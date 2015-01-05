@@ -68,48 +68,51 @@ public final class HyperParamsTest extends OryxTest {
   @Test
   public void testFixedDiscrete() {
     doTest(HyperParams.fixed(3), 1,
-           3);
+           Collections.singletonList(3));
     doTest(HyperParams.fixed(3), 3,
-           3);
+           Collections.singletonList(3));
   }
 
   @Test
   public void testDiscreteRange() {
     doTest(HyperParams.range(3, 4), 1,
-           3);
+           Collections.singletonList(3));
     doTest(HyperParams.range(3, 5), 1,
-           4);
+           Collections.singletonList(4));
     doTest(HyperParams.range(3, 5), 2,
-           3, 5);
+           Arrays.asList(3, 5));
     doTest(HyperParams.range(3, 5), 3,
-           3, 4, 5);
+           Arrays.asList(3, 4, 5));
     doTest(HyperParams.range(3, 5), 4,
-           3, 4, 5);
+           Arrays.asList(3, 4, 5));
     doTest(HyperParams.range(0, 1), 3,
-           0, 1);
+           Arrays.asList(0, 1));
     doTest(HyperParams.range(-1, 1), 5,
-           -1, 0, 1);
+           Arrays.asList(-1, 0, 1));
   }
 
   @Test
   public void testAroundDiscrete() {
     doTest(HyperParams.around(-3, 1), 1,
-           -3);
+           Collections.singletonList(-3));
     doTest(HyperParams.around(-3, 1), 2,
-           -3, -2);
+           Arrays.asList(-3, -2));
     doTest(HyperParams.around(-3, 1), 3,
-           -4, -3, -2);
+           Arrays.asList(-4, -3, -2));
     doTest(HyperParams.around(-3, 10), 2,
-           -8, 2);
+           Arrays.asList(-8, 2));
     doTest(HyperParams.around(-3, 10), 3,
-           -13, -3, 7);
+           Arrays.asList(-13, -3, 7));
   }
 
   @Test
   public void testUnordered() {
-    doTest(HyperParams.unorderedFromValues("foo", "bar"), 1, "foo");
-    doTest(HyperParams.unorderedFromValues("foo", "bar"), 2, "foo", "bar");
-    doTest(HyperParams.unorderedFromValues("foo", "bar"), 3, "foo", "bar");
+    doTest(HyperParams.unorderedFromValues(Arrays.asList("foo", "bar")), 1,
+           Collections.singletonList("foo"));
+    doTest(HyperParams.unorderedFromValues(Arrays.asList("foo", "bar")), 2,
+           Arrays.asList("foo", "bar"));
+    doTest(HyperParams.unorderedFromValues(Arrays.asList("foo", "bar")), 3,
+           Arrays.asList("foo", "bar"));
   }
 
   @Test
@@ -155,15 +158,20 @@ public final class HyperParamsTest extends OryxTest {
     overlay.put("c", "[3,4]");
     overlay.put("d", "[5.3,6.6]");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
-    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "a"), 1, 1);
-    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "b"), 1, 2.7);
-    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "c"), 2, 3, 4);
-    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "d"), 2, 5.3, 6.6);
+    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "a"),
+           1, Collections.singletonList(1));
+    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "b"),
+           1, Collections.singletonList(2.7));
+    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "c"),
+           2, Arrays.asList(3, 4));
+    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "d"),
+           2, Arrays.asList(5.3, 6.6));
   }
 
-  @SafeVarargs
-  private static <T> void doTest(HyperParamValues<T> hyperParams, int howMany, T... expected) {
-    assertEquals(Arrays.asList(expected), hyperParams.getTrialValues(howMany));
+  private static <T> void doTest(HyperParamValues<T> hyperParams,
+                                 int howMany,
+                                 List<T> expected) {
+    assertEquals(expected, hyperParams.getTrialValues(howMany));
   }
 
   private static void doTestContinuous(HyperParamValues<Double> range,
