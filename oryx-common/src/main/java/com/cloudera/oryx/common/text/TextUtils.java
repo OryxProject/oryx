@@ -47,6 +47,7 @@ public final class TextUtils {
 
   /**
    * @param delimited line of delimited text
+   * @param delimiter delimiter to split fields on
    * @return delimited strings, parsed according to RFC 4180 but with the given delimiter
    */
   public static String[] parseDelimited(String delimited, char delimiter) {
@@ -84,6 +85,7 @@ public final class TextUtils {
 
   /**
    * @param elements values to join by the delimiter to make one line of text
+   * @param delimiter delimiter to put between fields
    * @return one line of text, with RFC 4180 escaping (values with comma are quoted; double-quotes
    *  are escaped by doubling) and using the given delimiter
    */

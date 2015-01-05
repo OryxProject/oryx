@@ -59,7 +59,8 @@ public final class RDFPMMLUtils {
   private RDFPMMLUtils() {}
 
   /**
-   * @param pmml PMML
+   * @param pmml PMML representation of decision forest
+   * @param schema information about the configured, to validate the PMML and help parse it
    * @return a {@link DecisionForest} representation of the PMML encoded model
    */
   public static Pair<DecisionForest,CategoricalValueEncodings> read(PMML pmml, InputSchema schema) {

@@ -37,6 +37,7 @@ public final class WeightedPrediction {
   /**
    * @param predictions {@link Prediction}s from individuals
    * @param weights weights that should be applied to
+   * @param <T> type of {@link Prediction} to vote on
    * @return a single {@link Prediction} represented a weighted combination of the inputs
    */
   public static <T extends Prediction> Prediction voteOnFeature(List<T> predictions,
