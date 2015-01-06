@@ -73,7 +73,7 @@
 
   <profiles>
     <profile>
-      <id>java1.7</id>
+      <id>java7</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -89,7 +89,7 @@
       </dependencies>
     </profile>
     <profile>
-      <id>java1.8</id>
+      <id>java8</id>
       <dependencies>
         <dependency>
           <groupId>net.openhft</groupId>
