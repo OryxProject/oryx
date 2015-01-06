@@ -61,10 +61,9 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", NUM_TREES);
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", MAX_DEPTH);
-    // Low values like 2 are deliberately bad, won't work
-    overlayConfig.put("oryx.rdf.hyperparams.max-split-candidates",
-                      "[2," + MAX_SPLIT_CANDIDATES + "]");
-    overlayConfig.put("oryx.rdf.hyperparams.impurity", IMPURITY);
+    // Low values like 1 are deliberately bad, won't work
+    overlayConfig.put("oryx.rdf.hyperparams.max-depth", "[1," + MAX_DEPTH + "]");
+    overlayConfig.put("oryx.rdf.hyperparams.max-split-candidates", MAX_SPLIT_CANDIDATES);
     overlayConfig.put("oryx.input-schema.num-features", 5);
     overlayConfig.put("oryx.input-schema.categorical-features", "[\"4\"]");
     overlayConfig.put("oryx.input-schema.id-features", "[\"0\"]");
