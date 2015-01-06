@@ -121,8 +121,10 @@ public final class RDFUpdate extends MLUpdate<String> {
     int maxSplitCandidates = (Integer) hyperParameters.get(0);
     int maxDepth = (Integer) hyperParameters.get(1);
     String impurity = (String) hyperParameters.get(2);
-    Preconditions.checkArgument(maxSplitCandidates > 0);
-    Preconditions.checkArgument(maxDepth > 0);
+    Preconditions.checkArgument(maxSplitCandidates >= 2,
+                                "max-split-candidates must be at least 2");
+    Preconditions.checkArgument(maxDepth > 0,
+                                "max-depth must be at least 1");
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
     CategoricalValueEncodings categoricalValueEncodings =
@@ -132,6 +134,12 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     Map<Integer,Integer> categoryInfo = categoricalValueEncodings.getCategoryCounts();
     categoryInfo.remove(inputSchema.getTargetFeatureIndex()); // Don't specify target count
+    // Need to translate indices to predictor indices
+    Map<Integer,Integer> categoryInfoByPredictor = new HashMap<>(categoryInfo.size());
+    for (Map.Entry<Integer,Integer> e : categoryInfo.entrySet()) {
+      categoryInfoByPredictor.put(inputSchema.featureToPredictorIndex(e.getKey()),
+                                  e.getValue());
+    }
 
     int seed = RandomManager.getRandom().nextInt();
 
@@ -141,7 +149,7 @@ public final class RDFUpdate extends MLUpdate<String> {
           categoricalValueEncodings.getValueCount(inputSchema.getTargetFeatureIndex());
       model = RandomForest.trainClassifier(trainPointData,
                                            numTargetClasses,
-                                           categoryInfo,
+                                           categoryInfoByPredictor,
                                            numTrees,
                                            "auto",
                                            impurity,
@@ -150,7 +158,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                                            seed);
     } else {
       model = RandomForest.trainRegressor(trainPointData,
-                                          categoryInfo,
+                                          categoryInfoByPredictor,
                                           numTrees,
                                           "auto",
                                           impurity,
@@ -494,9 +502,6 @@ public final class RDFUpdate extends MLUpdate<String> {
     boolean classificationTask = dtModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
 
-    Map<Integer,String> targetEncodingToValue =
-        categoricalValueEncodings.getEncodingValueMap(inputSchema.getTargetFeatureIndex());
-
     Node root = new Node();
     root.setId("r");
 
@@ -526,6 +531,8 @@ public final class RDFUpdate extends MLUpdate<String> {
         Predict prediction = treeNode.predict();
         int targetEncodedValue = (int) prediction.predict();
         if (classificationTask) {
+          Map<Integer,String> targetEncodingToValue =
+              categoricalValueEncodings.getEncodingValueMap(inputSchema.getTargetFeatureIndex());
           String predictedCategoricalValue = targetEncodingToValue.get(targetEncodedValue);
           double confidence = prediction.prob();
           Preconditions.checkState(confidence >= 0.0 && confidence <= 1.0);

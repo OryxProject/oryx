@@ -31,11 +31,11 @@ import com.cloudera.oryx.kafka.util.DatumGenerator;
  * The data is generated such that the positive class "true" only occurs when all
  * dimensions are at least 0.5. The resulting data is returned as a CSV string.
  */
-final class RandomRDFDataGenerator implements DatumGenerator<String,String> {
+final class RandomCategoricalRDFDataGenerator implements DatumGenerator<String,String> {
 
   private final int n;
 
-  RandomRDFDataGenerator(int n) {
+  RandomCategoricalRDFDataGenerator(int n) {
     Preconditions.checkArgument(n >= 1);
     this.n = n;
   }

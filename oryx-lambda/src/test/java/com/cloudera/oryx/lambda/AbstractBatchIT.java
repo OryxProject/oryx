@@ -125,7 +125,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       }
     }
     log.info("Read {} data", count);
-    assertEquals(expectedCount, count);
+    assertEquals("Wrong count of data read", expectedCount, count);
   }
 
   protected static void checkIntervals(int numIntervals,

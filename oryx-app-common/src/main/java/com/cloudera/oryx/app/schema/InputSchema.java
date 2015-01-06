@@ -248,7 +248,8 @@ public final class InputSchema implements Serializable {
    */
   public int featureToPredictorIndex(int featureIndex) {
     Integer predictorIndex = allToPredictorMap.get(featureIndex);
-    Preconditions.checkArgument(predictorIndex != null);
+    Preconditions.checkArgument(predictorIndex != null,
+                                "No predictor for feature %s", featureIndex);
     return predictorIndex;
   }
 
@@ -258,7 +259,8 @@ public final class InputSchema implements Serializable {
    */
   public int predictorToFeatureIndex(int predictorIndex) {
     Integer featureIndex = allToPredictorMap.inverse().get(predictorIndex);
-    Preconditions.checkArgument(featureIndex != null);
+    Preconditions.checkArgument(featureIndex != null,
+                                "No feature for predictor %s", predictorIndex);
     return featureIndex;
   }
 

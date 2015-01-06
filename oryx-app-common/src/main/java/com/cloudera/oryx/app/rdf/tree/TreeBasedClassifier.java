@@ -30,7 +30,7 @@ public interface TreeBasedClassifier extends Serializable {
    * @param test example whose target value is to be predicated
    * @return a {@link Prediction} of the target value
    */
-  Prediction classify(Example test);
+  Prediction predict(Example test);
 
   /**
    * Requests that the implementation update its internal state to reflect a new {@link Example}.

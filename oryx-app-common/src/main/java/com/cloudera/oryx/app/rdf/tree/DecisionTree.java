@@ -51,7 +51,7 @@ public final class DecisionTree implements TreeBasedClassifier {
   }
 
   @Override
-  public Prediction classify(Example test) {
+  public Prediction predict(Example test) {
     TerminalNode terminalNode = findTerminal(test);
     return terminalNode.getPrediction();
   }

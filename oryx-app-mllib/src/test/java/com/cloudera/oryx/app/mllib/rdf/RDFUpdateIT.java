@@ -51,12 +51,6 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
-  private static final int GEN_INTERVAL_SEC = 10;
-  private static final int BLOCK_INTERVAL_SEC = 1;
-  private static final int NUM_TREES = 2;
-  private static final int MAX_DEPTH = 8;
-  private static final int MAX_SPLIT_CANDIDATES = 100;
-  private static final String IMPURITY = "entropy";
 
   @Test
   public void testRDF() throws Exception {
@@ -85,7 +79,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
     List<Pair<String, String>> updates = startServerProduceConsumeTopics(
         config,
-        new RandomRDFDataGenerator(3),
+        new RandomCategoricalRDFDataGenerator(3),
         DATA_TO_WRITE,
         WRITE_INTERVAL_MSEC);
 
@@ -100,6 +94,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
       assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      PMMLUtils.read(modelFile); // Shouldn't throw exception
     }
 
     InputSchema schema = new InputSchema(config);

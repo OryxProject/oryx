@@ -26,19 +26,20 @@ import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
- * <p>Responds to a GET request to {@code /classify/[datum]}. The input is one data point to classify,
- * delimited, like "1,foo,3.0". The response body contains the result of classification on one line.
+ * <p>Responds to a GET request to {@code /predict/[datum]}. The input is one data point to predict,
+ * delimited, like "1,foo,3.0". The value of the target feature in the input should be empty.
+ * The response body contains the result of prediction on one line.
  * The result depends on the classifier or regressor --  could be a number or a category name.</p>
  */
-@Path("/classify")
-public final class Classify extends AbstractRDFResource {
+@Path("/predict")
+public final class Predict extends AbstractRDFResource {
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Response get(@PathParam("datum") String datum) throws OryxServingException {
 
-    check(datum != null && !datum.isEmpty(), "Input Data needed to classify");
+    check(datum != null && !datum.isEmpty(), "Input Data needed to predict");
 
     return Response.ok().build();
   }

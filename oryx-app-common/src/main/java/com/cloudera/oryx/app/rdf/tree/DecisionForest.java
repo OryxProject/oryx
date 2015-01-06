@@ -69,7 +69,7 @@ public final class DecisionForest implements Iterable<DecisionTree>, TreeBasedCl
   }
   
   @Override
-  public Prediction classify(Example test) {
+  public Prediction predict(Example test) {
     return WeightedPrediction.voteOnFeature(
         Lists.transform(Arrays.asList(trees), new TreeToPredictionFunction(test)), weights);
   }
@@ -97,7 +97,7 @@ public final class DecisionForest implements Iterable<DecisionTree>, TreeBasedCl
     }
     @Override
     public Prediction apply(DecisionTree tree) {
-      return tree.classify(test);
+      return tree.predict(test);
     }
   }
 }

@@ -18,5 +18,10 @@ package com.cloudera.oryx.app.mllib.rdf;
 import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 
 public abstract class AbstractRDFIT extends AbstractAppMLlibIT {
-  // Nothing yet
+
+  protected static final int NUM_TREES = 2;
+  protected static final int MAX_DEPTH = 8;
+  protected static final int MAX_SPLIT_CANDIDATES = 100;
+  protected static final String IMPURITY = "entropy";
+
 }

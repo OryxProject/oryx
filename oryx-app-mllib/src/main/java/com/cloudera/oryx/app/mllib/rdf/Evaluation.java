@@ -36,7 +36,7 @@ final class Evaluation {
         new DoubleFunction<Example>() {
           @Override
           public double call(Example example) {
-            NumericPrediction prediction = (NumericPrediction) forest.classify(example);
+            NumericPrediction prediction = (NumericPrediction) forest.predict(example);
             NumericFeature target = (NumericFeature) example.getTarget();
             double diff = prediction.getPrediction() - target.getValue();
             return diff * diff;
@@ -51,7 +51,7 @@ final class Evaluation {
         new Function<Example, Boolean>() {
           @Override
           public Boolean call(Example example) {
-            CategoricalPrediction prediction = (CategoricalPrediction) forest.classify(example);
+            CategoricalPrediction prediction = (CategoricalPrediction) forest.predict(example);
             CategoricalFeature target = (CategoricalFeature) example.getTarget();
             return prediction.getMostProbableCategoryEncoding() == target.getEncoding();
           }

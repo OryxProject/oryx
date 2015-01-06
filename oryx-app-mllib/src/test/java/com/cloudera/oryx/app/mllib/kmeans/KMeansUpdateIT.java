@@ -40,10 +40,8 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdateIT.class);
 
-  private static final int DATA_TO_WRITE = 1000;
+  private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
-  private static final int GEN_INTERVAL_SEC = 10;
-  private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int CLUSTERS = 3;
 
   @Ignore
@@ -86,15 +84,16 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
       assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      PMMLUtils.read(modelFile); // Shouldn't throw exception
     }
 
     for (Pair<String,String> km : updates) {
+
       String type = km.getFirst();
       String value = km.getSecond();
 
-      log.debug("{} = {}", type, value);
-
       assertEquals("MODEL", type);
+      log.info("{}", value);
 
       PMML pmml = PMMLUtils.fromString(value);
 

@@ -27,7 +27,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a GET request to {@code /classificationDistribution/[datum]}.
- * Like {@link Classify} but this returns not just the most probable category,
+ * Like {@link Predict} but this returns not just the most probable category,
  * but all categories and their associated probability. In the case of regression,
  * this may or may not return multiple values.
  * The output is "category,probability", one per line for each value.</p>

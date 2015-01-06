@@ -234,7 +234,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
         try {
           pathEval = future.get();
         } catch (ExecutionException e) {
-          throw new IllegalStateException(e);
+          throw new IllegalStateException(e.getCause());
         }
         pathToEval.put(pathEval._1(), pathEval._2());
       }

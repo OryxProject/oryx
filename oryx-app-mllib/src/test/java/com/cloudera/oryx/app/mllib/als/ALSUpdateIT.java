@@ -47,8 +47,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
-  private static final int GEN_INTERVAL_SEC = 10;
-  private static final int BLOCK_INTERVAL_SEC = 1;
   private static final int FEATURES = 4;
   private static final double LAMBDA = 0.001;
   private static final int NUM_USERS_ITEMS = 1000;
@@ -94,6 +92,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
       assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      PMMLUtils.read(modelFile); // Shouldn't throw exception
       Path xDir = modelInstanceDir.resolve("X");
       assertTrue(Files.exists(xDir));
       userIDs.add(checkFeatures(xDir, userIDs.get(userIDs.size() - 1)));
@@ -159,6 +158,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
+        log.info("{}", value);
         PMML pmml = PMMLUtils.fromString(value);
 
         checkHeader(pmml.getHeader());
