@@ -584,6 +584,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.18.1</version>
+          <configuration>
+            <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
+            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties</argLine>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -598,8 +602,8 @@
             </execution>
           </executions>
           <configuration>
-            <!-- This helps debug NotSerializableException problems -->
-            <argLine>-Dsun.io.serialization.extendedDebugInfo=true</argLine>
+            <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
+            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties</argLine>
           </configuration>
         </plugin>
         <plugin>
