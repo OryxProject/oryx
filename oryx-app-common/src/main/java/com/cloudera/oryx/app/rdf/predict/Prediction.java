@@ -46,13 +46,4 @@ public abstract class Prediction implements Serializable {
 
   public abstract void update(Example train);
 
-  @Override
-  public abstract boolean equals(Object o);
-
-  @Override
-  public abstract int hashCode();
-
-  @Override
-  public abstract String toString();
-
 }

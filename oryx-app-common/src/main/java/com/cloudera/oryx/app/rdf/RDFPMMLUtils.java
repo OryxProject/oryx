@@ -134,6 +134,7 @@ public final class RDFPMMLUtils {
     List<String> featureNames = schema.getFeatureNames();
     int targetFeature = schema.getTargetFeatureIndex();
 
+    String id = root.getId();
     List<Node> children = root.getNodes();
     if (children.isEmpty()) {
       // Terminal
@@ -153,7 +154,7 @@ public final class RDFPMMLUtils {
         prediction = new NumericPrediction(Double.parseDouble(root.getScore()),
                                            (int) Math.round(root.getRecordCount()));
       }
-      return new TerminalNode(prediction);
+      return new TerminalNode(id, prediction);
     }
 
     Preconditions.checkArgument(children.size() == 2);
@@ -221,6 +222,7 @@ public final class RDFPMMLUtils {
     }
 
     return new DecisionNode(
+        id,
         decision,
         translateFromPMML(negativeLeftChild, categoricalValueEncodings, schema),
         translateFromPMML(positiveRightChild, categoricalValueEncodings, schema));

@@ -21,13 +21,14 @@ import com.cloudera.oryx.app.rdf.decision.Decision;
  * Represents an internal node in a {@link DecisionTree}, which encapsulates a binary decision over a
  * feature in an example.
  */
-public final class DecisionNode implements TreeNode {
+public final class DecisionNode extends TreeNode {
 
   private final Decision decision;
   private final TreeNode left;
   private final TreeNode right;
 
-  public DecisionNode(Decision decision, TreeNode left, TreeNode right) {
+  public DecisionNode(String id, Decision decision, TreeNode left, TreeNode right) {
+    super(id);
     this.decision = decision;
     this.left = left;
     this.right = right;

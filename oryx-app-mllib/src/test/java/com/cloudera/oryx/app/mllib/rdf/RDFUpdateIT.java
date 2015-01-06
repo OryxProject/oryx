@@ -169,6 +169,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
   }
 
   private static void checkNode(Node node) {
+    assertNotNull(node.getId());
     List<ScoreDistribution> scoreDists = node.getScoreDistributions();
     if (scoreDists.isEmpty()) {
       // Non-leaf

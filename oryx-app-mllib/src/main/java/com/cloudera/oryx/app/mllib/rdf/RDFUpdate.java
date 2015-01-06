@@ -71,10 +71,8 @@ import scala.collection.JavaConversions;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
+import com.cloudera.oryx.app.rdf.ToExampleFn;
 import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.Feature;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -187,31 +185,10 @@ public final class RDFUpdate extends MLUpdate<String> {
     Pair<DecisionForest,CategoricalValueEncodings> forestAndEncoding =
         RDFPMMLUtils.read(model, inputSchema);
     DecisionForest forest = forestAndEncoding.getFirst();
-    final CategoricalValueEncodings valueEncodings = forestAndEncoding.getSecond();
+    CategoricalValueEncodings valueEncodings = forestAndEncoding.getSecond();
 
-    JavaRDD<Example> examplesRDD = testData.map(MLFunctions.PARSE_FN).map(
-        new Function<String[],Example>() {
-          @Override
-          public Example call(String[] data) {
-            Feature[] features = new Feature[data.length];
-            Feature target = null;
-            for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-              Feature feature = null;
-              if (inputSchema.isNumeric(featureIndex)) {
-                feature = NumericFeature.forValue(Double.parseDouble(data[featureIndex]));
-              } else if (inputSchema.isCategorical(featureIndex)) {
-                int encoding = valueEncodings.getValueEncodingMap(featureIndex)
-                    .get(data[featureIndex]);
-                feature = CategoricalFeature.forEncoding(encoding);
-              }
-              features[featureIndex] = feature;
-              if (inputSchema.isTarget(featureIndex)) {
-                target = feature;
-              }
-            }
-            return new Example(target, features);
-          }
-        });
+    JavaRDD<Example> examplesRDD =
+        testData.map(MLFunctions.PARSE_FN).map(new ToExampleFn(inputSchema, valueEncodings));
 
     double eval;
     if (inputSchema.isClassification()) {

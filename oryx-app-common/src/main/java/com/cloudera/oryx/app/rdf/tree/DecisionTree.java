@@ -56,7 +56,7 @@ public final class DecisionTree implements TreeBasedClassifier {
     return terminalNode.getPrediction();
   }
 
-  private TerminalNode findTerminal(Example example) {
+  public TerminalNode findTerminal(Example example) {
     TreeNode node = root;
     while (!node.isTerminal()) {
       DecisionNode decisionNode = (DecisionNode) node;
@@ -67,6 +67,26 @@ public final class DecisionTree implements TreeBasedClassifier {
       }
     }
     return (TerminalNode) node;
+  }
+
+  public TreeNode findByID(String id) {
+    TreeNode node = root;
+    while (!id.equals(node.getID())) {
+      if (node.isTerminal()) {
+        throw new IllegalArgumentException("No node with ID " + id);
+      }
+      Preconditions.checkState(id.startsWith(node.getID()),
+                               "Node ID %s is not a prefix of %s", node.getID(), id);
+      DecisionNode decisionNode = (DecisionNode) node;
+      char decisionChar = id.charAt(node.getID().length());
+      Preconditions.checkState(decisionChar == '-' || decisionChar == '+');
+      if (decisionChar == '+') {
+        node = decisionNode.getRight();
+      } else {
+        node = decisionNode.getLeft();
+      }
+    }
+    return node;
   }
 
   @Override

@@ -24,11 +24,12 @@ import com.cloudera.oryx.app.rdf.example.Example;
  *
  * @see DecisionNode
  */
-public final class TerminalNode implements TreeNode {
+public final class TerminalNode extends TreeNode {
 
   private final Prediction prediction;
 
-  public TerminalNode(Prediction prediction) {
+  public TerminalNode(String id, Prediction prediction) {
+    super(id);
     this.prediction = prediction;
   }
 

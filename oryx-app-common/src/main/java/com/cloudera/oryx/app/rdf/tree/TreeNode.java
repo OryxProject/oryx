@@ -17,6 +17,8 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import java.io.Serializable;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Implementations of this interface represent nodes in a {@link DecisionTree}, whether
  * leaves ({@link TerminalNode}) or internal nodes ({@link DecisionNode}).
@@ -24,15 +26,25 @@ import java.io.Serializable;
  * @see TerminalNode
  * @see DecisionNode
  */
-public interface TreeNode extends Serializable {
+public abstract class TreeNode implements Serializable {
+
+  private final String id;
+
+  protected TreeNode(String id) {
+    Preconditions.checkNotNull(id);
+    this.id = id;
+  }
+
+  /**
+   * @return unique ID for this node (unique within its tree)
+   */
+  public String getID() {
+    return id;
+  }
 
   /**
    * @return true iff the node is a leaf ({@link TerminalNode}) rather than a {@link DecisionNode}
    */
-  boolean isTerminal();
-
-  boolean equals(Object o);
-
-  int hashCode();
+  public abstract boolean isTerminal();
 
 }

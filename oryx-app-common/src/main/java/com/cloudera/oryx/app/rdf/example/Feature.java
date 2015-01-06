@@ -30,8 +30,4 @@ public interface Feature extends Serializable {
    */
   FeatureType getFeatureType();
 
-  int hashCode();
-
-  boolean equals(Object o);
-  
 }
