@@ -535,6 +535,56 @@
           <version>2.10.1</version>
           <configuration>
             <javadocVersion>${java.version}</javadocVersion>
+            <groups>
+              <group>
+                <title>Batch Layer</title>
+                <packages>com.cloudera.oryx.batch*</packages>
+              </group>
+              <group>
+                <title>Speed Layer</title>
+                <packages>com.cloudera.oryx.speed*</packages>
+              </group>
+              <group>
+                <title>Serving Layer</title>
+                <packages>com.cloudera.oryx.serving*</packages>
+              </group>
+              <group>
+                <title>Lambda Tier</title>
+                <packages>com.cloudera.oryx.lambda*</packages>
+              </group>
+              <group>
+                <title>ML Tier</title>
+                <packages>com.cloudera.oryx.ml*</packages>
+              </group>
+              <group>
+                <title>App Tier: Batch</title>
+                <packages>com.cloudera.oryx.app*</packages>
+              </group>
+              <group>
+                <title>App Tier: Speed</title>
+                <packages>com.cloudera.oryx.app.speed*</packages>
+              </group>
+              <group>
+                <title>App Tier: Serving</title>
+                <packages>com.cloudera.oryx.app.serving*</packages>
+              </group>
+              <group>
+                <title>Common</title>
+                <packages>com.cloudera.oryx.common*</packages>
+              </group>
+              <group>
+                <title>Example App</title>
+                <packages>com.cloudera.oryx.example*</packages>
+              </group>
+              <group>
+                <title>Kafka Utilities</title>
+                <packages>com.cloudera.oryx.kafka*</packages>
+              </group>
+              <group>
+                <title>Zookeeper Utilities</title>
+                <packages>com.cloudera.oryx.zk*</packages>
+              </group>
+            </groups>
           </configuration>
           <executions>
             <execution>
