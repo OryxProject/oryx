@@ -32,9 +32,9 @@ public final class CategoricalValueEncodings implements Serializable {
    * @param distinctValues map of categorical feature indices, to the set of distinct
    *  values for that categorical feature. Order matters.
    */
-  public CategoricalValueEncodings(Map<Integer,Collection<String>> distinctValues) {
+  public CategoricalValueEncodings(Map<Integer,? extends Collection<String>> distinctValues) {
     encodingsForIndex = new HashMap<>(distinctValues.size());
-    for (Map.Entry<Integer,Collection<String>> e : distinctValues.entrySet()) {
+    for (Map.Entry<Integer,? extends Collection<String>> e : distinctValues.entrySet()) {
       encodingsForIndex.put(e.getKey(), mapDistinctValues(e.getValue()));
     }
   }

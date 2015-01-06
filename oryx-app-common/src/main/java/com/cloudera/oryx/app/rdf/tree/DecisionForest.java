@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.rdf.tree;
 
 import java.util.Arrays;
-import java.util.Iterator;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -30,7 +29,7 @@ import com.cloudera.oryx.app.rdf.predict.WeightedPrediction;
  *
  * @see DecisionTree
  */
-public final class DecisionForest implements Iterable<DecisionTree>, TreeBasedClassifier {
+public final class DecisionForest implements TreeBasedClassifier {
 
   private final DecisionTree[] trees;
   private final double[] weights;
@@ -42,11 +41,6 @@ public final class DecisionForest implements Iterable<DecisionTree>, TreeBasedCl
     this.weights = weights;
     this.evaluations = new double[weights.length];
     this.featureImportances = featureImportances;
-  }
-
-  @Override
-  public Iterator<DecisionTree> iterator() {
-    return Arrays.asList(trees).iterator();
   }
 
   /**

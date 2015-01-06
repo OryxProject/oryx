@@ -43,13 +43,6 @@ public final class DecisionTree implements TreeBasedClassifier {
     this.root = root;
   }
 
-  /**
-   * @return root node of tree
-   */
-  public TreeNode getRoot() {
-    return root;
-  }
-
   @Override
   public Prediction predict(Example test) {
     TerminalNode terminalNode = findTerminal(test);

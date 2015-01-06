@@ -47,9 +47,10 @@ public final class ToExampleFn implements Function<String[],Example> {
             .get(data[featureIndex]);
         feature = CategoricalFeature.forEncoding(encoding);
       }
-      features[featureIndex] = feature;
       if (inputSchema.isTarget(featureIndex)) {
         target = feature;
+      } else {
+        features[featureIndex] = feature;
       }
     }
     return new Example(target, features);
