@@ -1,16 +1,16 @@
 language: java
 before_install: sudo pip install codecov
 install: mvn -Pjava${JAVA_VERSION} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script: mvn -Pjava${JAVA_VERSION} -Pjacoco test
+script: mvn -Pjava${JAVA_VERSION} -Pjacoco verify
 jdk:
   - oraclejdk8
 env:
   matrix:
-    - JAVA_VERSION=1.7
-    - JAVA_VERSION=1.8
+    - JAVA_VERSION=7
+    - JAVA_VERSION=8
 cache:
   directories:
     - $HOME/.m2
 git:
-  depth: 1
+  depth: 2
 after_success: codecov
