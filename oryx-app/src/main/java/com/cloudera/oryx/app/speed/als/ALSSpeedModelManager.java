@@ -38,6 +38,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
@@ -119,13 +120,13 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           break;
 
         default:
-          throw new IllegalStateException("Bad model " + message);
+          throw new IllegalStateException("Unexpected key " + key);
       }
     }
   }
 
   @Override
-  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) throws IOException {
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
     if (model == null) {
       return Collections.emptyList();
     }
@@ -214,17 +215,14 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return result;
   }
 
-  private String toUpdateJSON(String matrix,
-                              String ID,
-                              double[] vector,
-                              String otherID) throws IOException {
+  private String toUpdateJSON(String matrix, String ID, double[] vector, String otherID) {
     List<?> args;
     if (noKnownItems) {
       args = Arrays.asList(matrix, ID, vector);
     } else {
       args = Arrays.asList(matrix, ID, vector, Collections.singletonList(otherID));
     }
-    return MAPPER.writeValueAsString(args);
+    return TextUtils.joinJSON(args);
   }
 
   @Override

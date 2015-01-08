@@ -47,6 +47,7 @@ import scala.reflect.ClassTag$;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
@@ -307,10 +308,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     log.info("Saving features RDD to {}", path);
     fromRDD(features).map(new Function<Tuple2<Object,double[]>, String>() {
       @Override
-      public String call(Tuple2<Object, double[]> keyAndVector) throws IOException {
+      public String call(Tuple2<Object, double[]> keyAndVector) {
         Object key = keyAndVector._1();
         double[] vector = keyAndVector._2();
-        return MAPPER.writeValueAsString(Arrays.asList(key, vector));
+        return TextUtils.joinJSON(Arrays.asList(key, vector));
       }
     }).saveAsTextFile(path.toString(), GzipCodec.class);
   }

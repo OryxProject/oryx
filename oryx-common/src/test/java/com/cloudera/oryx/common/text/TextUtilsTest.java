@@ -68,4 +68,11 @@ public final class TextUtilsTest extends OryxTest {
     assertEquals("", TextUtils.joinDelimited(Collections.emptyList(), '\t'));
   }
 
+  @Test
+  public void testJoinJSON() {
+    assertEquals("[\"1\",\"2\",\"3\"]", TextUtils.joinJSON(Arrays.asList("1", "2", "3")));
+    assertEquals("[\"1 \",\"2 \",\"3\"]", TextUtils.joinJSON(Arrays.asList("1 ", "2 ", "3")));
+    assertEquals("[]", TextUtils.joinJSON(Collections.emptyList()));
+  }
+
 }

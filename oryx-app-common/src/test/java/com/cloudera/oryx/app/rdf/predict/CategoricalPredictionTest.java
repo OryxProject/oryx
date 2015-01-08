@@ -29,7 +29,7 @@ public final class CategoricalPredictionTest extends OryxTest {
 
   @Test
   public void testConstruct() {
-    int[] counts = { 0, 1, 3, 0, 4, 0};
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
     assertEquals(FeatureType.CATEGORICAL, prediction.getFeatureType());
     assertEquals(4, prediction.getMostProbableCategoryEncoding());
@@ -40,7 +40,7 @@ public final class CategoricalPredictionTest extends OryxTest {
 
   @Test
   public void testConstructFromProbability() {
-    double[] probability = {0.0, 0.125, 0.375, 0.0, 0.5, 0.0};
+    double[] probability = {0.0, 0.125, 0.375, 0.0, 0.5, 0.0 };
     CategoricalPrediction prediction = new CategoricalPrediction(probability);
     assertEquals(FeatureType.CATEGORICAL, prediction.getFeatureType());
     assertEquals(4, prediction.getMostProbableCategoryEncoding());
@@ -50,15 +50,27 @@ public final class CategoricalPredictionTest extends OryxTest {
 
   @Test
   public void testUpdate() {
-    int[] counts = { 0, 1, 3, 0, 4, 0};
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
     Example example = new Example(CategoricalFeature.forEncoding(2));
+    // Yes, called twice
     prediction.update(example);
     prediction.update(example);
     assertEquals(2, prediction.getMostProbableCategoryEncoding());
     counts[2] += 2;
     assertArrayEquals(counts, prediction.getCategoryCounts());
     assertArrayEquals(new double[] {0.0, 0.1, 0.5, 0.0, 0.4, 0.0},
+                      prediction.getCategoryProbabilities());
+  }
+
+  @Test
+  public void testUpdate2() {
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
+    CategoricalPrediction prediction = new CategoricalPrediction(counts);
+    prediction.update(0, 3);
+    prediction.update(1, 9);
+    assertArrayEquals(new int[] { 3, 10, 3, 0, 4, 0 }, prediction.getCategoryCounts());
+    assertArrayEquals(new double[] {0.15, 0.5, 0.15, 0.0, 0.2, 0.0},
                       prediction.getCategoryProbabilities());
   }
 

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Iterator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import org.apache.commons.csv.CSVFormat;
@@ -101,6 +102,14 @@ public final class TextUtils {
       throw new IllegalStateException(e);
     }
     return out.toString();
+  }
+
+  public static String joinJSON(Iterable<?> elements) {
+    try {
+      return MAPPER.writeValueAsString(elements);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   private static CSVFormat formatForDelimiter(char delimiter) {

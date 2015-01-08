@@ -106,9 +106,12 @@ public final class CategoricalPrediction extends Prediction {
   @Override
   public synchronized void update(Example train) {
     CategoricalFeature target = (CategoricalFeature) train.getTarget();
-    int encoding = target.getEncoding();
-    categoryCounts[encoding]++;
-    setCount(getCount() + 1);
+    update(target.getEncoding(), 1);
+  }
+
+  public synchronized void update(int encoding, int count) {
+    categoryCounts[encoding] += count;
+    setCount(getCount() + count);
     recompute();
   }
 

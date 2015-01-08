@@ -51,11 +51,14 @@ public final class NumericPrediction extends Prediction {
   @Override
   public synchronized void update(Example train) {
     NumericFeature target = (NumericFeature) train.getTarget();
+    update(target.getValue(), 1);
+  }
+
+  public synchronized void update(double mean, int count) {
     int oldCount = getCount();
-    int newCount = oldCount + 1;
+    int newCount = oldCount + count;
     setCount(newCount);
-    prediction = (oldCount / (double) newCount) * prediction +
-                 target.getValue() / newCount;
+    prediction = (oldCount / (double) newCount) * prediction + (mean * count) / newCount;
   }
 
   @Override

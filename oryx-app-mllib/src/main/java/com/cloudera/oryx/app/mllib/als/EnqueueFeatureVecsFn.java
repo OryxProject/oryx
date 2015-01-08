@@ -15,18 +15,15 @@
 
 package com.cloudera.oryx.app.mllib.als;
 
-import java.io.IOException;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 
 final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<Integer,double[]>> {
-
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final String whichMatrix;
   private final TopicProducer<String, String> modelUpdateTopic;
@@ -37,10 +34,10 @@ final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<Integer,double[]
   }
 
   @Override
-  public void call(Tuple2<Integer,double[]> keyAndVector) throws IOException {
+  public void call(Tuple2<Integer,double[]> keyAndVector) {
     Integer id = keyAndVector._1();
     double[] vector = keyAndVector._2();
-    modelUpdateTopic.send("UP", MAPPER.writeValueAsString(Arrays.asList(whichMatrix, id, vector)));
+    modelUpdateTopic.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
   }
 
 }

@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
@@ -30,11 +28,10 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 public final class MockModelUpdateGenerator implements DatumGenerator<String,String> {
-
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
@@ -93,17 +90,12 @@ public final class MockModelUpdateGenerator implements DatumGenerator<String,Str
       String xOrYIDString = Integer.toString(xOrYID);
       String message;
       boolean isX = xOrYID >= 6;
-      try {
-        if (isX) {
-          message = MAPPER.writeValueAsString(Arrays.asList(
-              "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
-        } else {
-          message = MAPPER.writeValueAsString(Arrays.asList(
-              "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
-        }
-      } catch (JsonProcessingException jpe) {
-        // Shouldn't happen generating this kind of JSON
-        throw new IllegalStateException(jpe);
+      if (isX) {
+        message = TextUtils.joinJSON(Arrays.asList(
+            "X", xOrYIDString, X.get(xOrYIDString), A.get(xOrYIDString)));
+      } else {
+        message = TextUtils.joinJSON(Arrays.asList(
+            "Y", xOrYIDString, Y.get(xOrYIDString), At.get(xOrYIDString)));
       }
       return new Pair<>("UP", message);
     }

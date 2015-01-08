@@ -42,4 +42,11 @@ public final class NumericPredictionTest extends OryxTest {
     assertEquals(2.0, prediction.getPrediction());
   }
 
+  @Test
+  public void testUpdate2() {
+    NumericPrediction prediction = new NumericPrediction(1.5, 1);
+    prediction.update(3.5, 3);
+    assertEquals(3.0, prediction.getPrediction());
+  }
+
 }
