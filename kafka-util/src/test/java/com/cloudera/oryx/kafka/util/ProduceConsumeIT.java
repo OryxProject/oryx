@@ -27,6 +27,7 @@ import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.zk.LocalZKServer;
 
 /**
@@ -63,23 +64,23 @@ public final class ProduceConsumeIT extends OryxTest {
 
       try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
-        new Thread(new LoggingRunnable() {
+        log.info("Starting consumer thread");
+        WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
           @Override
           public void doRun() {
             while (data.hasNext()) {
               keys.add(Integer.valueOf(data.next().getFirst()));
             }
           }
-        }).start();
-
-        // Sleep for a while after starting consumer to let it init
-        Thread.sleep(5000);
+        });
+        new Thread(readData).start();
+        readData.awaitScheduling();
 
         log.info("Producing data");
         produce.start();
 
         // Sleep for a while before shutting down producer to let both finish
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
       } finally {
         KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);

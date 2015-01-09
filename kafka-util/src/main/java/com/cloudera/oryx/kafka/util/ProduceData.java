@@ -54,7 +54,7 @@ public final class ProduceData {
     Preconditions.checkArgument(kafkaPort > 0);
     Preconditions.checkNotNull(topic);
     Preconditions.checkArgument(howMany > 0);
-    Preconditions.checkArgument(intervalMsec > 0);
+    Preconditions.checkArgument(intervalMsec >= 0);
     this.datumGenerator = datumGenerator;
     this.zkPort = zkPort;
     this.kafkaPort = kafkaPort;
@@ -95,9 +95,10 @@ public final class ProduceData {
             new KeyedMessage<>(topic, datum.getFirst(), datum.getSecond());
         producer.send(keyedMessage);
         log.debug("Sent datum {} = {}", keyedMessage.key(), keyedMessage.message());
-        Thread.sleep(intervalMsec);
+        if (intervalMsec > 0) {
+          Thread.sleep(intervalMsec);
+        }
       }
-      Thread.sleep(5000);
     } finally {
       producer.close();
     }

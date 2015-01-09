@@ -32,6 +32,7 @@ import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
@@ -68,33 +69,34 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
     final List<Pair<String,String>> keyMessages = new ArrayList<>();
 
-    Thread.sleep(5000);
-
     try (CloseableIterator<Pair<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
          BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
 
+      log.info("Starting batch layer");
+      batchLayer.start();
+
       log.info("Starting consumer thread");
-      new Thread(new LoggingRunnable() {
+      WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
         @Override
         public void doRun() {
           while (data.hasNext()) {
             keyMessages.add(data.next());
           }
         }
-      }).start();
-
-      log.info("Starting batch layer");
-      batchLayer.start();
+      });
+      new Thread(readData).start();
+      readData.awaitScheduling();
 
       // Sleep for a while after starting server to let it init
-      Thread.sleep(5000);
+      Thread.sleep(1000);
 
       log.info("Producing data");
       produce.start();
 
-      // Sleep for a while before shutting down server to let it finish
-      Thread.sleep(5000);
+      // Sleep generation before shutting down server to let it finish
+      long genIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
+      Thread.sleep(genIntervalSec * 1000);
 
     } finally {
       produce.deleteTopic();
@@ -111,17 +113,28 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
     Writable message = new Text();
     int count = 0;
     for (Path dataFile : dataFiles) {
-      log.debug("Data file: {}", dataFile);
       SequenceFile.Reader.Option fileOptions =
           SequenceFile.Reader.file(new org.apache.hadoop.fs.Path(dataFile.toUri().toString()));
       try (SequenceFile.Reader reader = new SequenceFile.Reader(hadoopConf, fileOptions)) {
         while (reader.next(key, message)) {
-          log.debug("  {} = {}", key, message);
           count++;
         }
       }
     }
     log.info("Read {} data", count);
+    if (expectedCount != count) {
+      log.warn("Bad count of data read, dumping data...");
+      for (Path dataFile : dataFiles) {
+        log.info("Data file: {}", dataFile);
+        SequenceFile.Reader.Option fileOptions =
+            SequenceFile.Reader.file(new org.apache.hadoop.fs.Path(dataFile.toUri().toString()));
+        try (SequenceFile.Reader reader = new SequenceFile.Reader(hadoopConf, fileOptions)) {
+          while (reader.next(key, message)) {
+            log.info("  {} = {}", key, message);
+          }
+        }
+      }
+    }
     assertEquals("Wrong count of data read", expectedCount, count);
   }
 

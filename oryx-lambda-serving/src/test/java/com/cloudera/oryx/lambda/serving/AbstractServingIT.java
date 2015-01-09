@@ -54,15 +54,10 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     return ConfigUtils.overlayOn(overlay, super.getConfig());
   }
 
-  protected final void startServer(Config config) throws IOException, InterruptedException {
-    Thread.sleep(5000);
-
+  protected final void startServer(Config config) throws IOException {
     servingLayer = new ServingLayer(config);
-
     log.info("Starting serving layer");
     servingLayer.start();
-
-    Thread.sleep(5000);
   }
 
   protected final void startUpdateTopics(DatumGenerator<String,String> updateGenerator,
@@ -76,12 +71,10 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
         kafkaPort,
         UPDATE_TOPIC,
         howManyUpdate,
-        10);
+        0);
 
     log.info("Producing updates");
     updateProducer.start();
-
-    Thread.sleep(5000);
   }
 
   protected ServingLayer getServingLayer() {

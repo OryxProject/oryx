@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.lambda.TopicProducer;
@@ -66,22 +67,22 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
              new ConsumeData(INPUT_TOPIC, getZKPort()).iterator()) {
 
       log.info("Starting consumer thread");
-      new Thread(new LoggingRunnable() {
+      WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
         @Override
         public void doRun() {
           while (data.hasNext()) {
             keyMessages.add(data.next());
           }
         }
-      }).start();
-
-      Thread.sleep(5000);
+      });
+      new Thread(readData).start();
+      readData.awaitScheduling();
 
       for (String input : inputs) {
         inputProducer.send("", input);
       }
 
-      Thread.sleep(5000);
+      Thread.sleep(1000);
     }
 
     for (int i = 0; i < keyMessages.size(); i++) {
