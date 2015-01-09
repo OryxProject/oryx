@@ -42,7 +42,7 @@ public abstract class AbstractLambdaIT extends OryxTest {
 
   protected static final String INPUT_TOPIC = "OryxInput";
   protected static final String UPDATE_TOPIC = "OryxUpdate";
-  protected static final int WAIT_BUFFER_IN_WRITES = 250;
+  protected static final int WAIT_BUFFER_IN_WRITES = 1000;
 
   private int localZKPort;
   private int localKafkaBrokerPort;

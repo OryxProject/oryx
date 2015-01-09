@@ -41,8 +41,6 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractBatchIT.class);
 
-  protected static final int WAIT_BUFFER_IN_WRITES = 100;
-
   protected List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
@@ -132,8 +130,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                        int dataToWrite,
                                        int writeIntervalMsec,
                                        int genIntervalSec) {
-    int minExpectedIntervals =
-        (dataToWrite + 2 * WAIT_BUFFER_IN_WRITES) * writeIntervalMsec / (1000 * genIntervalSec);
+    int minExpectedIntervals = dataToWrite * writeIntervalMsec / (1000 * genIntervalSec);
     // Can be up to +4 depending on distribution and timing, and because the framework
     // waits a while before starting to send data and after last data is sent before
     // stopping the streaming system
