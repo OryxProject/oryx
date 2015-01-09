@@ -145,6 +145,32 @@ public final class AppPMMLUtils {
     return new MiningSchema().withMiningFields(miningFields);
   }
 
+  /**
+   * @param miningSchema {@link MiningSchema} from a model
+   * @return names of features in order
+   */
+  public static List<String> getFeatureNames(MiningSchema miningSchema) {
+    List<String> names = new ArrayList<>();
+    for (MiningField field : miningSchema.getMiningFields()) {
+      names.add(field.getName().getValue());
+    }
+    return names;
+  }
+
+  /**
+   * @param miningSchema {@link MiningSchema} from a model
+   * @return index of the {@link FieldUsageType#PREDICTED} feature
+   */
+  public static Integer findTargetIndex(MiningSchema miningSchema) {
+    List<MiningField> miningFields = miningSchema.getMiningFields();
+    for (int i = 0; i < miningFields.size(); i++) {
+      if (miningFields.get(i).getUsageType() == FieldUsageType.PREDICTED) {
+        return i;
+      }
+    }
+    return null;
+  }
+
   public static DataDictionary buildDataDictionary(
       InputSchema schema,
       CategoricalValueEncodings categoricalValueEncodings) {
@@ -180,17 +206,27 @@ public final class AppPMMLUtils {
     return dictionary;
   }
 
-  public static CategoricalValueEncodings buildCategoricalValueEncodings(
-      DataDictionary dictionary,
-      InputSchema schema) {
-    Preconditions.checkNotNull(dictionary);
-    List<String> featureNames = schema.getFeatureNames();
-    Map<Integer,Collection<String>> indexToValues = new HashMap<>();
+
+  /**
+   * @param dictionary {@link DataDictionary} from model
+   * @return names of features in order
+   */
+  public static List<String> getFeatureNames(DataDictionary dictionary) {
+    List<String> names = new ArrayList<>();
     for (TypeDefinitionField field : dictionary.getDataFields()) {
+      names.add(field.getName().getValue());
+    }
+    return names;
+  }
+
+  public static CategoricalValueEncodings buildCategoricalValueEncodings(
+      DataDictionary dictionary) {
+    Map<Integer,Collection<String>> indexToValues = new HashMap<>();
+    List<DataField> dataFields = dictionary.getDataFields();
+    for (int featureIndex = 0; featureIndex < dataFields.size(); featureIndex++) {
+      TypeDefinitionField field = dataFields.get(featureIndex);
       Collection<Value> values = field.getValues();
       if (values != null && !values.isEmpty()) {
-        String featureName = field.getName().getValue();
-        int featureIndex = featureNames.indexOf(featureName);
         Collection<String> categoricalValues = new ArrayList<>();
         for (Value value : values) {
           categoricalValues.add(value.getValue());
@@ -199,7 +235,6 @@ public final class AppPMMLUtils {
       }
     }
     return new CategoricalValueEncodings(indexToValues);
-
   }
 
 }

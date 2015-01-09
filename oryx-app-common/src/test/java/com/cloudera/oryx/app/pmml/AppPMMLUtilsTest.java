@@ -136,6 +136,25 @@ public final class AppPMMLUtilsTest extends OryxTest {
     }
   }
 
+  @Test
+  public void testListFeaturesDD() {
+    Map<Integer,Collection<String>> distinctValues = new HashMap<>();
+    distinctValues.put(1, Arrays.asList("one", "two", "three", "four", "five"));
+    CategoricalValueEncodings categoricalValueEncodings =
+        new CategoricalValueEncodings(distinctValues);
+    DataDictionary dictionary = AppPMMLUtils.buildDataDictionary(
+        buildTestSchema(), categoricalValueEncodings);
+    List<String> featureNames = AppPMMLUtils.getFeatureNames(dictionary);
+    assertEquals(Arrays.asList("foo", "bar", "baz", "bing"), featureNames);
+  }
+
+  @Test
+  public void testListFeaturesMS() {
+    MiningSchema miningSchema = AppPMMLUtils.buildMiningSchema(buildTestSchema());
+    List<String> featureNames = AppPMMLUtils.getFeatureNames(miningSchema);
+    assertEquals(Arrays.asList("foo", "bar", "baz", "bing"), featureNames);
+  }
+
   private static void checkDataField(DataField field, String name, Boolean categorical) {
     assertEquals(name, field.getName().getValue());
     if (categorical == null) {

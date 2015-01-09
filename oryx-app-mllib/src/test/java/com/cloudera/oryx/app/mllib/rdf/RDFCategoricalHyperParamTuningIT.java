@@ -33,7 +33,6 @@ import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
-import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -100,8 +99,7 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     expected.put("impurity", IMPURITY);
     checkExtensions(pmml, expected);
 
-    Pair<DecisionForest,CategoricalValueEncodings> forestEncoding =
-        RDFPMMLUtils.read(pmml, new InputSchema(config));
+    Pair<DecisionForest,CategoricalValueEncodings> forestEncoding = RDFPMMLUtils.read(pmml);
     DecisionForest forest = forestEncoding.getFirst();
     CategoricalValueEncodings encoding = forestEncoding.getSecond();
     Map<String,Integer> targetEncoding = encoding.getValueEncodingMap(4);

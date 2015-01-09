@@ -76,8 +76,9 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           } catch (JAXBException e) {
             throw new IOException(e);
           }
+          RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
-              RDFPMMLUtils.read(pmml, inputSchema);
+              RDFPMMLUtils.read(pmml);
           model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
           break;
         default:

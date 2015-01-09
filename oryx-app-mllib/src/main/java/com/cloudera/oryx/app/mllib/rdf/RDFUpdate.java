@@ -182,8 +182,8 @@ public final class RDFUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
-    Pair<DecisionForest,CategoricalValueEncodings> forestAndEncoding =
-        RDFPMMLUtils.read(model, inputSchema);
+    RDFPMMLUtils.validatePMMLVsSchema(model, inputSchema);
+    Pair<DecisionForest,CategoricalValueEncodings> forestAndEncoding = RDFPMMLUtils.read(model);
     DecisionForest forest = forestAndEncoding.getFirst();
     CategoricalValueEncodings valueEncodings = forestAndEncoding.getSecond();
 

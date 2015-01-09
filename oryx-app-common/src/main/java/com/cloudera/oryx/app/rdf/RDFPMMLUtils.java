@@ -21,9 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningModel;
+import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.MultipleModelMethodType;
 import org.dmg.pmml.Node;
@@ -59,15 +61,12 @@ public final class RDFPMMLUtils {
   private RDFPMMLUtils() {}
 
   /**
-   * @param pmml PMML representation of decision forest
-   * @param schema information about the configured, to validate the PMML and help parse it
-   * @return a {@link DecisionForest} representation of the PMML encoded model
+   * Validates that the encoded PMML model received matches expected schema.
+   *
+   * @param pmml {@link PMML} encoding of a decision forest
+   * @param schema expected schema attributes of decision forest
    */
-  public static Pair<DecisionForest,CategoricalValueEncodings> read(PMML pmml, InputSchema schema) {
-
-    CategoricalValueEncodings categoricalValueEncodings =
-        AppPMMLUtils.buildCategoricalValueEncodings(pmml.getDataDictionary(), schema);
-
+  public static void validatePMMLVsSchema(PMML pmml, InputSchema schema) {
     List<Model> models = pmml.getModels();
     Preconditions.checkArgument(models.size() == 1);
 
@@ -75,6 +74,38 @@ public final class RDFPMMLUtils {
     Preconditions.checkArgument(
         schema.isClassification() ==
         (model.getFunctionName() == MiningFunctionType.CLASSIFICATION));
+
+    DataDictionary dictionary = pmml.getDataDictionary();
+    Preconditions.checkArgument(schema.getFeatureNames().equals(
+        AppPMMLUtils.getFeatureNames(dictionary)));
+
+    MiningSchema miningSchema = model.getMiningSchema();
+    Preconditions.checkArgument(schema.getFeatureNames().equals(
+        AppPMMLUtils.getFeatureNames(miningSchema)));
+
+    if (schema.hasTarget()) {
+      Preconditions.checkArgument(
+          schema.getTargetFeatureIndex() == AppPMMLUtils.findTargetIndex(miningSchema));
+    } else {
+      Preconditions.checkArgument(AppPMMLUtils.findTargetIndex(miningSchema) == null);
+    }
+  }
+
+  /**
+   * @param pmml PMML representation of decision forest
+   * @return a {@link DecisionForest} representation of the PMML encoded model
+   */
+  public static Pair<DecisionForest,CategoricalValueEncodings> read(PMML pmml) {
+
+    DataDictionary dictionary = pmml.getDataDictionary();
+    List<String> featureNames = AppPMMLUtils.getFeatureNames(dictionary);
+    CategoricalValueEncodings categoricalValueEncodings =
+        AppPMMLUtils.buildCategoricalValueEncodings(dictionary);
+
+    List<Model> models = pmml.getModels();
+    Model model = models.get(0);
+    MiningSchema miningSchema = model.getMiningSchema();
+    int targetIndex = AppPMMLUtils.findTargetIndex(miningSchema);
 
     DecisionTree[] trees;
     double[] weights;
@@ -96,30 +127,27 @@ public final class RDFPMMLUtils {
         TreeModel treeModel = (TreeModel) segment.getModel();
         TreeNode root = translateFromPMML(treeModel.getNode(),
                                           categoricalValueEncodings,
-                                          schema);
+                                          featureNames,
+                                          targetIndex);
         trees[i] = new DecisionTree(root);
       }
     } else {
       // Single tree model
       TreeNode root = translateFromPMML(((TreeModel) model).getNode(),
                                         categoricalValueEncodings,
-                                        schema);
+                                        featureNames,
+                                        targetIndex);
       trees = new DecisionTree[] { new DecisionTree(root) };
       weights = new double[] { 1.0 };
     }
 
-    List<String> featureNames = schema.getFeatureNames();
-    List<MiningField> miningFields = model.getMiningSchema().getMiningFields();
-    Preconditions.checkArgument(featureNames.size() == miningFields.size());
+    List<MiningField> miningFields = miningSchema.getMiningFields();
     double[] featureImportances = new double[featureNames.size()];
     for (int i = 0; i < miningFields.size(); i++) {
       MiningField field = miningFields.get(i);
-      String fieldName = field.getName().getValue();
-      Preconditions.checkArgument(fieldName.equals(featureNames.get(i)));
       Double importance = field.getImportance();
       if (importance != null) {
-        int featureNumber = featureNames.indexOf(fieldName);
-        featureImportances[featureNumber] = importance;
+        featureImportances[i] = importance;
       }
     }
 
@@ -129,10 +157,9 @@ public final class RDFPMMLUtils {
 
   private static TreeNode translateFromPMML(Node root,
                                             CategoricalValueEncodings categoricalValueEncodings,
-                                            InputSchema schema) {
+                                            List<String> featureNames,
+                                            int targetIndex) {
 
-    List<String> featureNames = schema.getFeatureNames();
-    int targetFeature = schema.getTargetFeatureIndex();
 
     String id = root.getId();
     List<Node> children = root.getNodes();
@@ -142,11 +169,11 @@ public final class RDFPMMLUtils {
       Prediction prediction;
       if (scoreDistributions != null && !scoreDistributions.isEmpty()) {
         // Categorical target
-        Map<String,Integer> valueEncoding =
-            categoricalValueEncodings.getValueEncodingMap(targetFeature);
-        int[] categoryCounts = new int[valueEncoding.size()];
+        Map<String,Integer> targetEncoding =
+            categoricalValueEncodings.getValueEncodingMap(targetIndex);
+        int[] categoryCounts = new int[targetEncoding.size()];
         for (ScoreDistribution dist : scoreDistributions) {
-          int encoding = valueEncoding.get(dist.getValue());
+          int encoding = targetEncoding.get(dist.getValue());
           categoryCounts[encoding] = (int) Math.round(dist.getRecordCount());
         }
         prediction = new CategoricalPrediction(categoryCounts);
@@ -224,8 +251,14 @@ public final class RDFPMMLUtils {
     return new DecisionNode(
         id,
         decision,
-        translateFromPMML(negativeLeftChild, categoricalValueEncodings, schema),
-        translateFromPMML(positiveRightChild, categoricalValueEncodings, schema));
+        translateFromPMML(negativeLeftChild,
+                          categoricalValueEncodings,
+                          featureNames,
+                          targetIndex),
+        translateFromPMML(positiveRightChild,
+                          categoricalValueEncodings,
+                          featureNames,
+                          targetIndex));
   }
 
 }

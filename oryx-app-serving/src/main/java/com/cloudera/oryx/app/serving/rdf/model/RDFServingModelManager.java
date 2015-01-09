@@ -98,8 +98,9 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           } catch (JAXBException e) {
             throw new IOException(e);
           }
+          RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
-              RDFPMMLUtils.read(pmml, inputSchema);
+              RDFPMMLUtils.read(pmml);
           model = new RDFServingModel(forestAndEncodings.getFirst(),
                                       forestAndEncodings.getSecond());
           break;
