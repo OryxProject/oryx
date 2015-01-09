@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import com.google.common.base.Preconditions;
@@ -80,7 +79,7 @@ public final class ProduceData {
     producer.start();
   }
 
-  public void start() throws InterruptedException, IOException {
+  public void start() throws InterruptedException {
     KafkaUtils.maybeCreateTopic("localhost", zkPort, topic);
     RandomGenerator random = RandomManager.getRandom();
 
@@ -88,7 +87,6 @@ public final class ProduceData {
     producerProps.setProperty("metadata.broker.list", "localhost:" + kafkaPort);
     producerProps.setProperty("serializer.class", "kafka.serializer.StringEncoder");
 
-    Thread.sleep(intervalMsec);
     Producer<String,String> producer = new Producer<>(new ProducerConfig(producerProps));
     try {
       for (int i = 0; i < howMany; i++) {
@@ -99,6 +97,7 @@ public final class ProduceData {
         log.debug("Sent datum {} = {}", keyedMessage.key(), keyedMessage.message());
         Thread.sleep(intervalMsec);
       }
+      Thread.sleep(5000);
     } finally {
       producer.close();
     }

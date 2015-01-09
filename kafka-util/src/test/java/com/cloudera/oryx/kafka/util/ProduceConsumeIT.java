@@ -73,13 +73,13 @@ public final class ProduceConsumeIT extends OryxTest {
         }).start();
 
         // Sleep for a while after starting consumer to let it init
-        Thread.sleep(1000L);
+        Thread.sleep(5000);
 
         log.info("Producing data");
         produce.start();
 
         // Sleep for a while before shutting down producer to let both finish
-        Thread.sleep(1000L);
+        Thread.sleep(5000);
 
       } finally {
         KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);

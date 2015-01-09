@@ -55,20 +55,18 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
   }
 
   protected final void startServer(Config config) throws IOException, InterruptedException {
-    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
-    Thread.sleep(bufferMS);
+    Thread.sleep(5000);
 
     servingLayer = new ServingLayer(config);
 
     log.info("Starting serving layer");
     servingLayer.start();
 
-    Thread.sleep(bufferMS);
+    Thread.sleep(5000);
   }
 
   protected final void startUpdateTopics(DatumGenerator<String,String> updateGenerator,
-                                         int howManyUpdate)
-      throws IOException, InterruptedException {
+                                         int howManyUpdate) throws InterruptedException {
 
     int zkPort = getZKPort();
     int kafkaPort = getKafkaBrokerPort();
@@ -83,8 +81,7 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     log.info("Producing updates");
     updateProducer.start();
 
-    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
-    Thread.sleep(bufferMS);
+    Thread.sleep(5000);
   }
 
   protected ServingLayer getServingLayer() {

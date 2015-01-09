@@ -59,7 +59,6 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
     int zkPort = getZKPort();
 
-    int bufferMS = WAIT_BUFFER_IN_WRITES * intervalMsec;
     ProduceData produce = new ProduceData(datumGenerator,
                                           zkPort,
                                           getKafkaBrokerPort(),
@@ -69,7 +68,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
     final List<Pair<String,String>> keyMessages = new ArrayList<>();
 
-    Thread.sleep(bufferMS);
+    Thread.sleep(5000);
 
     try (CloseableIterator<Pair<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
@@ -89,13 +88,13 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       batchLayer.start();
 
       // Sleep for a while after starting server to let it init
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
       log.info("Producing data");
       produce.start();
 
       // Sleep for a while before shutting down server to let it finish
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
     } finally {
       produce.deleteTopic();

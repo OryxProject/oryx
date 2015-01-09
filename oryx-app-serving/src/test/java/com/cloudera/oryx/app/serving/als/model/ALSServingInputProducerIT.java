@@ -75,14 +75,13 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
         }
       }).start();
 
-      int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
       for (String input : inputs) {
         inputProducer.send("", input);
       }
 
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
     }
 
     for (int i = 0; i < keyMessages.size(); i++) {

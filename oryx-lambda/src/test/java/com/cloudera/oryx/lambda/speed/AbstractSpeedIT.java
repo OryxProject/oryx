@@ -57,8 +57,6 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
     int zkPort = getZKPort();
     int kafkaPort = getKafkaBrokerPort();
 
-    int bufferMS = WAIT_BUFFER_IN_WRITES * 10;
-
     ProduceData inputProducer = new ProduceData(inputGenerator,
                                                 zkPort,
                                                 kafkaPort,
@@ -74,7 +72,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
     final List<Pair<String,String>> keyMessages = new ArrayList<>();
 
-    Thread.sleep(bufferMS);
+    Thread.sleep(5000);
 
     try (CloseableIterator<Pair<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
@@ -93,20 +91,20 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       log.info("Starting speed layer");
       speedLayer.start();
 
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
       // Load all updates first
       log.info("Producing updates");
       updateProducer.start();
 
       // Sleep for a while after starting server to let it init
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
       log.info("Producing input");
       inputProducer.start();
 
       // Sleep for a while before shutting down server to let it finish
-      Thread.sleep(bufferMS);
+      Thread.sleep(5000);
 
     } finally {
       inputProducer.deleteTopic();
