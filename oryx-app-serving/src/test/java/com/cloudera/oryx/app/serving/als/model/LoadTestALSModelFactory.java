@@ -32,7 +32,7 @@ public final class LoadTestALSModelFactory {
 
   public static final int USERS = 100_000;
   public static final int ITEMS = 2_000_000;
-  private static final int FEATURES = 150;
+  private static final int FEATURES = 100;
   private static final int AVG_ITEMS_PER_USER = 20;
 
   private LoadTestALSModelFactory() {}

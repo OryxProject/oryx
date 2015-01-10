@@ -91,7 +91,11 @@ public final class LoadIT extends AbstractALSServingTest {
     int totalRequests = workers * REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);
 
-    Assert.assertTrue(meanReqTimeMS.getResult() < 300.0);
+    int cores = Runtime.getRuntime().availableProcessors();
+    int allowedMS = 120 + 600 / cores; // crude, conservative empirical limit
+    Assert.assertTrue(
+        "Expected < " + allowedMS + "ms / req with " + cores + " cores",
+        meanReqTimeMS.getResult() < allowedMS);
   }
 
   private static void log(long currentCount, Mean meanReqTimeMS, long start) {
