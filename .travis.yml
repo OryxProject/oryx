@@ -1,7 +1,7 @@
 language: java
 before_install: sudo pip install codecov
 install: mvn -Pjava${JAVA_VERSION} -DskipTests=true -Dmaven.javadoc.skip=true -q -B -V install
-script: mvn -Pjava${JAVA_VERSION} -Pjacoco verify
+script: mvn -Pjava${JAVA_VERSION} -Pjacoco -Dmaven.javadoc.skip=true -q verify
 matrix:
  include:
    - jdk: openjdk7
