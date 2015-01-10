@@ -1,6 +1,6 @@
 language: java
 before_install: sudo pip install codecov
-install: mvn -Pjava${JAVA_VERSION} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+install: mvn -Pjava${JAVA_VERSION} -DskipTests=true -Dmaven.javadoc.skip=true -q -B -V install
 script: mvn -Pjava${JAVA_VERSION} -Pjacoco verify
 matrix:
  include:

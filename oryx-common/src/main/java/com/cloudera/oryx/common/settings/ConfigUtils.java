@@ -61,7 +61,7 @@ public final class ConfigUtils {
       configFileString.append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
     }
     String configFile = configFileString.toString();
-    log.info("Overlaid config: \n{}", configFile);
+    log.debug("Overlaid config: \n{}", configFile);
     return ConfigFactory.parseString(configFile).resolve().withFallback(underlying);
   }
 

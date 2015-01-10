@@ -158,7 +158,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
-        log.info("{}", value);
+        log.debug("{}", value);
         PMML pmml = PMMLUtils.fromString(value);
 
         checkHeader(pmml.getHeader());

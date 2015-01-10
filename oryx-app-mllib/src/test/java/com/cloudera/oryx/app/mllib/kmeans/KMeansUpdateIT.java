@@ -93,7 +93,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       String value = km.getSecond();
 
       assertEquals("MODEL", type);
-      log.info("{}", value);
+      log.debug("{}", value);
 
       PMML pmml = PMMLUtils.fromString(value);
 

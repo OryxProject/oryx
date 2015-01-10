@@ -54,8 +54,10 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
                                         new MockModelUpdateGenerator(),
                                         9, 10);
 
-    for (Pair<String,String> update : updates) {
-      log.info("{}", update);
+    if (log.isDebugEnabled()) {
+      for (Pair<String, String> update : updates) {
+        log.debug("{}", update);
+      }
     }
 
     // 10 original updates. 9 generate just 1 update since user or item is new.

@@ -55,7 +55,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     assertNotNull("Manager must initialize in web context", manager);
 
     ALSServingModel model = manager.getModel();
-    log.info("{}", model);
+    log.debug("{}", model);
 
     assertNotNull(model);
     assertEquals(2, model.getFeatures());

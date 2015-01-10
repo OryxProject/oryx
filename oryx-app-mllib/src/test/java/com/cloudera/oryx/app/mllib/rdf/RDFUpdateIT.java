@@ -105,7 +105,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       String value = km.getSecond();
 
       assertEquals("MODEL", type);
-      log.info("{}", value);
+      log.debug("{}", value);
 
       PMML pmml = PMMLUtils.fromString(value);
 

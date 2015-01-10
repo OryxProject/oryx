@@ -90,7 +90,7 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
-    log.info("{}", PMMLUtils.toString(pmml));
+    log.debug("{}", PMMLUtils.toString(pmml));
 
     assertEquals(3, pmml.getExtensions().size());
     Map<String,Object> expected = new HashMap<>();

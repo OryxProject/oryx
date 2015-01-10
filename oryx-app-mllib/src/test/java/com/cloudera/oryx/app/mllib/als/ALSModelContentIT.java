@@ -74,7 +74,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
     for (Pair<String, String> km : updates) {
       String type = km.getFirst();
       String value = km.getSecond();
-      log.info("{} = {}", type, value);
+      log.debug("{} = {}", type, value);
 
       if ("UP".equals(type)) {
 
