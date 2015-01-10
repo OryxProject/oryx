@@ -15,8 +15,7 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,8 +25,6 @@ import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.zk.LocalZKServer;
 
 /**
@@ -58,23 +55,17 @@ public final class ProduceConsumeIT extends OryxTest {
                                             localKafkaBroker.getPort(),
                                             TOPIC,
                                             NUM_DATA,
-                                            50);
+                                            0);
 
-      final Collection<Integer> keys = new HashSet<>();
-
+      List<String> keys;
       try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
-        WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
-          @Override
-          public void doRun() {
-            while (data.hasNext()) {
-              keys.add(Integer.valueOf(data.next().getFirst()));
-            }
-          }
-        });
-        new Thread(readData).start();
-        readData.awaitScheduling();
+        ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data);
+        new Thread(consumeTopic).start();
+
+        // Sleep to let consumer start
+        Thread.sleep(3000);
 
         log.info("Producing data");
         produce.start();
@@ -82,13 +73,17 @@ public final class ProduceConsumeIT extends OryxTest {
         // Sleep for a while before shutting down producer to let both finish
         Thread.sleep(1000);
 
+        keys = consumeTopic.getKeys();
       } finally {
         KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
       }
 
-      assertEquals(NUM_DATA, keys.size());
+      if (keys.size() != NUM_DATA) {
+        log.info("keys = {}", keys);
+        assertEquals(NUM_DATA, keys.size());
+      }
       for (int i = 0; i < NUM_DATA; i++) {
-        assertTrue(keys.contains(i));
+        assertTrue(keys.contains(Integer.toString(i)));
       }
     }
   }

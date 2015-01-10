@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
+import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
@@ -61,28 +59,24 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
         "AB,10,0",
     };
 
-    final List<Pair<String,String>> keyMessages = new ArrayList<>();
-
+    List<Pair<String,String>> keyMessages;
     try (CloseableIterator<Pair<String,String>> data =
              new ConsumeData(INPUT_TOPIC, getZKPort()).iterator()) {
 
       log.info("Starting consumer thread");
-      WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
-        @Override
-        public void doRun() {
-          while (data.hasNext()) {
-            keyMessages.add(data.next());
-          }
-        }
-      });
-      new Thread(readData).start();
-      readData.awaitScheduling();
+      ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
+      new Thread(consumeInput).start();
+
+      // Sleep to let consumer start
+      Thread.sleep(3000);
 
       for (String input : inputs) {
         inputProducer.send("", input);
       }
 
       Thread.sleep(1000);
+
+      keyMessages = consumeInput.getKeyMessages();
     }
 
     for (int i = 0; i < keyMessages.size(); i++) {

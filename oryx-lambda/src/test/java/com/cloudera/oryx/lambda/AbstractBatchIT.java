@@ -17,7 +17,6 @@ package com.cloudera.oryx.lambda;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.typesafe.config.Config;
@@ -31,9 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.common.lang.WaitToScheduleRunnable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
+import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
@@ -67,8 +65,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                           howMany,
                                           intervalMsec);
 
-    final List<Pair<String,String>> keyMessages = new ArrayList<>();
-
+    List<Pair<String,String>> keyMessages;
     try (CloseableIterator<Pair<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
          BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
@@ -77,19 +74,11 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       batchLayer.start();
 
       log.info("Starting consumer thread");
-      WaitToScheduleRunnable readData = new WaitToScheduleRunnable(new LoggingRunnable() {
-        @Override
-        public void doRun() {
-          while (data.hasNext()) {
-            keyMessages.add(data.next());
-          }
-        }
-      });
-      new Thread(readData).start();
-      readData.awaitScheduling();
+      ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
+      new Thread(consumeInput).start();
 
-      // Sleep for a while after starting server to let it init
-      Thread.sleep(1000);
+      // Sleep to let consumer start
+      Thread.sleep(3000);
 
       log.info("Producing data");
       produce.start();
@@ -98,6 +87,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       long genIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
       Thread.sleep(genIntervalSec * 1000);
 
+      keyMessages = consumeInput.getKeyMessages();
     } finally {
       produce.deleteTopic();
     }

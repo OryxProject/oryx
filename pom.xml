@@ -90,6 +90,13 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>kafka-util</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-lambda</artifactId>
         <version>${project.version}</version>
         <classifier>tests</classifier>

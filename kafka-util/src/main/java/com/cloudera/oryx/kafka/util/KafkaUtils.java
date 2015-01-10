@@ -38,35 +38,39 @@ public final class KafkaUtils {
 
   public static void maybeCreateTopic(String host, int port, String topic) {
     ZkClient zkClient = buildClient(host, port);
-    if (AdminUtils.topicExists(zkClient, topic)) {
-      log.info("No need to create topic {} as it already exists", topic);
-    } else {
-      log.info("Creating topic {}", topic);
-      try {
-        AdminUtils.createTopic(zkClient, topic, 1, 1, new Properties());
-        log.info("Created Zookeeper topic {}", topic);
-      } catch (TopicExistsException tee) {
-        log.info("Zookeeper topic {} already exists", topic);
-      } finally {
-        zkClient.close();
+    try {
+      if (AdminUtils.topicExists(zkClient, topic)) {
+        log.info("No need to create topic {} as it already exists", topic);
+      } else {
+        log.info("Creating topic {}", topic);
+        try {
+          AdminUtils.createTopic(zkClient, topic, 1, 1, new Properties());
+          log.info("Created Zookeeper topic {}", topic);
+        } catch (TopicExistsException tee) {
+          log.info("Zookeeper topic {} already exists", topic);
+        }
       }
+    } finally {
+      zkClient.close();
     }
   }
 
   public static void deleteTopic(String host, int port, String topic) {
     ZkClient zkClient = buildClient(host, port);
-    if (AdminUtils.topicExists(zkClient, topic)) {
-      log.info("Deleting topic {}", topic);
-      try {
-        AdminUtils.deleteTopic(zkClient, topic);
-        log.info("Deleted Zookeeper topic {}", topic);
-      } catch (ZkNodeExistsException nee) {
-        log.info("Delete was already scheduled for Zookeeper topic {}", topic);
-      } finally {
-        zkClient.close();
+    try {
+      if (AdminUtils.topicExists(zkClient, topic)) {
+        log.info("Deleting topic {}", topic);
+        try {
+          AdminUtils.deleteTopic(zkClient, topic);
+          log.info("Deleted Zookeeper topic {}", topic);
+        } catch (ZkNodeExistsException nee) {
+          log.info("Delete was already scheduled for Zookeeper topic {}", topic);
+        }
+      } else {
+        log.info("No need to delete topic {} as it does not exist", topic);
       }
-    } else {
-      log.info("No need to delete topic {} as it does not exist", topic);
+    } finally {
+      zkClient.close();
     }
   }
 
