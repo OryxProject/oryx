@@ -611,6 +611,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     for (long count : predictorIndexCounts.values()) {
       total += count;
     }
+    Preconditions.checkArgument(total > 0);
     for (Map.Entry<Integer,Long> e : predictorIndexCounts.entrySet()) {
       importances[e.getKey()] = (double) e.getValue() / total;
     }

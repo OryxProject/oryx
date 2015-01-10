@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
@@ -81,8 +82,9 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
 
   private Config buildHTTPSConfig() throws IOException {
     Path keystoreFile = Files.createTempFile("oryxtest", ".jks");
-    Files.copy(getClass().getResourceAsStream("/oryxtest.jks"), keystoreFile,
-               StandardCopyOption.REPLACE_EXISTING);
+    try (InputStream jksStream = getClass().getResourceAsStream("/oryxtest.jks")) {
+      Files.copy(jksStream, keystoreFile, StandardCopyOption.REPLACE_EXISTING);
+    }
 
     Map<String,Object> overlay = new HashMap<>();
     overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");

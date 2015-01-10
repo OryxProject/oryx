@@ -510,12 +510,14 @@ public final class ALSServingModel {
           }
         } else {
           // Otherwise always add the new element
+          int newSize;
           synchronized (topN) {
             topN.add(new Pair<>(key, score));
-            if (topN.size() >= howMany) {
-              // Remember the queue is already full enough, to avoid checking the queue again
-              full = true;
-            }
+            newSize = topN.size();
+          }
+          if (newSize >= howMany) {
+            // Remember the queue is already full enough, to avoid checking the queue again
+            full = true;
           }
         }
       }
