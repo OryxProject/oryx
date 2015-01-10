@@ -163,13 +163,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <!--
-          Allow more memory for load IT.
-          Unfortunately args from parent config have to be duplicated here.
-           -->
-          <argLine>-Xmx2g -Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties</argLine>
-        </configuration>
       </plugin>
     </plugins>
   </build>

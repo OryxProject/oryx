@@ -15,11 +15,6 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.NotFoundException;
@@ -29,6 +24,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +39,7 @@ public final class LoadIT extends AbstractALSServingTest {
 
   private static final Logger log = LoggerFactory.getLogger(LoadIT.class);
   private static final int REQS_PER_WORKER = 100;
+  private static final int WORKERS = 1;
 
   @Override
   protected void configureProperties() {
@@ -67,28 +64,31 @@ public final class LoadIT extends AbstractALSServingTest {
     Assert.assertTrue(usecPerRequest < 3000);
   }
 
+  @Ignore("Difficult to assert about time in cross-platform way; run manually")
   @Test
   public void testRecommendLoad() throws Exception {
-    // Since latency is more important, and local machine will also be busy handling requests,
-    // use few concurrent workers, like 1:
-    int workers = 1;
     AtomicLong count = new AtomicLong();
     Mean meanReqTimeMS = new Mean();
     long start = System.currentTimeMillis();
 
+    /*
     List<Callable<Void>> tasks = new ArrayList<>(workers);
     for (int i = 0; i < workers; i++) {
       tasks.add(new LoadCallable(Integer.toString(i), meanReqTimeMS, count, start));
     }
 
-    ExecutorService executor = Executors.newFixedThreadPool(workers);
+    ExecutorService executor = Executors.newFixedThreadPool(WORKERS);
     try {
       executor.invokeAll(tasks);
     } finally {
       executor.shutdown();
     }
+     */
+    // Since latency is more important, and local machine will also be busy handling requests,
+    // use few concurrent workers, like 1:
+    new LoadCallable("0", meanReqTimeMS, count, start).call();
 
-    int totalRequests = workers * REQS_PER_WORKER;
+    int totalRequests = WORKERS * REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);
 
     int cores = Runtime.getRuntime().availableProcessors();
