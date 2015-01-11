@@ -157,4 +157,5 @@ Contributors
 - [Suneel Marthi](https://github.com/smarthi) and [Kam Kasravi](https://github.com/kkasravi) (Intel)
 
 [![Build Status](https://travis-ci.org/OryxProject/oryx.png?branch=master)](https://travis-ci.org/OryxProject/oryx)
+[![Coverity](https://scan.coverity.com/projects/2697/badge.svg)](https://scan.coverity.com/projects/2697)
 [![codecov.io](https://codecov.io/github/OryxProject/oryx/coverage.svg?branch=master)](https://codecov.io/github/OryxProject/oryx?branch=master)
