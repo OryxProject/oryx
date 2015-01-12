@@ -31,7 +31,7 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-public final class MockModelUpdateGenerator implements DatumGenerator<String,String> {
+public final class MockALSModelUpdateGenerator implements DatumGenerator<String,String> {
 
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]

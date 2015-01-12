@@ -15,8 +15,12 @@
 
 package com.cloudera.oryx.common.text;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -73,6 +77,23 @@ public final class TextUtilsTest extends OryxTest {
     assertEquals("[\"1\",\"2\",\"3\"]", TextUtils.joinJSON(Arrays.asList("1", "2", "3")));
     assertEquals("[\"1 \",\"2 \",\"3\"]", TextUtils.joinJSON(Arrays.asList("1 ", "2 ", "3")));
     assertEquals("[]", TextUtils.joinJSON(Collections.emptyList()));
+  }
+
+  @Test
+  public void testJSONList() {
+    List<Object> list = new ArrayList<>();
+    list.add("foo");
+    list.add(2);
+    assertEquals("[\"A\",[\"foo\",2],\"B\"]", TextUtils.joinJSON(Arrays.asList("A", list, "B")));
+  }
+
+  @Test
+  public void testJSONMap() {
+    Map<Object,Object> map = new HashMap<>();
+    map.put(1, "bar");
+    map.put("foo", 2);
+    assertEquals("[\"A\",{\"1\":\"bar\",\"foo\":2},\"B\"]",
+                 TextUtils.joinJSON(Arrays.asList("A", map, "B")));
   }
 
 }

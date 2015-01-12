@@ -56,7 +56,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
         }
       }
     } else {
-      log.info("RDD was empty, not saving to HDFS");
+      log.debug("RDD was empty");
     }
     return null;
   }

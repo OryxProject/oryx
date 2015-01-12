@@ -94,7 +94,11 @@ public final class InputSchema implements Serializable {
     }
 
     targetFeature = ConfigUtils.getOptionalString(config, "oryx.input-schema.target-feature");
-    Preconditions.checkArgument(targetFeature == null || activeFeatures.contains(targetFeature));
+    if (targetFeature != null) {
+      Preconditions.checkArgument(activeFeatures.contains(targetFeature),
+                                  "Target feature is not known, an ID, or ignored: %s",
+                                  targetFeature);
+    }
     targetFeatureIndex = targetFeature == null ? -1 : featureNames.indexOf(targetFeature);
 
     allToPredictorMap = HashBiMap.create();

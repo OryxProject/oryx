@@ -68,12 +68,20 @@ public final class RDFPMMLUtils {
    */
   public static void validatePMMLVsSchema(PMML pmml, InputSchema schema) {
     List<Model> models = pmml.getModels();
-    Preconditions.checkArgument(models.size() == 1);
+    Preconditions.checkArgument(models.size() == 1,
+                                "Should have exactly one model, but had %s", models.size());
 
     Model model = models.get(0);
-    Preconditions.checkArgument(
-        schema.isClassification() ==
-        (model.getFunctionName() == MiningFunctionType.CLASSIFICATION));
+    MiningFunctionType function = model.getFunctionName();
+    if (schema.isClassification()) {
+      Preconditions.checkArgument(function == MiningFunctionType.CLASSIFICATION,
+                                  "Expected classification function type but got %s",
+                                  function);
+    } else {
+      Preconditions.checkArgument(function == MiningFunctionType.REGRESSION,
+                                  "Expected regression function type but got %s",
+                                  function);
+    }
 
     DataDictionary dictionary = pmml.getDataDictionary();
     Preconditions.checkArgument(schema.getFeatureNames().equals(
@@ -84,8 +92,12 @@ public final class RDFPMMLUtils {
         AppPMMLUtils.getFeatureNames(miningSchema)));
 
     if (schema.hasTarget()) {
+      int schemaIndex = schema.getTargetFeatureIndex();
+      int pmmlIndex = AppPMMLUtils.findTargetIndex(miningSchema);
       Preconditions.checkArgument(
-          schema.getTargetFeatureIndex() == AppPMMLUtils.findTargetIndex(miningSchema));
+          schemaIndex == pmmlIndex,
+          "Configured schema expects target at index %s, but PMML has target at index %s",
+          schemaIndex, pmmlIndex);
     } else {
       Preconditions.checkArgument(AppPMMLUtils.findTargetIndex(miningSchema) == null);
     }

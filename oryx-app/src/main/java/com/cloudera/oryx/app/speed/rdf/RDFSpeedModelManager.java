@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,9 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       String key = km.getKey();
       String message = km.getMessage();
       switch (key) {
-        // No "UP" from batch layer
+        case "UP":
+          // Nothing to do; just hearing our own updates
+          break;
         case "MODEL":
           // New model
           PMML pmml;
@@ -107,28 +110,18 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       List<Tuple2<Pair<Integer,String>,Map<Integer,Long>>> countsByTreeAndID =
           targetsByTreeAndID.mapValues(new TargetCategoryCountFn()).collect();
       for (Tuple2<Pair<Integer,String>,Map<Integer,Long>> p : countsByTreeAndID) {
-        Integer treeID = p._1().getFirst();
-        String nodeID = p._1().getSecond();
-        for (Map.Entry<Integer,Long> e : p._2().entrySet()) {
-          String[] updateTokens =
-              { treeID.toString(), nodeID, e.getKey().toString(), e.getValue().toString() };
-          updates.add(TextUtils.joinJSON(Arrays.asList(updateTokens)));
-        }
+        Object[] updateTokens = { p._1().getFirst(), p._1().getSecond(), p._2() };
+        updates.add(TextUtils.joinJSON(Arrays.asList(updateTokens)));
       }
 
     } else {
 
       List<Tuple2<Pair<Integer,String>,Mean>> meanTargetsByTreeAndID =
           targetsByTreeAndID.mapValues(new MeanNewTargetFn()).collect();
-      for (Tuple2<Pair<Integer,String>,Mean> p :meanTargetsByTreeAndID) {
-        Integer treeID = p._1().getFirst();
-        String nodeID = p._1().getSecond();
+      for (Tuple2<Pair<Integer,String>,Mean> p : meanTargetsByTreeAndID) {
         Mean mean = p._2();
-        String[] updateTokens = {
-            treeID.toString(),
-            nodeID,
-            Double.toString(mean.getResult()),
-            Long.toString(mean.getN()) };
+        Object[] updateTokens =
+            {  p._1().getFirst(), p._1().getSecond(), mean.getResult(), mean.getN() };
         updates.add(TextUtils.joinJSON(Arrays.asList(updateTokens)));
       }
 
@@ -180,7 +173,8 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       for (Feature f : categoricalTargets) {
         categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
       }
-      return categoryCounts.asMap();
+      // Have to clone it as Kryo won't serialize the unmodifiable map
+      return new HashMap<>(categoryCounts.asMap());
     }
   }
 

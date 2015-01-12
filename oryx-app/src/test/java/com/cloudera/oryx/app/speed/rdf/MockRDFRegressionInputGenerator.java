@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,22 +13,23 @@
  * License.
  */
 
-package com.cloudera.oryx.app.speed.als;
+package com.cloudera.oryx.app.speed.rdf;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-public final class MockInputGenerator implements DatumGenerator<String,String> {
+final class MockRDFRegressionInputGenerator implements DatumGenerator<String,String> {
 
   @Override
-  public Pair<String,String> generate(int id, RandomGenerator random) {
-    if (id < 5) {
-      return new Pair<>("", (100 + id) + "," + (1 + id) + ",1," + System.currentTimeMillis());
-    } else {
-      return new Pair<>("", (1 + id) + "," + (100 + id) + ",1," + System.currentTimeMillis());
-    }
+  public Pair<String, String> generate(int id, RandomGenerator random) {
+    boolean positive = id % 2 != 0;
+    // Dummy decision rule is > 3.14
+    double predictor = positive ? 3.14 + id : 3.14 - id;
+    // Constructed so that means are about (1+3+5+7+9)/5 = 5 and -(0+2+4+6+8)/5 = -4
+    double target = positive ? (id % 10) : -(id % 10);
+    return new Pair<>("", predictor + "," + target);
   }
 
 }

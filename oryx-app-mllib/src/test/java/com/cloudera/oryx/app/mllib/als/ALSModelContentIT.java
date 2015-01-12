@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
@@ -39,7 +38,6 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 public final class ALSModelContentIT extends AbstractALSIT {
 
   private static final Logger log = LoggerFactory.getLogger(ALSModelContentIT.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @Test
   public void testModelContent() throws Exception {

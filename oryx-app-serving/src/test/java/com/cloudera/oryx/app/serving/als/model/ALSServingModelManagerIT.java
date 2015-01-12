@@ -18,7 +18,7 @@ package com.cloudera.oryx.app.serving.als.model;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
-import com.cloudera.oryx.app.speed.als.MockModelUpdateGenerator;
+import com.cloudera.oryx.app.speed.als.MockALSModelUpdateGenerator;
 
 import com.typesafe.config.Config;
 import org.junit.Test;
@@ -43,7 +43,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
 
     startMessaging();
     startServer(config);
-    startUpdateTopics(new MockModelUpdateGenerator(), 10);
+    startUpdateTopics(new MockALSModelUpdateGenerator(), 10);
 
     // Let updates finish
     Thread.sleep(1000);
@@ -61,19 +61,19 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     assertEquals(2, model.getFeatures());
     assertTrue(model.isImplicit());
 
-    Collection<String> expectedItems = MockModelUpdateGenerator.Y.keySet();
+    Collection<String> expectedItems = MockALSModelUpdateGenerator.Y.keySet();
     assertTrue(expectedItems.containsAll(model.getAllItemIDs()));
     assertTrue(model.getAllItemIDs().containsAll(expectedItems));
 
     assertNotNull(model.getYTYSolver());
 
-    for (Map.Entry<String,float[]> entry : MockModelUpdateGenerator.X.entrySet()) {
+    for (Map.Entry<String,float[]> entry : MockALSModelUpdateGenerator.X.entrySet()) {
       assertArrayEquals(entry.getValue(), model.getUserVector(entry.getKey()));
     }
-    for (Map.Entry<String,float[]> entry : MockModelUpdateGenerator.Y.entrySet()) {
+    for (Map.Entry<String,float[]> entry : MockALSModelUpdateGenerator.Y.entrySet()) {
       assertArrayEquals(entry.getValue(), model.getItemVector(entry.getKey()));
     }
-    for (Map.Entry<String,Collection<String>> entry : MockModelUpdateGenerator.A.entrySet()) {
+    for (Map.Entry<String,Collection<String>> entry : MockALSModelUpdateGenerator.A.entrySet()) {
       Collection<String> expected = entry.getValue();
       Collection<String> actual = model.getKnownItems(entry.getKey());
       assertTrue(expected.containsAll(actual));

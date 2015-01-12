@@ -212,8 +212,11 @@ public final class AppPMMLUtils {
    * @return names of features in order
    */
   public static List<String> getFeatureNames(DataDictionary dictionary) {
-    List<String> names = new ArrayList<>();
-    for (TypeDefinitionField field : dictionary.getDataFields()) {
+    List<DataField> dataFields = dictionary.getDataFields();
+    Preconditions.checkArgument(dataFields != null && !dataFields.isEmpty(),
+                                "No fields in DataDictionary");
+    List<String> names = new ArrayList<>(dataFields.size());
+    for (TypeDefinitionField field : dataFields) {
       names.add(field.getName().getValue());
     }
     return names;
