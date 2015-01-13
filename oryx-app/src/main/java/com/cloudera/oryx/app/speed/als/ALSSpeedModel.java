@@ -17,7 +17,6 @@ package com.cloudera.oryx.app.speed.als;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -29,6 +28,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
+import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
@@ -75,101 +75,69 @@ public final class ALSSpeedModel {
   }
 
   public float[] getUserVector(String user) {
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       return X.get(user);
-    } finally {
-      lock.unlock();
     }
   }
 
   public float[] getItemVector(String item) {
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLock.readLock())) {
       return Y.get(item);
-    } finally {
-      lock.unlock();
     }
   }
 
   public void setUserVector(String user, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    Lock lock = xLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.writeLock())) {
       if (X.put(user, vector) == null) {
         // User was actually new
         recentNewUsers.add(user);
       }
-    } finally {
-      lock.unlock();
     }
   }
 
   public void setItemVector(String item, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    Lock lock = yLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLock.writeLock())) {
       if (Y.put(item, vector) == null) {
         // Item was actually new
         recentNewItems.add(item);
       }
-    } finally {
-      lock.unlock();
     }
   }
 
   public void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    Lock lock = xLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.writeLock())) {
       X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
-    } finally {
-      lock.unlock();
     }
   }
 
   public void pruneY(Collection<String> items) {
     // Keep all items in the new model, or, that have been added since last model
-    Lock lock = yLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLock.writeLock())) {
       Y.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
           new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems))));
       recentNewItems.clear();
-    } finally {
-      lock.unlock();
     }
   }
 
   public Solver getXTXSolver() {
     RealMatrix XTX;
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       XTX = VectorMath.transposeTimesSelf(X.values());
-    } finally {
-      lock.unlock();
     }
     return new LinearSystemSolver().getSolver(XTX);
   }
 
   public Solver getYTYSolver() {
     RealMatrix YTY;
-    Lock lock = yLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLock.readLock())) {
       YTY = VectorMath.transposeTimesSelf(Y.values());
-    } finally {
-      lock.unlock();
     }
     return new LinearSystemSolver().getSolver(YTY);
   }

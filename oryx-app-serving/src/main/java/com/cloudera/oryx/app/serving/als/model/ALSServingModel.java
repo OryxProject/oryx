@@ -28,7 +28,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -51,6 +50,7 @@ import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
@@ -139,38 +139,26 @@ public final class ALSServingModel {
   }
 
   public float[] getUserVector(String user) {
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       return X.get(user);
-    } finally {
-      lock.unlock();
     }
   }
 
   public float[] getItemVector(String item) {
     int partition = partition(item);
-    Lock lock = yLocks[partition].readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
       return Y[partition].get(item);
-    } finally {
-      lock.unlock();
     }
   }
 
   void setUserVector(String user, float[] vector) {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    Lock lock = xLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.writeLock())) {
       if (X.put(user, vector) == null) {
         // User was actually new
         recentNewUsers.add(user);
       }
-    } finally {
-      lock.unlock();
     }
   }
 
@@ -178,15 +166,11 @@ public final class ALSServingModel {
     Preconditions.checkNotNull(vector);
     Preconditions.checkArgument(vector.length == features);
     int partition = partition(item);
-    Lock lock = yLocks[partition].writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
       if (Y[partition].put(item, vector) == null) {
         // Item was actually new
         recentNewItems[partition].add(item);
       }
-    } finally {
-      lock.unlock();
     }
   }
 
@@ -200,12 +184,8 @@ public final class ALSServingModel {
   }
 
   private ObjSet<String> doGetKnownItems(String user) {
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       return knownItems.get(user);
-    } finally {
-      lock.unlock();
     }
   }
 
@@ -214,9 +194,7 @@ public final class ALSServingModel {
    */
   public Map<String,Integer> getUserCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       for (Map.Entry<String,ObjSet<String>> entry : knownItems.entrySet()) {
         String userID = entry.getKey();
         Collection<?> ids = entry.getValue();
@@ -226,8 +204,6 @@ public final class ALSServingModel {
         }
         counts.addValue(userID, numItems);
       }
-    } finally {
-      lock.unlock();
     }
     return counts;
   }
@@ -237,9 +213,7 @@ public final class ALSServingModel {
    */
   public Map<String,Integer> getItemCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       for (Collection<String> ids : knownItems.values()) {
         synchronized (ids) {
           for (String id : ids) {
@@ -247,8 +221,6 @@ public final class ALSServingModel {
           }
         }
       }
-    } finally {
-      lock.unlock();
     }
     return counts;
   }
@@ -257,17 +229,13 @@ public final class ALSServingModel {
     ObjSet<String> knownItemsForUser = doGetKnownItems(user);
 
     if (knownItemsForUser == null) {
-      Lock writeLock = xLock.writeLock();
-      writeLock.lock();
-      try {
+      try (AutoLock al = new AutoLock(xLock.writeLock())) {
         // Check again
         knownItemsForUser = knownItems.get(user);
         if (knownItemsForUser == null) {
           knownItemsForUser = HashObjSets.newMutableSet();
           knownItems.put(user, knownItemsForUser);
         }
-      } finally {
-        writeLock.unlock();
       }
     }
 
@@ -290,12 +258,8 @@ public final class ALSServingModel {
       for (String itemID : knownItems) {
         int partition = partition(itemID);
         float[] vector;
-        Lock lock = yLocks[partition].readLock();
-        lock.lock();
-        try {
+        try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
           vector = Y[partition].get(itemID);
-        } finally {
-          lock.unlock();
         }
         idVectors.add(new Pair<>(itemID, vector));
       }
@@ -318,12 +282,8 @@ public final class ALSServingModel {
               new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
           TopNConsumer topNProc = new TopNConsumer(topN, howMany, scoreFn, allowedPredicate);
 
-          Lock lock = yLocks[thePartition].readLock();
-          lock.lock();
-          try {
+          try (AutoLock al = new AutoLock(yLocks[thePartition].readLock())) {
             Y[thePartition].forEach(topNProc);
-          } finally {
-            lock.unlock();
           }
           // Ordering and excess items don't matter; will be merged and finally sorted later
           return topN;
@@ -359,12 +319,8 @@ public final class ALSServingModel {
    */
   public Collection<String> getAllUserIDs() {
     Collection<String> usersList;
-    Lock lock = xLock.readLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       usersList = new ArrayList<>(X.keySet());
-    } finally {
-      lock.unlock();
     }
     return usersList;
   }
@@ -375,12 +331,8 @@ public final class ALSServingModel {
   public Collection<String> getAllItemIDs() {
     Collection<String> itemsList = new ArrayList<>();
     for (int partition = 0; partition < Y.length; partition++) {
-      Lock lock = yLocks[partition].readLock();
-      lock.lock();
-      try {
+      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
         itemsList.addAll(Y[partition].keySet());
-      } finally {
-        lock.unlock();
       }
     }
     return itemsList;
@@ -390,12 +342,8 @@ public final class ALSServingModel {
     RealMatrix YTY = null;
     for (int partition = 0; partition < Y.length; partition++) {
       RealMatrix YTYpartial;
-      Lock lock = yLocks[partition].readLock();
-      lock.lock();
-      try {
+      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
         YTYpartial = VectorMath.transposeTimesSelf(Y[partition].values());
-      } finally {
-        lock.unlock();
       }
       if (YTYpartial != null) {
         YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
@@ -413,14 +361,10 @@ public final class ALSServingModel {
    */
   void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    Lock lock = xLock.writeLock();
-    lock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.writeLock())) {
       X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
-    } finally {
-      lock.unlock();
     }
   }
 
@@ -434,15 +378,11 @@ public final class ALSServingModel {
   void pruneY(Collection<String> items) {
     for (int partition = 0; partition < Y.length; partition++) {
       // Keep all items in the new model, or, that have been added since last model
-      Lock lock = yLocks[partition].writeLock();
-      lock.lock();
-      try {
+      try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
         Y[partition].removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
             new NotContainsPredicate<>(items),
             new NotContainsPredicate<>(recentNewItems[partition]))));
         recentNewItems[partition].clear();
-      } finally {
-        lock.unlock();
       }
     }
   }
@@ -453,31 +393,21 @@ public final class ALSServingModel {
    */
   void pruneKnownItems(Collection<String> users, final Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
-    Lock xWriteLock = xLock.writeLock();
-    xWriteLock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.writeLock())) {
       knownItems.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
-    } finally {
-      xWriteLock.unlock();
     }
 
     // This will be easier to quickly copy the whole (smallish) set rather than
     // deal with locks below
     final Collection<String> allRecentKnownItems = new HashSet<>();
     for (int partition = 0; partition < Y.length; partition++) {
-      Lock yWriteLock = yLocks[partition].writeLock();
-      yWriteLock.lock();
-      try {
+      try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
         allRecentKnownItems.addAll(recentNewItems[partition]);
-      } finally {
-        yWriteLock.unlock();
       }
     }
 
-    Lock xReadLock = xLock.readLock();
-    xReadLock.lock();
-    try {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
       for (ObjSet<String> knownItemsForUser : knownItems.values()) {
         synchronized (knownItemsForUser) {
           knownItemsForUser.removeIf(new Predicate<String>() {
@@ -488,8 +418,6 @@ public final class ALSServingModel {
           });
         }
       }
-    } finally {
-      xReadLock.unlock();
     }
   }
 
