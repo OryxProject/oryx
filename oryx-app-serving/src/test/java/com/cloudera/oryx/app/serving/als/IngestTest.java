@@ -15,30 +15,21 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Variant;
 
-import org.glassfish.jersey.media.multipart.MultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.lang.ClassUtils;
 
 public final class IngestTest extends AbstractALSServingTest {
 
@@ -58,8 +49,7 @@ public final class IngestTest extends AbstractALSServingTest {
 
   @Test
   public void testSimpleIngest() {
-    Response response = target("/ingest").request().post(Entity.text(INGEST_DATA));
-    checkResponse(response);
+    checkResponse(target("/ingest").request().post(Entity.text(INGEST_DATA)));
   }
 
   @Test
@@ -76,71 +66,26 @@ public final class IngestTest extends AbstractALSServingTest {
     byte[] compressed = compress(INGEST_DATA, DeflaterOutputStream.class);
     Entity<byte[]> entity = Entity.entity(
         compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "deflate"));
-    Response response = target("/ingest").request().post(entity);
-    checkResponse(response);
+    checkResponse(target("/ingest").request().post(entity));
   }
 
   @Test
   public void testFormIngest() throws Exception {
-    doTestFormIngest(INGEST_DATA, null, null);
+    checkResponse(getFormPostResponse(INGEST_DATA, "/ingest", null, null));
   }
 
   @Test
   public void testGzippedFormIngest() throws Exception {
-    doTestFormIngest(INGEST_DATA, GZIPOutputStream.class, "gzip");
+    checkResponse(getFormPostResponse(INGEST_DATA, "/ingest", GZIPOutputStream.class, "gzip"));
   }
 
   @Test
   public void testZippedFormIngest() throws Exception {
-    doTestFormIngest(INGEST_DATA, ZipOutputStream.class, "zip");
-  }
-
-  private void doTestFormIngest(String data,
-                                Class<? extends OutputStream> compressingStreamClass,
-                                String encoding) throws IOException {
-    byte[] bytes;
-    if (compressingStreamClass == null) {
-      bytes = data.getBytes(StandardCharsets.UTF_8);
-    } else {
-      bytes = compress(data, compressingStreamClass);
-    }
-    MediaType type =
-        encoding == null ? MediaType.TEXT_PLAIN_TYPE : new MediaType("application", encoding);
-    InputStream in = new ByteArrayInputStream(bytes);
-    StreamDataBodyPart filePart = new StreamDataBodyPart("data", in, "data", type);
-    try (MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE)) {
-      multiPart.getBodyParts().add(filePart);
-      Response response = target("/ingest").request().post(
-          Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
-      checkResponse(response);
-    }
+    checkResponse(getFormPostResponse(INGEST_DATA, "/ingest", ZipOutputStream.class, "zip"));
   }
 
   private static Variant compressedVariant(MediaType contentType, String contentEncoding) {
     return Variant.mediaTypes(contentType).encodings(contentEncoding).build().get(0);
-  }
-
-  private static byte[] compress(
-      String data, Class<? extends OutputStream> compressingStreamClass) {
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (OutputStream compressingStream =
-             ClassUtils.loadInstanceOf(compressingStreamClass.getName(),
-                                       compressingStreamClass,
-                                       new Class<?>[] { OutputStream.class },
-                                       new Object[] { bytes })) {
-      if (compressingStream instanceof ZipOutputStream) {
-        ((ZipOutputStream) compressingStream).putNextEntry(new ZipEntry("data"));
-      }
-      compressingStream.write(data.getBytes(StandardCharsets.UTF_8));
-      if (compressingStream instanceof ZipOutputStream) {
-        ((ZipOutputStream) compressingStream).closeEntry();
-      }
-      compressingStream.flush();
-    } catch (IOException e) {
-      // Can't happen
-      throw new IllegalStateException(e);
-    }
-    return bytes.toByteArray();
   }
 
   private static void checkResponse(Response response) {

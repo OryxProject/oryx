@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.serving.kmeans;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,7 +23,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -33,9 +31,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.lambda.TopicProducer;
@@ -50,16 +47,13 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 @Path("/add")
 public final class Add extends AbstractKMeansResource {
 
-  private DiskFileItemFactory fileItemFactory;
+  private FileItemFactory fileItemFactory;
 
   @Override
   @PostConstruct
   public void init() {
     super.init();
-    ServletContext context = getServletContext();
-    fileItemFactory = new DiskFileItemFactory(
-        1 << 16, (File) context.getAttribute("javax.servlet.context.tempdir"));
-    fileItemFactory.setFileCleaningTracker(FileCleanerCleanup.getFileCleaningTracker(context));
+    fileItemFactory = getDiskFileItemFactory();
   }
 
   @POST
@@ -72,14 +66,13 @@ public final class Add extends AbstractKMeansResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request)
       throws IOException, FileUploadException, OryxServingException {
-    // JAX-RS does not by itself support multipart form data yet, so doing it manually.
-    // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
-    // Good old Commons FileUpload it is:
     List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
     check(!fileItems.isEmpty(), "No parts");
     for (FileItem item : fileItems) {
       InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
-      doPost(new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8)));
+      try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+        doPost(reader);
+      }
     }
   }
 

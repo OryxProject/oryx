@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -24,13 +23,10 @@ import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.Assert;
 
-import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.IDValue;
@@ -50,17 +46,11 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
   }
 
   @Override
-  protected void configureClient(ClientConfig config) {
-    super.configureClient(config);
-    config.register(MultiPartFeature.class);
-  }
-
-  @Override
   protected Class<? extends ServletContextListener> getInitListenerClass() {
     return MockManagerInitListener.class;
   }
 
-  public static class MockManagerInitListener implements ServletContextListener {
+  public static class MockManagerInitListener extends AbstractServletContextListener {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
@@ -70,24 +60,12 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     protected MockServingModelManager getModelManager() {
       return new MockServingModelManager();
     }
-    @Override
-    public final void contextDestroyed(ServletContextEvent sce) {
-      // do nothing
-    }
   }
 
-  protected static class MockServingModelManager implements ServingModelManager<String> {
-    @Override
-    public final void consume(Iterator<KeyMessage<String, String>> updateIterator) {
-      throw new UnsupportedOperationException();
-    }
+  protected static class MockServingModelManager extends AbstractMockServingModelManager {
     @Override
     public ALSServingModel getModel() {
       return TestALSModelFactory.buildTestModel();
-    }
-    @Override
-    public final void close() {
-      // do nothing
     }
   }
 

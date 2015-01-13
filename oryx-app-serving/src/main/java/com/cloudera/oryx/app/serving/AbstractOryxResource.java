@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -24,6 +25,10 @@ import java.util.zip.ZipInputStream;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
@@ -42,13 +47,8 @@ public abstract class AbstractOryxResource {
 
   @SuppressWarnings("unchecked")
   protected void init() {
-    servingModelManager = (ServingModelManager<?>)
-        servletContext.getAttribute(MODEL_MANAGER_KEY);
+    servingModelManager = (ServingModelManager<?>) servletContext.getAttribute(MODEL_MANAGER_KEY);
     inputProducer = (TopicProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
-  }
-
-  protected final ServletContext getServletContext() {
-    return servletContext;
   }
 
   protected ServingModelManager<?> getServingModelManager() {
@@ -57,6 +57,14 @@ public abstract class AbstractOryxResource {
 
   protected final TopicProducer<?,String> getInputProducer() {
     return inputProducer;
+  }
+
+  protected final FileItemFactory getDiskFileItemFactory() {
+    DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
+        1 << 16, (File) servletContext.getAttribute("javax.servlet.context.tempdir"));
+    fileItemFactory.setFileCleaningTracker(
+        FileCleanerCleanup.getFileCleaningTracker(servletContext));
+    return fileItemFactory;
   }
 
   protected static void check(boolean condition,

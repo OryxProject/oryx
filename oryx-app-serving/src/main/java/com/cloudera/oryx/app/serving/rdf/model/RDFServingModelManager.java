@@ -57,7 +57,6 @@ public final class RDFServingModelManager implements ServingModelManager<String>
    */
   @Override
   public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
-
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
@@ -102,7 +101,8 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
               RDFPMMLUtils.read(pmml);
           model = new RDFServingModel(forestAndEncodings.getFirst(),
-                                      forestAndEncodings.getSecond());
+                                      forestAndEncodings.getSecond(),
+                                      inputSchema);
           break;
 
         default:

@@ -36,7 +36,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-final class MockRDFRegressionModelGenerator implements DatumGenerator<String,String> {
+public final class MockRDFRegressionModelGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
@@ -55,6 +55,7 @@ final class MockRDFRegressionModelGenerator implements DatumGenerator<String,Str
     MiningField predictorMF = new MiningField(new FieldName("foo"));
     predictorMF.setOptype(OpType.CONTINUOUS);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
+    predictorMF.setImportance(0.5);
     miningSchema.getMiningFields().add(predictorMF);
     MiningField targetMF = new MiningField(new FieldName("bar"));
     targetMF.setOptype(OpType.CONTINUOUS);

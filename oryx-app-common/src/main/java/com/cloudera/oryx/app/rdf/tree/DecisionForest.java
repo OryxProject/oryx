@@ -33,13 +33,13 @@ public final class DecisionForest implements TreeBasedClassifier {
 
   private final DecisionTree[] trees;
   private final double[] weights;
-  private final double[] evaluations;
+  //private final double[] evaluations;
   private final double[] featureImportances;
 
   public DecisionForest(DecisionTree[] trees, double[] weights, double[] featureImportances) {
     this.trees = trees;
     this.weights = weights;
-    this.evaluations = new double[weights.length];
+    //this.evaluations = new double[weights.length];
     this.featureImportances = featureImportances;
   }
 
@@ -54,9 +54,11 @@ public final class DecisionForest implements TreeBasedClassifier {
     return weights;
   }
 
+  /*
   public double[] getEvaluations() {
     return evaluations;
   }
+   */
 
   public double[] getFeatureImportances() {
     return featureImportances;

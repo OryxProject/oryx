@@ -49,7 +49,7 @@ public final class InputSchema implements Serializable {
     List<String> givenFeatureNames = config.getStringList("oryx.input-schema.feature-names");
     if (givenFeatureNames.isEmpty()) {
       int numFeatures = config.getInt("oryx.input-schema.num-features");
-      Preconditions.checkArgument(numFeatures > 0);
+      Preconditions.checkArgument(numFeatures > 0, "Neither feature-names nor num-features is set");
       List<String> generatedFeatureNames = new ArrayList<>(numFeatures);
       for (int i = 0; i < numFeatures; i++) {
         generatedFeatureNames.add(Integer.toString(i));
@@ -81,7 +81,8 @@ public final class InputSchema implements Serializable {
         ConfigUtils.getOptionalStringList(config, "oryx.input-schema.categorical-features");
 
     if (givenNumericFeatures == null) {
-      Preconditions.checkNotNull(givenCategoricalFeatures);
+      Preconditions.checkNotNull(givenCategoricalFeatures,
+                                 "Neither numeric-features nor categorical-features was set");
       categoricalFeatures = ImmutableSet.copyOf(givenCategoricalFeatures);
       Preconditions.checkArgument(activeFeatures.containsAll(categoricalFeatures));
       activeFeatureSet.removeAll(categoricalFeatures);

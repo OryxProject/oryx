@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
+import com.cloudera.oryx.app.schema.InputSchema;
 
 /**
  * Contains all data structures needed to serve queries for a
@@ -28,12 +29,17 @@ public final class RDFServingModel {
 
   private final DecisionForest forest;
   private final CategoricalValueEncodings encodings;
+  private final InputSchema inputSchema;
 
-  RDFServingModel(DecisionForest forest, CategoricalValueEncodings encodings) {
+  RDFServingModel(DecisionForest forest,
+                  CategoricalValueEncodings encodings,
+                  InputSchema inputSchema) {
     Preconditions.checkNotNull(forest);
     Preconditions.checkNotNull(encodings);
+    Preconditions.checkNotNull(inputSchema);
     this.forest = forest;
     this.encodings = encodings;
+    this.inputSchema = inputSchema;
   }
 
   public DecisionForest getForest() {
@@ -42,6 +48,10 @@ public final class RDFServingModel {
 
   public CategoricalValueEncodings getEncodings() {
     return encodings;
+  }
+
+  public InputSchema getInputSchema() {
+    return inputSchema;
   }
 
   @Override

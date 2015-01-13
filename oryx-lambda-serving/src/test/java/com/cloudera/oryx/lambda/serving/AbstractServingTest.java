@@ -15,11 +15,28 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.google.common.base.Joiner;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
@@ -28,7 +45,9 @@ import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Before;
 
+import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
+import com.cloudera.oryx.lambda.KeyMessage;
 
 public abstract class AbstractServingTest extends JerseyTest {
 
@@ -50,6 +69,12 @@ public abstract class AbstractServingTest extends JerseyTest {
     return new GrizzlyWebTestContainerFactory();
   }
 
+  @Override
+  protected void configureClient(ClientConfig config) {
+    super.configureClient(config);
+    config.register(MultiPartFeature.class);
+  }
+
   protected void configureProperties() {
     enable(TestProperties.LOG_TRAFFIC);
     enable(TestProperties.DUMP_ENTITY);
@@ -69,5 +94,68 @@ public abstract class AbstractServingTest extends JerseyTest {
   protected abstract List<String> getResourcePackages();
 
   protected abstract Class<? extends ServletContextListener> getInitListenerClass();
+
+  protected final Response getFormPostResponse(String data,
+                                               String endpoint,
+                                               Class<? extends OutputStream> compressingClass,
+                                               String encoding) throws IOException {
+    byte[] bytes;
+    if (compressingClass == null) {
+      bytes = data.getBytes(StandardCharsets.UTF_8);
+    } else {
+      bytes = compress(data, compressingClass);
+    }
+    MediaType type =
+        encoding == null ? MediaType.TEXT_PLAIN_TYPE : new MediaType("application", encoding);
+    InputStream in = new ByteArrayInputStream(bytes);
+    StreamDataBodyPart filePart = new StreamDataBodyPart("data", in, "data", type);
+    try (MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE)) {
+      multiPart.getBodyParts().add(filePart);
+      return target(endpoint).request().post(
+          Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+    }
+  }
+
+  protected static byte[] compress(
+      String data, Class<? extends OutputStream> compressingClass) {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (OutputStream compressingStream =
+             ClassUtils.loadInstanceOf(compressingClass.getName(),
+                                       compressingClass,
+                                       new Class<?>[]{OutputStream.class},
+                                       new Object[]{bytes})) {
+      if (compressingStream instanceof ZipOutputStream) {
+        ((ZipOutputStream) compressingStream).putNextEntry(new ZipEntry("data"));
+      }
+      compressingStream.write(data.getBytes(StandardCharsets.UTF_8));
+      if (compressingStream instanceof ZipOutputStream) {
+        ((ZipOutputStream) compressingStream).closeEntry();
+      }
+      compressingStream.flush();
+    } catch (IOException e) {
+      // Can't happen
+      throw new IllegalStateException(e);
+    }
+    return bytes.toByteArray();
+  }
+
+  public abstract static class AbstractServletContextListener implements ServletContextListener {
+    @Override
+    public final void contextDestroyed(ServletContextEvent sce) {
+      // do nothing
+    }
+  }
+
+  protected abstract static class AbstractMockServingModelManager
+      implements ServingModelManager<String> {
+    @Override
+    public final void consume(Iterator<KeyMessage<String, String>> updateIterator) {
+      throw new UnsupportedOperationException();
+    }
+    @Override
+    public final void close() {
+      // do nothing
+    }
+  }
 
 }

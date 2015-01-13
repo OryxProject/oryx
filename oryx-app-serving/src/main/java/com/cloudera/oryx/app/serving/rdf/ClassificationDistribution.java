@@ -20,16 +20,26 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.rdf.predict.Prediction;
+import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
+import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * <p>Responds to a GET request to {@code /classificationDistribution/[datum]}.
  * Like {@link Predict} but this returns not just the most probable category,
- * but all categories and their associated probability. In the case of regression,
- * this may or may not return multiple values.
+ * but all categories and their associated probability. It is not defined for
+ * regression problems and returns an error.
  * The output is "category,probability", one per line for each value.</p>
  */
 @Path("/classificationDistribution")
@@ -38,11 +48,24 @@ public final class ClassificationDistribution extends AbstractRDFResource {
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("datum") String datum) throws OryxServingException {
+  public List<IDValue> get(@PathParam("datum") String datum) throws OryxServingException {
+    check(datum != null && !datum.isEmpty(), "Missing input data");
+    RDFServingModel model = getRDFServingModel();
+    InputSchema inputSchema = model.getInputSchema();
+    check(inputSchema.isClassification(), "Only applicable for classification");
 
-    check(datum != null && !datum.isEmpty(), "Input Data needed to classify");
+    Prediction prediction = Predict.makePrediction(TextUtils.parseCSV(datum), model);
 
-    return Response.ok().build();
+    double[] probabilities = ((CategoricalPrediction) prediction).getCategoryProbabilities();
+    int targetIndex = inputSchema.getTargetFeatureIndex();
+    CategoricalValueEncodings valueEncodings = model.getEncodings();
+    Map<Integer,String> targetEncodingName = valueEncodings.getEncodingValueMap(targetIndex);
+
+    List<IDValue> result = new ArrayList<>(probabilities.length);
+    for (int i = 0; i < probabilities.length; i++) {
+      result.add(new IDValue(targetEncodingName.get(i), probabilities[i]));
+    }
+    return result;
   }
 
 }

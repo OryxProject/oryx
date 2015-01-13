@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.als;
+package com.cloudera.oryx.app.serving;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -24,7 +24,7 @@ import com.cloudera.oryx.app.serving.IDValue;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class SimilarityTest extends AbstractALSServingTest {
+public final class SimilarityTest extends AbstractALSServingTest {
 
   @Test(expected = NotFoundException.class)
   public void testNoArg() {

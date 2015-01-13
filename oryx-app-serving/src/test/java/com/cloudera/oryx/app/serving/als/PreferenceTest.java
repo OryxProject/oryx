@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 

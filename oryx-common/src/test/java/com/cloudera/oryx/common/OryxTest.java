@@ -35,8 +35,8 @@ public abstract class OryxTest extends Assert {
 
   private static final Logger log = LoggerFactory.getLogger(OryxTest.class);
 
-  protected static final float FLOAT_EPSILON = 1.0e-6f;
-  protected static final double DOUBLE_EPSILON = 1.0e-12;
+  public static final float FLOAT_EPSILON = 1.0e-6f;
+  public static final double DOUBLE_EPSILON = 1.0e-12;
 
   private Path tempDir;
 

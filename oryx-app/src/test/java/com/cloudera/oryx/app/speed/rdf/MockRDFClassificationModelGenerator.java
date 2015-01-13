@@ -39,7 +39,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
-final class MockRDFClassificationModelGenerator implements DatumGenerator<String,String> {
+public final class MockRDFClassificationModelGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
@@ -62,6 +62,7 @@ final class MockRDFClassificationModelGenerator implements DatumGenerator<String
     MiningField predictorMF = new MiningField(new FieldName("color"));
     predictorMF.setOptype(OpType.CATEGORICAL);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
+    predictorMF.setImportance(0.5);
     miningSchema.getMiningFields().add(predictorMF);
     MiningField targetMF = new MiningField(new FieldName("fruit"));
     targetMF.setOptype(OpType.CATEGORICAL);

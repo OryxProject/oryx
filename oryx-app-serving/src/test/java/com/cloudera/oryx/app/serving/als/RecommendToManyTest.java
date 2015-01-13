@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import com.cloudera.oryx.app.serving.IDValue;
 
-public class RecommendToManyTest extends AbstractALSServingTest {
+public final class RecommendToManyTest extends AbstractALSServingTest {
 
   @Test
   public void testRecommendToMany() {

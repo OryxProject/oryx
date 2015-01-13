@@ -18,13 +18,21 @@ package com.cloudera.oryx.app.serving.rdf;
 import javax.annotation.PostConstruct;
 
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
 public abstract class AbstractRDFResource extends AbstractOryxResource {
 
-  // TODO: add code to fetch RDFServingModel
+  private RDFServingModel rdfServingModel;
+
   @Override
   @PostConstruct
   public void init() {
     super.init();
+    rdfServingModel = (RDFServingModel) getServingModelManager().getModel();
   }
+
+  final RDFServingModel getRDFServingModel() {
+    return rdfServingModel;
+  }
+
 }

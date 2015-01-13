@@ -40,14 +40,17 @@ public final class ToExampleFn implements Function<String[],Example> {
     Feature target = null;
     for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
       Feature feature = null;
-      if (inputSchema.isNumeric(featureIndex)) {
-        feature = NumericFeature.forValue(Double.parseDouble(data[featureIndex]));
+      String dataAtIndex = data[featureIndex];
+      boolean isTarget = inputSchema.isTarget(featureIndex);
+      if (isTarget && dataAtIndex.isEmpty()) {
+        feature = null;
+      } else if (inputSchema.isNumeric(featureIndex)) {
+        feature = NumericFeature.forValue(Double.parseDouble(dataAtIndex));
       } else if (inputSchema.isCategorical(featureIndex)) {
-        int encoding = valueEncodings.getValueEncodingMap(featureIndex)
-            .get(data[featureIndex]);
+        int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
         feature = CategoricalFeature.forEncoding(encoding);
       }
-      if (inputSchema.isTarget(featureIndex)) {
+      if (isTarget) {
         target = feature;
       } else {
         features[featureIndex] = feature;

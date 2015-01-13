@@ -84,8 +84,9 @@ public final class RDFPMMLUtils {
     }
 
     DataDictionary dictionary = pmml.getDataDictionary();
-    Preconditions.checkArgument(schema.getFeatureNames().equals(
-        AppPMMLUtils.getFeatureNames(dictionary)));
+    Preconditions.checkArgument(
+        schema.getFeatureNames().equals(AppPMMLUtils.getFeatureNames(dictionary)),
+        "Feature names in schema don't match names in PMML");
 
     MiningSchema miningSchema = model.getMiningSchema();
     Preconditions.checkArgument(schema.getFeatureNames().equals(
