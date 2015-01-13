@@ -43,6 +43,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * <p>{@code howMany} and {@code offset} behavior are as in {@link Recommend}. Output
  * is also the same, except that item IDs are returned with integer counts rather than
  * scores.</p>
+ *
+ * @see MostActiveUsers
  */
 @Path("/mostPopularItems")
 public final class MostPopularItems extends AbstractALSResource {
@@ -51,25 +53,29 @@ public final class MostPopularItems extends AbstractALSResource {
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
                            @DefaultValue("0") @QueryParam("offset") int offset) {
-
     ALSServingModel model = getALSServingModel();
-    Map<String,Integer> itemCounts = model.getItemCounts();
+    return mapTopCountsToIDCounts(model.getItemCounts(), howMany, offset);
+  }
 
-    Iterable<Pair<String,Integer>> countPairs =
-        Iterables.transform(itemCounts.entrySet(),
-            new Function<Map.Entry<String,Integer>, Pair<String,Integer>>() {
-              @Override
-              public Pair<String,Integer> apply(Map.Entry<String,Integer> input) {
-                return new Pair<>(input.getKey(), input.getValue());
-              }
-            });
+  static List<IDCount> mapTopCountsToIDCounts(Map<String,Integer> counts,
+                                              int howMany,
+                                              int offset) {
+    Iterable<Pair<String,Integer>> countPairs = Iterables.transform(
+        counts.entrySet(),
+        new Function<Map.Entry<String,Integer>, Pair<String,Integer>>() {
+          @Override
+          public Pair<String,Integer> apply(Map.Entry<String,Integer> input) {
+            return new Pair<>(input.getKey(), input.getValue());
+          }
+        });
 
     List<Pair<String,Integer>> allTopCountPairs =
         Ordering.from(PairComparators.<Integer>bySecond()).greatestOf(countPairs, howMany + offset);
     List<Pair<String,Integer>> topCountPairs =
         selectedSublist(allTopCountPairs, howMany, offset);
 
-    return Lists.transform(topCountPairs,
+    return Lists.transform(
+        topCountPairs,
         new Function<Pair<String, Integer>, IDCount>() {
           @Override
           public IDCount apply(Pair<String,Integer> idCount) {

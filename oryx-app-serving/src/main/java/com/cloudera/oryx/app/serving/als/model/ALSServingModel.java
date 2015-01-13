@@ -209,6 +209,32 @@ public final class ALSServingModel {
     }
   }
 
+  /**
+   * @return mapping of user IDs to count of items the user has interacted with
+   */
+  public Map<String,Integer> getUserCounts() {
+    ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
+    Lock lock = xLock.readLock();
+    lock.lock();
+    try {
+      for (Map.Entry<String,ObjSet<String>> entry : knownItems.entrySet()) {
+        String userID = entry.getKey();
+        Collection<?> ids = entry.getValue();
+        int numItems;
+        synchronized (ids) {
+          numItems = ids.size();
+        }
+        counts.addValue(userID, numItems);
+      }
+    } finally {
+      lock.unlock();
+    }
+    return counts;
+  }
+
+  /**
+   * @return mapping of item IDs to count of users that have interacted with that item
+   */
   public Map<String,Integer> getItemCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
     Lock lock = xLock.readLock();
@@ -328,6 +354,24 @@ public final class ALSServingModel {
         .greatestOf(Iterables.concat(iterables), howMany);
   }
 
+  /**
+   * @return all user IDs in the model
+   */
+  public Collection<String> getAllUserIDs() {
+    Collection<String> usersList;
+    Lock lock = xLock.readLock();
+    lock.lock();
+    try {
+      usersList = new ArrayList<>(X.keySet());
+    } finally {
+      lock.unlock();
+    }
+    return usersList;
+  }
+
+  /**
+   * @return all item IDs in the model
+   */
   public Collection<String> getAllItemIDs() {
     Collection<String> itemsList = new ArrayList<>();
     for (int partition = 0; partition < Y.length; partition++) {
