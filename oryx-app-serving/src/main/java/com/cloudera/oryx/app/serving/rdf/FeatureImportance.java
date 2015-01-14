@@ -36,6 +36,9 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
  * <p>In both cases, importance is given as a floating point value between 0 and 1 inclusive.
  * Higher means more important. The values are normalized and are not expressed in
  * particular units.</p>
+ *
+ * <p>The result contains one importance value per line. If JSON output is selected, the result
+ * is a JSON list of importance values.</p>
  */
 @Path("/feature/importance")
 public final class FeatureImportance extends AbstractRDFResource {
@@ -53,7 +56,7 @@ public final class FeatureImportance extends AbstractRDFResource {
   }
 
   @GET
-  @Produces({CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   @Path("{featureNumber}")
   public Double getImportance(@PathParam("featureNumber") int featureNumber)
       throws OryxServingException {

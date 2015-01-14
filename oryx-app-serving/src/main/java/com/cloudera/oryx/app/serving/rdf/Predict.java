@@ -15,13 +15,31 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
@@ -38,18 +56,67 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * <p>Responds to a GET request to {@code /predict/[datum]}. The input is one data point to predict,
- * delimited, like "1,foo,3.0". The value of the target feature in the input is ignored.
- * The response body contains the result of prediction on one line.
- * The result depends on the classifier or regressor --  could be a number or a category name.</p>
+ * <p>Responds to a GET request to {@code /predict/[datum]}, or a POST to {@code /predict}
+ * containing several data points, one on each line. The inputs are data points to predict,
+ * delimited, like "1,foo,3.0". The value of the target feature in the input is ignored.</p>
+ *
+ * <p>The response body contains the result of prediction, one for each input data point, one per
+ * line. The result depends on the classifier or regressor -- could be a number
+ * or a category name. If JSON output is selected, the result is a JSON list.</p>
  */
 @Path("/predict")
 public final class Predict extends AbstractRDFResource {
+
+  private FileItemFactory fileItemFactory;
+
+  @Override
+  @PostConstruct
+  public void init() {
+    super.init();
+    fileItemFactory = getDiskFileItemFactory();
+  }
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public String get(@PathParam("datum") String datum) throws OryxServingException {
+    return predict(datum);
+  }
+
+  @POST
+  @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  public List<String> post(Reader reader) throws IOException, OryxServingException {
+    return doPost(maybeBuffer(reader));
+  }
+
+  @POST
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  public List<String> post(@Context HttpServletRequest request)
+      throws IOException, FileUploadException, OryxServingException {
+    List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
+    check(!fileItems.isEmpty(), "No parts");
+    List<String> result = new ArrayList<>();
+    for (FileItem item : fileItems) {
+      InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
+      try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+        result.addAll(doPost(reader));
+      }
+    }
+    return result;
+  }
+
+  private List<String> doPost(BufferedReader buffered) throws IOException, OryxServingException {
+    List<String> predictions = new ArrayList<>();
+    String line;
+    while ((line = buffered.readLine()) != null) {
+      predictions.add(predict(line));
+    }
+    return predictions;
+  }
+
+  private String predict(String datum) throws OryxServingException {
     check(datum != null && !datum.isEmpty(), "Missing input data");
     RDFServingModel model = getRDFServingModel();
     InputSchema inputSchema = model.getInputSchema();

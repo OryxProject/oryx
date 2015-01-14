@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
@@ -37,6 +38,15 @@ public final class PredictTest extends AbstractRDFServingTest {
     String prediction = target("/predict/A,-5,").request().get(String.class);
     double expectedValue = (1.0 + 2.0 * 100.0) / 3.0;
     Assert.assertEquals(expectedValue, Double.parseDouble(prediction), OryxTest.DOUBLE_EPSILON);
+  }
+
+  @Test
+  public void testPredictPost() {
+    String prediction = target("/predict").request().post(Entity.text("A,-5,\nB,0,"))
+        .readEntity(String.class);
+    double expectedValue1 = (1.0 + 2.0 * 100.0) / 3.0;
+    double expectedValue2 = (10.0 + 2 * 1000.0) / 3;
+    Assert.assertEquals(expectedValue1 + "\n" + expectedValue2 + "\n", prediction);
   }
 
 }

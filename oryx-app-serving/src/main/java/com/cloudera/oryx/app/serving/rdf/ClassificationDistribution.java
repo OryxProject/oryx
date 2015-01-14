@@ -39,8 +39,12 @@ import com.cloudera.oryx.common.text.TextUtils;
  * <p>Responds to a GET request to {@code /classificationDistribution/[datum]}.
  * Like {@link Predict} but this returns not just the most probable category,
  * but all categories and their associated probability. It is not defined for
- * regression problems and returns an error.
- * The output is "category,probability", one per line for each value.</p>
+ * regression problems and returns an error.</p>
+ *
+ * <p>Default output is CSV format, containing {@code category,probability} per line.
+ * JSON format can also be selected by an appropriate {@code Accept} header. It returns
+ * an array of probabilities, each of which has an "id" and "value" entry, like
+ * [{"id":"I2","value":0.141348009071816},...]</p>
  */
 @Path("/classificationDistribution")
 public final class ClassificationDistribution extends AbstractRDFResource {
