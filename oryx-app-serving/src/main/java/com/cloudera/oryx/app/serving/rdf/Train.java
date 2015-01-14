@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -31,9 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -47,15 +42,6 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 @Path("/train")
 public final class Train extends AbstractRDFResource {
 
-  private FileItemFactory fileItemFactory;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    fileItemFactory = getDiskFileItemFactory();
-  }
-
   @POST
   @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException {
@@ -64,11 +50,8 @@ public final class Train extends AbstractRDFResource {
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public void post(@Context HttpServletRequest request)
-      throws IOException, FileUploadException, OryxServingException {
-    List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
-    check(!fileItems.isEmpty(), "No parts");
-    for (FileItem item : fileItems) {
+  public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
+    for (FileItem item : parseMultipart(request)) {
       InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
       try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
         doPost(reader);
@@ -83,4 +66,5 @@ public final class Train extends AbstractRDFResource {
       inputTopic.send(line);
     }
   }
+
 }

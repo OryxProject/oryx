@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -37,9 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
@@ -67,15 +63,6 @@ import com.cloudera.oryx.common.text.TextUtils;
 @Path("/predict")
 public final class Predict extends AbstractRDFResource {
 
-  private FileItemFactory fileItemFactory;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    fileItemFactory = getDiskFileItemFactory();
-  }
-
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
@@ -94,11 +81,9 @@ public final class Predict extends AbstractRDFResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<String> post(@Context HttpServletRequest request)
-      throws IOException, FileUploadException, OryxServingException {
-    List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
-    check(!fileItems.isEmpty(), "No parts");
+      throws IOException, OryxServingException {
     List<String> result = new ArrayList<>();
-    for (FileItem item : fileItems) {
+    for (FileItem item : parseMultipart(request)) {
       InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
       try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
         result.addAll(doPost(reader));

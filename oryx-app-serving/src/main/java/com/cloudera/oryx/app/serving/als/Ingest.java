@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -32,9 +30,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
@@ -69,15 +64,6 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
 
-  private FileItemFactory fileItemFactory;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    fileItemFactory = getDiskFileItemFactory();
-  }
-
   @POST
   @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException, OryxServingException {
@@ -86,14 +72,8 @@ public final class Ingest extends AbstractALSResource {
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public void post(@Context HttpServletRequest request)
-      throws IOException, FileUploadException, OryxServingException {
-    // JAX-RS does not by itself support multipart form data yet, so doing it manually.
-    // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
-    // Good old Commons FileUpload it is:
-    List<FileItem> fileItems = new ServletFileUpload(fileItemFactory).parseRequest(request);
-    check(!fileItems.isEmpty(), "No parts");
-    for (FileItem item : fileItems) {
+  public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
+    for (FileItem item : parseMultipart(request)) {
       InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
       try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
         doPost(reader);

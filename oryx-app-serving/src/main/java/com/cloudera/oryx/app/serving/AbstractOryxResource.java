@@ -20,15 +20,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
@@ -39,6 +44,9 @@ public abstract class AbstractOryxResource {
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
   public static final String INPUT_PRODUCER_KEY =
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.InputProducer";
+
+  private static final AtomicReference<DiskFileItemFactory> sharedFileItemFactory =
+      new AtomicReference<>();
 
   @Context
   private ServletContext servletContext;
@@ -59,12 +67,31 @@ public abstract class AbstractOryxResource {
     return inputProducer;
   }
 
-  protected final FileItemFactory getDiskFileItemFactory() {
-    DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
-        1 << 16, (File) servletContext.getAttribute("javax.servlet.context.tempdir"));
-    fileItemFactory.setFileCleaningTracker(
-        FileCleanerCleanup.getFileCleaningTracker(servletContext));
-    return fileItemFactory;
+  protected final List<FileItem> parseMultipart(HttpServletRequest request)
+      throws OryxServingException {
+
+    // JAX-RS does not by itself support multipart form data yet, so doing it manually.
+    // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
+    // Good old Commons FileUpload it is:
+
+    synchronized (sharedFileItemFactory) {
+      if (sharedFileItemFactory.get() == null) {
+        DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
+            1 << 16, (File) servletContext.getAttribute("javax.servlet.context.tempdir"));
+        fileItemFactory.setFileCleaningTracker(
+            FileCleanerCleanup.getFileCleaningTracker(servletContext));
+        sharedFileItemFactory.set(fileItemFactory);
+      }
+    }
+
+    List<FileItem> fileItems;
+    try {
+      fileItems = new ServletFileUpload(sharedFileItemFactory.get()).parseRequest(request);
+    } catch (FileUploadException e) {
+      throw new OryxServingException(Response.Status.BAD_REQUEST, e.getMessage());
+    }
+    check(!fileItems.isEmpty(), "No parts");
+    return fileItems;
   }
 
   protected static void check(boolean condition,
