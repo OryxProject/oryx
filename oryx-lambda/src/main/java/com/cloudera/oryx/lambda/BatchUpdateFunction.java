@@ -82,13 +82,13 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   public Void call(JavaPairRDD<K,M> newData, Time timestamp)
       throws IOException, InterruptedException {
 
-    long count = newData.count();
-    if (count == 0) {
+    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
+    if (newData.take(1).isEmpty()) {
       log.info("No data in current generation's RDD; nothing to do");
       return null;
     }
 
-    log.info("Beginning update with RDD of {} elements", count);
+    log.info("Beginning update at {}", timestamp);
 
     Configuration hadoopConf = sparkContext.hadoopConfiguration();
 

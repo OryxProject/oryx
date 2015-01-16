@@ -153,6 +153,17 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> newData = newKeyMessageData.values();
     JavaRDD<M> pastData = pastKeyMessageData == null ? null : pastKeyMessageData.values();
 
+    if (newData != null) {
+      newData.cache();
+      // This forces caching of the RDD. This shouldn't be necessary but we see some freezes
+      // when many workers try to materialize the RDDs at once. Hence the workaround.
+      newData.count();
+    }
+    if (pastData != null) {
+      pastData.cache();
+      pastData.count();
+    }
+
     List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
     int valuesPerHyperParam = chooseValuesPerHyperParam(hyperParamValues.size());
     List<List<?>> hyperParameterCombos =
@@ -190,6 +201,13 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       modelUpdateTopic.send("MODEL", PMMLUtils.toString(bestModel));
       publishAdditionalModelData(
           sparkContext, bestModel, newData, pastData, finalPath, modelUpdateTopic);
+    }
+
+    if (newData != null) {
+      newData.unpersist();
+    }
+    if (pastData != null) {
+      pastData.unpersist();
     }
   }
 
@@ -302,14 +320,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       JavaRDD<M> allTrainData = trainTestData.getFirst();
       JavaRDD<M> testData = trainTestData.getSecond();
 
-      allTrainData.cache();
-
-      long trainDataSize = allTrainData == null ? 0 : allTrainData.count();
-      long testDataSize = testData == null ? 0 : testData.count();
-      log.info("Train set size: {} Test set size: {}", trainDataSize, testDataSize);
-
       Double eval = null;
-      if (trainDataSize <= 0) {
+      if (empty(allTrainData)) {
         log.info("No train data to build a model");
       } else {
         PMML model = buildModel(sparkContext, allTrainData, hyperParameters, candidatePath);
@@ -323,7 +335,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
           try (OutputStream out = new GZIPOutputStream(fs.create(modelPath), 1 << 16)) {
             PMMLUtils.write(model, out);
           }
-          if (testDataSize == 0) {
+          if (empty(testData)) {
             log.info("No test data available to evaluate model");
           } else {
             log.info("Evaluating model");
@@ -333,14 +345,14 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
         }
       }
 
-      // In case it was already unpersisted
-      if (!allTrainData.getStorageLevel().equals(StorageLevel.NONE())) {
-        allTrainData.unpersist();
-      }
-
       log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
       return new Tuple2<>(candidatePath, eval);
     }
+  }
+
+  private static boolean empty(JavaRDD<?> rdd) {
+    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
+    return rdd == null || rdd.take(1).isEmpty();
   }
 
   private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
@@ -351,7 +363,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     if (testFraction >= 1.0) {
       return new Pair<>(pastData, newData);
     }
-    if (newData.count() == 0) {
+    if (empty(newData)) {
       return new Pair<>(pastData, null);
     }
     Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);

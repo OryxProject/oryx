@@ -56,17 +56,17 @@ final class SaveToHDFSFunction
 
   @Override
   public Void call(JavaPairRDD<Writable, Writable> rdd, Time time) {
-    long count = rdd.count();
-    if (count > 0) {
+    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
+    if (rdd.take(1).isEmpty()) {
+      log.info("RDD was empty, not saving to HDFS");
+    } else {
       String file = prefix + "-" + time.milliseconds() + "." + suffix;
-      log.info("Saving RDD of {} elements to HDFS at {}", count, file);
+      log.info("Saving RDD to HDFS at {}", file);
       rdd.saveAsNewAPIHadoopFile(file,
                                  keyWritableClass,
                                  messageWritableClass,
                                  outputFormatClass,
                                  hadoopConf);
-    } else {
-      log.info("RDD was empty, not saving to HDFS");
     }
     return null;
   }
