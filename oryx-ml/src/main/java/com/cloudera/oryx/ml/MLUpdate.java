@@ -40,6 +40,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.rdd.RDD;
+import org.apache.spark.storage.StorageLevel;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -301,6 +302,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       JavaRDD<M> allTrainData = trainTestData.getFirst();
       JavaRDD<M> testData = trainTestData.getSecond();
 
+      allTrainData.cache();
+
       long trainDataSize = allTrainData == null ? 0 : allTrainData.count();
       long testDataSize = testData == null ? 0 : testData.count();
       log.info("Train set size: {} Test set size: {}", trainDataSize, testDataSize);
@@ -329,6 +332,12 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
           }
         }
       }
+
+      // In case it was already unpersisted
+      if (!allTrainData.getStorageLevel().equals(StorageLevel.NONE())) {
+        allTrainData.unpersist();
+      }
+
       log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
       return new Tuple2<>(candidatePath, eval);
     }

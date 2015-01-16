@@ -103,10 +103,8 @@ public class KMeansUpdate extends MLUpdate<String> {
     log.info("Building KMeans Model with {} clusters", numClusters);
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
-    trainingData.cache();
     KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
                                            numberOfRuns, initializationStrategy);
-    trainingData.unpersist();
 
     return kMeansModelToPMML(kMeansModel);
   }
