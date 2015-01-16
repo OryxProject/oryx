@@ -25,7 +25,6 @@ import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,6 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
   private static final int WRITE_INTERVAL_MSEC = 10;
   private static final int CLUSTERS = 3;
 
-  @Ignore
   @Test
   public void testKMeans() throws Exception {
     Path tempDir = getTempDir();
@@ -58,8 +56,8 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", CLUSTERS);
-    overlayConfig.put("oryx.input-schema.num-features", 2);
-    overlayConfig.put("oryx.input-schema.numeric-features", "[\"0\",\"1\"]");
+    overlayConfig.put("oryx.input-schema.num-features", 5);
+    overlayConfig.put("oryx.input-schema.numeric-features", "[\"0\",\"1\",\"2\",\"3\",\"4\"]");
     overlayConfig.put("oryx.kmeans.iterations", 5);
 
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
@@ -68,7 +66,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
 
     List<Pair<String, String>> updates = startServerProduceConsumeTopics(
         config,
-        new RandomKMeansDataGenerator(2),
+        new RandomKMeansDataGenerator(5),
         DATA_TO_WRITE,
         WRITE_INTERVAL_MSEC);
 
@@ -108,7 +106,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       assertEquals(Integer.valueOf(CLUSTERS), clusteringModel.getNumberOfClusters());
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
 
-      assertEquals(2, clusteringModel.getClusters().get(0).getArray().getN().intValue());
+      assertEquals(5, clusteringModel.getClusters().get(0).getArray().getN().intValue());
 
     }
   }
