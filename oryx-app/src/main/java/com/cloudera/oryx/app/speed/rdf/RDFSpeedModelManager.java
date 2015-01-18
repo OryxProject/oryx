@@ -110,8 +110,9 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       List<Tuple2<Pair<Integer,String>,Map<Integer,Long>>> countsByTreeAndID =
           targetsByTreeAndID.mapValues(new TargetCategoryCountFn()).collect();
       for (Tuple2<Pair<Integer,String>,Map<Integer,Long>> p : countsByTreeAndID) {
-        Object[] updateTokens = { p._1().getFirst(), p._1().getSecond(), p._2() };
-        updates.add(TextUtils.joinJSON(Arrays.asList(updateTokens)));
+        Integer treeID = p._1().getFirst();
+        String nodeID = p._1().getSecond();
+        updates.add(TextUtils.joinJSON(Arrays.asList(treeID, nodeID, p._2())));
       }
 
     } else {
@@ -119,10 +120,11 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       List<Tuple2<Pair<Integer,String>,Mean>> meanTargetsByTreeAndID =
           targetsByTreeAndID.mapValues(new MeanNewTargetFn()).collect();
       for (Tuple2<Pair<Integer,String>,Mean> p : meanTargetsByTreeAndID) {
+        Integer treeID = p._1().getFirst();
+        String nodeID = p._1().getSecond();
         Mean mean = p._2();
-        Object[] updateTokens =
-            {  p._1().getFirst(), p._1().getSecond(), mean.getResult(), mean.getN() };
-        updates.add(TextUtils.joinJSON(Arrays.asList(updateTokens)));
+        updates.add(TextUtils.joinJSON(Arrays.asList(
+            treeID, nodeID, mean.getResult(), mean.getN())));
       }
 
     }

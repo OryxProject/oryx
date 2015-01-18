@@ -15,6 +15,10 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.Array;
 import org.dmg.pmml.DataDictionary;
@@ -37,14 +41,27 @@ import org.dmg.pmml.Value;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 public final class MockRDFClassificationModelGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
+    if (id == 0) {
+      PMML pmml = buildModel();
+      return new Pair<>("MODEL", PMMLUtils.toString(pmml));
+    } else {
+      String nodeID = "r" + ((id % 2 == 0) ? '-' : '+');
+      Map<Integer,Integer> counts = new HashMap<>();
+      counts.put(0, 1);
+      counts.put(1, 2);
+      return new Pair<>("UP", TextUtils.joinJSON(Arrays.asList(0, nodeID, counts)));
+    }
+  }
+
+  private static PMML buildModel() {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    double dummyCount = 2.0 * (id + 1);
 
     DataDictionary dataDictionary = new DataDictionary();
     dataDictionary.setNumberOfFields(2);
@@ -71,6 +88,7 @@ public final class MockRDFClassificationModelGenerator implements DatumGenerator
 
     Node rootNode = new Node();
     rootNode.setId("r");
+    double dummyCount = 2.0;
     rootNode.setRecordCount(dummyCount);
     rootNode.setPredicate(new True());
 
@@ -100,7 +118,7 @@ public final class MockRDFClassificationModelGenerator implements DatumGenerator
 
     pmml.getModels().add(treeModel);
 
-    return new Pair<>("MODEL", PMMLUtils.toString(pmml));
+    return pmml;
   }
 
 }

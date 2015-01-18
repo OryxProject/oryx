@@ -19,6 +19,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -76,9 +77,13 @@ public final class RDFServingModelManager implements ServingModelManager<String>
             TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
             CategoricalPrediction predictionToUpdate =
                 (CategoricalPrediction) nodeToUpdate.getPrediction();
-            int encoding = Integer.parseInt(update.get(2).toString());
-            int count = Integer.parseInt(update.get(3).toString());
-            predictionToUpdate.update(encoding, count);
+            @SuppressWarnings("unchecked")
+            Map<Integer,Integer> counts = (Map<Integer,Integer>) update.get(2);
+            for (Map.Entry<?,?> entry : counts.entrySet()) {
+              int encoding = Integer.parseInt(entry.getKey().toString());
+              int count = Integer.parseInt(entry.getValue().toString());
+              predictionToUpdate.update(encoding, count);
+            }
           } else {
             TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
             NumericPrediction predictionToUpdate = (NumericPrediction) nodeToUpdate.getPrediction();
