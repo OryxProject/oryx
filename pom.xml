@@ -658,7 +658,7 @@
           <version>2.18.1</version>
           <configuration>
             <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
-            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties ${argLine}</argLine>
+            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties @{argLine}</argLine>
           </configuration>
         </plugin>
         <plugin>
@@ -675,7 +675,7 @@
           </executions>
           <configuration>
             <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
-            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties ${argLine}</argLine>
+            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties @{argLine}</argLine>
           </configuration>
         </plugin>
         <plugin>
