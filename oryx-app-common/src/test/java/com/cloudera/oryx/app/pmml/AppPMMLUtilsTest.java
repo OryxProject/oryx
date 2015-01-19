@@ -26,6 +26,7 @@ import com.typesafe.config.Config;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
+import org.dmg.pmml.FieldName;
 import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
@@ -167,6 +168,24 @@ public final class AppPMMLUtilsTest extends OryxTest {
       assertEquals(OpType.CONTINUOUS, field.getOptype());
       assertEquals(DataType.DOUBLE, field.getDataType());
     }
+  }
+
+  @Test
+  public void testBuildCategoricalEncoding() {
+    DataDictionary dictionary = new DataDictionary();
+    DataField fooField = new DataField(new FieldName("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
+    dictionary.getDataFields().add(fooField);
+    DataField barField = new DataField(new FieldName("bar"), OpType.CATEGORICAL, DataType.STRING);
+    barField.getValues().add(new Value("b"));
+    barField.getValues().add(new Value("a"));
+    dictionary.getDataFields().add(barField);
+    CategoricalValueEncodings encodings = AppPMMLUtils.buildCategoricalValueEncodings(dictionary);
+    assertEquals(2, encodings.getValueCount(1));
+    assertEquals(0, encodings.getValueEncodingMap(1).get("b").intValue());
+    assertEquals(1, encodings.getValueEncodingMap(1).get("a").intValue());
+    assertEquals("b", encodings.getEncodingValueMap(1).get(0));
+    assertEquals("a", encodings.getEncodingValueMap(1).get(1));
+    assertEquals(Collections.singletonMap(1, 2), encodings.getCategoryCounts());
   }
 
 }

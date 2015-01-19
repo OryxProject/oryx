@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
+ *
+ * Cloudera, Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"). You may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for
+ * the specific language governing permissions and limitations under the
+ * License.
+ */
+
+package com.cloudera.oryx.lambda.serving;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.typesafe.config.Config;
+import org.apache.catalina.Context;
+import org.junit.Test;
+
+import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
+
+public final class ServingLayerTest extends OryxTest {
+
+  @Test
+  public void testServingLayer() throws Exception {
+    Map<String,Object> overlay = new HashMap<>();
+    // Non-privileged ports
+    overlay.put("oryx.serving.api.port", IOUtils.chooseFreePort());
+    overlay.put("oryx.serving.api.secure-port", IOUtils.chooseFreePort());
+    overlay.put("oryx.serving.application-resources", "com.cloudera.oryx.lambda.serving");
+    overlay.put("oryx.serving.model-manager-class", MockServingModelManager.class.getName());
+    overlay.put("oryx.serving.no-init-topics", true);
+    Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
+
+    try (ServingLayer servingLayer = new ServingLayer(config)) {
+      servingLayer.start();
+      Context context = servingLayer.getContext();
+      assertNotNull(context.findErrorPage(500));
+      assertEquals(0, context.getApplicationLifecycleListeners().length);
+      assertNotNull(context.findParameter(ConfigUtils.class.getName() + ".serialized"));
+      assertNotNull(context.getName());
+      assertTrue(Double.parseDouble(context.getWebappVersion()) >= 3.1);
+    }
+  }
+
+}

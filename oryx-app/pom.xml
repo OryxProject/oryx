@@ -61,6 +61,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-app-common</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-streaming_${scala.minor.version}</artifactId>
       <scope>test</scope>

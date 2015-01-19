@@ -103,6 +103,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
       <classifier>tests</classifier>
