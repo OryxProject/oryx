@@ -25,6 +25,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.catalina.manager.JspHelper;
 
@@ -40,7 +41,7 @@ public final class ErrorResource {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public String error(@Context HttpServletRequest request) {
+  public Response error(@Context HttpServletRequest request) {
     StringBuilder html = new StringBuilder(1000);
 
     html.append("<!DOCTYPE html>" +
@@ -51,7 +52,7 @@ public final class ErrorResource {
         "<body>");
 
     html.append("<p><strong>Error");
-    Object statusCode = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+    Number statusCode = (Number) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
     if (statusCode != null) {
       html.append(' ').append(statusCode);
     }
@@ -81,7 +82,9 @@ public final class ErrorResource {
 
     html.append("</body></html>");
 
-    return html.toString();
+    Response.Status finalStatus = statusCode == null ?
+        Response.Status.OK : Response.Status.fromStatusCode(statusCode.intValue());
+    return Response.status(finalStatus).entity(html.toString()).build();
   }
 
 }

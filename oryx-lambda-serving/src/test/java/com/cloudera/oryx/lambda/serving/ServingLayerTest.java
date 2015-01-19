@@ -16,7 +16,9 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +46,11 @@ public final class ServingLayerTest extends OryxTest {
     overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
     overlay.put("oryx.serving.api.keystore-password", "oryxpass");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
-    doTestServingLayer(config);
+    try {
+      doTestServingLayer(config);
+    } finally {
+      Files.delete(Paths.get(config.getString("oryx.serving.api.keystore-file")));
+    }
   }
 
   private static Map<String,Object> buildOverlay() throws IOException {

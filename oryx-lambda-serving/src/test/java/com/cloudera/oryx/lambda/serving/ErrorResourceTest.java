@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda.serving;
 
 import javax.servlet.RequestDispatcher;
+import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -31,11 +32,13 @@ public final class ErrorResourceTest extends OryxTest {
     mockRequest.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, "http://foo/bar");
     mockRequest.setAttribute(RequestDispatcher.ERROR_MESSAGE, "Something was wrong");
     mockRequest.setAttribute(RequestDispatcher.ERROR_EXCEPTION, new IllegalStateException());
-    String response  = new ErrorResource().error(mockRequest);
-    assertTrue(response.contains("500"));
-    assertTrue(response.contains("http://foo/bar"));
-    assertTrue(response.contains("Something was wrong"));
-    assertTrue(response.contains("IllegalStateException"));
+    Response response  = new ErrorResource().error(mockRequest);
+    assertEquals(500, response.getStatus());
+    String responseBody = response.getEntity().toString();
+    assertTrue(responseBody.contains("500"));
+    assertTrue(responseBody.contains("http://foo/bar"));
+    assertTrue(responseBody.contains("Something was wrong"));
+    assertTrue(responseBody.contains("IllegalStateException"));
   }
 
 }
