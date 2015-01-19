@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,15 +32,32 @@ public final class ServingLayerTest extends OryxTest {
 
   @Test
   public void testServingLayer() throws Exception {
+    Map<String,Object> overlay = buildOverlay();
+    Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
+    doTestServingLayer(config);
+  }
+
+  @Test
+  public void testServingLayerSecure() throws Exception {
+    Path keystoreFile = SecureAPIConfigIT.buildKeystoreFile();
+    Map<String,Object> overlay = buildOverlay();
+    overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
+    overlay.put("oryx.serving.api.keystore-password", "oryxpass");
+    Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
+    doTestServingLayer(config);
+  }
+
+  private static Map<String,Object> buildOverlay() throws IOException {
     Map<String,Object> overlay = new HashMap<>();
-    // Non-privileged ports
     overlay.put("oryx.serving.api.port", IOUtils.chooseFreePort());
     overlay.put("oryx.serving.api.secure-port", IOUtils.chooseFreePort());
     overlay.put("oryx.serving.application-resources", "com.cloudera.oryx.lambda.serving");
     overlay.put("oryx.serving.model-manager-class", MockServingModelManager.class.getName());
     overlay.put("oryx.serving.no-init-topics", true);
-    Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
+    return overlay;
+  }
 
+  private static void doTestServingLayer(Config config) throws IOException {
     try (ServingLayer servingLayer = new ServingLayer(config)) {
       servingLayer.start();
       Context context = servingLayer.getContext();

@@ -52,4 +52,13 @@ public final class CategoricalDecisionTest extends OryxTest {
     assertTrue(decision.isPositive(new Example(null, new Feature[] {null})));
   }
 
+  @Test
+  public void testToString() {
+    BitSet activeCategories = new BitSet(10);
+    activeCategories.set(2);
+    activeCategories.set(5);
+    CategoricalDecision decision = new CategoricalDecision(0, activeCategories, true);
+    assertEquals("(#0 ∈ [2,5])", decision.toString());
+  }
+
 }

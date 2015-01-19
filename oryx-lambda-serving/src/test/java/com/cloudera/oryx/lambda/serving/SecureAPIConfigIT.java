@@ -81,17 +81,21 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
   }
 
   private Config buildHTTPSConfig() throws IOException {
-    Path keystoreFile = Files.createTempFile("oryxtest", ".jks");
-    try (InputStream jksStream = getClass().getResourceAsStream("/oryxtest.jks")) {
-      Files.copy(jksStream, keystoreFile, StandardCopyOption.REPLACE_EXISTING);
-    }
-
+    Path keystoreFile = buildKeystoreFile();
     Map<String,Object> overlay = new HashMap<>();
     overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
     overlay.put("oryx.serving.api.keystore-password", "oryxpass");
     overlay.put("oryx.serving.application-resources", HelloWorld.class.getPackage().getName());
     overlay.put("oryx.serving.no-init-topics", true);
     return ConfigUtils.overlayOn(overlay, getConfig());
+  }
+
+  static Path buildKeystoreFile() throws IOException {
+    Path keystoreFile = Files.createTempFile("oryxtest", ".jks");
+    try (InputStream jksStream = SecureAPIConfigIT.class.getResourceAsStream("/oryxtest.jks")) {
+      Files.copy(jksStream, keystoreFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+    return keystoreFile;
   }
 
   @Test
