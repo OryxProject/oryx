@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Longs;
 import org.apache.commons.math3.stat.descriptive.AbstractStorelessUnivariateStatistic;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
 /**
  * <p>A weighted mean implementation for floating-point weights, following the Commons
@@ -28,7 +29,7 @@ import org.apache.commons.math3.stat.descriptive.AbstractStorelessUnivariateStat
  *
  * <p>This class is not thread-safe.</p>
  *
- * @see org.apache.commons.math3.stat.descriptive.moment.Mean
+ * @see Mean
  */
 public final class DoubleWeightedMean
     extends AbstractStorelessUnivariateStatistic implements Serializable {

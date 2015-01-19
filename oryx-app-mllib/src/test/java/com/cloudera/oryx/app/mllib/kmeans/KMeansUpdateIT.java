@@ -57,7 +57,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", CLUSTERS);
     overlayConfig.put("oryx.input-schema.num-features", 5);
-    overlayConfig.put("oryx.input-schema.numeric-features", "[\"0\",\"1\",\"2\",\"3\",\"4\"]");
+    overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.kmeans.iterations", 5);
 
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
