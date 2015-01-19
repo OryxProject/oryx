@@ -435,6 +435,8 @@
     <!-- Maven settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <!-- Required as a default that Jacoco can optionally override -->
+    <argLine/>
     <!-- Dependency versions -->
     <java.version>1.7</java.version>
     <!-- Match this with what Spark version wants -->
