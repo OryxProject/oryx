@@ -448,8 +448,6 @@
     <!-- Maven settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <!-- Required as a default that Jacoco can optionally override -->
-    <argLine/>
     <!-- Dependency versions -->
     <java.version>1.7</java.version>
     <!-- Match this with what Spark version wants -->
@@ -475,6 +473,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -657,8 +663,10 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.18.1</version>
           <configuration>
-            <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
-            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties @{argLine}</argLine>
+            <systemPropertyVariables>
+              <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
+              <log4j.configuration>log4j.test.properties</log4j.configuration>
+            </systemPropertyVariables>
           </configuration>
         </plugin>
         <plugin>
@@ -674,8 +682,10 @@
             </execution>
           </executions>
           <configuration>
-            <!-- sun.io.serialization.extendedDebugInfo helps debug NotSerializableException problems -->
-            <argLine>-Dsun.io.serialization.extendedDebugInfo=true -Dlog4j.configuration=log4j.test.properties @{argLine}</argLine>
+            <systemPropertyVariables>
+              <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
+              <log4j.configuration>log4j.test.properties</log4j.configuration>
+            </systemPropertyVariables>
           </configuration>
         </plugin>
         <plugin>
@@ -826,6 +836,11 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.7.2.201409121644</version>
+          <configuration>
+            <includes>
+              <include>com.cloudera.oryx.*</include>
+            </includes>
+          </configuration>
           <executions>
             <execution>
               <id>jacoco-prepare-agent</id>
