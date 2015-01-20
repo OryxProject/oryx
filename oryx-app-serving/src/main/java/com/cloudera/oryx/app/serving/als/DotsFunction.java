@@ -36,11 +36,10 @@ final class DotsFunction implements DoubleFunction<float[]> {
   @Override
   public double apply(float[] itemVector) {
     double total = 0.0;
-    int length = userFeaturesVectors.length;
-    for (int i = 0; i < length; i++) {
-      total += VectorMath.dot(userFeaturesVectors[i], itemVector);
+    for (double[] userFeaturesVector : userFeaturesVectors) {
+      total += VectorMath.dot(userFeaturesVector, itemVector);
     }
-    return total / length;
+    return total / userFeaturesVectors.length;
   }
 
 }

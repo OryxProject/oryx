@@ -14,7 +14,7 @@
  */
 
 /**
- * Utilty code and methods on top of Java's I/O packages that relate to input/output,
+ * Utility code and methods on top of Java's I/O packages that relate to input/output,
  * files, readers and writers.
  */
 package com.cloudera.oryx.common.io;

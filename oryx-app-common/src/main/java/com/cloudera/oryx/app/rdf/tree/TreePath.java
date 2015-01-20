@@ -79,11 +79,11 @@ final class TreePath implements Comparable<TreePath>, Serializable {
 
   @Override
   public int compareTo(TreePath o) {
-    int maxLength = Math.max(pathLength, o.pathLength);
+    int maxLength = Math.max(pathLength, o.length());
     for (int i = 0; i < maxLength; i++) {
       if (i < pathLength) {
         boolean thisLeft = isLeftAt(i);
-        if (i < o.pathLength) {
+        if (i < o.length()) {
           boolean thatLeft = o.isLeftAt(i);
           if (thisLeft != thatLeft) {
             return Booleans.compare(thatLeft, thisLeft);

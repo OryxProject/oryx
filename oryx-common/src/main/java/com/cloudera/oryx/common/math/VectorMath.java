@@ -66,7 +66,8 @@ public final class VectorMath {
   public static double norm(float[] x) {
     double total = 0.0;
     for (float f : x) {
-      total += (double) f * (double) f;
+      double d = (double) f;
+      total += d * d;
     }
     return Math.sqrt(total);
   }

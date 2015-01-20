@@ -36,7 +36,7 @@ public final class DecisionTreeTest extends OryxTest {
 
   @Test
   public void testPredict() {
-    DecisionTree tree = buildTestTree();;
+    DecisionTree tree = buildTestTree();
     NumericPrediction prediction = (NumericPrediction)
         tree.predict(new Example(null, NumericFeature.forValue(0.5)));
     assertEquals(1.0, prediction.getPrediction());
@@ -44,7 +44,7 @@ public final class DecisionTreeTest extends OryxTest {
 
   @Test
   public void testFindTerminal() {
-    DecisionTree tree = buildTestTree();;
+    DecisionTree tree = buildTestTree();
     TerminalNode node = tree.findTerminal(new Example(null, NumericFeature.forValue(0.5)));
     NumericPrediction prediction = (NumericPrediction) node.getPrediction();
     assertEquals(1.0, prediction.getPrediction());
