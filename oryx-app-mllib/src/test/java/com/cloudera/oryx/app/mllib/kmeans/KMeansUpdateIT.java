@@ -107,7 +107,9 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
 
       assertEquals(5, clusteringModel.getClusters().get(0).getArray().getN().intValue());
-
+      assertNotEquals(0, clusteringModel.getClusters().get(0).getSize(), 0.0);
+      assertNotEquals(0, clusteringModel.getClusters().get(1).getSize(), 0.0);
+      assertNotEquals(0, clusteringModel.getClusters().get(2).getSize(), 0.0);
     }
   }
 

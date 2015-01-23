@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.mllib.kmeans;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -25,6 +26,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
@@ -41,6 +44,7 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
@@ -106,7 +110,28 @@ public class KMeansUpdate extends MLUpdate<String> {
     KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
                                            numberOfRuns, initializationStrategy);
 
-    return kMeansModelToPMML(kMeansModel);
+    return kMeansModelToPMML(kMeansModel, fetchClusterCountsFromModel(trainingData, kMeansModel));
+  }
+
+  /**
+   *
+   * @param trainPointData data to cluster
+   * @param model trained KMeans Model
+   * @return map of ClusterId and count of points associated with the clusterId
+   */
+  private static Map<Integer,Integer> fetchClusterCountsFromModel(JavaRDD<Vector> trainPointData,
+                                                                  final KMeansModel model) {
+     return trainPointData.mapToPair(new PairFunction<Vector, Integer, Integer>() {
+       @Override
+       public Tuple2<Integer, Integer> call(Vector vector) throws Exception {
+         return new Tuple2<>(model.predict(vector), 1);
+       }
+     }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+       @Override
+       public Integer call(Integer v1, Integer v2) throws Exception {
+         return v1 + v2;
+       }
+     }).collectAsMap();
   }
 
   /**
@@ -130,15 +155,15 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @param model {@link KMeansModel} to translate to PMML
    * @return PMML representation of a KMeans cluster model
    */
-  private PMML kMeansModelToPMML(KMeansModel model) {
-    ClusteringModel clusteringModel = pmmlClusteringModel(model);
+  private PMML kMeansModelToPMML(KMeansModel model, Map<Integer, Integer> clusterSizesMap) {
+    ClusteringModel clusteringModel = pmmlClusteringModel(model, clusterSizesMap);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(AppPMMLUtils.buildDataDictionary(inputSchema, null));
     pmml.getModels().add(clusteringModel);
     return pmml;
   }
 
-  private ClusteringModel pmmlClusteringModel(KMeansModel model) {
+  private ClusteringModel pmmlClusteringModel(KMeansModel model, Map<Integer, Integer> clusterSizesMap) {
     ClusteringModel clusteringModel =
         new ClusteringModel(AppPMMLUtils.buildMiningSchema(inputSchema),
             new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE)
@@ -154,7 +179,7 @@ public class KMeansUpdate extends MLUpdate<String> {
       FieldName field = FieldName.create("field_" + i);
       clusteringModel.getClusteringFields().add(
           new ClusteringField(field).withCompareFunction(CompareFunctionType.ABS_DIFF));
-      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i));
+      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i, clusterSizesMap.get(i)));
     }
     return clusteringModel;
   }
@@ -187,11 +212,12 @@ public class KMeansUpdate extends MLUpdate<String> {
     });
   }
 
-  private static Cluster toCluster(Vector clusterCenter, int clusterId) {
+  private static Cluster toCluster(Vector clusterCenter, int clusterId, int clusterSize) {
     String s = Arrays.toString(clusterCenter.toArray());
     return new Cluster()
         .withId(String.valueOf(clusterId))
         .withName("cluster_" + clusterId)
+        .withSize(clusterSize)
         .withArray(new Array()
             .withType(Array.Type.REAL)
             .withValue(s.substring(1, s.length() - 1))
