@@ -18,7 +18,7 @@ package com.cloudera.oryx.app.mllib.rdf;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.clearspring.analytics.util.Preconditions;
+import com.google.common.base.Preconditions;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.common.collection.Pair;

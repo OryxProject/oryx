@@ -13,9 +13,9 @@
  * License.
  */
 
-package com.cloudera.oryx.app.speed.kmeans;
+package com.cloudera.oryx.app.kmeans;
 
-import com.clearspring.analytics.util.Preconditions;
+import com.google.common.base.Preconditions;
 
 public final class ClusterInfo {
 

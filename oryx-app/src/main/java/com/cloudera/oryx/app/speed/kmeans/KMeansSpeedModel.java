@@ -17,6 +17,8 @@ package com.cloudera.oryx.app.speed.kmeans;
 
 import java.util.List;
 
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
+
 public final class KMeansSpeedModel {
 
   private final List<ClusterInfo> clusters;
@@ -25,4 +27,12 @@ public final class KMeansSpeedModel {
     this.clusters = clusterCenters;
   }
 
+  public List<ClusterInfo> getClusters() {
+    return clusters;
+  }
+
+  @Override
+  public String toString() {
+    return "KMeansSpeedModel[" + "numClusters=" + clusters.size() + "]";
+  }
 }
