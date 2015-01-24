@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -159,21 +160,27 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
       int yellowCount = countMap.get(yellow);
       int redCount = countMap.get(red);
+      int count = yellowCount + redCount;
+      BinomialDistribution dist = new BinomialDistribution(count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow
-        double ratio = (double) (yellowCount + 1) / (redCount + 1);
-        assertTrue(
-            "Expected a lot more yellow than red: " + yellowCount + " vs " + redCount,
-            ratio >= 5.0 && ratio <= 15.0);
+        checkProbability(yellowCount, count, dist);
       } else {
         // Should be about 9x more red
-        double ratio =(double) (redCount + 1) / (yellowCount + 1);
-        assertTrue(
-            "Expected a lot more red than yellow: " + redCount + " vs " + yellowCount,
-            ratio >= 5.0 && ratio <= 15.0);
+        checkProbability(redCount, count, dist);
       }
     }
 
+  }
+
+  private static void checkProbability(int majorityCount,
+                                       int count,
+                                       BinomialDistribution dist) {
+    double expected = 0.9 * count;
+    double probAsExtreme = majorityCount <= expected ?
+        dist.cumulativeProbability(majorityCount) :
+        1.0 - dist.cumulativeProbability(majorityCount);
+    assertTrue(majorityCount + " should be about 90% of " + count, probAsExtreme >= 0.05);
   }
 
 }
