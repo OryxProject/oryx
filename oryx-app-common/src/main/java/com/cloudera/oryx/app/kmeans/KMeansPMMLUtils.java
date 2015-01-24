@@ -44,7 +44,6 @@ public final class KMeansPMMLUtils {
     Model model = models.get(0);
     Preconditions.checkArgument(model instanceof ClusteringModel);
     Preconditions.checkArgument(model.getFunctionName() == MiningFunctionType.CLUSTERING);
-    Preconditions.checkArgument(model.getAlgorithmName().equals("K-Means||"));
 
     DataDictionary dictionary = pmml.getDataDictionary();
     Preconditions.checkArgument(

@@ -45,7 +45,6 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
   public void testClustering() {
     PMML pmml = buildDummyClusteringModel();
     Map<String,Object> overlayConfig = new HashMap<>();
-    overlayConfig.put("oryx.kmeans.hyperparams.k", 3);
     overlayConfig.put("oryx.input-schema.num-features", 3);
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     Config config = ConfigUtils.overlayOn(overlayConfig, ConfigUtils.getDefault());
