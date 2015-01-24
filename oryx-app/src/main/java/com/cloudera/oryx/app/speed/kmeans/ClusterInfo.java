@@ -15,14 +15,34 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
-import java.util.List;
+import com.clearspring.analytics.util.Preconditions;
 
-public final class KMeansSpeedModel {
+public final class ClusterInfo {
 
-  private final List<ClusterInfo> clusters;
+  private final int id;
+  private final double[] center;
+  private long count;
 
-  public KMeansSpeedModel(List<ClusterInfo> clusterCenters) {
-    this.clusters = clusterCenters;
+  public ClusterInfo(int id, double[] center) {
+    Preconditions.checkArgument(center.length > 0);
+    this.id = id;
+    this.center = center;
+  }
+
+  public int getID() {
+    return id;
+  }
+
+  public double[] getCenter() {
+    return center;
+  }
+
+  public long getCount() {
+    return count;
+  }
+
+  public void setCount(long count) {
+    this.count = count;
   }
 
 }

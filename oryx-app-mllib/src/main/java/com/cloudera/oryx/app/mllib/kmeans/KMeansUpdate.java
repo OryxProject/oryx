@@ -184,13 +184,13 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @param pmml PMML model to retrieve the original {@link KMeansModel} from
    * @return {@link KMeansModel} from PMML
    */
-  private KMeansModel pmmlToKMeansModel(PMML pmml) {
+  private static KMeansModel pmmlToKMeansModel(PMML pmml) {
     ClusteringModel clusteringModel = (ClusteringModel) pmml.getModels().get(0);
     List<Cluster> clusters = clusteringModel.getClusters();
     Vector[] clusterCenters = new Vector[clusters.size()];
     for (Cluster cluster : clusters) {
-      clusterCenters[Integer.valueOf(cluster.getId())] =
-          toVectorFromPMMLArray(cluster.getArray());
+      clusterCenters[Integer.parseInt(cluster.getId())] =
+          parseVector(TextUtils.parseCSV(cluster.getArray().getValue()));
     }
     return new KMeansModel(clusterCenters);
   }
@@ -199,11 +199,7 @@ public class KMeansUpdate extends MLUpdate<String> {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override
       public Vector call(String[] tokens) {
-        double[] values = new double[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-          values[i] = Double.parseDouble(tokens[i]);
-        }
-        return Vectors.dense(values);
+        return parseVector(tokens);
       }
     });
   }
@@ -220,15 +216,10 @@ public class KMeansUpdate extends MLUpdate<String> {
             .withN(clusterCenter.size()));
   }
 
-  /**
-   * @param array PMML {@link Array} of values
-   * @return a {@link Vector} from PMML {@link Array}
-   */
-  private static Vector toVectorFromPMMLArray(Array array) {
-    String[] values = TextUtils.parseCSV(array.getValue());
+  private static Vector parseVector(String[] values) {
     double[] doubles = new double[values.length];
     for (int i = 0; i < values.length; i++) {
-      doubles[i] = Double.valueOf(values[i]);
+      doubles[i] = Double.parseDouble(values[i]);
     }
     return Vectors.dense(doubles);
   }

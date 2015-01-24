@@ -99,10 +99,10 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       Model rootModel = pmml.getModels().get(0);
       assertTrue(rootModel instanceof ClusteringModel);
 
-      ClusteringModel clusteringModel = ((ClusteringModel) rootModel);
+      ClusteringModel clusteringModel = (ClusteringModel) rootModel;
 
       // Check if Basic hyperparameters match
-      assertEquals(Integer.valueOf(NUM_CLUSTERS), clusteringModel.getNumberOfClusters());
+      assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
 
       assertEquals(5, clusteringModel.getClusters().get(0).getArray().getN().intValue());
