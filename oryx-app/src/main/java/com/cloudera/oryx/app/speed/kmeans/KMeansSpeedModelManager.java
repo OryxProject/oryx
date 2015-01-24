@@ -15,22 +15,33 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 
+import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 
-public final class KMeansSpeedModelManager implements SpeedModelManager<String, String, String> {
+public final class KMeansSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedModelManager.class);
 
   private KMeansSpeedModel model;
+  private final InputSchema inputSchema;
+
+  public KMeansSpeedModelManager(Config config) {
+    inputSchema = new InputSchema(config);
+  }
 
   @Override
   public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
@@ -40,9 +51,22 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String, 
       String message = km.getMessage();
       switch (key) {
         case "UP":
+          // do nothing;
           break;
         case "MODEL":
+          // New model
+          PMML pmml;
+          try {
+            pmml = PMMLUtils.fromString(message);
+          } catch (JAXBException e) {
+            throw new IOException(e);
+          }
+          KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+          model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
+          log.info("Model with {} clusters", model.getClusters().size());
           break;
+        default:
+          throw new IllegalStateException("Unexpected key " + key);
       }
     }
 

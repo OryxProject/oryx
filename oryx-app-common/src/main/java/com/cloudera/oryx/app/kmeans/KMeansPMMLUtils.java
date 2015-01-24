@@ -15,16 +15,21 @@
 
 package com.cloudera.oryx.app.kmeans;
 
-import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.app.schema.InputSchema;
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.base.Preconditions;
+import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.text.TextUtils;
 
 public final class KMeansPMMLUtils {
 
@@ -54,6 +59,40 @@ public final class KMeansPMMLUtils {
     Preconditions.checkArgument(schema.getFeatureNames().equals(
         AppPMMLUtils.getFeatureNames(miningSchema)));
 
+  }
+
+  /**
+   * @param pmml PMML representation of Clusters
+   * @return List of {@link ClusterInfo}
+   */
+  public static List<ClusterInfo> read(final PMML pmml) {
+    List<Model> models = pmml.getModels();
+    Model model = models.get(0);
+
+    Preconditions.checkArgument(model instanceof ClusteringModel);
+    ClusteringModel clusteringModel = (ClusteringModel) model;
+
+    List<Cluster> clusters = clusteringModel.getClusters();
+    List<ClusterInfo> clusterInfoList = new ArrayList<>(clusters.size());
+
+    for (int i = 0; i < clusters.size(); i++) {
+      Cluster cluster = clusters.get(i);
+      ClusterInfo clusterInfo =
+          new ClusterInfo(Integer.parseInt(cluster.getId()),
+              parseVector(TextUtils.parseCSV(cluster.getArray().getValue())));
+      clusterInfo.setCount(cluster.getSize());
+      clusterInfoList.add(clusterInfo);
+    }
+
+    return clusterInfoList;
+  }
+
+  private static double[] parseVector(String[] values) {
+    double[] doubles = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      doubles[i] = Double.parseDouble(values[i]);
+    }
+    return doubles;
   }
 
 }
