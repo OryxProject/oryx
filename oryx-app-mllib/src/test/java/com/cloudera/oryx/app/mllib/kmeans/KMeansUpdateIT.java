@@ -41,7 +41,6 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
-  private static final int CLUSTERS = 3;
 
   @Test
   public void testKMeans() throws Exception {
@@ -55,7 +54,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    overlayConfig.put("oryx.kmeans.hyperparams.k", CLUSTERS);
+    overlayConfig.put("oryx.kmeans.hyperparams.k", NUM_CLUSTERS);
     overlayConfig.put("oryx.input-schema.num-features", 5);
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.kmeans.iterations", 5);
@@ -103,7 +102,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       ClusteringModel clusteringModel = ((ClusteringModel) rootModel);
 
       // Check if Basic hyperparameters match
-      assertEquals(Integer.valueOf(CLUSTERS), clusteringModel.getNumberOfClusters());
+      assertEquals(Integer.valueOf(NUM_CLUSTERS), clusteringModel.getNumberOfClusters());
       assertEquals(ComparisonMeasure.Kind.DISTANCE, clusteringModel.getComparisonMeasure().getKind());
 
       assertEquals(5, clusteringModel.getClusters().get(0).getArray().getN().intValue());
