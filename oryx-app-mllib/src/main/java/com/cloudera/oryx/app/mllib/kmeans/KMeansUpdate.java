@@ -26,8 +26,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
@@ -44,7 +42,6 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
@@ -114,24 +111,18 @@ public class KMeansUpdate extends MLUpdate<String> {
   }
 
   /**
-   *
    * @param trainPointData data to cluster
    * @param model trained KMeans Model
-   * @return map of ClusterId and count of points associated with the clusterId
+   * @return map of ClusterId, count of points associated with the clusterId
    */
-  private static Map<Integer,Integer> fetchClusterCountsFromModel(JavaRDD<Vector> trainPointData,
-                                                                  final KMeansModel model) {
-     return trainPointData.mapToPair(new PairFunction<Vector, Integer, Integer>() {
+  private static Map<Integer,Long> fetchClusterCountsFromModel(JavaRDD<Vector> trainPointData,
+                                                               final KMeansModel model) {
+     return trainPointData.map(new Function<Vector, Integer>() {
        @Override
-       public Tuple2<Integer, Integer> call(Vector vector) throws Exception {
-         return new Tuple2<>(model.predict(vector), 1);
+       public Integer call(Vector vector) {
+         return model.predict(vector);
        }
-     }).reduceByKey(new Function2<Integer, Integer, Integer>() {
-       @Override
-       public Integer call(Integer v1, Integer v2) throws Exception {
-         return v1 + v2;
-       }
-     }).collectAsMap();
+     }).countByValue();
   }
 
   /**
@@ -155,7 +146,7 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @param model {@link KMeansModel} to translate to PMML
    * @return PMML representation of a KMeans cluster model
    */
-  private PMML kMeansModelToPMML(KMeansModel model, Map<Integer, Integer> clusterSizesMap) {
+  private PMML kMeansModelToPMML(KMeansModel model, Map<Integer,Long> clusterSizesMap) {
     ClusteringModel clusteringModel = pmmlClusteringModel(model, clusterSizesMap);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(AppPMMLUtils.buildDataDictionary(inputSchema, null));
@@ -163,7 +154,7 @@ public class KMeansUpdate extends MLUpdate<String> {
     return pmml;
   }
 
-  private ClusteringModel pmmlClusteringModel(KMeansModel model, Map<Integer, Integer> clusterSizesMap) {
+  private ClusteringModel pmmlClusteringModel(KMeansModel model, Map<Integer,Long> clusterSizesMap) {
     ClusteringModel clusteringModel =
         new ClusteringModel(AppPMMLUtils.buildMiningSchema(inputSchema),
             new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE)
@@ -171,15 +162,20 @@ public class KMeansUpdate extends MLUpdate<String> {
             MiningFunctionType.CLUSTERING,
             ClusteringModel.ModelClass.CENTER_BASED,
             model.clusterCenters().length)
-            .withAlgorithmName("K-Means||")
             .withNumberOfClusters(model.k());
+
+    if (initializationStrategy.equals(KMeans.K_MEANS_PARALLEL())) {
+      clusteringModel.setAlgorithmName("K-Means||");
+    } else if (initializationStrategy.equals(KMeans.RANDOM())) {
+      clusteringModel.setAlgorithmName("random");
+    }
 
     Vector[] clusterCenters = model.clusterCenters();
     for (int i = 0; i < clusterCenters.length; i++) {
       FieldName field = FieldName.create("field_" + i);
       clusteringModel.getClusteringFields().add(
           new ClusteringField(field).withCompareFunction(CompareFunctionType.ABS_DIFF));
-      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i, clusterSizesMap.get(i)));
+      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i, clusterSizesMap.get(i).intValue()));
     }
     return clusteringModel;
   }
