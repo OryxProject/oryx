@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -35,12 +36,21 @@ public final class BatchLayerIT extends AbstractBatchIT {
   private static final Logger log = LoggerFactory.getLogger(BatchLayerIT.class);
 
   private static final int DATA_TO_WRITE = 600;
-  private static final int WRITE_INTERVAL_MSEC = 100;
-  private static final int GEN_INTERVAL_SEC = 15;
-  private static final int BLOCK_INTERVAL_SEC = 3;
+  private static final int WRITE_INTERVAL_MSEC = 20;
+  private static final int GEN_INTERVAL_SEC = 3;
+  private static final int BLOCK_INTERVAL_SEC = 1;
 
   @Test
   public void testBatchLayer() throws Exception {
+    doTestBatchLayer(2, 1);
+  }
+
+  @Test
+  public void testBatchLayerMultipleReceivers() throws Exception {
+    doTestBatchLayer(10, 10);
+  }
+
+  private void doTestBatchLayer(int partitions, int receivers) throws IOException, InterruptedException {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Map<String,Object> overlayConfig = new HashMap<>();
@@ -49,12 +59,14 @@ public final class BatchLayerIT extends AbstractBatchIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.storage.partitions", 2);
+    overlayConfig.put("oryx.batch.storage.partitions", partitions);
+    overlayConfig.put("oryx.batch.streaming.receiver-parallelism", receivers);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
-    startMessaging();
-
     List<IntervalData<String,String>> intervalData = MockBatchUpdate.getIntervalDataHolder();
+    intervalData.clear();
+
+    startMessaging();
 
     startServerProduceConsumeTopics(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 

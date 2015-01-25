@@ -17,9 +17,11 @@ package com.cloudera.oryx.lambda.speed;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +76,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private final int executorCores;
   private final String executorMemoryString;
   private final String driverMemoryString;
+  private final int receiverParallelism;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final Class<? extends Decoder<?>> keyDecoderClass;
@@ -102,6 +105,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     this.executorCores = config.getInt("oryx.speed.streaming.executor-cores");
     this.executorMemoryString = config.getString("oryx.speed.streaming.executor-memory");
     this.driverMemoryString = config.getString("oryx.speed.streaming.driver-memory");
+    this.receiverParallelism = config.getInt("oryx.batch.streaming.receiver-parallelism");
     this.generationIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx.speed.streaming.block-interval-sec");
     this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
@@ -117,6 +121,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
     Preconditions.checkArgument(numExecutors >= 1);
     Preconditions.checkArgument(executorCores >= 1);
+    Preconditions.checkArgument(receiverParallelism >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(uiPort > 0);
@@ -224,15 +229,25 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     // Don't re-consume old messages from input
     kafkaParams.put("auto.offset.reset", "largest");
-    return KafkaUtils.createStream(
-        streamingContext,
-        keyClass,
-        messageClass,
-        keyDecoderClass,
-        messageDecoderClass,
-        kafkaParams,
-        Collections.singletonMap(messageTopic, 1),
-        StorageLevel.MEMORY_AND_DISK_2());
+
+    List<JavaPairDStream<K,M>> streams = new ArrayList<>(receiverParallelism);
+    for (int i = 0; i < receiverParallelism; i++) {
+      streams.add(KafkaUtils.createStream(
+                    streamingContext,
+                    keyClass,
+                    messageClass,
+                    keyDecoderClass,
+                    messageDecoderClass,
+                    kafkaParams,
+                    Collections.singletonMap(messageTopic, 1),
+                    StorageLevel.MEMORY_AND_DISK_2()));
+    }
+
+    if (streams.size() == 1) {
+      return streams.get(0);
+    } else {
+      return streamingContext.union(streams.get(0), streams.subList(1, streams.size()));
+    }
   }
 
   @SuppressWarnings("unchecked")
