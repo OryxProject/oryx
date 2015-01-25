@@ -62,6 +62,11 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
+        <artifactId>oryx-app-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-app-common</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -434,6 +439,7 @@
     <module>oryx-lambda</module>
     <module>oryx-lambda-serving</module>
     <module>oryx-ml</module>
+    <module>oryx-app-api</module>
     <module>oryx-app-common</module>
     <module>oryx-app-mllib</module>
     <module>oryx-app</module>
