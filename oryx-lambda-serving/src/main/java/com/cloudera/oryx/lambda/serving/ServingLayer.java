@@ -61,6 +61,7 @@ public final class ServingLayer implements Closeable {
   };
 
   private final Config config;
+  private final String id;
   private final int port;
   private final int securePort;
   private final String userName;
@@ -83,6 +84,7 @@ public final class ServingLayer implements Closeable {
     Preconditions.checkNotNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
+    this.id = ConfigUtils.getOptionalString(config, "oryx.id");
     this.port = config.getInt("oryx.serving.api.port");
     this.securePort = config.getInt("oryx.serving.api.secure-port");
     this.userName = ConfigUtils.getOptionalString(config, "oryx.serving.api.user-name");
@@ -107,6 +109,9 @@ public final class ServingLayer implements Closeable {
   }
 
   public synchronized void start() throws IOException {
+    if (id != null) {
+      log.info("Starting Serving Layer {}", id);
+    }
     Preconditions.checkState(tomcat == null);
     // Has to happen very early before Tomcat init:
     System.setProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "true");

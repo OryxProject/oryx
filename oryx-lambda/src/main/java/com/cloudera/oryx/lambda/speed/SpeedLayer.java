@@ -65,6 +65,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   private static final Logger log = LoggerFactory.getLogger(SpeedLayer.class);
 
   private final Config config;
+  private final String id;
   private final String streamingMaster;
   private final String inputTopicLockMaster;
   private final String messageTopic;
@@ -94,6 +95,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     Preconditions.checkNotNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
+    this.id = ConfigUtils.getOptionalString(config, "oryx.id");
     this.streamingMaster = config.getString("oryx.speed.streaming.master");
     this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
     this.messageTopic = config.getString("oryx.input-topic.message.topic");
@@ -128,6 +130,9 @@ public final class SpeedLayer<K,M,U> implements Closeable {
   }
 
   public synchronized void start() {
+    if (id != null) {
+      log.info("Starting Speed Layer {}", id);
+    }
     log.info("Starting SparkContext for master {}, interval {} seconds",
              streamingMaster, generationIntervalSec);
 
@@ -229,6 +234,10 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
     // Don't re-consume old messages from input
     kafkaParams.put("auto.offset.reset", "largest");
+    if (id != null) {
+      // Set consumer.id to access last read offset for the layer
+      kafkaParams.put("consumer.id", "Oryx-SpeedLayer-" + id);
+    }
 
     List<JavaPairDStream<K,M>> streams = new ArrayList<>(receiverParallelism);
     for (int i = 0; i < receiverParallelism; i++) {
