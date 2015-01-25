@@ -26,19 +26,19 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiRecommendRescorer() {
-    RescorerProvider multi =
-        new MultiRescorerProvider(new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
+    RescorerProvider multi = new MultiRescorerProvider(
+        new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
-    Rescorer provider = multi.getRecommendRescorer(new String[]{"ABCDE"}, null);
+    Rescorer provider = multi.getRecommendRescorer(new String[]{"ABCDE"}, (String[]) null);
     assertNull(provider);
     
-    provider = multi.getRecommendRescorer(new String[]{"AB"}, null);
+    provider = multi.getRecommendRescorer(new String[]{"AB"}, (String[]) null);
     assertNotNull(provider);
     assertFalse(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
     assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendRescorer(new String[]{"ABCDEF"}, null);
+    provider = multi.getRecommendRescorer(new String[]{"ABCDEF"}, (String[]) null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -48,19 +48,20 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiRecommendToAnonymousRescorer() {
-    RescorerProvider multi = 
-        new MultiRescorerProvider(new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
+    RescorerProvider multi = new MultiRescorerProvider(
+        new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
-    Rescorer provider = multi.getRecommendToAnonymousRescorer(new String[]{"ABCDE"}, null);
+    Rescorer provider = multi.getRecommendToAnonymousRescorer(
+        new String[]{"ABCDE"}, (String[]) null);
     assertNull(provider);
     
-    provider = multi.getRecommendToAnonymousRescorer(new String[]{"AB"}, null);
+    provider = multi.getRecommendToAnonymousRescorer(new String[]{"AB"}, (String[]) null);
     assertNotNull(provider);
     assertFalse(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
     assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendToAnonymousRescorer(new String[]{"ABCDEF"}, null);
+    provider = multi.getRecommendToAnonymousRescorer(new String[]{"ABCDEF"}, (String[]) null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -70,9 +71,9 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiMostPopularItemsRescorer() {
-    RescorerProvider multi =
-        new MultiRescorerProvider(new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
-    Rescorer provider = multi.getMostPopularItemsRescorer(null);
+    RescorerProvider multi = new MultiRescorerProvider(
+        new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
+    Rescorer provider = multi.getMostPopularItemsRescorer((String[]) null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -82,9 +83,9 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiMostSimilarItemsRescorer() {
-    RescorerProvider multi = 
-        new MultiRescorerProvider(new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
-    PairRescorer provider = multi.getMostSimilarItemsRescorer(null);
+    RescorerProvider multi = new MultiRescorerProvider(
+        new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
+    PairRescorer provider = multi.getMostSimilarItemsRescorer((String[]) null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiPairRescorer);
     assertTrue(provider.isFiltered("AB", "ABC"));
