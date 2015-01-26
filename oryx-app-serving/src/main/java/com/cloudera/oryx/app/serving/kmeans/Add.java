@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -36,8 +37,10 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to POST request to {@code /add}. The input is one or more data points
- * to add to the clustering, one for each line of the request body. Each data point is a delimited line of input like
- * "1,-4,3.0". The clusters update to learn in some way from the new data. The response is empty.</p>
+ * to add to the clustering, one for each line of the request body. Each data point is a
+ * delimited line of input like "1,-4,3.0". Also, one data point can be supplied by
+ * POSTing to {@code /train/[datum]}. The clusters update to learn in some way from the new data.
+ * The response is empty.</p>
  */
 @Path("/add")
 public final class Add extends AbstractKMeansResource {
@@ -46,6 +49,12 @@ public final class Add extends AbstractKMeansResource {
   @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException {
     doPost(maybeBuffer(reader));
+  }
+
+  @POST
+  @Path("datum")
+  public void post(@PathParam("datum") String datum) {
+    getInputProducer().send(datum);
   }
 
   @POST

@@ -53,6 +53,15 @@ public final class TrainTest extends AbstractRDFServingTest {
     checkResponse(getFormPostResponse(TRAIN_DATA, "/train", null, null));
   }
 
+  @Test
+  public void testURITrain() throws Exception {
+    Response response = target("/train/B,0,20").request().post(Entity.text(""));
+    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    List<Pair<String,String>> data = MockTopicProducer.getData();
+    Assert.assertEquals(1, data.size());
+    Assert.assertArrayEquals(EXPECTED_TOPIC[0], data.get(0).getSecond().split(","));
+  }
+
   private static void checkResponse(Response response) {
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     List<Pair<String,String>> data = MockTopicProducer.getData();
@@ -60,9 +69,7 @@ public final class TrainTest extends AbstractRDFServingTest {
       Pair<String,String> actual = data.get(i);
       Assert.assertNull(actual.getFirst());
       String[] tokens = actual.getSecond().split(",");
-      Assert.assertEquals(EXPECTED_TOPIC[i][0], tokens[0]);
-      Assert.assertEquals(EXPECTED_TOPIC[i][1], tokens[1]);
-      Assert.assertEquals(EXPECTED_TOPIC[i][2], tokens[2]);
+      Assert.assertArrayEquals(EXPECTED_TOPIC[i], tokens);
     }
   }
 
