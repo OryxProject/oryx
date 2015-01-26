@@ -45,7 +45,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public Rescorer getRecommendRescorer(String[] userIDs, String... args) {
+  public Rescorer getRecommendRescorer(List<String> userIDs, List<String> args) {
     List<Rescorer> rescorers = new ArrayList<>(providers.length);
     for (RescorerProvider provider : providers) {
       Rescorer rescorer = provider.getRecommendRescorer(userIDs, args);
@@ -57,7 +57,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public Rescorer getRecommendToAnonymousRescorer(String[] itemIDs, String... args) {
+  public Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args) {
     List<Rescorer> rescorers = new ArrayList<>(providers.length);
     for (RescorerProvider provider : providers) {
       Rescorer rescorer = provider.getRecommendToAnonymousRescorer(itemIDs, args);
@@ -69,7 +69,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public Rescorer getMostPopularItemsRescorer(String... args) {
+  public Rescorer getMostPopularItemsRescorer(List<String> args) {
     List<Rescorer> rescorers = new ArrayList<>(providers.length);
     for (RescorerProvider provider : providers) {
       Rescorer rescorer = provider.getMostPopularItemsRescorer(args);
@@ -92,7 +92,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public PairRescorer getMostSimilarItemsRescorer(String... args) {
+  public PairRescorer getMostSimilarItemsRescorer(List<String> args) {
     List<PairRescorer> rescorers = new ArrayList<>(providers.length);
     for (RescorerProvider provider : providers) {
       PairRescorer rescorer = provider.getMostSimilarItemsRescorer(args);

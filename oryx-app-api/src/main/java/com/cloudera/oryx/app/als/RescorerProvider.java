@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.als;
 
+import java.util.List;
+
 /**
  * <p>Implementations of this interface provide, optionally, objects that can be used to
  * modify and influence the results of endpoints like {@code Recommend}, {@code Similarity},
@@ -24,7 +26,7 @@ package com.cloudera.oryx.app.als;
  * <p>Implementations of this class are factories. An implementation creates and configures
  * a {@link Rescorer} rescoring object and returns it for use in the context of one
  * of the endpoints' operation. For example, the result of
- * {@link #getRecommendRescorer(String[], String...)} is used with {@code Recommend}.
+ * {@link #getRecommendRescorer(List, List)} is used with {@code Recommend}.
  * The {@link Rescorer} filters the candidates recommendations by item ID
  * ({@link Rescorer#isFiltered(String)}) or modifies the scores of item candidates that
  * are not filtered ({@link Rescorer#rescore(String, double)}) based on the item ID and
@@ -54,7 +56,7 @@ public interface RescorerProvider {
    *  {@link Rescorer#isFiltered(String)}, and each non-filtered candidate with its original score
    *  to {@link Rescorer#rescore(String, double)}
    */
-  Rescorer getRecommendRescorer(String[] userIDs, String... args);
+  Rescorer getRecommendRescorer(List<String> userIDs, List<String> args);
 
   /**
    * @param itemIDs items that the anonymous user is associated to
@@ -66,7 +68,7 @@ public interface RescorerProvider {
    *  {@link Rescorer#isFiltered(String)}, and each non-filtered candidate with its original score
    *  to {@link Rescorer#rescore(String, double)}
    */
-  Rescorer getRecommendToAnonymousRescorer(String[] itemIDs, String... args);
+  Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args);
 
   /**
    * @param args arguments, if any, that should be used when making the {@link Rescorer}.
@@ -74,7 +76,7 @@ public interface RescorerProvider {
    *  like current location. What it means is up to the implementation.
    * @return {@link Rescorer} to use or {@code null} if none should be used.
    */
-  Rescorer getMostPopularItemsRescorer(String... args);
+  Rescorer getMostPopularItemsRescorer(List<String> args);
 
   /**
    * @param args arguments, if any, that should be used when making the {@link Rescorer}.
@@ -87,6 +89,6 @@ public interface RescorerProvider {
    *  Each non-filtered pair is passed with its original score to
    *  {@link PairRescorer#rescore(String, String, double)}
    */
-  PairRescorer getMostSimilarItemsRescorer(String... args);
+  PairRescorer getMostSimilarItemsRescorer(List<String> args);
 
 }

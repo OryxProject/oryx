@@ -50,7 +50,7 @@ public final class LoadTestALSModelFactory {
         AVG_ITEMS_PER_USER,
         PoissonDistribution.DEFAULT_EPSILON,
         PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-    ALSServingModel model = new ALSServingModel(FEATURES, true);
+    ALSServingModel model = new ALSServingModel(FEATURES, true, null);
 
     long totalEntries = 0;
     for (int user = 0; user < USERS; user++) {

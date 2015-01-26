@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import net.openhft.koloboke.function.ToDoubleFunction;
+
 import com.cloudera.oryx.common.math.VectorMath;
 
-final class CosineAverageFunction implements DoubleFunction<float[]> {
+final class CosineAverageFunction implements ToDoubleFunction<float[]> {
 
   private final float[][] itemFeatureVectors;
 
@@ -26,7 +28,7 @@ final class CosineAverageFunction implements DoubleFunction<float[]> {
   }
 
   @Override
-  public double apply(float[] itemVector) {
+  public double applyAsDouble(float[] itemVector) {
     double total = 0.0;
     for (float[] itemFeatureVector : itemFeatureVectors) {
       double cosineSimilarity = VectorMath.dot(itemFeatureVector, itemVector) /

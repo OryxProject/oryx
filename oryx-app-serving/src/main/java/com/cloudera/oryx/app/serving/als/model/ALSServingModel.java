@@ -42,9 +42,12 @@ import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 import net.openhft.koloboke.function.BiConsumer;
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
+import net.openhft.koloboke.function.ToDoubleFunction;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
@@ -55,7 +58,6 @@ import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.app.serving.als.DoubleFunction;
 
 /**
  * Contains all data structures needed to serve real-time requests for an ALS-based recommender.
@@ -91,15 +93,17 @@ public final class ALSServingModel {
   private final int features;
   /** Whether model uses implicit feedback. */
   private final boolean implicit;
+  private final RescorerProvider rescorerProvider;
 
   /**
    * Creates an empty model.
    *
    * @param features number of features expected for user/item feature vectors
    * @param implicit whether model implements implicit feedback
+   * @param rescorerProvider optional instance of a {@link RescorerProvider}
    */
   @SuppressWarnings("unchecked")
-  ALSServingModel(int features, boolean implicit) {
+  ALSServingModel(int features, boolean implicit, RescorerProvider rescorerProvider) {
     Preconditions.checkArgument(features > 0);
 
     X = HashObjObjMaps.newMutableMap();
@@ -124,6 +128,7 @@ public final class ALSServingModel {
 
     this.features = features;
     this.implicit = implicit;
+    this.rescorerProvider = rescorerProvider;
   }
 
   public int getFeatures() {
@@ -132,6 +137,10 @@ public final class ALSServingModel {
 
   public boolean isImplicit() {
     return implicit;
+  }
+
+  public RescorerProvider getRescorerProvider() {
+    return rescorerProvider;
   }
 
   private static int partition(Object o) {
@@ -267,8 +276,20 @@ public final class ALSServingModel {
     return idVectors;
   }
 
+  public List<Pair<String,Double>> topN(ToDoubleFunction<float[]> scoreFn, int howMany) {
+    return topN(scoreFn, null, howMany, null);
+  }
+
+  // TODO remove:
+  public List<Pair<String,Double>> topN(ToDoubleFunction<float[]> scoreFn,
+                                        int howMany,
+                                        Predicate<String> allowedPredicate) {
+    return topN(scoreFn, null, howMany, allowedPredicate);
+  }
+
   public List<Pair<String,Double>> topN(
-      final DoubleFunction<float[]> scoreFn,
+      final ToDoubleFunction<float[]> scoreFn,
+      final ObjDoubleToDoubleFunction<String> rescoreFn,
       final int howMany,
       final Predicate<String> allowedPredicate) {
 
@@ -280,7 +301,8 @@ public final class ALSServingModel {
         public Iterable<Pair<String,Double>> doCall() {
           Queue<Pair<String,Double>> topN =
               new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
-          TopNConsumer topNProc = new TopNConsumer(topN, howMany, scoreFn, allowedPredicate);
+          TopNConsumer topNProc =
+              new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate);
 
           try (AutoLock al = new AutoLock(yLocks[thePartition].readLock())) {
             Y[thePartition].forEach(topNProc);
@@ -435,7 +457,8 @@ public final class ALSServingModel {
 
     private final Queue<Pair<String,Double>> topN;
     private final int howMany;
-    private final DoubleFunction<float[]> scoreFn;
+    private final ToDoubleFunction<float[]> scoreFn;
+    private final ObjDoubleToDoubleFunction<String> rescoreFn;
     private final Predicate<String> allowedPredicate;
     /** Local copy of lower bound of min score in the priority queue, to avoid polling */
     private double topScoreLowerBound;
@@ -444,11 +467,13 @@ public final class ALSServingModel {
 
     TopNConsumer(Queue<Pair<String,Double>> topN,
                  int howMany,
-                 DoubleFunction<float[]> scoreFn,
+                 ToDoubleFunction<float[]> scoreFn,
+                 ObjDoubleToDoubleFunction<String> rescoreFn,
                  Predicate<String> allowedPredicate) {
       this.topN = topN;
       this.howMany = howMany;
       this.scoreFn = scoreFn;
+      this.rescoreFn = rescoreFn;
       this.allowedPredicate = allowedPredicate;
       topScoreLowerBound = Double.NEGATIVE_INFINITY;
       full = false;
@@ -457,7 +482,10 @@ public final class ALSServingModel {
     @Override
     public void accept(String key, float[] value) {
       if (allowedPredicate == null || allowedPredicate.test(key)) {
-        double score = scoreFn.apply(value);
+        double score = scoreFn.applyAsDouble(value);
+        if (rescoreFn != null) {
+          score = rescoreFn.applyAsDouble(key, score);
+        }
         // If queue is already of minimum size,
         if (full) {
           // ... then go straight to seeing if it should be updated

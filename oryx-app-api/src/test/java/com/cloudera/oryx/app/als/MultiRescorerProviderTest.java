@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.als;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -29,16 +31,16 @@ public final class MultiRescorerProviderTest extends OryxTest {
     RescorerProvider multi = new MultiRescorerProvider(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
-    Rescorer provider = multi.getRecommendRescorer(new String[]{"ABCDE"}, (String[]) null);
+    Rescorer provider = multi.getRecommendRescorer(Collections.singletonList("ABCDE"), null);
     assertNull(provider);
     
-    provider = multi.getRecommendRescorer(new String[]{"AB"}, (String[]) null);
+    provider = multi.getRecommendRescorer(Collections.singletonList("AB"), null);
     assertNotNull(provider);
     assertFalse(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
     assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendRescorer(new String[]{"ABCDEF"}, (String[]) null);
+    provider = multi.getRecommendRescorer(Collections.singletonList("ABCDEF"), null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -52,16 +54,16 @@ public final class MultiRescorerProviderTest extends OryxTest {
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
     Rescorer provider = multi.getRecommendToAnonymousRescorer(
-        new String[]{"ABCDE"}, (String[]) null);
+        Collections.singletonList("ABCDE"), null);
     assertNull(provider);
     
-    provider = multi.getRecommendToAnonymousRescorer(new String[]{"AB"}, (String[]) null);
+    provider = multi.getRecommendToAnonymousRescorer(Collections.singletonList("AB"), null);
     assertNotNull(provider);
     assertFalse(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
     assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendToAnonymousRescorer(new String[]{"ABCDEF"}, (String[]) null);
+    provider = multi.getRecommendToAnonymousRescorer(Collections.singletonList("ABCDEF"), null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -73,7 +75,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   public void testMultiMostPopularItemsRescorer() {
     RescorerProvider multi = new MultiRescorerProvider(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
-    Rescorer provider = multi.getMostPopularItemsRescorer((String[]) null);
+    Rescorer provider = multi.getMostPopularItemsRescorer(null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiRescorer);
     assertTrue(provider.isFiltered("ABC"));
@@ -85,7 +87,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   public void testMultiMostSimilarItemsRescorer() {
     RescorerProvider multi = new MultiRescorerProvider(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
-    PairRescorer provider = multi.getMostSimilarItemsRescorer((String[]) null);
+    PairRescorer provider = multi.getMostSimilarItemsRescorer(null);
     assertNotNull(provider);
     assertTrue(provider instanceof MultiPairRescorer);
     assertTrue(provider.isFiltered("AB", "ABC"));

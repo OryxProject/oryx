@@ -23,12 +23,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.als.AbstractRescorerProvider;
+import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
@@ -38,6 +42,17 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSServingModel model;
+  private final RescorerProvider rescorerProvider;
+
+  public ALSServingModelManager(Config config) {
+    String rescorerProviderClass =
+        ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
+    if (rescorerProviderClass == null) {
+      rescorerProvider = null;
+    } else {
+      rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
+    }
+  }
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
@@ -85,12 +100,12 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           if (model == null) {
 
             log.info("No previous model");
-            model = new ALSServingModel(features, implicit);
+            model = new ALSServingModel(features, implicit, rescorerProvider);
 
           } else if (features != model.getFeatures()) {
 
             log.warn("# features has changed! removing old model");
-            model = new ALSServingModel(features, implicit);
+            model = new ALSServingModel(features, implicit, rescorerProvider);
 
           } else {
 

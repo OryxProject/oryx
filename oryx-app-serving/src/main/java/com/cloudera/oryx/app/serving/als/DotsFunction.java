@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import net.openhft.koloboke.function.ToDoubleFunction;
+
 import com.cloudera.oryx.common.math.VectorMath;
 
-final class DotsFunction implements DoubleFunction<float[]> {
+final class DotsFunction implements ToDoubleFunction<float[]> {
 
   private final double[][] userFeaturesVectors;
 
@@ -34,7 +36,7 @@ final class DotsFunction implements DoubleFunction<float[]> {
   }
 
   @Override
-  public double apply(float[] itemVector) {
+  public double applyAsDouble(float[] itemVector) {
     double total = 0.0;
     for (double[] userFeaturesVector : userFeaturesVectors) {
       total += VectorMath.dot(userFeaturesVector, itemVector);

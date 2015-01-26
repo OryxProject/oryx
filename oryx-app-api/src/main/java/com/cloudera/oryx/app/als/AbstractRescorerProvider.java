@@ -30,7 +30,7 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
    * @return {@code null}
    */
   @Override
-  public Rescorer getRecommendRescorer(String[] userIDs, String... args) {
+  public Rescorer getRecommendRescorer(List<String> userIDs, List<String> args) {
     return null;
   }
 
@@ -38,7 +38,7 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
    * @return {@code null}
    */
   @Override
-  public Rescorer getRecommendToAnonymousRescorer(String[] itemIDs, String... args) {
+  public Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args) {
     return null;
   }
 
@@ -46,7 +46,7 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
    * @return {@code null}
    */
   @Override
-  public Rescorer getMostPopularItemsRescorer(String... args) {
+  public Rescorer getMostPopularItemsRescorer(List<String> args) {
     return null;
   }
 
@@ -54,7 +54,7 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
    * @return {@code null}
    */
   @Override
-  public PairRescorer getMostSimilarItemsRescorer(String... args) {
+  public PairRescorer getMostSimilarItemsRescorer(List<String> args) {
     return null;
   }
 

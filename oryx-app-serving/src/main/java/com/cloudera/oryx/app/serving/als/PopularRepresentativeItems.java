@@ -48,7 +48,7 @@ public final class PopularRepresentativeItems extends AbstractALSResource {
     float[] unitVector = new float[features];
     for (int i = 0; i < features; i++) {
       unitVector[i] = 1.0f;
-      List<Pair<String,Double>> topIDDot = model.topN(new DotsFunction(unitVector), 1, null);
+      List<Pair<String,Double>> topIDDot = model.topN(new DotsFunction(unitVector), 1);
       items.add(topIDDot.isEmpty() ? null : topIDDot.get(0).getFirst());
       unitVector[i] = 0.0f; // reset
     }

@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.als;
 
+import java.util.List;
+
 final class SimpleModRescorerProvider extends AbstractRescorerProvider {
   
   private final int modulus;
@@ -24,22 +26,22 @@ final class SimpleModRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public Rescorer getRecommendRescorer(String[] userIDs, String... args) {
-    return userIDs[0].length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
+  public Rescorer getRecommendRescorer(List<String> userIDs, List<String> args) {
+    return userIDs.get(0).length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
   }
 
   @Override
-  public Rescorer getRecommendToAnonymousRescorer(String[] itemIDs, String... args) {
-    return itemIDs[0].length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
+  public Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args) {
+    return itemIDs.get(0).length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
   }
 
   @Override
-  public Rescorer getMostPopularItemsRescorer(String... args) {
+  public Rescorer getMostPopularItemsRescorer(List<String> args) {
     return new SimpleModRescorer(modulus);
   }
 
   @Override
-  public PairRescorer getMostSimilarItemsRescorer(String... args) {
+  public PairRescorer getMostSimilarItemsRescorer(List<String> args) {
     return new SimpleModRescorer(modulus);
   }
 

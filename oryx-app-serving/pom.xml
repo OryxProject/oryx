@@ -48,6 +48,10 @@
     </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-app-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-app-common</artifactId>
     </dependency>
     <dependency>
