@@ -13,11 +13,13 @@
 # the specific language governing permissions and limitations under the
 # License.
 
-# Usage: run.sh --layer-jar [Oryx .jar file] --conf [Oryx .conf file] --app-jar [user .jar file]
+# Usage: run.sh --layer-jar [Oryx .jar file] --conf [Oryx .conf file]
+#               --app-jar [user .jar file] --jvm-args [args]
 
 function usageAndExit {
   echo "Error: $1"
-  echo "usage: run.sh --layer-jar oryx-{serving,speed,batch}-x.y.z.jar --conf my.conf [--app-jar my-app.jar]"
+  echo "usage: run.sh --layer-jar oryx-{serving,speed,batch}-x.y.z.jar --conf my.conf \
+        [--app-jar my-app.jar] [--jvm-args 'jvm args']"
   exit 1
 }
 
@@ -28,6 +30,8 @@ while (($#)); do
     CONFIG_FILE=$2
   elif [ "$1" = "--app-jar" ]; then
     APP_JAR=$2
+  elif [ "$1" = "--jvm-args" ]; then
+    JVM_ARGS=$2
   fi
   shift
 done
@@ -57,7 +61,9 @@ if [ "${APP_JAR}" != "" ]; then
 fi
 SPARK_STREAMING_PROPS="-Dspark.yarn.dist.files=${CONFIG_FILE} \
  -Dspark.jars=${SPARK_STREAMING_JARS} \
- -Dspark.executor.extraJavaOptions=\"-Dconfig.file=${CONFIG_FILE_NAME}\""
+ -Dsun.io.serialization.extendeddebuginfo=true \
+ -Dspark.executor.extraJavaOptions=\"-Dconfig.file=${CONFIG_FILE_NAME} \
+   -Dsun.io.serialization.extendeddebuginfo=true\""
 
 case "${LAYER}" in
   oryx-batch)
@@ -81,4 +87,4 @@ if [ "${APP_JAR}" != "" ]; then
   FINAL_CLASSPATH="${APP_JAR}:${FINAL_CLASSPATH}"
 fi
 
-java -cp ${FINAL_CLASSPATH} -Dconfig.file=${CONFIG_FILE} ${EXTRA_PROPS} ${MAIN_CLASS}
+java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
