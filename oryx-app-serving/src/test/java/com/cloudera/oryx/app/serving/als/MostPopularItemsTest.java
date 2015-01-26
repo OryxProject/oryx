@@ -48,4 +48,13 @@ public final class MostPopularItemsTest extends AbstractALSServingTest {
     testCSVTopByCount(9, response);
   }
 
+  @Test
+  public void testRescorer() {
+    List<IDCount> top = target("/mostPopularItems").queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
+    Assert.assertEquals(4, top.size());
+    Assert.assertEquals(6, top.get(0).getValue());
+    Assert.assertEquals(5, top.get(1).getValue());
+  }
+
 }

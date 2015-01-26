@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.als;
 
-final class SimpleModRescorer implements Rescorer, PairRescorer {
+final class SimpleModRescorer implements Rescorer {
   
   private final int modulus;
   
@@ -31,16 +31,6 @@ final class SimpleModRescorer implements Rescorer, PairRescorer {
   @Override
   public boolean isFiltered(String itemID) {
     return itemID.length() % modulus != 0;
-  }
-
-  @Override
-  public double rescore(String fromID, String toID, double value) {
-    return isFiltered(fromID, toID) ? Double.NaN : value;
-  }
-
-  @Override
-  public boolean isFiltered(String fromID, String toID) {
-    return fromID.length() % modulus != 0 || toID.length() % modulus != 0;
   }
 
 }

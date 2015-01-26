@@ -25,10 +25,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -36,7 +39,8 @@ import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to {@code /mostPopularItems(?howMany=n)(&offset=o)}
+ * <p>Responds to a GET request to
+ * {@code /mostPopularItems(?howMany=n)(&offset=o)(&rescorerParams=...)}</p>
  *
  * <p>Results are items that the most users have interacted with, as item and count pairs.</p>
  *
@@ -52,14 +56,21 @@ public final class MostPopularItems extends AbstractALSResource {
   @GET
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
-                           @DefaultValue("0") @QueryParam("offset") int offset) {
+                           @DefaultValue("0") @QueryParam("offset") int offset,
+                           @QueryParam("rescorerParams") List<String> rescorerParams) {
     ALSServingModel model = getALSServingModel();
-    return mapTopCountsToIDCounts(model.getItemCounts(), howMany, offset);
+    RescorerProvider rescorerProvider = model.getRescorerProvider();
+    Rescorer rescorer = null;
+    if (rescorerProvider != null) {
+      rescorer = rescorerProvider.getMostPopularItemsRescorer(rescorerParams);
+    }
+    return mapTopCountsToIDCounts(model.getItemCounts(), howMany, offset, rescorer);
   }
 
   static List<IDCount> mapTopCountsToIDCounts(Map<String,Integer> counts,
                                               int howMany,
-                                              int offset) {
+                                              int offset,
+                                              final Rescorer rescorer) {
     Iterable<Pair<String,Integer>> countPairs = Iterables.transform(
         counts.entrySet(),
         new Function<Map.Entry<String,Integer>, Pair<String,Integer>>() {
@@ -68,6 +79,15 @@ public final class MostPopularItems extends AbstractALSResource {
             return new Pair<>(input.getKey(), input.getValue());
           }
         });
+
+    if (rescorer != null) {
+      countPairs = Iterables.filter(countPairs, new Predicate<Pair<String,Integer>>() {
+        @Override
+        public boolean apply(Pair<String, Integer> input) {
+          return !rescorer.isFiltered(input.getFirst());
+        }
+      });
+    }
 
     List<Pair<String,Integer>> allTopCountPairs =
         Ordering.from(PairComparators.<Integer>bySecond()).greatestOf(countPairs, howMany + offset);

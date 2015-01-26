@@ -88,4 +88,13 @@ public final class RecommendTest extends AbstractALSServingTest {
     target("/recommend").request().get(String.class);
   }
 
+  @Test
+  public void testRescorer() {
+    List<IDValue> normal = target("/recommend/U4").queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+    Assert.assertEquals(1, normal.size());
+    Assert.assertEquals("I3", normal.get(0).getID());
+    Assert.assertEquals(2.0 * -0.2599307053020734, normal.get(0).getValue(), FLOAT_EPSILON);
+  }
+
 }

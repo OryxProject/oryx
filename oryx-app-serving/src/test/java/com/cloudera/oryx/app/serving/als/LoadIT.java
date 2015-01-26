@@ -48,6 +48,7 @@ public final class LoadIT extends AbstractALSServingTest {
     disable(TestProperties.DUMP_ENTITY);
   }
 
+  @Ignore("Difficult to assert about time in cross-platform way; run manually")
   @Test
   public void testContainerOverhead() {
     long startNS = System.nanoTime();

@@ -23,6 +23,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.serving.als.TestALSRescorerProvider;
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 
@@ -50,7 +51,7 @@ public final class LoadTestALSModelFactory {
         AVG_ITEMS_PER_USER,
         PoissonDistribution.DEFAULT_EPSILON,
         PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-    ALSServingModel model = new ALSServingModel(FEATURES, true, null);
+    ALSServingModel model = new ALSServingModel(FEATURES, true, new TestALSRescorerProvider());
 
     long totalEntries = 0;
     for (int user = 0; user < USERS; user++) {

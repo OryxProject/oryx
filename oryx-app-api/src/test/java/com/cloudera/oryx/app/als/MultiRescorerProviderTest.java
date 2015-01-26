@@ -82,17 +82,29 @@ public final class MultiRescorerProviderTest extends OryxTest {
     assertTrue(provider.isFiltered("AB"));
     assertFalse(provider.isFiltered("ABCDEF"));
   }
+
+  @Test
+  public void testMultiMostActiveUsersRescorer() {
+    RescorerProvider multi = new MultiRescorerProvider(
+        new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
+    Rescorer provider = multi.getMostActiveUsersRescorer(null);
+    assertNotNull(provider);
+    assertTrue(provider instanceof MultiRescorer);
+    assertTrue(provider.isFiltered("ABC"));
+    assertTrue(provider.isFiltered("AB"));
+    assertFalse(provider.isFiltered("ABCDEF"));
+  }
   
   @Test
   public void testMultiMostSimilarItemsRescorer() {
     RescorerProvider multi = new MultiRescorerProvider(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
-    PairRescorer provider = multi.getMostSimilarItemsRescorer(null);
+    Rescorer provider = multi.getMostSimilarItemsRescorer(null);
     assertNotNull(provider);
-    assertTrue(provider instanceof MultiPairRescorer);
-    assertTrue(provider.isFiltered("AB", "ABC"));
-    assertTrue(provider.isFiltered("AB", "ABCDEF"));
-    assertFalse(provider.isFiltered("ABCDEF", "ABCDEFABCDEF"));
+    assertTrue(provider instanceof MultiRescorer);
+    assertTrue(provider.isFiltered("ABC"));
+    assertTrue(provider.isFiltered("ABCDE"));
+    assertFalse(provider.isFiltered("ABCDEFABCDEF"));
   }
   
 }

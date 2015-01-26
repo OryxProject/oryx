@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import net.openhft.koloboke.function.Predicate;
+
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
@@ -37,7 +44,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommendToMany/[userID1](/[userID2]/...)(?howMany=n)(&offset=o)(&considerKnownItems=c)}.</p>
+ * {@code /recommendToMany/[userID1](/[userID2]/...)(?howMany=n)(&offset=o)(&considerKnownItems=c)(&rescorerParams=...)}
+ * </p>
  *
  * <p>Results are recommended items for the user, along with a score.
  * Outputs contain item and score pairs, where the score is an opaque
@@ -67,8 +75,10 @@ public final class RecommendToMany extends AbstractALSResource {
     double[][] userFeaturesVectors = new double[pathSegmentsList.size()][];
     Collection<String> userKnownItems = new HashSet<>();
 
+    List<String> userIDs = new ArrayList<>(userFeaturesVectors.length);
     for (int i = 0; i < userFeaturesVectors.length; i++) {
       String userID = pathSegmentsList.get(i).getPath();
+      userIDs.add(userID);
       float[] userFeatureVector = alsServingModel.getUserVector(userID);
       checkExists(userFeatureVector != null, userID);
       userFeaturesVectors[i] = VectorMath.toDoubles(userFeatureVector);
@@ -82,10 +92,31 @@ public final class RecommendToMany extends AbstractALSResource {
       }
     }
 
+    Predicate<String> allowedFn = null;
+    if (!userKnownItems.isEmpty()) {
+      allowedFn = new NotContainsPredicate<>(userKnownItems);
+    }
+
+    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
+    if (rescorerProvider != null) {
+      Rescorer rescorer = rescorerProvider.getRecommendRescorer(userIDs, rescorerParams);
+      if (rescorer != null) {
+        Predicate<String> rescorerFilterFn = buildRescorerPredicate(rescorer);
+        if (allowedFn == null) {
+          allowedFn = rescorerFilterFn;
+        } else {
+          allowedFn = new AndPredicate<>(allowedFn, rescorerFilterFn);
+        }
+        rescoreFn = buildRescoreFn(rescorer);
+      }
+    }
+
     List<Pair<String,Double>> topIDDots = alsServingModel.topN(
         new DotsFunction(userFeaturesVectors),
+        rescoreFn,
         howMany + offset,
-        new NotContainsPredicate<>(userKnownItems));
+        allowedFn);
 
     return toIDValueResponse(topIDDots, howMany, offset);
   }

@@ -27,6 +27,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import net.openhft.koloboke.function.Predicate;
+
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -35,7 +41,9 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)}.</p>
+ * <p>Responds to a GET request to
+ * {@code /similarity/[itemID1](/[itemID2]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)}
+ * </p>
  *
  * <p>Results are items that are most similar to a given item.
  * Outputs contain item and score pairs, where the score is an opaque
@@ -76,10 +84,22 @@ public final class Similarity extends AbstractALSResource {
       knownItems.add(itemID);
     }
 
+    Predicate<String> allowedFn = new NotContainsPredicate<>(knownItems);
+    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
+    if (rescorerProvider != null) {
+      Rescorer rescorer = rescorerProvider.getMostSimilarItemsRescorer(rescorerParams);
+      if (rescorer != null) {
+        allowedFn = new AndPredicate<>(allowedFn, buildRescorerPredicate(rescorer));
+        rescoreFn = buildRescoreFn(rescorer);
+      }
+    }
+
     List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
         new CosineAverageFunction(itemFeatureVectors),
+        rescoreFn,
         howMany + offset,
-        new NotContainsPredicate<>(knownItems));
+        allowedFn);
 
     return toIDValueResponse(topIDCosines, howMany, offset);
   }

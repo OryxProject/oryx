@@ -24,7 +24,6 @@ import java.util.List;
  * the rescorings in the given order.
  *
  * @see MultiRescorer
- * @see MultiPairRescorer
  */
 public final class MultiRescorerProvider extends AbstractRescorerProvider {
 
@@ -80,6 +79,18 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
     return buildRescorer(rescorers);
   }
 
+  @Override
+  public Rescorer getMostActiveUsersRescorer(List<String> args) {
+    List<Rescorer> rescorers = new ArrayList<>(providers.length);
+    for (RescorerProvider provider : providers) {
+      Rescorer rescorer = provider.getMostActiveUsersRescorer(args);
+      if (rescorer != null) {
+        rescorers.add(rescorer);
+      }
+    }
+    return buildRescorer(rescorers);
+  }
+
   private static Rescorer buildRescorer(List<Rescorer> rescorers) {
     int numRescorers = rescorers.size();
     if (numRescorers == 0) {
@@ -92,10 +103,10 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
   }
 
   @Override
-  public PairRescorer getMostSimilarItemsRescorer(List<String> args) {
-    List<PairRescorer> rescorers = new ArrayList<>(providers.length);
+  public Rescorer getMostSimilarItemsRescorer(List<String> args) {
+    List<Rescorer> rescorers = new ArrayList<>(providers.length);
     for (RescorerProvider provider : providers) {
-      PairRescorer rescorer = provider.getMostSimilarItemsRescorer(args);
+      Rescorer rescorer = provider.getMostSimilarItemsRescorer(args);
       if (rescorer != null) {
         rescorers.add(rescorer);
       }
@@ -107,7 +118,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
     if (numRescorers == 1) {
       return rescorers.get(0);
     }
-    return new MultiPairRescorer(rescorers);
+    return new MultiRescorer(rescorers);
   }
 
 }

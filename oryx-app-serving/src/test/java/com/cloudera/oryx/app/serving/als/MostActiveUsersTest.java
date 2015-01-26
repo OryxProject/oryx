@@ -47,4 +47,13 @@ public final class MostActiveUsersTest extends AbstractALSServingTest {
     testCSVTopByCount(7, response);
   }
 
+  @Test
+  public void testRescorer() {
+    List<IDCount> top = target("/mostActiveUsers").queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
+    Assert.assertEquals(3, top.size());
+    Assert.assertEquals(7, top.get(0).getValue());
+    Assert.assertEquals(5, top.get(1).getValue());
+  }
+
 }

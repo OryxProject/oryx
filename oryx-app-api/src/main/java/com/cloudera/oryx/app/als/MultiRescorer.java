@@ -22,7 +22,6 @@ import java.util.List;
  * It will filter an item if any of the given instances filter it, and will rescore by applying
  * the rescorings in the given order.
  *
- * @see MultiPairRescorer
  * @see MultiRescorerProvider
  */
 public final class MultiRescorer implements Rescorer {

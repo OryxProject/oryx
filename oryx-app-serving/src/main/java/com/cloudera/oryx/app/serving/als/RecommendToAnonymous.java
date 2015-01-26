@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
@@ -27,6 +27,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import net.openhft.koloboke.function.Predicate;
+
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -36,7 +42,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)}.</p>
+ * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)}
+ * </p>
  *
  * <p>Results are recommended items for an "anonymous" user, along with a score. The user is
  * defined by a set of items and optional interaction strengths, as in
@@ -65,15 +72,28 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     double[] anonymousUserFeatures =
         EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
 
-    Collection<String> knownItems = new HashSet<>();
+    List<String> knownItems = new ArrayList<>();
     for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {
       knownItems.add(itemValue.getFirst());
     }
 
+    Predicate<String> allowedFn = new NotContainsPredicate<>(new HashSet<>(knownItems));
+    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
+    if (rescorerProvider != null) {
+      Rescorer rescorer = rescorerProvider.getRecommendToAnonymousRescorer(knownItems,
+                                                                           rescorerParams);
+      if (rescorer != null) {
+        allowedFn = new AndPredicate<>(allowedFn, buildRescorerPredicate(rescorer));
+        rescoreFn = buildRescoreFn(rescorer);
+      }
+    }
+
     List<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(anonymousUserFeatures),
+        rescoreFn,
         howMany + offset,
-        new NotContainsPredicate<>(knownItems));
+        allowedFn);
     return toIDValueResponse(topIDDots, howMany, offset);
   }
 

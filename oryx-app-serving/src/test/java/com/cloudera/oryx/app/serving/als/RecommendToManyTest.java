@@ -88,4 +88,14 @@ public final class RecommendToManyTest extends AbstractALSServingTest {
     testCSVTopByScore(2, response);
   }
 
+  @Test
+  public void testRescorer() {
+    List<IDValue> recs = target("/recommendToMany/U0/U2")
+        .queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+    testTopByValue(2, recs, false);
+    Assert.assertEquals("I1", recs.get(0).getID());
+    Assert.assertEquals(2.0 * 0.3434463501376608, recs.get(0).getValue(), FLOAT_EPSILON);
+  }
+
 }

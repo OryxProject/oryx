@@ -23,12 +23,15 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
- * <p>Responds to a GET request to {@code /mostActiveUsers(?howMany=n)(&offset=o)}
+ * <p>Responds to a GET request to
+ * {@code /mostActiveUsers(?howMany=n)(&offset=o)(&rescorerParams=...)}</p>
  *
  * <p>Results are users that have interacted with the most items, as user and count pairs.</p>
  *
@@ -44,9 +47,16 @@ public final class MostActiveUsers extends AbstractALSResource {
   @GET
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDCount> get(@DefaultValue("10") @QueryParam("howMany") int howMany,
-                           @DefaultValue("0") @QueryParam("offset") int offset) {
+                           @DefaultValue("0") @QueryParam("offset") int offset,
+                           @QueryParam("rescorerParams") List<String> rescorerParams) {
     ALSServingModel model = getALSServingModel();
-    return MostPopularItems.mapTopCountsToIDCounts(model.getUserCounts(), howMany, offset);
+    RescorerProvider rescorerProvider = model.getRescorerProvider();
+    Rescorer rescorer = null;
+    if (rescorerProvider != null) {
+      rescorer = rescorerProvider.getMostActiveUsersRescorer(rescorerParams);
+    }
+    return MostPopularItems.mapTopCountsToIDCounts(
+        model.getUserCounts(), howMany, offset, rescorer);
   }
 
 }

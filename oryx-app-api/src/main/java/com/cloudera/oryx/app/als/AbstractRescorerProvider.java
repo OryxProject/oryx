@@ -54,7 +54,15 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
    * @return {@code null}
    */
   @Override
-  public PairRescorer getMostSimilarItemsRescorer(List<String> args) {
+  public Rescorer getMostActiveUsersRescorer(List<String> args) {
+    return null;
+  }
+
+  /**
+   * @return {@code null}
+   */
+  @Override
+  public Rescorer getMostSimilarItemsRescorer(List<String> args) {
     return null;
   }
 

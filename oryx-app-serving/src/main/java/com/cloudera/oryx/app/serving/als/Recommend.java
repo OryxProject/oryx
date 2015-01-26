@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -26,8 +27,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -37,7 +42,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommend/[userID](?howMany=n)(&offset=o)(&considerKnownItems=c)}.</p>
+ * {@code /recommend/[userID](?howMany=n)(&offset=o)(&considerKnownItems=c)(&rescorerParams=...)}
+ * </p>
  *
  * <p>Results are recommended items for the user, along with a score.
  * Outputs contain item and score pairs, where the score is an opaque
@@ -83,16 +89,35 @@ public final class Recommend extends AbstractALSResource {
     Predicate<String> allowedFn = null;
     if (!considerKnownItems) {
       Collection<String> knownItems = model.getKnownItems(userID);
-      if (knownItems != null && !knownItems.isEmpty()) {
+      if (knownItems != null) {
         synchronized (knownItems) {
-          // Must copy since knownItems is synchronized
-          allowedFn = new NotContainsPredicate<>(new ArrayList<>(knownItems));
+          if (!knownItems.isEmpty()) {
+            // Must copy since knownItems is synchronized
+            allowedFn = new NotContainsPredicate<>(new ArrayList<>(knownItems));
+          }
         }
+      }
+    }
+
+    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
+    if (rescorerProvider != null) {
+      Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
+                                                                rescorerParams);
+      if (rescorer != null) {
+        Predicate<String> rescorerFilterFn = buildRescorerPredicate(rescorer);
+        if (allowedFn == null) {
+          allowedFn = rescorerFilterFn;
+        } else {
+          allowedFn = new AndPredicate<>(allowedFn, rescorerFilterFn);
+        }
+        rescoreFn = buildRescoreFn(rescorer);
       }
     }
 
     List<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(userVector),
+        rescoreFn,
         howMany + offset,
         allowedFn);
     return toIDValueResponse(topIDDots, howMany, offset);

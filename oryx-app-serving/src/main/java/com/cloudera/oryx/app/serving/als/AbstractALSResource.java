@@ -21,7 +21,10 @@ import javax.annotation.PostConstruct;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import net.openhft.koloboke.function.Predicate;
 
+import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
@@ -60,6 +63,24 @@ public abstract class AbstractALSResource extends AbstractOryxResource {
             return new IDValue(idDot.getFirst(), idDot.getSecond());
           }
         });
+  }
+
+  static ObjDoubleToDoubleFunction<String> buildRescoreFn(final Rescorer rescorer) {
+    return new ObjDoubleToDoubleFunction<String>() {
+      @Override
+      public double applyAsDouble(String ID, double score) {
+        return rescorer.rescore(ID, score);
+      }
+    };
+  }
+
+  static Predicate<String> buildRescorerPredicate(final Rescorer rescorer) {
+    return new Predicate<String>() {
+      @Override
+      public boolean test(String ID) {
+        return !rescorer.isFiltered(ID);
+      }
+    };
   }
 
 }

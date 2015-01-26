@@ -13,41 +13,54 @@
  * License.
  */
 
-package com.cloudera.oryx.app.als;
+package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
 
-final class SimpleModRescorerProvider implements RescorerProvider {
-  
-  private final int modulus;
-  
-  SimpleModRescorerProvider(int modulus) {
-    this.modulus = modulus;
+import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.als.RescorerProvider;
+
+public final class TestALSRescorerProvider implements RescorerProvider {
+
+  private static final Rescorer TEST_RESCORER = new Rescorer() {
+    @Override
+    public double rescore(String id, double originalScore) {
+      return isFiltered(id) ? Double.NaN : originalScore * 2.0;
+    }
+    @Override
+    public boolean isFiltered(String id) {
+      return id.charAt(id.length() - 1) % 2 == 0;
+    }
+  };
+
+  private static Rescorer buildRescorer(List<String> args) {
+    return args == null || args.isEmpty() ? null : TEST_RESCORER;
   }
+
 
   @Override
   public Rescorer getRecommendRescorer(List<String> userIDs, List<String> args) {
-    return userIDs.get(0).length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
+    return buildRescorer(args);
   }
 
   @Override
   public Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args) {
-    return itemIDs.get(0).length() % modulus == 0 ? new SimpleModRescorer(modulus) : null;
+    return buildRescorer(args);
   }
 
   @Override
   public Rescorer getMostPopularItemsRescorer(List<String> args) {
-    return new SimpleModRescorer(modulus);
+    return buildRescorer(args);
   }
 
   @Override
   public Rescorer getMostActiveUsersRescorer(List<String> args) {
-    return new SimpleModRescorer(modulus);
+    return buildRescorer(args);
   }
 
   @Override
   public Rescorer getMostSimilarItemsRescorer(List<String> args) {
-    return new SimpleModRescorer(modulus);
+    return buildRescorer(args);
   }
 
 }

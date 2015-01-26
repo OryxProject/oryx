@@ -72,4 +72,14 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
     target("/recommendToAnonymous").request().get(String.class);
   }
 
+  @Test
+  public void testRescorer() {
+    List<IDValue> recs = target("/recommendToAnonymous/I4=1.0/I5=2.0")
+        .queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+    testTopByValue(3, recs, false);
+    Assert.assertEquals("I7", recs.get(0).getID());
+    Assert.assertEquals(2.0 * 0.41001138390689273, recs.get(0).getValue(), FLOAT_EPSILON);
+  }
+
 }

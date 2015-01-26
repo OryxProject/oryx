@@ -70,4 +70,15 @@ public final class SimilarityTest extends AbstractALSServingTest {
   public void testBadOffset() {
     testOffset("/similarity/I0/I2/I6", 3, -1, 0);
   }
+
+  @Test
+  public void testRescorer() {
+    List<IDValue> recs = target("similarity/I0/I4/I6")
+        .queryParam("rescorerParams", "foo").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+    testTopByValue(4, recs, false);
+    Assert.assertEquals("I1", recs.get(1).getID());
+    Assert.assertEquals(2.0 * 0.5571406877613947, recs.get(2).getValue(), DOUBLE_EPSILON);
+  }
+
 }

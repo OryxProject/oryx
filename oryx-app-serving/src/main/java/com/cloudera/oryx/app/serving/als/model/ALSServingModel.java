@@ -280,13 +280,6 @@ public final class ALSServingModel {
     return topN(scoreFn, null, howMany, null);
   }
 
-  // TODO remove:
-  public List<Pair<String,Double>> topN(ToDoubleFunction<float[]> scoreFn,
-                                        int howMany,
-                                        Predicate<String> allowedPredicate) {
-    return topN(scoreFn, null, howMany, allowedPredicate);
-  }
-
   public List<Pair<String,Double>> topN(
       final ToDoubleFunction<float[]> scoreFn,
       final ObjDoubleToDoubleFunction<String> rescoreFn,
