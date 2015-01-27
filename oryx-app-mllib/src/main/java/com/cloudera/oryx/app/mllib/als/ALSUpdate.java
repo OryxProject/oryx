@@ -68,6 +68,8 @@ public final class ALSUpdate extends MLUpdate<String> {
   private final boolean implicit;
   private final List<HyperParamValues<?>> hyperParamValues;
   private final boolean noKnownItems;
+  private final double decayFactor;
+  private final double decayZeroThreshold;
 
   public ALSUpdate(Config config) {
     super(config);
@@ -79,6 +81,11 @@ public final class ALSUpdate extends MLUpdate<String> {
         HyperParams.fromConfig(config, "oryx.als.hyperparams.lambda"),
         HyperParams.fromConfig(config, "oryx.als.hyperparams.alpha"));
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
+    decayFactor = config.getDouble("oryx.als.decay.factor");
+    decayZeroThreshold = config.getDouble("oryx.als.decay.zero-threshold");
+    Preconditions.checkArgument(iterations > 0);
+    Preconditions.checkArgument(decayFactor > 0.0 && decayFactor <= 1.0);
+    Preconditions.checkArgument(decayZeroThreshold >= 0.0);
   }
 
   @Override
@@ -226,18 +233,53 @@ public final class ALSUpdate extends MLUpdate<String> {
    * @param parsedRDD parsed input as {@code String[]}
    * @return {@link Rating}s ordered by timestamp
    */
-  private static JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
-    return parsedRDD.mapToPair(new PairFunction<String[],Long,Rating>() {
-      @Override
-      public Tuple2<Long,Rating> call(String[] tokens) {
-        return new Tuple2<>(
-            Long.valueOf(tokens[3]),
-            new Rating(Integer.parseInt(tokens[0]),
-                       Integer.parseInt(tokens[1]),
-                       // Empty value means 'delete'; propagate as NaN
-                       tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
-      }
-    }).sortByKey().values();
+  private JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
+    JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(
+        new PairFunction<String[],Long,Rating>() {
+          @Override
+          public Tuple2<Long,Rating> call(String[] tokens) {
+            return new Tuple2<>(
+                Long.valueOf(tokens[3]),
+                new Rating(Integer.parseInt(tokens[0]),
+                           Integer.parseInt(tokens[1]),
+                           // Empty value means 'delete'; propagate as NaN
+                           tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+          }
+        });
+
+    if (decayFactor < 1.0) {
+      final double factor = decayFactor;
+      final long now = System.currentTimeMillis();
+      timestampRatingRDD = timestampRatingRDD.mapToPair(
+          new PairFunction<Tuple2<Long,Rating>,Long,Rating>() {
+            @Override
+            public Tuple2<Long,Rating> call(Tuple2<Long,Rating> timestampRating) {
+              long timestamp = timestampRating._1();
+              Rating rating = timestampRating._2();
+              double newRating;
+              if (timestamp >= now) {
+                newRating = rating.rating();
+              } else {
+                double days = (now - timestamp) / 86400000.0;
+                newRating = rating.rating() * Math.pow(factor, days);
+              }
+              return new Tuple2<>(timestamp,
+                                  new Rating(rating.user(), rating.product(), newRating));
+            }
+          });
+    }
+
+    if (decayZeroThreshold > 0.0) {
+      final double theThreshold = decayZeroThreshold;
+      timestampRatingRDD = timestampRatingRDD.filter(new Function<Tuple2<Long,Rating>,Boolean>() {
+        @Override
+        public Boolean call(Tuple2<Long,Rating> timestampRating) {
+          return timestampRating._2().rating() > theThreshold;
+        }
+      });
+    }
+
+    return timestampRatingRDD.sortByKey().values();
   }
 
   /**
