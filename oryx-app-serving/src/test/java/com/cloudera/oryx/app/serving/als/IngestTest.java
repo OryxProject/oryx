@@ -95,7 +95,9 @@ public final class IngestTest extends AbstractALSServingTest {
       Pair<String,String> actual = data.get(i);
       Assert.assertNull(actual.getFirst());
       String[] tokens = actual.getSecond().split(",");
-      Assert.assertArrayEquals(EXPECTED_TOPIC[i], tokens);
+      Assert.assertEquals(EXPECTED_TOPIC[i][0], tokens[0]);
+      Assert.assertEquals(EXPECTED_TOPIC[i][1], tokens[1]);
+      Assert.assertEquals(EXPECTED_TOPIC[i][2], tokens[2]);
     }
   }
 
