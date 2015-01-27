@@ -256,7 +256,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.1.12</version>
+        <version>1.1.13</version>
       </dependency>
 
       <dependency>
@@ -466,7 +466,7 @@
     <koloboke.version>0.6.5</koloboke.version>
     <slf4j.version>1.7.10</slf4j.version>
     <spark.version>1.2.0</spark.version>
-    <tomcat.version>8.0.17</tomcat.version>
+    <tomcat.version>8.0.18</tomcat.version>
     <zookeeper.version>3.5.0-alpha</zookeeper.version>
   </properties>
 
@@ -1018,25 +1018,6 @@
     <maven>3.2.1</maven>
   </prerequisites>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-  </pluginRepositories>
-
   <distributionManagement>
     <repository>
       <id>oryx.repo</id>
@@ -1081,7 +1062,6 @@
         <kafka.version>0.8.2-beta-clabs-kafka-1.1.0</kafka.version>
       </properties>
     </profile>
-    <!--
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
@@ -1095,23 +1075,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <keyname>Sean Owen (Cloudera) &lt;sowen@cloudera.com&gt;</keyname>
-            </configuration>
           </plugin>
         </plugins>
       </build>
     </profile>
-     -->
     <profile>
       <id>jacoco</id>
       <build>
