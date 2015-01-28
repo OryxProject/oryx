@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.mllib.als;
+package com.cloudera.oryx.app.mllib.kmeans;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,48 +22,50 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.dmg.pmml.ClusteringModel;
+import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 
-public final class ALSHyperParamTuningIT extends AbstractALSIT {
+public final class KMeansHyperParamTuningIT extends AbstractKMeansIT {
 
   private static final int DATA_TO_WRITE = 10000;
   private static final int WRITE_INTERVAL_MSEC = 2;
-  private static final int TEST_FEATURES = 7;
-  private static final int TEST_ELEMENTS = 100;
 
   @Test
-  public void testHyperParameterTuning() throws Exception {
+  public void testKMeans() throws Exception {
     Path tempDir = getTempDir();
-    Path dataDir =  tempDir.resolve("data");
+    Path dataDir = tempDir.resolve("data");
     Path modelDir = tempDir.resolve("model");
 
     Map<String,Object> overlayConfig = new HashMap<>();
-    overlayConfig.put("oryx.batch.update-class", ALSUpdate.class.getName());
+    overlayConfig.put("oryx.batch.update-class", KMeansUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    // Choose pairs of values where the best is predictable
-    overlayConfig.put("oryx.als.hyperparams.features", "[1," + TEST_FEATURES + "]");
-    overlayConfig.put("oryx.ml.eval.candidates", 2);
+    overlayConfig.put("oryx.kmeans.hyperparams.k", "[2,100]");
+    overlayConfig.put("oryx.kmeans.iterations", 20);
+    overlayConfig.put("oryx.kmeans.runs", 20);
+    overlayConfig.put("oryx.input-schema.num-features", NUM_FEATURES);
+    overlayConfig.put("oryx.input-schema.categorical-features", "[]");
+    overlayConfig.put("oryx.ml.eval.candidates", 3);
     overlayConfig.put("oryx.ml.eval.parallelism", 2);
+
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();
 
-    startServerProduceConsumeTopics(config,
-                                    new FeaturesALSDataGenerator(TEST_ELEMENTS,
-                                                                 TEST_ELEMENTS,
-                                                                 TEST_FEATURES),
-                                    DATA_TO_WRITE,
-                                    WRITE_INTERVAL_MSEC);
+    startServerProduceConsumeTopics(
+        config,
+        new RandomKMeansDataGenerator(NUM_FEATURES),
+        DATA_TO_WRITE,
+        WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
 
@@ -74,15 +76,11 @@ public final class ALSHyperParamTuningIT extends AbstractALSIT {
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
-    assertEquals(8, pmml.getExtensions().size());
-    assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "X"));
-    assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "Y"));
-    Map<String,Object> expected = new HashMap<>();
-    expected.put("features", TEST_FEATURES);
-    expected.put("lambda", 0.001);
-    expected.put("implicit", true);
-    expected.put("alpha", 1.0);
-    checkExtensions(pmml, expected);
+    Model rootModel = pmml.getModels().get(0);
+    ClusteringModel clusteringModel = (ClusteringModel) rootModel;
+
+    // Should have picked highest k
+    assertEquals(100, clusteringModel.getNumberOfClusters().intValue());
   }
 
 }

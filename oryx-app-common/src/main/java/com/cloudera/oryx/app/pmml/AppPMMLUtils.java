@@ -102,7 +102,7 @@ public final class AppPMMLUtils {
    * @param values {@code double} value to make into a PMML {@link Array}
    * @return PMML {@link Array} representation
    */
-  public static Array toArray(double[] values) {
+  public static Array toArray(double... values) {
     List<Double> valueList = new ArrayList<>(values.length);
     for (double value : values) {
       valueList.add(value);

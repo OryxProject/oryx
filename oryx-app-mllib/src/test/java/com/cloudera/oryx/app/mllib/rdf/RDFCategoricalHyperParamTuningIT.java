@@ -24,8 +24,6 @@ import java.util.Map;
 import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.example.Example;
@@ -40,8 +38,6 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 
 public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
-
-  private static final Logger log = LoggerFactory.getLogger(RDFCategoricalHyperParamTuningIT.class);
 
   private static final int DATA_TO_WRITE = 10000;
   private static final int WRITE_INTERVAL_MSEC = 2;
@@ -80,8 +76,6 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
         WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
-    log.info("Model instance dirs: {}", modelInstanceDirs);
-    assertFalse("No models?", modelInstanceDirs.isEmpty());
 
     checkIntervals(modelInstanceDirs.size(), DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
@@ -90,7 +84,6 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
-    log.debug("{}", PMMLUtils.toString(pmml));
 
     assertEquals(3, pmml.getExtensions().size());
     Map<String,Object> expected = new HashMap<>();
