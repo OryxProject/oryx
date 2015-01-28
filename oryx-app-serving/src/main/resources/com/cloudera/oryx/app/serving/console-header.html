@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
+
+  Cloudera, Inc. licenses this file to you under the Apache License,
+  Version 2.0 (the "License"). You may not use this file except in
+  compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  CONDITIONS OF ANY KIND, either express or implied. See the License for
+  the specific language governing permissions and limitations under the
+  License.
+-->
+<html>
+<head>
+<title>Oryx Serving Layer</title>
+<style type="text/css">
+body {background-color:#01596e}
+body,p,th,td,h1,h2,h3 {font-family:"Gill Sans","Gill Sans MT",Helvetica,sans-serif;font-weight:300;color:white}
+a {text-decoration:none}
+table,th,td {border:1px dotted black}
+th,td {padding:5px;white-space:nowrap;vertical-align:top}
+td {text-align:right}
+table.layout > tbody > tr > th, table.layout > tbody > tr > td, table.layout {border:0;padding:0;text-align:left}
+table {border-collapse:collapse}
+h1,h2,h3,a {color:#72d2db}
+h1,h2,h3 {text-transform:uppercase}
+hr {margin:20px 0 10px 0}
+input {width:70px}
+a.arrow {line-height:100%;font-size:200%;margin-left:10px}
+.meter {padding:0;vertical-align:middle}
+.meter > span {display:block;height:100%;background-color:white;position:relative;overflow:hidden}
+</style>
+<script type="text/javascript"><![CDATA[
+function doQuery(endpoint, isGet, paramSuffixes, postBodyElement) {
+
+    if (typeof(paramSuffixes) == "undefined") {
+        paramSuffixes = [];
+    }
+    if (typeof(postBodyElement) == "undefined") {
+        postBodyElement = null;
+    }
+
+    var httpmethod = isGet ? "GET" : "POST";
+    var pathElements = [];
+    pathElements.push(endpoint);
+
+    var paramPrefix = endpoint.replace("/", "");
+    for (var i = 0; i < paramSuffixes.length; i++) {
+        var elementValue = document.getElementById(paramPrefix + "-" + paramSuffixes[i]).value;
+        elementValue = encodeURIComponent(elementValue);
+        // Hack: we have to double-escape forward-slash so that Tomcat won't read it as a path delimiter,
+        // then un-escape again on the other end. / already becomes %2F, and so %2F becomes %252F
+        elementValue = elementValue.replace(/%2F/gi,"%252F");
+        pathElements.push(elementValue);
+    }
+    var path = pathElements.join("/");
+    var resultElement = document.getElementById("request-result");
+
+    resultElement.innerHTML = "[Querying...]";
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState == 4) {
+            var httpStatus = xmlHttp.status;
+            if (httpStatus == 200) {
+                var responseText = xmlHttp.responseText;
+                if (responseText.length == 0) {
+                    responseText = "[empty]";
+                }
+                resultElement.innerHTML = responseText;
+            } else {
+                resultElement.innerHTML = "[HTTP Error " + httpStatus + " " + xmlHttp.statusText + "]";
+            }
+        }
+    };
+    xmlHttp.open(httpmethod, path);
+    xmlHttp.setRequestHeader("Accept", "text/plain");
+    if (postBodyElement == null) {
+        xmlHttp.send(null);
+    } else {
+        xmlHttp.send(document.getElementById(postBodyElement).value);
+    }
+    return false;
+}
+
+function handleReturn(event, endpoint, isGet, paramSuffixes, postBodyElement) {
+    if (event.keyCode == 13) {
+        doQuery(endpoint, isGet, paramSuffixes, postBodyElement);
+        return false;
+    }
+    return true;
+}
+
+function expandOrCollapse(divID, arrowSpanID) {
+  var theDiv = document.getElementById(divID);
+  var theArrowSpan = document.getElementById(arrowSpanID);
+  if (theDiv.style.display == 'none') {
+    theDiv.style.display = 'block';
+    theArrowSpan.innerHTML = '&#x25BC;';
+  } else {
+    theDiv.style.display = 'none';
+    theArrowSpan.innerHTML = '&#x25B6;';
+  }
+}
+]]></script>
+</head>
+<body>
+<div style="width:800px;margin-left:auto;margin-right:auto;padding:10px">
+<h1>Oryx Serving Layer</h1>
