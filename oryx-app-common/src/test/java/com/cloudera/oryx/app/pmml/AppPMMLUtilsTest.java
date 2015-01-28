@@ -93,7 +93,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
 
   @Test
   public void testToArrayDouble() {
-    Array a = AppPMMLUtils.toArray(new double[] {-1.0, 2.01, 3.5});
+    Array a = AppPMMLUtils.toArray(-1.0, 2.01, 3.5);
     assertEquals(3, a.getN().intValue());
     assertEquals(Array.Type.REAL, a.getType());
     assertEquals("-1.0 2.01 3.5", a.getValue());

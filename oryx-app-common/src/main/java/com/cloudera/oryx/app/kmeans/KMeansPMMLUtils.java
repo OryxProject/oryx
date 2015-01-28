@@ -29,6 +29,7 @@ import org.dmg.pmml.PMML;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.text.TextUtils;
 
 public final class KMeansPMMLUtils {
@@ -65,7 +66,7 @@ public final class KMeansPMMLUtils {
    * @param pmml PMML representation of Clusters
    * @return List of {@link ClusterInfo}
    */
-  public static List<ClusterInfo> read(final PMML pmml) {
+  public static List<ClusterInfo> read(PMML pmml) {
     List<Model> models = pmml.getModels();
     Model model = models.get(0);
 
@@ -75,24 +76,15 @@ public final class KMeansPMMLUtils {
     List<Cluster> clusters = clusteringModel.getClusters();
     List<ClusterInfo> clusterInfoList = new ArrayList<>(clusters.size());
 
-    for (int i = 0; i < clusters.size(); i++) {
-      Cluster cluster = clusters.get(i);
+    for (Cluster cluster : clusters) {
+      String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
       ClusterInfo clusterInfo =
-          new ClusterInfo(Integer.parseInt(cluster.getId()),
-              parseVector(TextUtils.parseCSV(cluster.getArray().getValue())));
+          new ClusterInfo(Integer.parseInt(cluster.getId()), VectorMath.parseVector(tokens));
       clusterInfo.setCount(cluster.getSize());
       clusterInfoList.add(clusterInfo);
     }
 
     return clusterInfoList;
-  }
-
-  private static double[] parseVector(String[] values) {
-    double[] doubles = new double[values.length];
-    for (int i = 0; i < values.length; i++) {
-      doubles[i] = Double.parseDouble(values[i]);
-    }
-    return doubles;
   }
 
 }

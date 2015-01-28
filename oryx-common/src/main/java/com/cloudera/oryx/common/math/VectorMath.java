@@ -121,4 +121,16 @@ public final class VectorMath {
     return doubles;
   }
 
+  /**
+   * @param values numeric values as {@link String}s
+   * @return values parsed as {@code double[]}
+   */
+  public static double[] parseVector(String[] values) {
+    double[] doubles = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      doubles[i] = Double.parseDouble(values[i]);
+    }
+    return doubles;
+  }
+
 }

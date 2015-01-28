@@ -54,6 +54,13 @@ public final class VectorMathTest extends OryxTest {
   }
 
   @Test
+  public void testParseVector() {
+    assertArrayEquals(
+        new double[] {-1.0, 2.01, 3.5},
+        VectorMath.parseVector(new String[] {"-1.0", "2.01", "3.5"}));
+  }
+
+  @Test
   public void testSmall() {
     float[] a = { 1.0e-24f };
     assertEquals(1.0e-24 * 1.0e-24, VectorMath.dot(a, a));

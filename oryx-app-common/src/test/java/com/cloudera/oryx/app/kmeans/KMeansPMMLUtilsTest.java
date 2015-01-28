@@ -15,13 +15,11 @@
 
 package com.cloudera.oryx.app.kmeans;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.Array;
 import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
@@ -38,6 +36,7 @@ import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -46,7 +45,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 public final class KMeansPMMLUtilsTest extends OryxTest {
 
   private static final int NUM_CLUSTERS = 2;
-  private static final int NUM_CLUSTER_SIZE = 10;
+  private static final int CLUSTER_SIZE = 10;
   private static final int NUM_DIMENSIONS = 2;
 
   @Test
@@ -66,7 +65,7 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
     List<ClusterInfo> clusterInfoList = KMeansPMMLUtils.read(pmml);
     assertEquals(NUM_CLUSTERS, clusterInfoList.size());
     assertEquals(NUM_DIMENSIONS, clusterInfoList.get(0).getCenter().length);
-    assertEquals(NUM_CLUSTER_SIZE, clusterInfoList.get(1).getCount());
+    assertEquals(CLUSTER_SIZE, clusterInfoList.get(1).getCount());
   }
 
   public static PMML buildDummyClusteringModel() {
@@ -96,30 +95,22 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
     miningField3.setUsageType(FieldUsageType.ACTIVE);
     miningSchema.getMiningFields().add(miningField3);
 
-    ClusteringModel clusteringModel =
-        new ClusteringModel(miningSchema,
-            new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
-            MiningFunctionType.CLUSTERING, ClusteringModel.ModelClass.CENTER_BASED, 3)
-            .withAlgorithmName("K-Means||")
-            .withNumberOfClusters(NUM_CLUSTERS);
+    ClusteringModel clusteringModel = new ClusteringModel(
+        miningSchema,
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        MiningFunctionType.CLUSTERING,
+        ClusteringModel.ModelClass.CENTER_BASED,
+        NUM_CLUSTERS);
 
-    Cluster clusterOne = new Cluster();
-    String clusterCenterOne = Arrays.toString(new double[]{2.0, 3.0});
-    clusterOne.withSize(NUM_CLUSTER_SIZE)
+    clusteringModel.getClusters().add(new Cluster()
         .withId("0")
-        .withArray(new Array()
-            .withValue(clusterCenterOne.substring(1, clusterCenterOne.length() - 1))
-            .withType(Array.Type.REAL).withN(NUM_DIMENSIONS));
-    clusteringModel.getClusters().add(clusterOne);
+        .withSize(CLUSTER_SIZE)
+        .withArray(AppPMMLUtils.toArray(2.0, 3.0)));
 
-    Cluster clusterTwo = new Cluster();
-    String clusterCenterTwo = Arrays.toString(new double[]{6.0, 10.0});
-    clusterTwo.withSize(NUM_CLUSTER_SIZE)
+    clusteringModel.getClusters().add(new Cluster()
         .withId("1")
-        .withArray(new Array()
-            .withValue(clusterCenterTwo.substring(1, clusterCenterTwo.length() - 1))
-            .withType(Array.Type.REAL).withN(NUM_DIMENSIONS));
-    clusteringModel.getClusters().add(clusterTwo);
+        .withSize(CLUSTER_SIZE)
+        .withArray(AppPMMLUtils.toArray(6.0, 10.0)));
 
     pmml.getModels().add(clusteringModel);
 

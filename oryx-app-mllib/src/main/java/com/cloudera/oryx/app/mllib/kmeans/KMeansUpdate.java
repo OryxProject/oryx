@@ -41,15 +41,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
-public class KMeansUpdate extends MLUpdate<String> {
+public final class KMeansUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdate.class);
 
@@ -191,12 +193,10 @@ public class KMeansUpdate extends MLUpdate<String> {
    * @return {@link KMeansModel} from PMML
    */
   private static KMeansModel pmmlToKMeansModel(PMML pmml) {
-    ClusteringModel clusteringModel = (ClusteringModel) pmml.getModels().get(0);
-    List<Cluster> clusters = clusteringModel.getClusters();
-    Vector[] clusterCenters = new Vector[clusters.size()];
-    for (Cluster cluster : clusters) {
-      clusterCenters[Integer.parseInt(cluster.getId())] =
-          parseVector(TextUtils.parseDelimited(cluster.getArray().getValue(), ' '));
+    List<ClusterInfo> clusterInfos = KMeansPMMLUtils.read(pmml);
+    Vector[] clusterCenters = new Vector[clusterInfos.size()];
+    for (ClusterInfo clusterInfo : clusterInfos) {
+      clusterCenters[clusterInfo.getID()] = Vectors.dense(clusterInfo.getCenter());
     }
     return new KMeansModel(clusterCenters);
   }
@@ -205,17 +205,9 @@ public class KMeansUpdate extends MLUpdate<String> {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override
       public Vector call(String[] tokens) {
-        return parseVector(tokens);
+        return Vectors.dense(VectorMath.parseVector(tokens));
       }
     });
-  }
-
-  private static Vector parseVector(String[] values) {
-    double[] doubles = new double[values.length];
-    for (int i = 0; i < values.length; i++) {
-      doubles[i] = Double.parseDouble(values[i]);
-    }
-    return Vectors.dense(doubles);
   }
 
 }
