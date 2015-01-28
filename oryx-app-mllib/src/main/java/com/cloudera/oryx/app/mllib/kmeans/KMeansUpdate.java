@@ -72,6 +72,11 @@ public class KMeansUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(
         initializationStrategy.equals(KMeans.K_MEANS_PARALLEL()) ||
             initializationStrategy.equals(KMeans.RANDOM()));
+    // Should be an unsupervised problem. This impl only supports numeric features.
+    Preconditions.checkArgument(!inputSchema.hasTarget());
+    for (int i = 0; i < inputSchema.getNumFeatures(); i++) {
+      Preconditions.checkArgument(!inputSchema.isCategorical(i));
+    }
   }
 
   /**
@@ -135,7 +140,10 @@ public class KMeansUpdate extends MLUpdate<String> {
                          Path modelParentPath,
                          JavaRDD<String> testData) {
     JavaRDD<Vector> testingData = parsedToVectorRDD(testData.map(MLFunctions.PARSE_FN));
-    return pmmlToKMeansModel(model).computeCost(testingData.rdd());
+    double cost = pmmlToKMeansModel(model).computeCost(testingData.rdd());
+    double eval = 1.0 / cost;
+    log.info("Cost {} / eval {}", cost, eval);
+    return eval;
   }
 
   /**

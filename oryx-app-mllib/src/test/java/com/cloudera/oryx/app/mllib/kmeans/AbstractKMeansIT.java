@@ -20,5 +20,6 @@ import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 public abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
 
   protected static final int NUM_CLUSTERS = 3;
+  protected static final int NUM_FEATURES = 5;
 
 }
