@@ -26,6 +26,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 
 /**
  * Text and parsing related utility methods.
@@ -52,7 +53,7 @@ public final class TextUtils {
    * @return delimited strings, parsed according to RFC 4180 but with the given delimiter
    */
   public static String[] parseDelimited(String delimited, char delimiter) {
-    CSVFormat format = formatForDelimiter(delimiter);
+    CSVFormat format = formatForDelimiter(delimiter, false);
     Iterator<CSVRecord> records;
     try {
       records = CSVParser.parse(delimited, format).iterator();
@@ -91,7 +92,19 @@ public final class TextUtils {
    *  are escaped by doubling) and using the given delimiter
    */
   public static String joinDelimited(Iterable<?> elements, char delimiter) {
-    CSVFormat format = formatForDelimiter(delimiter);
+    return joinDelimited(elements, delimiter, false);
+  }
+
+  /**
+   * @param elements values to join by the delimiter to make one line of text
+   * @param delimiter delimiter to put between fields
+   * @param noQuote force no quoting. Useful in some cases where it's known that quoting
+   *  isn't needed
+   * @return one line of text, with RFC 4180 escaping (values with comma are quoted; double-quotes
+   *  are escaped by doubling, unless {@code noQuote} is set) and using the given delimiter
+   */
+  public static String joinDelimited(Iterable<?> elements, char delimiter, boolean noQuote) {
+    CSVFormat format = formatForDelimiter(delimiter, noQuote);
     StringWriter out = new StringWriter();
     try (CSVPrinter printer = new CSVPrinter(out, format)) {
       for (Object element : elements) {
@@ -112,10 +125,15 @@ public final class TextUtils {
     }
   }
 
-  private static CSVFormat formatForDelimiter(char delimiter) {
-    return delimiter == CSV_FORMAT.getDelimiter() ?
-        CSV_FORMAT :
-        CSV_FORMAT.withDelimiter(delimiter);
+  private static CSVFormat formatForDelimiter(char delimiter, boolean noQuote) {
+    CSVFormat format = CSV_FORMAT;
+    if (delimiter != format.getDelimiter()) {
+      format = format.withDelimiter(delimiter);
+    }
+    if (noQuote) {
+      format = format.withEscape('\\').withQuoteMode(QuoteMode.NONE);
+    }
+    return format;
   }
 
 }

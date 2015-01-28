@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
+import org.dmg.pmml.Array;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
@@ -40,6 +41,7 @@ import org.dmg.pmml.Value;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.text.TextUtils;
 
 public final class AppPMMLUtils {
 
@@ -93,7 +95,30 @@ public final class AppPMMLUtils {
     if (spaceSeparated.isEmpty()) {
       return Collections.emptyList();
     }
-    return Arrays.asList(spaceSeparated.split(" "));
+    return Arrays.asList(TextUtils.parseDelimited(spaceSeparated, ' '));
+  }
+
+  /**
+   * @param values {@code double} value to make into a PMML {@link Array}
+   * @return PMML {@link Array} representation
+   */
+  public static Array toArray(double[] values) {
+    List<Double> valueList = new ArrayList<>(values.length);
+    for (double value : values) {
+      valueList.add(value);
+    }
+    String arrayValue = TextUtils.joinDelimited(valueList, ' ', true);
+    return new Array(arrayValue, Array.Type.REAL).withN(valueList.size());
+  }
+
+  /**
+   * @param values values to make into a PMML {@link Array}
+   * @param type type of {@link Array} elements
+   * @return PMML {@link Array} representation
+   */
+  public static Array toArray(Collection<?> values, Array.Type type) {
+    String arrayValue = TextUtils.joinDelimited(values, ' ');
+    return new Array(arrayValue, type).withN(values.size());
   }
 
   /**

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.dmg.pmml.Array;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
@@ -80,6 +81,22 @@ public final class AppPMMLUtilsTest extends OryxTest {
     assertEquals(Arrays.asList("foo", "bar", "baz"),
                  AppPMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
     assertTrue(AppPMMLUtils.parseArray(Collections.singletonList("")).isEmpty());
+  }
+
+  @Test
+  public void testToArray() {
+    Array a = AppPMMLUtils.toArray(Arrays.asList("foo", "b ar"), Array.Type.STRING);
+    assertEquals(2, a.getN().intValue());
+    assertEquals(Array.Type.STRING, a.getType());
+    assertEquals("foo \"b ar\"", a.getValue());
+  }
+
+  @Test
+  public void testToArrayDouble() {
+    Array a = AppPMMLUtils.toArray(new double[] {-1.0, 2.01, 3.5});
+    assertEquals(3, a.getN().intValue());
+    assertEquals(Array.Type.REAL, a.getType());
+    assertEquals("-1.0 2.01 3.5", a.getValue());
   }
 
   private static InputSchema buildTestSchema() {
