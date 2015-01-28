@@ -75,7 +75,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
         WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
-    log.info("Model instance dirs: {}", modelInstanceDirs);
 
     int generations = modelInstanceDirs.size();
     checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
@@ -86,7 +85,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
     productIDs.add(Collections.<Integer>emptySet()); // Add dummy empty set as prior value
 
     for (Path modelInstanceDir : modelInstanceDirs) {
-      log.info("Testing model instance dir {}", modelInstanceDir);
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
       assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
@@ -156,7 +154,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
-        log.debug("{}", value);
         PMML pmml = PMMLUtils.fromString(value);
 
         checkHeader(pmml.getHeader());

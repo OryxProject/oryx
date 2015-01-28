@@ -35,8 +35,6 @@ import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
@@ -46,8 +44,6 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 
 public final class RDFUpdateIT extends AbstractRDFIT {
-
-  private static final Logger log = LoggerFactory.getLogger(RDFUpdateIT.class);
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
@@ -84,13 +80,11 @@ public final class RDFUpdateIT extends AbstractRDFIT {
         WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
-    log.info("Model instance dirs: {}", modelInstanceDirs);
 
     int generations = modelInstanceDirs.size();
     checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
     for (Path modelInstanceDir : modelInstanceDirs) {
-      log.info("Testing model instance dir {}", modelInstanceDir);
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
       assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
       assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
@@ -105,7 +99,6 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       String value = km.getSecond();
 
       assertEquals("MODEL", type);
-      log.debug("{}", value);
 
       PMML pmml = PMMLUtils.fromString(value);
 

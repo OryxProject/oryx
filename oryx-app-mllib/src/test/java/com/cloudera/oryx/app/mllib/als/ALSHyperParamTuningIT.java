@@ -24,8 +24,6 @@ import java.util.Map;
 import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -34,8 +32,6 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 
 public final class ALSHyperParamTuningIT extends AbstractALSIT {
-
-  private static final Logger log = LoggerFactory.getLogger(ALSHyperParamTuningIT.class);
 
   private static final int DATA_TO_WRITE = 10000;
   private static final int WRITE_INTERVAL_MSEC = 2;
@@ -70,8 +66,6 @@ public final class ALSHyperParamTuningIT extends AbstractALSIT {
                                     WRITE_INTERVAL_MSEC);
 
     List<Path> modelInstanceDirs = IOUtils.listFiles(modelDir, "*");
-    log.info("Model instance dirs: {}", modelInstanceDirs);
-    assertFalse("No models?", modelInstanceDirs.isEmpty());
 
     checkIntervals(modelInstanceDirs.size(), DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
