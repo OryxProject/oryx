@@ -13,14 +13,14 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.als;
+package com.cloudera.oryx.app.serving.kmeans;
 
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class ConsoleTest extends AbstractALSServingTest {
+public final class ConsoleTest extends AbstractKMeansServingTest {
 
   @Test
   public void testConsole() {
@@ -28,8 +28,8 @@ public final class ConsoleTest extends AbstractALSServingTest {
     String[] substrings = {
         "DOCTYPE",
         "Oryx Serving Layer",
-        "Alternating Least Squares",
-        "/recommend",
+        "K-means",
+        "/assign",
         "<form"
     };
     for (String substring : substrings) {

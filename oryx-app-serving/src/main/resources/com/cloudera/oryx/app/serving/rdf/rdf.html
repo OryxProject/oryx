@@ -1,0 +1,49 @@
+<h2>Random Decision Forests</h2>
+
+<table class="layout" style="width:100%"><tr><td style="width:60%">
+
+    <table class="layout">
+
+        <form action="#" style="padding:10px">
+
+            <tr><td><code>/predict</code></td>
+                <td colspan="2">
+                    <textarea rows="5" id="predict-datum">foo,1,bar,...</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('predict',true,new Array('datum'))">&amp;#x27AC;</a></td>
+            </tr>
+
+            <tr><td><code>/feature/importance</code></td>
+                <td><code>/</code><input type="text" id="featureimportance-feature" onkeyup="return handleReturn(event,'feature/importance',true,new Array('feature'))"/></td>
+                <td/>
+                <td><a href="#" class="arrow" onclick="return doQuery('feature/importance',true,new Array('feature'))">&amp;#x27AC;</a></td>
+            </tr>
+
+            <tr><td><code>/classificationDistribution</code></td>
+                <td><code>/</code><input type="text" id="classificationDistribution-feature" onkeyup="return handleReturn(event,'classificationDistribution',true,new Array('feature'))"/></td>
+                <td/>
+                <td><a href="#" class="arrow" onclick="return doQuery('classificationDistribution',true,new Array('feature'))">&amp;#x27AC;</a></td>
+            </tr>
+
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/train</code></td>
+                <td colspan="2">
+                    <textarea rows="5" id="trainData">foo,1,bar,3</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('train',false,[],'trainData')">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+    </table>
+
+</td><td style="width:40%">
+
+    <div style="background-color:#404040;padding:10px;min-height:500px;white-space:normal">
+        <pre><code id="request-result">[]</code></pre>
+    </div>
+
+</td></tr></table>

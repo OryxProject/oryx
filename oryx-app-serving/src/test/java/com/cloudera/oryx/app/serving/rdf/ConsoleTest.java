@@ -13,14 +13,14 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.als;
+package com.cloudera.oryx.app.serving.rdf;
 
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class ConsoleTest extends AbstractALSServingTest {
+public final class ConsoleTest extends AbstractRDFServingTest {
 
   @Test
   public void testConsole() {
@@ -28,8 +28,8 @@ public final class ConsoleTest extends AbstractALSServingTest {
     String[] substrings = {
         "DOCTYPE",
         "Oryx Serving Layer",
-        "Alternating Least Squares",
-        "/recommend",
+        "Random Decision Forests",
+        "/predict",
         "<form"
     };
     for (String substring : substrings) {

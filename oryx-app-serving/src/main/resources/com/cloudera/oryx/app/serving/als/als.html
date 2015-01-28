@@ -1,1 +1,165 @@
-<p>TODO: ALS console</p>
+<h2>Alternating Least Squares</h2>
+
+<table class="layout" style="width:100%"><tr><td style="width:60%">
+
+    <table class="layout">
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td colspan="2"></td></tr>
+            <tr><td><code>/recommend</code></td>
+                <td><code>/</code><input type="text" id="recommend-userid" onkeyup="return handleReturn(event, 'recommend',true,['userid'])"/></td>
+                <td></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('recommend',true,['userid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;Item ID 1</td><td>&amp;nbsp;&amp;nbsp;<em>(Item ID 2)</em></td><td></td></tr>
+            <tr><td><code>/recommendToAnonymous</code></td>
+                <td><code>/</code><input type="text" id="recommendToAnonymous-itemid1" onkeyup="return handleReturn(event,'recommendToAnonymous',true,['itemid1','itemid2'])"/></td>
+                <td><code>/</code><input type="text" id="recommendToAnonymous-itemid2" onkeyup="return handleReturn(event,'recommendToAnonymous',true,['itemid1','itemid2'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('recommendToAnonymous',true,['itemid1','itemid2'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;Item ID 1</td><td>&amp;nbsp;&amp;nbsp;<em>(Item ID 2)</em></td><td></td></tr>
+            <tr><td><code>/similarity</code></td>
+                <td><code>/</code><input type="text" id="similarity-itemid1" onkeyup="return handleReturn(event,'similarity',true,['itemid1','itemid2'])"/></td>
+                <td><code>/</code><input type="text" id="similarity-itemid2" onkeyup="return handleReturn(event,'similarity',true,['itemid1','itemid2'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('similarity',true,['itemid1','itemid2'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;To Item</td><td>&amp;nbsp;&amp;nbsp;Item ID</td><td></td></tr>
+            <tr><td><code>/similarityToItem</code></td>
+                <td><code>/</code><input type="text" id="similarityToItem-toitem" onkeyup="return handleReturn(event,'similarityToItem',true,['toitem','itemid'])"/></td>
+                <td><code>/</code><input type="text" id="similarityToItem-itemid" onkeyup="return handleReturn(event,'similarityToItem',true,['toitem','itemid'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('similarityToItem',true,['toitem','itemid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td>&amp;nbsp;&amp;nbsp;Item ID</td><td></td></tr>
+            <tr><td><code>/estimate</code></td>
+                <td><code>/</code><input type="text" id="estimate-userid" onkeyup="return handleReturn(event,'estimate',true,['userid','itemid'])"/></td>
+                <td><code>/</code><input type="text" id="estimate-itemid" onkeyup="return handleReturn(event,'estimate',true,['userid','itemid'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('estimate',true,['userid','itemid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td>&amp;nbsp;&amp;nbsp;Item ID</td><td></td></tr>
+            <tr><td><code>/because</code></td>
+                <td><code>/</code><input type="text" id="because-userid" onkeyup="return handleReturn(event,'because',true,['userid','itemid'])"/></td>
+                <td><code>/</code><input type="text" id="because-itemid" onkeyup="return handleReturn(event,'because',true,['userid','itemid'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('because',true,['userid','itemid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td colspan="2"></td></tr>
+            <tr><td><code>/mostSurprising</code></td>
+                <td><code>/</code><input type="text" id="mostSurprising-userid" onkeyup="return handleReturn(event, 'mostSurprising',true,['userid'])"/></td>
+                <td></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('mostSurprising',true,['userid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/mostPopularItems</code></td>
+                <td colspan="2"/>
+                <td><a href="#" class="arrow" onclick="return doQuery('mostPopularItems',true)">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/mostActiveUsers</code></td>
+                <td colspan="2"/>
+                <td><a href="#" class="arrow" onclick="return doQuery('mostActiveUsers',true)">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/popularRepresentativeItems</code></td>
+                <td colspan="2"/>
+                <td><a href="#" class="arrow" onclick="return doQuery('popularRepresentativeItems',true)">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/item/allIDs</code></td>
+                <td colspan="2"/>
+                <td><a href="#" class="arrow" onclick="return doQuery('item/allIDs',true)">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/user/allIDs</code></td>
+                <td colspan="2"/>
+                <td><a href="#" class="arrow" onclick="return doQuery('user/allIDs',true)">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td colspan="2"></td></tr>
+            <tr><td><code>/knownItems</code></td>
+                <td><code>/</code><input type="text" id="knownItems-userid" onkeyup="return handleReturn(event, 'knownItems',true,['userid'])"/></td>
+                <td></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('knownItems',true,['userid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td></td><td>&amp;nbsp;&amp;nbsp;User ID</td><td>&amp;nbsp;&amp;nbsp;Item ID</td><td></td></tr>
+            <tr><td><code>/pref</code></td>
+                <td><code>/</code><input type="text" id="pref-userid" onkeyup="return handleReturn(event,'pref',false,['userid','itemid'])"/></td>
+                <td><code>/</code><input type="text" id="pref-itemid" onkeyup="return handleReturn(event,'pref',false,['userid','itemid'])"/></td>
+                <td><a href="#" class="arrow" onclick="return doQuery('pref',false,['userid','itemid'])">&amp;#x27AC;</a></td></tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="ingest" method="post" enctype="multipart/form-data" style="padding:10px" id="ingestFileForm">
+            <tr><td><code>/ingest</code></td>
+                <td colspan="2">
+                    <input type="file" name="ingestedFile" style="width:140px"/>
+                </td>
+                <td><a href="#" class="arrow" onclick="document.getElementById('ingestFileForm').submit()">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/ingest</code></td>
+                <td colspan="2">
+                    <textarea rows="20" id="ingestData">userID,itemID[,value]...</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('ingest',false,[],'ingestData')">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+    </table>
+
+</td><td style="width:40%">
+
+    <div style="background-color:#404040;padding:10px;min-height:500px;white-space:normal">
+        <pre><code id="request-result">[]</code></pre>
+    </div>
+
+</td></tr></table>

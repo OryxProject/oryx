@@ -15,7 +15,10 @@
 
 package com.cloudera.oryx.lambda.serving;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -64,9 +67,9 @@ public final class OryxApplication extends Application {
     Set<Class<?>> classes = new HashSet<>();
     for (String thePackage : packages.split(",")) {
       Reflections reflections = new Reflections(thePackage);
-      classes.addAll(reflections.getTypesAnnotatedWith(Path.class));
-      classes.addAll(reflections.getTypesAnnotatedWith(Produces.class));
-      classes.addAll(reflections.getTypesAnnotatedWith(Provider.class));
+      classes.addAll(getClassesInPackageAnnotatedBy(thePackage, reflections, Path.class));
+      classes.addAll(getClassesInPackageAnnotatedBy(thePackage, reflections, Produces.class));
+      classes.addAll(getClassesInPackageAnnotatedBy(thePackage, reflections, Provider.class));
     }
     // Want to configure these globally, but not depend on Jersey, even though it's
     // what will be used in practice by the provided apps.
@@ -79,6 +82,21 @@ public final class OryxApplication extends Application {
       }
     }
     log.debug("Found JAX-RS resources: {}", classes);
+    return classes;
+  }
+
+  private static Collection<Class<?>> getClassesInPackageAnnotatedBy(
+      String thePackage,
+      Reflections reflections,
+      Class<? extends Annotation> annotation) {
+    Set<Class<?>> classes = reflections.getTypesAnnotatedWith(annotation);
+    // Filter classes actually in subpackages
+    for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
+      String classPackage = it.next().getPackage().getName();
+      if (!classPackage.equals(thePackage)) {
+        it.remove();
+      }
+    }
     return classes;
   }
 

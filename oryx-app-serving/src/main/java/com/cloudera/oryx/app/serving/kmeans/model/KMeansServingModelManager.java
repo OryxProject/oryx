@@ -34,8 +34,7 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
   private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  // TODO: Replace by KMeansServingModel
-  private Object model;
+  private KMeansServingModel model;
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
@@ -79,7 +78,7 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
   }
 
   @Override
-  public Object getModel() {
+  public KMeansServingModel getModel() {
     return model;
   }
 

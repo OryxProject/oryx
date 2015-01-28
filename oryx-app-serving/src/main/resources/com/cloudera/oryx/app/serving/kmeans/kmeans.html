@@ -1,0 +1,46 @@
+<h2>K-means</h2>
+
+<table class="layout" style="width:100%"><tr><td style="width:60%">
+
+    <table class="layout">
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/assign</code></td>
+                <td colspan="2">
+                    <textarea rows="5" id="assign-datum">foo,1,bar,3</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('assign',true,new Array('datum'))">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/distanceToNearest</code></td>
+                <td colspan="2">
+                    <textarea rows="5" id="distanceToNearest-datum">foo,1,bar,3</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('distanceToNearest',true,new Array('datum'))">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+        <tr><td colspan="4"><hr/></td></tr>
+
+        <form action="#" style="padding:10px">
+            <tr><td><code>/add</code></td>
+                <td colspan="2">
+                    <textarea rows="5" id="addData">foo,1,bar,3</textarea>
+                </td>
+                <td><a href="#" class="arrow" onclick="return doQuery('add',false,[],'addData')">&amp;#x27AC;</a></td>
+            </tr>
+        </form>
+
+    </table>
+
+</td><td style="width:40%">
+
+    <div style="background-color:#404040;padding:10px;min-height:500px;white-space:normal">
+        <pre><code id="request-result">[]</code></pre>
+    </div>
+
+</td></tr></table>
