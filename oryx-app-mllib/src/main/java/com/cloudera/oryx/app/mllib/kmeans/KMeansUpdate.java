@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.mllib.kmeans;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,11 +29,9 @@ import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
-import org.dmg.pmml.Array;
 import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringField;
 import org.dmg.pmml.ClusteringModel;
-import org.dmg.pmml.CompareFunctionType;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.FieldName;
 import org.dmg.pmml.MiningFunctionType;
@@ -137,7 +134,6 @@ public class KMeansUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
-    // TODO: A Strategy pattern to be able to invoke different evaluation metrics
     JavaRDD<Vector> testingData = parsedToVectorRDD(testData.map(MLFunctions.PARSE_FN));
     return pmmlToKMeansModel(model).computeCost(testingData.rdd());
   }
@@ -154,28 +150,30 @@ public class KMeansUpdate extends MLUpdate<String> {
     return pmml;
   }
 
-  private ClusteringModel pmmlClusteringModel(KMeansModel model, Map<Integer,Long> clusterSizesMap) {
-    ClusteringModel clusteringModel =
-        new ClusteringModel(AppPMMLUtils.buildMiningSchema(inputSchema),
-            new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE)
-                .withMeasure(new SquaredEuclidean()),
-            MiningFunctionType.CLUSTERING,
-            ClusteringModel.ModelClass.CENTER_BASED,
-            model.clusterCenters().length)
-            .withNumberOfClusters(model.k());
+  private ClusteringModel pmmlClusteringModel(KMeansModel model,
+                                              Map<Integer,Long> clusterSizesMap) {
+    Vector[] clusterCenters = model.clusterCenters();
+    ClusteringModel clusteringModel = new ClusteringModel(
+        AppPMMLUtils.buildMiningSchema(inputSchema),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        MiningFunctionType.CLUSTERING,
+        ClusteringModel.ModelClass.CENTER_BASED,
+        clusterCenters.length);
 
-    if (initializationStrategy.equals(KMeans.K_MEANS_PARALLEL())) {
-      clusteringModel.setAlgorithmName("K-Means||");
-    } else if (initializationStrategy.equals(KMeans.RANDOM())) {
-      clusteringModel.setAlgorithmName("random");
+    for (int i = 0; i < inputSchema.getNumFeatures(); i++) {
+      if (inputSchema.isActive(i)) {
+        FieldName fieldName = FieldName.create(inputSchema.getFeatureNames().get(i));
+        ClusteringField clusteringField =
+            new ClusteringField(fieldName).withCenterField(ClusteringField.CenterField.TRUE);
+        clusteringModel.getClusteringFields().add(clusteringField);
+      }
     }
 
-    Vector[] clusterCenters = model.clusterCenters();
     for (int i = 0; i < clusterCenters.length; i++) {
-      FieldName field = FieldName.create("field_" + i);
-      clusteringModel.getClusteringFields().add(
-          new ClusteringField(field).withCompareFunction(CompareFunctionType.ABS_DIFF));
-      clusteringModel.getClusters().add(toCluster(clusterCenters[i], i, clusterSizesMap.get(i).intValue()));
+      clusteringModel.getClusters().add(
+          new Cluster().withId(Integer.toString(i))
+              .withSize(clusterSizesMap.get(i).intValue())
+              .withArray(AppPMMLUtils.toArray(clusterCenters[i].toArray())));
     }
     return clusteringModel;
   }
@@ -190,7 +188,7 @@ public class KMeansUpdate extends MLUpdate<String> {
     Vector[] clusterCenters = new Vector[clusters.size()];
     for (Cluster cluster : clusters) {
       clusterCenters[Integer.parseInt(cluster.getId())] =
-          parseVector(TextUtils.parseCSV(cluster.getArray().getValue()));
+          parseVector(TextUtils.parseDelimited(cluster.getArray().getValue(), ' '));
     }
     return new KMeansModel(clusterCenters);
   }
@@ -202,18 +200,6 @@ public class KMeansUpdate extends MLUpdate<String> {
         return parseVector(tokens);
       }
     });
-  }
-
-  private static Cluster toCluster(Vector clusterCenter, int clusterId, int clusterSize) {
-    String s = Arrays.toString(clusterCenter.toArray());
-    return new Cluster()
-        .withId(String.valueOf(clusterId))
-        .withName("cluster_" + clusterId)
-        .withSize(clusterSize)
-        .withArray(new Array()
-            .withType(Array.Type.REAL)
-            .withValue(s.substring(1, s.length() - 1))
-            .withN(clusterCenter.size()));
   }
 
   private static Vector parseVector(String[] values) {
