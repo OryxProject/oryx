@@ -74,24 +74,24 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
 
     DataDictionary dataDictionary = new DataDictionary();
     dataDictionary.setNumberOfFields(3);
-    DataField dataField1 = new DataField(new FieldName("0"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField dataField1 = new DataField(FieldName.create("0"), OpType.CONTINUOUS, DataType.DOUBLE);
     dataDictionary.getDataFields().add(dataField1);
-    DataField dataField2 = new DataField(new FieldName("1"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField dataField2 = new DataField(FieldName.create("1"), OpType.CONTINUOUS, DataType.DOUBLE);
     dataDictionary.getDataFields().add(dataField2);
-    DataField dataField3 = new DataField(new FieldName("2"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField dataField3 = new DataField(FieldName.create("2"), OpType.CONTINUOUS, DataType.DOUBLE);
     dataDictionary.getDataFields().add(dataField3);
     pmml.setDataDictionary(dataDictionary);
 
     MiningSchema miningSchema = new MiningSchema();
-    MiningField miningField1 = new MiningField(new FieldName("0"));
+    MiningField miningField1 = new MiningField(FieldName.create("0"));
     miningField1.setOptype(OpType.CONTINUOUS);
     miningField1.setUsageType(FieldUsageType.ACTIVE);
     miningSchema.getMiningFields().add(miningField1);
-    MiningField miningField2 = new MiningField(new FieldName("1"));
+    MiningField miningField2 = new MiningField(FieldName.create("1"));
     miningField2.setOptype(OpType.CONTINUOUS);
     miningField2.setUsageType(FieldUsageType.ACTIVE);
     miningSchema.getMiningFields().add(miningField2);
-    MiningField miningField3 = new MiningField(new FieldName("2"));
+    MiningField miningField3 = new MiningField(FieldName.create("2"));
     miningField3.setOptype(OpType.CONTINUOUS);
     miningField3.setUsageType(FieldUsageType.ACTIVE);
     miningSchema.getMiningFields().add(miningField3);

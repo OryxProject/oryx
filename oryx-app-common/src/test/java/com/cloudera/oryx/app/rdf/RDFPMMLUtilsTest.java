@@ -104,23 +104,25 @@ public final class RDFPMMLUtilsTest extends OryxTest {
 
     DataDictionary dataDictionary = new DataDictionary();
     dataDictionary.setNumberOfFields(2);
-    DataField predictor = new DataField(new FieldName("color"), OpType.CATEGORICAL, DataType.STRING);
+    DataField predictor =
+        new DataField(FieldName.create("color"), OpType.CATEGORICAL, DataType.STRING);
     predictor.getValues().add(new Value("yellow"));
     predictor.getValues().add(new Value("red"));
     dataDictionary.getDataFields().add(predictor);
-    DataField target = new DataField(new FieldName("fruit"), OpType.CATEGORICAL, DataType.STRING);
+    DataField target =
+        new DataField(FieldName.create("fruit"), OpType.CATEGORICAL, DataType.STRING);
     target.getValues().add(new Value("banana"));
     target.getValues().add(new Value("apple"));
     dataDictionary.getDataFields().add(target);
     pmml.setDataDictionary(dataDictionary);
 
     MiningSchema miningSchema = new MiningSchema();
-    MiningField predictorMF = new MiningField(new FieldName("color"));
+    MiningField predictorMF = new MiningField(FieldName.create("color"));
     predictorMF.setOptype(OpType.CATEGORICAL);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
     predictorMF.setImportance(0.5);
     miningSchema.getMiningFields().add(predictorMF);
-    MiningField targetMF = new MiningField(new FieldName("fruit"));
+    MiningField targetMF = new MiningField(FieldName.create("fruit"));
     targetMF.setOptype(OpType.CATEGORICAL);
     targetMF.setUsageType(FieldUsageType.PREDICTED);
     miningSchema.getMiningFields().add(targetMF);
@@ -142,7 +144,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     right.setId("r+");
     right.setRecordCount(halfCount);
     right.setPredicate(new SimpleSetPredicate(new Array("red", Array.Type.STRING),
-                                              new FieldName("color"),
+                                              FieldName.create("color"),
                                               SimpleSetPredicate.BooleanOperator.IS_NOT_IN));
     right.getScoreDistributions().add(new ScoreDistribution("banana", halfCount));
 
@@ -165,19 +167,21 @@ public final class RDFPMMLUtilsTest extends OryxTest {
 
     DataDictionary dataDictionary = new DataDictionary();
     dataDictionary.setNumberOfFields(2);
-    DataField predictor = new DataField(new FieldName("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField predictor =
+        new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
     dataDictionary.getDataFields().add(predictor);
-    DataField target = new DataField(new FieldName("bar"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField target =
+        new DataField(FieldName.create("bar"), OpType.CONTINUOUS, DataType.DOUBLE);
     dataDictionary.getDataFields().add(target);
     pmml.setDataDictionary(dataDictionary);
 
     MiningSchema miningSchema = new MiningSchema();
-    MiningField predictorMF = new MiningField(new FieldName("foo"));
+    MiningField predictorMF = new MiningField(FieldName.create("foo"));
     predictorMF.setOptype(OpType.CONTINUOUS);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
     predictorMF.setImportance(0.5);
     miningSchema.getMiningFields().add(predictorMF);
-    MiningField targetMF = new MiningField(new FieldName("bar"));
+    MiningField targetMF = new MiningField(FieldName.create("bar"));
     targetMF.setOptype(OpType.CONTINUOUS);
     targetMF.setUsageType(FieldUsageType.PREDICTED);
     miningSchema.getMiningFields().add(targetMF);
@@ -199,7 +203,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     right.setId("r+");
     right.setRecordCount(halfCount);
     SimplePredicate predicate =
-        new SimplePredicate(new FieldName("foo"), SimplePredicate.Operator.GREATER_THAN);
+        new SimplePredicate(FieldName.create("foo"), SimplePredicate.Operator.GREATER_THAN);
     predicate.setValue("3.14");
     right.setPredicate(predicate);
     right.setScore("2.0");

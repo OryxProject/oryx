@@ -73,6 +73,12 @@ public final class TextUtilsTest extends OryxTest {
   }
 
   @Test
+  public void testJoinDelimitedNoQuote() {
+    assertEquals("-1.0 2.01 3.5",
+                 TextUtils.joinDelimited(Arrays.asList(-1.0, 2.01, 3.5), ' ', true));
+  }
+
+  @Test
   public void testJoinJSON() {
     assertEquals("[\"1\",\"2\",\"3\"]", TextUtils.joinJSON(Arrays.asList("1", "2", "3")));
     assertEquals("[\"1 \",\"2 \",\"3\"]", TextUtils.joinJSON(Arrays.asList("1 ", "2 ", "3")));
