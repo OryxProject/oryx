@@ -569,7 +569,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     }
 
     int featureIndex = inputSchema.predictorToFeatureIndex(split.feature());
-    FieldName fieldName = new FieldName(inputSchema.getFeatureNames().get(featureIndex));
+    FieldName fieldName = FieldName.create(inputSchema.getFeatureNames().get(featureIndex));
 
     if (split.featureType().equals(FeatureType.Categorical())) {
       // Note that categories in MLlib model select the *left* child but the

@@ -173,9 +173,11 @@ public final class AppPMMLUtilsTest extends OryxTest {
   @Test
   public void testBuildCategoricalEncoding() {
     DataDictionary dictionary = new DataDictionary();
-    DataField fooField = new DataField(new FieldName("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField fooField =
+        new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
     dictionary.getDataFields().add(fooField);
-    DataField barField = new DataField(new FieldName("bar"), OpType.CATEGORICAL, DataType.STRING);
+    DataField barField =
+        new DataField(FieldName.create("bar"), OpType.CATEGORICAL, DataType.STRING);
     barField.getValues().add(new Value("b"));
     barField.getValues().add(new Value("a"));
     dictionary.getDataFields().add(barField);

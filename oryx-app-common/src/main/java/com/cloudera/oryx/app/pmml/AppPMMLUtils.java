@@ -120,7 +120,7 @@ public final class AppPMMLUtils {
     Collection<MiningField> miningFields = new ArrayList<>();
     for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
       String featureName = featureNames.get(featureIndex);
-      MiningField field = new MiningField(new FieldName(featureName));
+      MiningField field = new MiningField(FieldName.create(featureName));
       if (schema.isNumeric(featureName)) {
         field.setOptype(OpType.CONTINUOUS);
         field.setUsageType(FieldUsageType.ACTIVE);
@@ -192,7 +192,7 @@ public final class AppPMMLUtils {
         opType = null;
         dataType = null;
       }
-      DataField field = new DataField(new FieldName(featureName), opType, dataType);
+      DataField field = new DataField(FieldName.create(featureName), opType, dataType);
       if (schema.isCategorical(featureName)) {
         Collection<String> valuesOrderedByEncoding =
             new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
