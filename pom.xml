@@ -842,11 +842,6 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.7.2.201409121644</version>
-          <configuration>
-            <includes>
-              <include>com.cloudera.oryx.*</include>
-            </includes>
-          </configuration>
           <executions>
             <execution>
               <id>jacoco-prepare-agent</id>
@@ -854,7 +849,10 @@
                 <goal>prepare-agent</goal>
               </goals>
               <configuration>
-                <append>false</append>
+                <append>true</append>
+                <includes>
+                  <include>com.cloudera.oryx.*</include>
+                </includes>
               </configuration>
             </execution>
             <execution>
@@ -864,6 +862,9 @@
               </goals>
               <configuration>
                 <append>true</append>
+                <includes>
+                  <include>com.cloudera.oryx.*</include>
+                </includes>
                 <!-- matches default of prepare-agent goal; intended to append -->
                 <destFile>${project.build.directory}/jacoco.exec</destFile>
               </configuration>
