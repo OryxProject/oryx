@@ -843,10 +843,9 @@
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.7.2.201409121644</version>
           <configuration>
-            <excludes>
-              <exclude>org.apache.spark.*</exclude>
-              <exclude>org.jblas.*</exclude>
-            </excludes>
+            <includes>
+              <include>com.cloudera.oryx.*</include>
+            </includes>
           </configuration>
           <executions>
             <execution>
