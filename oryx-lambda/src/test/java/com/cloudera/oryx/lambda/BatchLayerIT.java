@@ -47,7 +47,7 @@ public final class BatchLayerIT extends AbstractBatchIT {
 
   @Test
   public void testBatchLayerMultipleReceivers() throws Exception {
-    doTestBatchLayer(10, 10);
+    doTestBatchLayer(4, 4);
   }
 
   private void doTestBatchLayer(int partitions, int receivers) throws IOException, InterruptedException {
