@@ -106,7 +106,7 @@ public final class Predict extends AbstractRDFResource {
     RDFServingModel model = getRDFServingModel();
     InputSchema inputSchema = model.getInputSchema();
 
-    Prediction prediction = makePrediction(TextUtils.parseCSV(datum), model);
+    Prediction prediction = makePrediction(TextUtils.parseCSV(datum));
 
     String result;
     if (inputSchema.isClassification()) {
@@ -120,34 +120,6 @@ public final class Predict extends AbstractRDFResource {
       result = Double.toString(score);
     }
     return result;
-  }
-
-  static Prediction makePrediction(String[] data, RDFServingModel model) {
-    CategoricalValueEncodings valueEncodings = model.getEncodings();
-    InputSchema inputSchema = model.getInputSchema();
-
-    Feature[] features = new Feature[data.length];
-    Feature target = null;
-    for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-      Feature feature = null;
-      String dataAtIndex = data[featureIndex];
-      boolean isTarget = inputSchema.isTarget(featureIndex);
-      if (isTarget && dataAtIndex.isEmpty()) {
-        feature = null;
-      } else if (inputSchema.isNumeric(featureIndex)) {
-        feature = NumericFeature.forValue(Double.parseDouble(dataAtIndex));
-      } else if (inputSchema.isCategorical(featureIndex)) {
-        int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
-        feature = CategoricalFeature.forEncoding(encoding);
-      }
-      if (isTarget) {
-        target = feature;
-      } else {
-        features[featureIndex] = feature;
-      }
-    }
-
-    return model.getForest().predict(new Example(target, features));
   }
 
 }

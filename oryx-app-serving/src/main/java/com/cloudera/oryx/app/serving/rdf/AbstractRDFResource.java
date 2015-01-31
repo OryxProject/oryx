@@ -17,6 +17,13 @@ package com.cloudera.oryx.app.serving.rdf;
 
 import javax.annotation.PostConstruct;
 
+import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
+import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.rdf.example.Feature;
+import com.cloudera.oryx.app.rdf.example.NumericFeature;
+import com.cloudera.oryx.app.rdf.predict.Prediction;
+import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
@@ -33,6 +40,34 @@ public abstract class AbstractRDFResource extends AbstractOryxResource {
 
   final RDFServingModel getRDFServingModel() {
     return rdfServingModel;
+  }
+
+  Prediction makePrediction(String[] data) {
+    CategoricalValueEncodings valueEncodings = rdfServingModel.getEncodings();
+    InputSchema inputSchema = rdfServingModel.getInputSchema();
+
+    Feature[] features = new Feature[data.length];
+    Feature target = null;
+    for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+      Feature feature = null;
+      String dataAtIndex = data[featureIndex];
+      boolean isTarget = inputSchema.isTarget(featureIndex);
+      if (isTarget && dataAtIndex.isEmpty()) {
+        feature = null;
+      } else if (inputSchema.isNumeric(featureIndex)) {
+        feature = NumericFeature.forValue(Double.parseDouble(dataAtIndex));
+      } else if (inputSchema.isCategorical(featureIndex)) {
+        int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
+        feature = CategoricalFeature.forEncoding(encoding);
+      }
+      if (isTarget) {
+        target = feature;
+      } else {
+        features[featureIndex] = feature;
+      }
+    }
+
+    return rdfServingModel.getForest().predict(new Example(target, features));
   }
 
 }

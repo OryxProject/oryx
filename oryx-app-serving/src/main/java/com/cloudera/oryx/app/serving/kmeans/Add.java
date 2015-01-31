@@ -39,7 +39,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  * <p>Responds to POST request to {@code /add}. The input is one or more data points
  * to add to the clustering, one for each line of the request body. Each data point is a
  * delimited line of input like "1,-4,3.0". Also, one data point can be supplied by
- * POSTing to {@code /train/[datum]}. The clusters update to learn in some way from the new data.
+ * POSTing to {@code /add/[datum]}. The clusters update to learn in some way from the new data.
  * The response is empty.</p>
  */
 @Path("/add")
@@ -52,7 +52,7 @@ public final class Add extends AbstractKMeansResource {
   }
 
   @POST
-  @Path("datum")
+  @Path("{datum}")
   public void post(@PathParam("datum") String datum) {
     getInputProducer().send(datum);
   }

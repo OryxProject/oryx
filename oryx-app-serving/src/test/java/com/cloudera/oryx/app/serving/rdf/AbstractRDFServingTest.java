@@ -22,6 +22,8 @@ import javax.ws.rs.core.GenericType;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
+
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.MockTopicProducer;
@@ -33,6 +35,11 @@ public abstract class AbstractRDFServingTest extends AbstractServingTest {
 
   protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
+
+  @Before
+  public void clearProducerData() {
+    MockTopicProducer.getData().clear();
+  }
 
   @Override
   protected final List<String> getResourcePackages() {

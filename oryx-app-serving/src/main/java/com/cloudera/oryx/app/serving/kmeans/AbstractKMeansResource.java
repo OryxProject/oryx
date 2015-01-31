@@ -17,15 +17,36 @@ package com.cloudera.oryx.app.serving.kmeans;
 
 import javax.annotation.PostConstruct;
 
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
+import com.cloudera.oryx.common.collection.Pair;
 
 public abstract class AbstractKMeansResource extends AbstractOryxResource {
 
-  // TODO: add code to fetch KMeansServingModel
+  private KMeansServingModel kmeansModel;
+
   @Override
   @PostConstruct
   public void init() {
     super.init();
+    kmeansModel = (KMeansServingModel) getServingModelManager().getModel();
+  }
+
+  final KMeansServingModel getKMeansModel() {
+    return kmeansModel;
+  }
+
+  Pair<Integer,Double> cluster(String[] data) {
+    InputSchema inputSchema = kmeansModel.getInputSchema();
+    double[] features = new double[inputSchema.getNumPredictors()];
+    for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+      if (inputSchema.isActive(featureIndex)) {
+        features[inputSchema.featureToPredictorIndex(featureIndex)] =
+            Double.parseDouble(data[featureIndex]);
+      }
+    }
+    return kmeansModel.closestCluster(features);
   }
 
 }

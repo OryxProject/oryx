@@ -15,18 +15,22 @@
 
 package com.cloudera.oryx.app.kmeans;
 
+import java.util.Arrays;
+
 import com.google.common.base.Preconditions;
 
 public final class ClusterInfo {
 
   private final int id;
-  private final double[] center;
+  private double[] center;
   private long count;
 
-  public ClusterInfo(int id, double[] center) {
+  public ClusterInfo(int id, double[] center, long initialCount) {
     Preconditions.checkArgument(center.length > 0);
+    Preconditions.checkArgument(initialCount >= 1);
     this.id = id;
     this.center = center;
+    this.count = initialCount;
   }
 
   public int getID() {
@@ -41,8 +45,24 @@ public final class ClusterInfo {
     return count;
   }
 
-  public void setCount(long count) {
-    this.count = count;
+  public synchronized void update(double[] newPoint) {
+    update(newPoint, 1);
+  }
+
+  public synchronized void update(double[] newPoint, int newCount) {
+    int length = center.length;
+    Preconditions.checkArgument(length == newPoint.length);
+    double[] newCenter = new double[length];
+    for (int i = 0; i < length; i++) {
+      newCenter[i] = (newPoint[i] * newCount + center[i] * count) / (newCount + count);
+    }
+    this.center = newCenter;
+    count += newCount;
+  }
+
+  @Override
+  public String toString() {
+    return id + " " + Arrays.toString(center) + " " + count;
   }
 
 }

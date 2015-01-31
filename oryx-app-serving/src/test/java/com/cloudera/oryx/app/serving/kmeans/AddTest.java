@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,11 +13,10 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.rdf;
+package com.cloudera.oryx.app.serving.kmeans;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
 import java.util.List;
 
 import org.junit.Assert;
@@ -26,30 +25,29 @@ import org.junit.Test;
 import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.common.collection.Pair;
 
-public final class TrainTest extends AbstractRDFServingTest {
+public final class AddTest extends AbstractKMeansServingTest {
 
-  private static final String TRAIN_DATA = "B,0,20\nB,-4,30\nA,0,40\nA,-4,50";
+  private static final String ADD_DATA = "1.0,0.0,20.0\n1.0,-4.0,30.0\n0.0,0.0,40.0\n0.0,-4.0,50.0";
   private static final String[][] EXPECTED_TOPIC = {
-      {"B", "0", "20"},
-      {"B", "-4", "30"},
-      {"A", "0", "40"},
-      {"A", "-4", "50"},
+      {"1.0", "0.0", "20.0"},
+      {"1.0", "-4.0", "30.0"},
+      {"0.0", "0.0", "40.0"},
+      {"0.0", "-4.0", "50.0"},
   };
 
   @Test
-  public void testSimpleTrain() {
-    checkResponse(target("/train").request().post(Entity.text(TRAIN_DATA)));
+  public void testSimpleAdd() {
+    checkResponse(target("/add").request().post(Entity.text(ADD_DATA)));
   }
 
   @Test
-  public void testFormTrain() throws Exception {
-    checkResponse(getFormPostResponse(TRAIN_DATA, "/train", null, null));
+  public void testFormAdd() throws Exception {
+    checkResponse(getFormPostResponse(ADD_DATA, "/add", null, null));
   }
 
   @Test
-  public void testURITrain() throws Exception {
-    Response response = target("/train/" + TRAIN_DATA.split("\n")[0])
-        .request().post(Entity.text(""));
+  public void testURIAdd() throws Exception {
+    Response response = target("/add/" + ADD_DATA.split("\n")[0]).request().post(Entity.text(""));
     Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
     List<Pair<String,String>> data = MockTopicProducer.getData();
     Assert.assertEquals(1, data.size());

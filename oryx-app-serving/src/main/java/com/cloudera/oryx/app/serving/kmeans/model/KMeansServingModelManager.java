@@ -21,20 +21,26 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
-public class KMeansServingModelManager implements ServingModelManager<String> {
+public final class KMeansServingModelManager implements ServingModelManager<String> {
 
-  private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private final InputSchema inputSchema;
   private KMeansServingModel model;
+
+  public KMeansServingModelManager(Config config) {
+    inputSchema = new InputSchema(config);
+  }
 
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
@@ -57,8 +63,9 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
           }
           List<?> update = MAPPER.readValue(message, List.class);
           // Update
-          String id = update.get(1).toString();
-          double[] vector = MAPPER.convertValue(update.get(2), double[].class);
+          int id = Integer.parseInt(update.get(0).toString());
+          double[] vector = MAPPER.convertValue(update.get(1), double[].class);
+          model.update(id, vector);
           break;
 
         case "MODEL":
@@ -69,6 +76,9 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
           } catch (JAXBException e) {
             throw new IOException(e);
           }
+          KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+          List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);
+          model = new KMeansServingModel(clusters, inputSchema);
           break;
 
         default:
@@ -86,4 +96,5 @@ public class KMeansServingModelManager implements ServingModelManager<String> {
   public void close() {
    // do nothing
   }
+
 }

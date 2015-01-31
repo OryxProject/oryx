@@ -21,6 +21,8 @@ import javax.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
+
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
@@ -28,6 +30,11 @@ import com.cloudera.oryx.app.serving.kmeans.model.TestKMeansModelFactory;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 
 public abstract class AbstractKMeansServingTest extends AbstractServingTest {
+
+  @Before
+  public void clearProducerData() {
+    MockTopicProducer.getData().clear();
+  }
 
   @Override
   protected final List<String> getResourcePackages() {

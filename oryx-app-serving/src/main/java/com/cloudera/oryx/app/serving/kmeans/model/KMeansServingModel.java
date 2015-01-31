@@ -15,8 +15,61 @@
 
 package com.cloudera.oryx.app.serving.kmeans.model;
 
+import java.util.List;
+
+import com.google.common.base.Preconditions;
+
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
+import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
+import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.collection.Pair;
+
 public final class KMeansServingModel {
 
-  // TODO
+  private final List<ClusterInfo> clusters;
+  private final InputSchema inputSchema;
+  private final DistanceFn<double[]> distanceFn;
+
+  KMeansServingModel(List<ClusterInfo> clusters, InputSchema inputSchema) {
+    Preconditions.checkNotNull(clusters);
+    Preconditions.checkNotNull(inputSchema);
+    this.clusters = clusters;
+    this.inputSchema = inputSchema;
+    distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported
+  }
+
+  public List<ClusterInfo> getClusters() {
+    return clusters;
+  }
+
+  public InputSchema getInputSchema() {
+    return inputSchema;
+  }
+
+  public Pair<Integer,Double> closestCluster(double[] vector) {
+    double closestDist = Double.POSITIVE_INFINITY;
+    int minCluster = -1;
+    for (int i = 0; i < clusters.size(); i++) {
+      ClusterInfo cluster = clusters.get(i);
+      double distance = distanceFn.distance(cluster.getCenter(), vector);
+      if (distance < closestDist) {
+        closestDist = distance;
+        minCluster = i;
+      }
+    }
+    Preconditions.checkState(minCluster >= 0);
+    Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
+    return new Pair<>(minCluster, closestDist);
+  }
+
+  public void update(int id, double[] newPoint) {
+    clusters.get(id).update(newPoint);
+  }
+
+  @Override
+  public String toString() {
+    return "KMeansServingModel[clusters:" + clusters.size() + "]";
+  }
 
 }

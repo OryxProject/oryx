@@ -20,16 +20,26 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.Cluster;
+import org.dmg.pmml.ClusteringField;
 import org.dmg.pmml.ClusteringModel;
+import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.DataDictionary;
+import org.dmg.pmml.DataField;
+import org.dmg.pmml.DataType;
+import org.dmg.pmml.FieldName;
+import org.dmg.pmml.FieldUsageType;
+import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
+import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.SquaredEuclidean;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 public final class KMeansPMMLUtils {
@@ -78,13 +88,60 @@ public final class KMeansPMMLUtils {
 
     for (Cluster cluster : clusters) {
       String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
-      ClusterInfo clusterInfo =
-          new ClusterInfo(Integer.parseInt(cluster.getId()), VectorMath.parseVector(tokens));
-      clusterInfo.setCount(cluster.getSize());
+      ClusterInfo clusterInfo = new ClusterInfo(Integer.parseInt(cluster.getId()),
+                                                VectorMath.parseVector(tokens),
+                                                cluster.getSize());
       clusterInfoList.add(clusterInfo);
     }
 
     return clusterInfoList;
+  }
+
+  public static PMML buildDummyClusteringModel() {
+    PMML pmml = PMMLUtils.buildSkeletonPMML();
+
+    DataDictionary dataDictionary = new DataDictionary();
+    dataDictionary.setNumberOfFields(2);
+    DataField xField = new DataField(FieldName.create("x"), OpType.CONTINUOUS, DataType.DOUBLE);
+    DataField yField = new DataField(FieldName.create("y"), OpType.CONTINUOUS, DataType.DOUBLE);
+    dataDictionary.getDataFields().add(xField);
+    dataDictionary.getDataFields().add(yField);
+    pmml.setDataDictionary(dataDictionary);
+
+    MiningSchema miningSchema = new MiningSchema();
+    MiningField xMF = new MiningField(FieldName.create("x"));
+    xMF.setOptype(OpType.CONTINUOUS);
+    xMF.setUsageType(FieldUsageType.ACTIVE);
+    MiningField yMF = new MiningField(FieldName.create("y"));
+    yMF.setOptype(OpType.CONTINUOUS);
+    yMF.setUsageType(FieldUsageType.ACTIVE);
+    miningSchema.getMiningFields().add(xMF);
+    miningSchema.getMiningFields().add(yMF);
+
+    ClusteringModel clusteringModel = new ClusteringModel(
+        miningSchema,
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        MiningFunctionType.CLUSTERING,
+        ClusteringModel.ModelClass.CENTER_BASED,
+        3);
+
+    ClusteringField xCF = new ClusteringField(
+        FieldName.create("x")).withCenterField(ClusteringField.CenterField.TRUE);
+    ClusteringField yCF = new ClusteringField(
+        FieldName.create("y")).withCenterField(ClusteringField.CenterField.TRUE);
+    clusteringModel.getClusteringFields().add(xCF);
+    clusteringModel.getClusteringFields().add(yCF);
+
+    clusteringModel.getClusters().add(new Cluster().withId("0").withSize(1)
+                                          .withArray(AppPMMLUtils.toArray(1.0, 0.0)));
+    clusteringModel.getClusters().add(new Cluster().withId("1").withSize(2)
+                                          .withArray(AppPMMLUtils.toArray(2.0, -1.0)));
+    clusteringModel.getClusters().add(new Cluster().withId("2").withSize(3)
+                                          .withArray(AppPMMLUtils.toArray(-1.0, 0.0)));
+
+    pmml.getModels().add(clusteringModel);
+
+    return pmml;
   }
 
 }

@@ -45,7 +45,6 @@ import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
@@ -201,11 +200,18 @@ public final class KMeansUpdate extends MLUpdate<String> {
     return new KMeansModel(clusterCenters);
   }
 
-  private static JavaRDD<Vector> parsedToVectorRDD(JavaRDD<String[]> parsedRDD) {
+  private JavaRDD<Vector> parsedToVectorRDD(JavaRDD<String[]> parsedRDD) {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override
-      public Vector call(String[] tokens) {
-        return Vectors.dense(VectorMath.parseVector(tokens));
+      public Vector call(String[] data) {
+        double[] features = new double[inputSchema.getNumPredictors()];
+        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+          if (inputSchema.isActive(featureIndex)) {
+            features[inputSchema.featureToPredictorIndex(featureIndex)] =
+                Double.parseDouble(data[featureIndex]);
+          }
+        }
+        return Vectors.dense(features);
       }
     });
   }

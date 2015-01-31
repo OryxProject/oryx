@@ -20,14 +20,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The input is one data point to cluster,
- * delimited, like "1,-4,3.0". The response body contains the distance to the nearest cluster, on one line.</p>
+ * <p>Responds to a GET request to {@code /distanceToNearest/[datum]}. The inputs is a data point
+ * to cluster, delimited, like "1,foo,3.0".</p>
+ *
+ * <p>The response body contains the distance from the point to its nearest cluster center.
+ * The distance function depends on the model.</p>
  */
 @Path("/distanceToNearest")
 public final class DistanceToNearest extends AbstractKMeansResource {
@@ -35,11 +38,10 @@ public final class DistanceToNearest extends AbstractKMeansResource {
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public Response get(@PathParam("datum") String datum) throws OryxServingException {
-
-    check(datum != null && !datum.isEmpty(), "Missing input data");
-
-    return Response.ok().build();
+  public String get(@PathParam("datum") String datum) throws OryxServingException {
+    check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
+    String[] tokens = TextUtils.parseCSV(datum);
+    return cluster(tokens).getSecond().toString();
   }
 
 }
