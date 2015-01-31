@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.serving.kmeans.model;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
@@ -47,7 +46,7 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
 
     startMessaging();
     startServer(config);
-    startUpdateTopics(new MockKMeansModelGenerator(), 5);
+    startUpdateTopics(new MockKMeansModelGenerator(), 10);
 
     // Let updates finish
     Thread.sleep(1000);
@@ -61,15 +60,11 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
     KMeansServingModel model = manager.getModel();
     log.debug("{}", model);
 
-    List<ClusterInfo> clusters = model.getClusters();
-    log.info("Clusters: {}", clusters);
-
-    assertEquals(3, clusters.size());
-    assertCluster(clusters.get(0), 0, new double[] { 2.0, 1.5 }, 2);
-    assertCluster(clusters.get(1), 1, new double[] { 2.25, 0.75 }, 4);
-    assertCluster(clusters.get(2), 2, new double[] { -0.25, 0.5 }, 4);
+    assertEquals(3, model.getNumClusters());
+    assertCluster(model.getCluster(0), 0, new double[] { 9.0, 9.0 }, 9);
+    assertCluster(model.getCluster(1), 1, new double[] { 7.0, 7.0 }, 7);
+    assertCluster(model.getCluster(2), 2, new double[] { 8.0, 8.0 }, 8);
   }
-
 
   private static void assertCluster(ClusterInfo info,
                                     int expectedID,

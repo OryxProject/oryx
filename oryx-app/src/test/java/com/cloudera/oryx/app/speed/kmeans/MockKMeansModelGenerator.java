@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.speed.kmeans;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
@@ -34,7 +35,8 @@ public final class MockKMeansModelGenerator implements DatumGenerator<String,Str
       PMML pmml = KMeansPMMLUtils.buildDummyClusteringModel();
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
-      return new Pair<>("UP", TextUtils.joinJSON(Arrays.asList(id % 3, Arrays.asList(id, id))));
+      List<?> data = Arrays.asList(id % 3, Arrays.asList(id, id), id);
+      return new Pair<>("UP", TextUtils.joinJSON(data));
     }
   }
 

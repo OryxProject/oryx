@@ -64,8 +64,9 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           List<?> update = MAPPER.readValue(message, List.class);
           // Update
           int id = Integer.parseInt(update.get(0).toString());
-          double[] vector = MAPPER.convertValue(update.get(1), double[].class);
-          model.update(id, vector);
+          double[] center = MAPPER.convertValue(update.get(1), double[].class);
+          long count = Long.parseLong(update.get(2).toString());
+          model.update(id, center, count);
           break;
 
         case "MODEL":
