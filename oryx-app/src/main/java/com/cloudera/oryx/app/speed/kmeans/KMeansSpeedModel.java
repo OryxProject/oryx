@@ -31,6 +31,10 @@ public final class KMeansSpeedModel {
     return clusters;
   }
 
+  public void update(int id, double[] newPoint) {
+    clusters.get(id).update(newPoint);
+  }
+
   @Override
   public String toString() {
     return "KMeansSpeedModel[" + "numClusters=" + clusters.size() + "]";

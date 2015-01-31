@@ -17,24 +17,37 @@ package com.cloudera.oryx.app.speed.kmeans;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.function.Function;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
 import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 
 public final class KMeansSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedModelManager.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private KMeansSpeedModel model;
   private final InputSchema inputSchema;
@@ -51,7 +64,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       String message = km.getMessage();
       switch (key) {
         case "UP":
-          // do nothing;
+          // do nothing, hearing our own updates
           break;
         case "MODEL":
           // New model
@@ -78,11 +91,52 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       return Collections.emptyList();
     }
 
-    return null;
+    List<String> updates = new ArrayList<>();
+    List<Pair<Integer,Double>> distances =
+        newData.values().map(MLFunctions.PARSE_FN)
+            .map(new ToClusterIdDistanceFn(model.getClusters()))
+            .collect();
+
+    for (Pair<Integer,Double> pair : distances) {
+      updates.add(TextUtils.joinJSON(Arrays.asList(pair.getFirst(), pair.getSecond())));
+    }
+
+    return updates;
   }
 
   @Override
   public void close() {
     // do nothing
   }
+
+  private static class ToClusterIdDistanceFn implements Function<String[],Pair<Integer, Double>> {
+    private final List<ClusterInfo> clusters;
+
+    ToClusterIdDistanceFn(List<ClusterInfo> clusters) {
+      this.clusters = clusters;
+    }
+
+    @Override
+    public Pair<Integer,Double> call(String[] v) {
+      double minDistance = Double.POSITIVE_INFINITY;
+      int bestIndex = -1;
+      double[] vec = VectorMath.parseVector(v);
+
+      Preconditions.checkArgument(
+          vec.length == clusters.get(0).getCenter().length,
+          "Dimensions of both the vectors must be equal");
+
+      SquaredDistanceFn squaredDistanceFn = new SquaredDistanceFn();
+
+      for (ClusterInfo cluster : clusters) {
+        double distance = squaredDistanceFn.distance(cluster.getCenter(), vec);
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestIndex = cluster.getID();
+        }
+      }
+      return new Pair<>(bestIndex, minDistance);
+    }
+  }
+
 }
