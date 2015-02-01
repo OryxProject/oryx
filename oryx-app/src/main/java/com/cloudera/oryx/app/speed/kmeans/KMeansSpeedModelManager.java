@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
@@ -34,11 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -47,7 +45,6 @@ import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 public final class KMeansSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedModelManager.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private KMeansSpeedModel model;
   private final InputSchema inputSchema;
@@ -92,13 +89,19 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     }
 
     List<String> updates = new ArrayList<>();
-    List<Pair<Integer,Double>> distances =
+    List<Pair<Integer,ClusterInfo>> updatedPoints =
         newData.values().map(MLFunctions.PARSE_FN)
-            .map(new ToClusterIdDistanceFn(model.getClusters()))
+            .map(new ToDoubleVectorFn(inputSchema))
+            .map(new ToClusterIdFn(model.getClusters(), new SquaredDistanceFn()))
             .collect();
 
-    for (Pair<Integer,Double> pair : distances) {
-      updates.add(TextUtils.joinJSON(Arrays.asList(pair.getFirst(), pair.getSecond())));
+    for (Pair<Integer,ClusterInfo> pair : updatedPoints) {
+      ClusterInfo clusterInfo = pair.getSecond();
+      // update the cluster in the model
+      model.update(pair.getFirst(), clusterInfo);
+      // add to updates
+      updates.add(TextUtils.joinJSON(
+          Arrays.asList(clusterInfo.getID(), clusterInfo.getCenter(), clusterInfo.getCount())));
     }
 
     return updates;
@@ -109,33 +112,52 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     // do nothing
   }
 
-  private static class ToClusterIdDistanceFn implements Function<String[],Pair<Integer, Double>> {
+  private static class ToClusterIdFn implements Function<double[], Pair<Integer, ClusterInfo>> {
     private final List<ClusterInfo> clusters;
+    private final DistanceFn<double[]> distanceFn;
 
-    ToClusterIdDistanceFn(List<ClusterInfo> clusters) {
+    ToClusterIdFn(List<ClusterInfo> clusters,
+                  DistanceFn<double[]> distanceFn) {
       this.clusters = clusters;
+      this.distanceFn = distanceFn;
     }
 
     @Override
-    public Pair<Integer,Double> call(String[] v) {
+    public Pair<Integer,ClusterInfo> call(double[] v) {
       double minDistance = Double.POSITIVE_INFINITY;
       int bestIndex = -1;
-      double[] vec = VectorMath.parseVector(v);
-
-      Preconditions.checkArgument(
-          vec.length == clusters.get(0).getCenter().length,
-          "Dimensions of both the vectors must be equal");
-
-      SquaredDistanceFn squaredDistanceFn = new SquaredDistanceFn();
 
       for (ClusterInfo cluster : clusters) {
-        double distance = squaredDistanceFn.distance(cluster.getCenter(), vec);
+        double distance = distanceFn.distance(cluster.getCenter(), v);
         if (distance < minDistance) {
           minDistance = distance;
           bestIndex = cluster.getID();
         }
       }
-      return new Pair<>(bestIndex, minDistance);
+
+      ClusterInfo clusterInfo = clusters.get(bestIndex);
+      clusterInfo.update(v);
+      return new Pair<>(bestIndex, clusterInfo);
+    }
+  }
+
+  private static class ToDoubleVectorFn implements Function<String[], double[]> {
+    private final InputSchema inputSchema;
+
+    ToDoubleVectorFn(InputSchema inputSchema) {
+      this.inputSchema = inputSchema;
+    }
+
+    @Override
+    public double[] call(String[] data) {
+      double[] features = new double[inputSchema.getNumPredictors()];
+      for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+        if (inputSchema.isActive(featureIndex)) {
+          features[inputSchema.featureToPredictorIndex(featureIndex)] =
+              Double.parseDouble(data[featureIndex]);
+        }
+      }
+      return features;
     }
   }
 
