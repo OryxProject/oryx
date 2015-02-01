@@ -33,19 +33,19 @@ public final class MultiRescorerProviderTest extends OryxTest {
     
     Rescorer provider = multi.getRecommendRescorer(Collections.singletonList("ABCDE"), null);
     assertNull(provider);
-    
-    provider = multi.getRecommendRescorer(Collections.singletonList("AB"), null);
-    assertNotNull(provider);
-    assertFalse(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendRescorer(Collections.singletonList("ABCDEF"), null);
-    assertNotNull(provider);
-    assertTrue(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertTrue(provider.isFiltered("AB"));
-    assertFalse(provider.isFiltered("ABCDEFABCDEF"));
+    Rescorer provider2 = multi.getRecommendRescorer(Collections.singletonList("AB"), null);
+    assertNotNull(provider2);
+    assertFalse(provider2 instanceof MultiRescorer);
+    assertTrue(provider2.isFiltered("ABC"));
+    assertFalse(provider2.isFiltered("AB"));
+
+    Rescorer provider3 = multi.getRecommendRescorer(Collections.singletonList("ABCDEF"), null);
+    assertNotNull(provider3);
+    assertTrue(provider3 instanceof MultiRescorer);
+    assertTrue(provider3.isFiltered("ABC"));
+    assertTrue(provider3.isFiltered("AB"));
+    assertFalse(provider3.isFiltered("ABCDEFABCDEF"));
   }
   
   @Test
@@ -56,19 +56,21 @@ public final class MultiRescorerProviderTest extends OryxTest {
     Rescorer provider = multi.getRecommendToAnonymousRescorer(
         Collections.singletonList("ABCDE"), null);
     assertNull(provider);
-    
-    provider = multi.getRecommendToAnonymousRescorer(Collections.singletonList("AB"), null);
-    assertNotNull(provider);
-    assertFalse(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertFalse(provider.isFiltered("AB"));
 
-    provider = multi.getRecommendToAnonymousRescorer(Collections.singletonList("ABCDEF"), null);
-    assertNotNull(provider);
-    assertTrue(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertTrue(provider.isFiltered("AB"));
-    assertFalse(provider.isFiltered("ABCDEF"));
+    Rescorer provider2 =
+        multi.getRecommendToAnonymousRescorer(Collections.singletonList("AB"), null);
+    assertNotNull(provider2);
+    assertFalse(provider2 instanceof MultiRescorer);
+    assertTrue(provider2.isFiltered("ABC"));
+    assertFalse(provider2.isFiltered("AB"));
+
+    Rescorer provider3 =
+        multi.getRecommendToAnonymousRescorer(Collections.singletonList("ABCDEF"), null);
+    assertNotNull(provider3);
+    assertTrue(provider3 instanceof MultiRescorer);
+    assertTrue(provider3.isFiltered("ABC"));
+    assertTrue(provider3.isFiltered("AB"));
+    assertFalse(provider3.isFiltered("ABCDEF"));
   }
   
   @Test

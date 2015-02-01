@@ -27,12 +27,16 @@ import org.dmg.pmml.FieldName;
 import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningModel;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.MissingValueStrategyType;
+import org.dmg.pmml.MultipleModelMethodType;
 import org.dmg.pmml.Node;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.ScoreDistribution;
+import org.dmg.pmml.Segment;
+import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.SimplePredicate;
 import org.dmg.pmml.SimpleSetPredicate;
 import org.dmg.pmml.TreeModel;
@@ -99,7 +103,19 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     assertTrue(encodings.getCategoryCounts().isEmpty());
   }
 
+  @Test
+  public void testReadClassificationForest() {
+    PMML pmml = buildDummyClassificationModel(3);
+    Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings = RDFPMMLUtils.read(pmml);
+    DecisionForest forest = forestAndEncodings.getFirst();
+    assertEquals(3, forest.getTrees().length);
+  }
+
   public static PMML buildDummyClassificationModel() {
+    return buildDummyClassificationModel(1);
+  }
+
+  public static PMML buildDummyClassificationModel(int numTrees) {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
     DataDictionary dataDictionary = new DataDictionary();
@@ -155,9 +171,23 @@ public final class RDFPMMLUtilsTest extends OryxTest {
         new TreeModel(miningSchema, rootNode, MiningFunctionType.CLASSIFICATION);
     treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
     treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
-    treeModel.setMiningSchema(miningSchema);
 
-    pmml.getModels().add(treeModel);
+    if (numTrees > 1) {
+      MiningModel miningModel = new MiningModel(miningSchema, MiningFunctionType.CLASSIFICATION);
+      Segmentation segmentation = new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE);
+      for (int i = 0; i < numTrees; i++) {
+        Segment segment = new Segment();
+        segment.setId(Integer.toString(i));
+        segment.setPredicate(new True());
+        segment.setModel(treeModel);
+        segment.setWeight(1.0);
+        segmentation.getSegments().add(segment);
+      }
+      miningModel.setSegmentation(segmentation);
+      pmml.getModels().add(miningModel);
+    } else {
+      pmml.getModels().add(treeModel);
+    }
 
     return pmml;
   }

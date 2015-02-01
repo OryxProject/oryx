@@ -28,7 +28,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
-public class KMeansSpeedIT extends AbstractSpeedIT {
+public final class KMeansSpeedIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedIT.class);
 

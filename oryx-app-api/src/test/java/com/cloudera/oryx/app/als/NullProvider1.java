@@ -13,20 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.speed.kmeans;
+package com.cloudera.oryx.app.als;
 
-import java.util.Arrays;
-
-import org.apache.commons.math3.random.RandomGenerator;
-
-import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.text.TextUtils;
-import com.cloudera.oryx.kafka.util.DatumGenerator;
-
-public final class MockKMeansInputGenerator implements DatumGenerator<String,String> {
-
-  @Override
-  public Pair<String, String> generate(int id, RandomGenerator random) {
-    return new Pair<>(Integer.toString(id), TextUtils.joinJSON(Arrays.asList(id % 3, id % 3)));
-  }
+public final class NullProvider1 extends AbstractRescorerProvider {
 }

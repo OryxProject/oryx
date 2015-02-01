@@ -37,10 +37,6 @@ import java.util.Map;
 
 import org.apache.commons.fileupload.FileItem;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.Feature;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.predict.Prediction;
