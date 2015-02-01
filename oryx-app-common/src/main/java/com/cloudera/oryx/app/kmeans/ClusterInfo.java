@@ -15,11 +15,12 @@
 
 package com.cloudera.oryx.app.kmeans;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
-public final class ClusterInfo {
+public final class ClusterInfo implements Serializable {
 
   private final int id;
   private double[] center;

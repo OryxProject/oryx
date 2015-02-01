@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
-import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -92,7 +91,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     List<Pair<Integer,ClusterInfo>> updatedPoints =
         newData.values().map(MLFunctions.PARSE_FN)
             .map(new ToDoubleVectorFn(inputSchema))
-            .map(new ToClusterIdFn(model.getClusters(), new SquaredDistanceFn()))
+            .map(new ToClusterIdFn(model.getClusters()))
             .collect();
 
     for (Pair<Integer,ClusterInfo> pair : updatedPoints) {
@@ -114,12 +113,9 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
 
   private static class ToClusterIdFn implements Function<double[], Pair<Integer, ClusterInfo>> {
     private final List<ClusterInfo> clusters;
-    private final DistanceFn<double[]> distanceFn;
 
-    ToClusterIdFn(List<ClusterInfo> clusters,
-                  DistanceFn<double[]> distanceFn) {
+    ToClusterIdFn(List<ClusterInfo> clusters) {
       this.clusters = clusters;
-      this.distanceFn = distanceFn;
     }
 
     @Override
@@ -127,8 +123,9 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       double minDistance = Double.POSITIVE_INFINITY;
       int bestIndex = -1;
 
+      SquaredDistanceFn sqDist = new SquaredDistanceFn();
       for (ClusterInfo cluster : clusters) {
-        double distance = distanceFn.distance(cluster.getCenter(), v);
+        double distance = sqDist.distance(cluster.getCenter(), v);
         if (distance < minDistance) {
           minDistance = distance;
           bestIndex = cluster.getID();
