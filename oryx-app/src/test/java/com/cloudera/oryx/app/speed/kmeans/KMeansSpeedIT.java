@@ -55,8 +55,11 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     startMessaging();
 
     List<Pair<String,String>> updates =
-        startServerProduceConsumeTopics(config, new MockKMeansInputGenerator(),
-            new MockKMeansModelGenerator(), NUM_INPUT, 1);
+        startServerProduceConsumeTopics(config,
+                                        new MockKMeansInputGenerator(),
+                                        new MockKMeansModelGenerator(),
+                                        NUM_INPUT,
+                                        1);
 
     if (log.isDebugEnabled()) {
       for (Pair<String, String> update : updates) {
@@ -65,9 +68,8 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     }
 
     int numUpdates = updates.size();
-    log.info("Num updates: {}", numUpdates);
 
-    assertEquals(1001, updates.size());
+    assertEquals(NUM_INPUT + 1, updates.size());
     assertEquals("MODEL", updates.get(0).getFirst());
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
