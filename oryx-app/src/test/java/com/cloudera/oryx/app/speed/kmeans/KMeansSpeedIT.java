@@ -15,24 +15,32 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.dmg.pmml.Cluster;
+import org.dmg.pmml.ClusteringModel;
+import org.dmg.pmml.Model;
+import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
 public final class KMeansSpeedIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedIT.class);
 
-  private static final int NUM_INPUT = 10;
+  private static final int NUM_INPUT = 1000;
 
   @Test
   public void testKMeansServingModel() throws Exception {
@@ -59,9 +67,35 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     int numUpdates = updates.size();
     log.info("Num updates: {}", numUpdates);
 
-    assertEquals(11, updates.size());
+    assertEquals(1001, updates.size());
     assertEquals("MODEL", updates.get(0).getFirst());
 
+    PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
+    Model model = pmml.getModels().get(0);
+    assertTrue(model instanceof ClusteringModel);
+
+    ClusteringModel clusteringModel = (ClusteringModel) model;
+    assertEquals(3, clusteringModel.getNumberOfClusters().intValue());
+    List<Cluster> clusters = clusteringModel.getClusters();
+
+    for (int i = 1; i < numUpdates; i++) {
+      Pair<String,String> update = updates.get(i);
+      assertEquals("UP", update.getFirst());
+      List<?> fields = MAPPER.readValue(update.getSecond(), List.class);
+      int clusterID = (Integer) fields.get(0);
+
+      double[] updatedCenter = MAPPER.convertValue(fields.get(1), double[].class);
+      Cluster cluster = clusters.get(clusterID);
+
+      String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
+      double[] center = VectorMath.parseVector(tokens);
+
+      assertEquals(tokens.length, center.length);
+      assertFalse(Arrays.equals(center, updatedCenter));
+
+      int clusterSize = (Integer) fields.get(2);
+      assertNotEquals(cluster.getSize().intValue(), clusterSize);
+    }
   }
 
 }
