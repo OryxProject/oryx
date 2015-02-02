@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -39,6 +40,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.rdd.RDD;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
@@ -152,15 +154,22 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> newData = newKeyMessageData.values();
     JavaRDD<M> pastData = pastKeyMessageData == null ? null : pastKeyMessageData.values();
 
+    VoidFunction<Iterator<M>> noOpFn = new VoidFunction<Iterator<M>>() {
+      @Override
+      public void call(Iterator<M> it) {
+        // do nothing
+      }
+    };
+
     if (newData != null) {
       newData.cache();
       // This forces caching of the RDD. This shouldn't be necessary but we see some freezes
       // when many workers try to materialize the RDDs at once. Hence the workaround.
-      newData.count();
+      newData.foreachPartition(noOpFn);
     }
     if (pastData != null) {
       pastData.cache();
-      pastData.count();
+      pastData.foreachPartition(noOpFn);
     }
 
     List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
