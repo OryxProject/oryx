@@ -25,10 +25,12 @@ import java.util.List;
 
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
@@ -88,19 +90,29 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     }
 
     List<String> updates = new ArrayList<>();
-    List<Pair<Integer,ClusterInfo>> updatedPoints =
+
+    List<Tuple2<Integer,Pair<double[],Long>>> clusteredPointsList =
         newData.values().map(MLFunctions.PARSE_FN)
-            .map(new ToDoubleVectorFn(inputSchema))
-            .map(new ToClusterIdFn(model.getClusters()))
+            .mapToPair(new ToClosestCluster(inputSchema, model.getClusters()))
+            .reduceByKey(new ToAvgSumAndCount())
             .collect();
 
-    for (Pair<Integer,ClusterInfo> pair : updatedPoints) {
-      ClusterInfo clusterInfo = pair.getSecond();
-      // update the cluster in the model
-      model.update(pair.getFirst(), clusterInfo);
+    for (Tuple2<Integer,Pair<double[],Long>> clusteredEntry : clusteredPointsList) {
+      int clusterID = clusteredEntry._1();
+      double[] vectorSum = clusteredEntry._2().getFirst();
+      Long count = clusteredEntry._2().getSecond();
+
+      for (int i = 0; i < vectorSum.length; i++) {
+        vectorSum[i] /= count;
+      }
+
+      ClusterInfo clusterInfo = model.getClusters().get(clusterID);
+      clusterInfo.update(vectorSum, count);
+      model.update(clusterID, clusterInfo);
+
       // add to updates
       updates.add(TextUtils.joinJSON(
-          Arrays.asList(clusterInfo.getID(), clusterInfo.getCenter(), clusterInfo.getCount())));
+          Arrays.asList(clusterID, clusterInfo.getCenter(), clusterInfo.getCount())));
     }
 
     return updates;
@@ -111,42 +123,17 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     // do nothing
   }
 
-  private static class ToClusterIdFn implements Function<double[], Pair<Integer, ClusterInfo>> {
+  private static class ToClosestCluster implements PairFunction<String[],Integer,Pair<double[],Long>> {
+    private final InputSchema inputSchema;
     private final List<ClusterInfo> clusters;
 
-    ToClusterIdFn(List<ClusterInfo> clusters) {
+    ToClosestCluster(InputSchema inputSchema, List<ClusterInfo> clusters) {
+      this.inputSchema = inputSchema;
       this.clusters = clusters;
     }
 
     @Override
-    public Pair<Integer,ClusterInfo> call(double[] v) {
-      double minDistance = Double.POSITIVE_INFINITY;
-      int bestIndex = -1;
-
-      SquaredDistanceFn sqDist = new SquaredDistanceFn();
-      for (ClusterInfo cluster : clusters) {
-        double distance = sqDist.distance(cluster.getCenter(), v);
-        if (distance < minDistance) {
-          minDistance = distance;
-          bestIndex = cluster.getID();
-        }
-      }
-
-      ClusterInfo clusterInfo = clusters.get(bestIndex);
-      clusterInfo.update(v);
-      return new Pair<>(bestIndex, clusterInfo);
-    }
-  }
-
-  private static class ToDoubleVectorFn implements Function<String[], double[]> {
-    private final InputSchema inputSchema;
-
-    ToDoubleVectorFn(InputSchema inputSchema) {
-      this.inputSchema = inputSchema;
-    }
-
-    @Override
-    public double[] call(String[] data) {
+    public Tuple2<Integer,Pair<double[],Long>> call(String[] data) {
       double[] features = new double[inputSchema.getNumPredictors()];
       for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
         if (inputSchema.isActive(featureIndex)) {
@@ -154,7 +141,35 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
               Double.parseDouble(data[featureIndex]);
         }
       }
-      return features;
+
+      double minDistance = Double.POSITIVE_INFINITY;
+      int bestIndex = -1;
+
+      SquaredDistanceFn sqDist = new SquaredDistanceFn();
+      for (ClusterInfo cluster : clusters) {
+        double distance = sqDist.distance(cluster.getCenter(), features);
+        if (distance < minDistance) {
+          minDistance = distance;
+          bestIndex = cluster.getID();
+        }
+      }
+      return new Tuple2<>(bestIndex, new Pair<>(features, 1L));
+    }
+  }
+
+  private static class ToAvgSumAndCount implements Function2<Pair<double[],Long>,Pair<double[],Long>,
+                                                             Pair<double[],Long>> {
+
+    @Override
+    public Pair<double[],Long> call(Pair<double[],Long> p1, Pair<double[],Long> p2) {
+      double[] v1 = p1.getFirst();
+      double[] v2 = p2.getFirst();
+
+      for (int i = 0; i < v1.length; i++) {
+        v1[i] += v2[i];
+      }
+
+      return new Pair<>(v1, p1.getSecond() + p2.getSecond());
     }
   }
 
