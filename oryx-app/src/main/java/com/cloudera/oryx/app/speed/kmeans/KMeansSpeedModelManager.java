@@ -26,16 +26,17 @@ import java.util.List;
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -88,19 +89,22 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     }
 
     List<String> updates = new ArrayList<>();
-    List<Pair<Integer,ClusterInfo>> updatedPoints =
+    List<Tuple2<Integer,Iterable<double[]>>> indexPointsList =
         newData.values().map(MLFunctions.PARSE_FN)
             .map(new ToDoubleVectorFn(inputSchema))
-            .map(new ToClusterIdFn(model.getClusters()))
+            .mapToPair(new ToClusterIdFn(model.getClusters()))
+            .groupByKey()
             .collect();
 
-    for (Pair<Integer,ClusterInfo> pair : updatedPoints) {
-      ClusterInfo clusterInfo = pair.getSecond();
-      // update the cluster in the model
-      model.update(pair.getFirst(), clusterInfo);
-      // add to updates
-      updates.add(TextUtils.joinJSON(
-          Arrays.asList(clusterInfo.getID(), clusterInfo.getCenter(), clusterInfo.getCount())));
+    for (Tuple2<Integer,Iterable<double[]>> indexedPoint : indexPointsList) {
+      int clusterIndex = indexedPoint._1();
+      for (double[] point : indexedPoint._2()) {
+        model.update(clusterIndex, point);
+        ClusterInfo clusterInfo = model.getClusters().get(clusterIndex);
+        // add to updates
+        updates.add(TextUtils.joinJSON(
+            Arrays.asList(clusterInfo.getID(), clusterInfo.getCenter(), clusterInfo.getCount())));
+      }
     }
 
     return updates;
@@ -111,7 +115,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     // do nothing
   }
 
-  private static class ToClusterIdFn implements Function<double[], Pair<Integer, ClusterInfo>> {
+  private static class ToClusterIdFn implements PairFunction<double[],Integer,double[]> {
     private final List<ClusterInfo> clusters;
 
     ToClusterIdFn(List<ClusterInfo> clusters) {
@@ -119,7 +123,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     }
 
     @Override
-    public Pair<Integer,ClusterInfo> call(double[] v) {
+    public Tuple2<Integer,double[]> call(double[] v) {
       double minDistance = Double.POSITIVE_INFINITY;
       int bestIndex = -1;
 
@@ -131,10 +135,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           bestIndex = cluster.getID();
         }
       }
-
-      ClusterInfo clusterInfo = clusters.get(bestIndex);
-      clusterInfo.update(v);
-      return new Pair<>(bestIndex, clusterInfo);
+      return new Tuple2<>(bestIndex, v);
     }
   }
 
