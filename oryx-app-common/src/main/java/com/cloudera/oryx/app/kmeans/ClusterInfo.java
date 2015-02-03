@@ -50,7 +50,7 @@ public final class ClusterInfo implements Serializable {
     update(newPoint, 1);
   }
 
-  public synchronized void update(double[] newPoint, int newCount) {
+  public synchronized void update(double[] newPoint, long newCount) {
     int length = center.length;
     Preconditions.checkArgument(length == newPoint.length);
     double[] newCenter = new double[length];
