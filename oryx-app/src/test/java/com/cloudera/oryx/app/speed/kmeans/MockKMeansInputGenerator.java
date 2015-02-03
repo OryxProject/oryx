@@ -15,7 +15,8 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -25,8 +26,22 @@ import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 public final class MockKMeansInputGenerator implements DatumGenerator<String,String> {
 
+  // Corresponds to points near the three cluster centers in the dummy K-means model
+  static final double[][] UPDATE_POINTS = {
+      { 1.0, 1.0 }, { 2.0, -2.0 }, { -2.0, 0.0 }
+  };
+
   @Override
   public Pair<String, String> generate(int id, RandomGenerator random) {
-    return new Pair<>(Integer.toString(id), TextUtils.joinJSON(Arrays.asList(id % 3, id % 3)));
+    return new Pair<>(Integer.toString(id),
+                      TextUtils.joinJSON(arrayToList(UPDATE_POINTS[id % UPDATE_POINTS.length])));
+  }
+
+  private static List<Double> arrayToList(double[] arr) {
+    List<Double> list = new ArrayList<>(arr.length);
+    for (double d : arr) {
+      list.add(d);
+    }
+    return list;
   }
 }

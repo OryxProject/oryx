@@ -15,24 +15,51 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
+import java.io.Serializable;
 import java.util.List;
 
-import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.google.common.base.Preconditions;
 
-public final class KMeansSpeedModel {
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
+import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
+
+public final class KMeansSpeedModel implements Serializable {
 
   private final List<ClusterInfo> clusters;
+  private final DistanceFn<double[]> distanceFn;
 
   public KMeansSpeedModel(List<ClusterInfo> clusterCenters) {
     this.clusters = clusterCenters;
+    distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported
   }
 
-  public List<ClusterInfo> getClusters() {
-    return clusters;
+  public int getNumClusters() {
+    return clusters.size();
   }
 
-  public void update(int index, ClusterInfo clusterInfo) {
-    clusters.set(index, clusterInfo);
+  public ClusterInfo getCluster(int id) {
+    return clusters.get(id);
+  }
+
+  public void setCluster(int clusterID, ClusterInfo clusterInfo) {
+    clusters.set(clusterID, clusterInfo);
+  }
+
+  public int closestCluster(double[] vector) {
+    double closestDist = Double.POSITIVE_INFINITY;
+    int minCluster = -1;
+    for (int i = 0; i < clusters.size(); i++) {
+      ClusterInfo cluster = clusters.get(i);
+      double distance = distanceFn.distance(cluster.getCenter(), vector);
+      if (distance < closestDist) {
+        closestDist = distance;
+        minCluster = i;
+      }
+    }
+    Preconditions.checkState(minCluster >= 0);
+    Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
+    return minCluster;
   }
 
   @Override

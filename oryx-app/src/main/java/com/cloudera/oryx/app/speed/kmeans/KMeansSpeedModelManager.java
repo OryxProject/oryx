@@ -25,17 +25,17 @@ import java.util.List;
 
 import com.typesafe.config.Config;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
-import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -72,7 +72,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           }
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
-          log.info("Model with {} clusters", model.getClusters().size());
+          log.info("Model with {} clusters", model.getNumClusters());
           break;
         default:
           throw new IllegalStateException("Unexpected key " + key);
@@ -87,20 +87,27 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       return Collections.emptyList();
     }
 
-    List<String> updates = new ArrayList<>();
-    List<Pair<Integer,ClusterInfo>> updatedPoints =
+    List<Tuple2<Integer,Tuple2<double[],Long>>> updatedPoints =
         newData.values().map(MLFunctions.PARSE_FN)
-            .map(new ToDoubleVectorFn(inputSchema))
-            .map(new ToClusterIdFn(model.getClusters()))
-            .collect();
+            .mapToPair(new ToClusteredSums(inputSchema, model))
+            .reduceByKey(new ReduceFeatureAndCountFn()).collect();
 
-    for (Pair<Integer,ClusterInfo> pair : updatedPoints) {
-      ClusterInfo clusterInfo = pair.getSecond();
-      // update the cluster in the model
-      model.update(pair.getFirst(), clusterInfo);
+    List<String> updates = new ArrayList<>(updatedPoints.size());
+    for (Tuple2<Integer,Tuple2<double[],Long>> pair : updatedPoints) {
+      int clusterID = pair._1();
+      double[] vectorSum = pair._2()._1();
+      long count = pair._2()._2();
+
+      for (int i = 0 ; i < vectorSum.length; i++) {
+        vectorSum[i] /= count;
+      }
+
+      ClusterInfo clusterInfo = model.getCluster(clusterID);
+      clusterInfo.update(vectorSum, count);
+      model.setCluster(clusterID, clusterInfo);
       // add to updates
       updates.add(TextUtils.joinJSON(
-          Arrays.asList(clusterInfo.getID(), clusterInfo.getCenter(), clusterInfo.getCount())));
+          Arrays.asList(clusterID, clusterInfo.getCenter(), clusterInfo.getCount())));
     }
 
     return updates;
@@ -111,50 +118,44 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     // do nothing
   }
 
-  private static class ToClusterIdFn implements Function<double[], Pair<Integer, ClusterInfo>> {
-    private final List<ClusterInfo> clusters;
+  private static final class ToClusteredSums
+      implements PairFunction<String[],Integer,Tuple2<double[],Long>> {
 
-    ToClusterIdFn(List<ClusterInfo> clusters) {
-      this.clusters = clusters;
-    }
-
-    @Override
-    public Pair<Integer,ClusterInfo> call(double[] v) {
-      double minDistance = Double.POSITIVE_INFINITY;
-      int bestIndex = -1;
-
-      SquaredDistanceFn sqDist = new SquaredDistanceFn();
-      for (ClusterInfo cluster : clusters) {
-        double distance = sqDist.distance(cluster.getCenter(), v);
-        if (distance < minDistance) {
-          minDistance = distance;
-          bestIndex = cluster.getID();
-        }
-      }
-
-      ClusterInfo clusterInfo = clusters.get(bestIndex);
-      clusterInfo.update(v);
-      return new Pair<>(bestIndex, clusterInfo);
-    }
-  }
-
-  private static class ToDoubleVectorFn implements Function<String[], double[]> {
     private final InputSchema inputSchema;
+    private final KMeansSpeedModel model;
 
-    ToDoubleVectorFn(InputSchema inputSchema) {
+    ToClusteredSums(InputSchema inputSchema, KMeansSpeedModel model) {
       this.inputSchema = inputSchema;
+      // This assumes KMeansSpeedModel is smallish and trivial to serialize
+      this.model = model;
     }
 
     @Override
-    public double[] call(String[] data) {
-      double[] features = new double[inputSchema.getNumPredictors()];
+    public Tuple2<Integer,Tuple2<double[],Long>> call(String[] data) {
+      double[] featureVector = new double[inputSchema.getNumPredictors()];
       for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
         if (inputSchema.isActive(featureIndex)) {
-          features[inputSchema.featureToPredictorIndex(featureIndex)] =
+          featureVector[inputSchema.featureToPredictorIndex(featureIndex)] =
               Double.parseDouble(data[featureIndex]);
         }
       }
-      return features;
+      int closestClusterID = model.closestCluster(featureVector);
+      return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
+    }
+  }
+
+  private static final class ReduceFeatureAndCountFn
+      implements Function2<Tuple2<double[],Long>,Tuple2<double[],Long>,Tuple2<double[],Long>> {
+    @Override
+    public Tuple2<double[], Long> call(Tuple2<double[], Long> t1, Tuple2<double[], Long> t2) {
+      double[] vec1 = t1._1();
+      double[] vec2 = t2._1();
+      // going to modify 1 in place
+      for (int i = 0; i < vec1.length; i++) {
+        vec1[i] += vec2[i];
+      }
+      long totalCount = t1._2() + t2._2();
+      return new Tuple2<>(vec1, totalCount);
     }
   }
 

@@ -40,13 +40,13 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedIT.class);
 
-  private static final int NUM_INPUT = 1000;
+  private static final int NUM_CLUSTERS = 3;
 
   @Test
   public void testKMeansServingModel() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", KMeansSpeedModelManager.class.getName());
-    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 5);
+    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
     overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"x\",\"y\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
@@ -58,18 +58,16 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
         startServerProduceConsumeTopics(config,
                                         new MockKMeansInputGenerator(),
                                         new MockKMeansModelGenerator(),
-                                        NUM_INPUT,
+                                        300, // @10 msec should make 1 interval
                                         1);
 
-    if (log.isDebugEnabled()) {
-      for (Pair<String, String> update : updates) {
-        log.debug("{}", update);
-      }
+    for (Pair<String, String> update : updates) {
+      log.info("{}", update);
     }
 
     int numUpdates = updates.size();
 
-    assertEquals(NUM_INPUT + 1, updates.size());
+    assertEquals(NUM_CLUSTERS + 1, updates.size());
     assertEquals("MODEL", updates.get(0).getFirst());
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
@@ -77,7 +75,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     assertTrue(model instanceof ClusteringModel);
 
     ClusteringModel clusteringModel = (ClusteringModel) model;
-    assertEquals(3, clusteringModel.getNumberOfClusters().intValue());
+    assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
     List<Cluster> clusters = clusteringModel.getClusters();
 
     for (int i = 1; i < numUpdates; i++) {
@@ -90,13 +88,16 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
       Cluster cluster = clusters.get(clusterID);
 
       String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
-      double[] center = VectorMath.parseVector(tokens);
+      double[] modelCenter = VectorMath.parseVector(tokens);
 
-      assertEquals(tokens.length, center.length);
-      assertFalse(Arrays.equals(center, updatedCenter));
+      assertEquals(tokens.length, modelCenter.length);
+      assertFalse(Arrays.equals(modelCenter, updatedCenter));
+      // Should be heavily weighted now towards the update point
+      assertArrayEquals(updatedCenter, MockKMeansInputGenerator.UPDATE_POINTS[i - 1], 0.1);
 
-      int clusterSize = (Integer) fields.get(2);
-      assertNotEquals(cluster.getSize().intValue(), clusterSize);
+      int updatedClusterSize = (Integer) fields.get(2);
+      assertTrue(updatedClusterSize > cluster.getSize());
+      assertEquals(100 + cluster.getSize(), updatedClusterSize);
     }
   }
 
