@@ -69,7 +69,6 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     int numUpdates = updates.size();
 
-    assertEquals(NUM_INPUT + 1, updates.size());
     assertEquals("MODEL", updates.get(0).getFirst());
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
