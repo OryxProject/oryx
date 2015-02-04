@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.kmeans;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,48 +72,43 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
   public static PMML buildDummyClusteringModel() {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
-    DataDictionary dataDictionary = new DataDictionary();
-    dataDictionary.setNumberOfFields(3);
-    DataField dataField1 = new DataField(FieldName.create("0"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(dataField1);
-    DataField dataField2 = new DataField(FieldName.create("1"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(dataField2);
-    DataField dataField3 = new DataField(FieldName.create("2"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(dataField3);
+    List<DataField> dataFields = new ArrayList<>();
+    dataFields.add(new DataField(FieldName.create("0"), OpType.CONTINUOUS, DataType.DOUBLE));
+    dataFields.add(new DataField(FieldName.create("1"), OpType.CONTINUOUS, DataType.DOUBLE));
+    dataFields.add(new DataField(FieldName.create("2"), OpType.CONTINUOUS, DataType.DOUBLE));
+    DataDictionary dataDictionary = new DataDictionary(dataFields);
+    dataDictionary.setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
-    MiningSchema miningSchema = new MiningSchema();
+    List<MiningField> miningFields = new ArrayList<>();
     MiningField miningField1 = new MiningField(FieldName.create("0"));
-    miningField1.setOptype(OpType.CONTINUOUS);
+    miningField1.setOpType(OpType.CONTINUOUS);
     miningField1.setUsageType(FieldUsageType.ACTIVE);
-    miningSchema.getMiningFields().add(miningField1);
+    miningFields.add(miningField1);
     MiningField miningField2 = new MiningField(FieldName.create("1"));
-    miningField2.setOptype(OpType.CONTINUOUS);
+    miningField2.setOpType(OpType.CONTINUOUS);
     miningField2.setUsageType(FieldUsageType.ACTIVE);
-    miningSchema.getMiningFields().add(miningField2);
+    miningFields.add(miningField2);
     MiningField miningField3 = new MiningField(FieldName.create("2"));
-    miningField3.setOptype(OpType.CONTINUOUS);
+    miningField3.setOpType(OpType.CONTINUOUS);
     miningField3.setUsageType(FieldUsageType.ACTIVE);
-    miningSchema.getMiningFields().add(miningField3);
+    miningFields.add(miningField3);
+    MiningSchema miningSchema = new MiningSchema(miningFields);
 
-    ClusteringModel clusteringModel = new ClusteringModel(
-        miningSchema,
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+    List<Cluster> clusters = new ArrayList<>();
+    clusters.add(new Cluster().withId("0").withSize(CLUSTER_SIZE)
+                     .withArray(AppPMMLUtils.toArray(2.0, 3.0)));
+    clusters.add(new Cluster().withId("1").withSize(CLUSTER_SIZE)
+                     .withArray(AppPMMLUtils.toArray(6.0, 10.0)));
+
+    pmml.getModels().add(new ClusteringModel(
         MiningFunctionType.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
-        NUM_CLUSTERS);
-
-    clusteringModel.getClusters().add(new Cluster()
-        .withId("0")
-        .withSize(CLUSTER_SIZE)
-        .withArray(AppPMMLUtils.toArray(2.0, 3.0)));
-
-    clusteringModel.getClusters().add(new Cluster()
-        .withId("1")
-        .withSize(CLUSTER_SIZE)
-        .withArray(AppPMMLUtils.toArray(6.0, 10.0)));
-
-    pmml.getModels().add(clusteringModel);
+        clusters.size(),
+        miningSchema,
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        null,
+        clusters));
 
     return pmml;
   }

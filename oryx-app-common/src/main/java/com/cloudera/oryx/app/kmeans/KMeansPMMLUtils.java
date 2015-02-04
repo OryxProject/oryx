@@ -100,46 +100,43 @@ public final class KMeansPMMLUtils {
   public static PMML buildDummyClusteringModel() {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
-    DataDictionary dataDictionary = new DataDictionary();
-    dataDictionary.setNumberOfFields(2);
-    DataField xField = new DataField(FieldName.create("x"), OpType.CONTINUOUS, DataType.DOUBLE);
-    DataField yField = new DataField(FieldName.create("y"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(xField);
-    dataDictionary.getDataFields().add(yField);
+    List<DataField> dataFields = new ArrayList<>();
+    dataFields.add(new DataField(FieldName.create("x"), OpType.CONTINUOUS, DataType.DOUBLE));
+    dataFields.add(new DataField(FieldName.create("y"), OpType.CONTINUOUS, DataType.DOUBLE));
+    DataDictionary dataDictionary = new DataDictionary(dataFields);
+    dataDictionary.setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
-    MiningSchema miningSchema = new MiningSchema();
+    List<MiningField> miningFields = new ArrayList<>();
     MiningField xMF = new MiningField(FieldName.create("x"));
-    xMF.setOptype(OpType.CONTINUOUS);
+    xMF.setOpType(OpType.CONTINUOUS);
     xMF.setUsageType(FieldUsageType.ACTIVE);
+    miningFields.add(xMF);
     MiningField yMF = new MiningField(FieldName.create("y"));
-    yMF.setOptype(OpType.CONTINUOUS);
+    yMF.setOpType(OpType.CONTINUOUS);
     yMF.setUsageType(FieldUsageType.ACTIVE);
-    miningSchema.getMiningFields().add(xMF);
-    miningSchema.getMiningFields().add(yMF);
+    miningFields.add(yMF);
+    MiningSchema miningSchema = new MiningSchema(miningFields);
 
-    ClusteringModel clusteringModel = new ClusteringModel(
-        miningSchema,
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+    List<ClusteringField> clusteringFields = new ArrayList<>();
+    clusteringFields.add(new ClusteringField(
+        FieldName.create("x")).withCenterField(ClusteringField.CenterField.TRUE));
+    clusteringFields.add(new ClusteringField(
+        FieldName.create("y")).withCenterField(ClusteringField.CenterField.TRUE));
+
+    List<Cluster> clusters = new ArrayList<>();
+    clusters.add(new Cluster().withId("0").withSize(1).withArray(AppPMMLUtils.toArray(1.0, 0.0)));
+    clusters.add(new Cluster().withId("1").withSize(2).withArray(AppPMMLUtils.toArray(2.0, -1.0)));
+    clusters.add(new Cluster().withId("2").withSize(3).withArray(AppPMMLUtils.toArray(-1.0, 0.0)));
+
+    pmml.getModels().add(new ClusteringModel(
         MiningFunctionType.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
-        3);
-
-    ClusteringField xCF = new ClusteringField(
-        FieldName.create("x")).withCenterField(ClusteringField.CenterField.TRUE);
-    ClusteringField yCF = new ClusteringField(
-        FieldName.create("y")).withCenterField(ClusteringField.CenterField.TRUE);
-    clusteringModel.getClusteringFields().add(xCF);
-    clusteringModel.getClusteringFields().add(yCF);
-
-    clusteringModel.getClusters().add(new Cluster().withId("0").withSize(1)
-                                          .withArray(AppPMMLUtils.toArray(1.0, 0.0)));
-    clusteringModel.getClusters().add(new Cluster().withId("1").withSize(2)
-                                          .withArray(AppPMMLUtils.toArray(2.0, -1.0)));
-    clusteringModel.getClusters().add(new Cluster().withId("2").withSize(3)
-                                          .withArray(AppPMMLUtils.toArray(-1.0, 0.0)));
-
-    pmml.getModels().add(clusteringModel);
+        clusters.size(),
+        miningSchema,
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        clusteringFields,
+        clusters));
 
     return pmml;
   }

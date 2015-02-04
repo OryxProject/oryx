@@ -108,7 +108,7 @@ public final class AppPMMLUtils {
       valueList.add(value);
     }
     String arrayValue = TextUtils.joinDelimited(valueList, ' ', true);
-    return new Array(arrayValue, Array.Type.REAL).withN(valueList.size());
+    return new Array(Array.Type.REAL, arrayValue).withN(valueList.size());
   }
 
   /**
@@ -118,7 +118,7 @@ public final class AppPMMLUtils {
    */
   public static Array toArray(Collection<?> values, Array.Type type) {
     String arrayValue = TextUtils.joinDelimited(values, ' ');
-    return new Array(arrayValue, type).withN(values.size());
+    return new Array(type, arrayValue).withN(values.size());
   }
 
   /**
@@ -147,10 +147,10 @@ public final class AppPMMLUtils {
       String featureName = featureNames.get(featureIndex);
       MiningField field = new MiningField(FieldName.create(featureName));
       if (schema.isNumeric(featureName)) {
-        field.setOptype(OpType.CONTINUOUS);
+        field.setOpType(OpType.CONTINUOUS);
         field.setUsageType(FieldUsageType.ACTIVE);
       } else if (schema.isCategorical(featureName)) {
-        field.setOptype(OpType.CATEGORICAL);
+        field.setOpType(OpType.CATEGORICAL);
         field.setUsageType(FieldUsageType.ACTIVE);
       } else {
         // ID, or ignored
@@ -200,8 +200,8 @@ public final class AppPMMLUtils {
       InputSchema schema,
       CategoricalValueEncodings categoricalValueEncodings) {
     List<String> featureNames = schema.getFeatureNames();
-    DataDictionary dictionary = new DataDictionary();
 
+    List<DataField> dataFields = new ArrayList<>();
     for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
       String featureName = featureNames.get(featureIndex);
       OpType opType;
@@ -225,9 +225,11 @@ public final class AppPMMLUtils {
           field.getValues().add(new Value(value));
         }
       }
-      dictionary.getDataFields().add(field);
+      dataFields.add(field);
     }
-    dictionary.setNumberOfFields(dictionary.getDataFields().size());
+
+    DataDictionary dictionary = new DataDictionary(dataFields);
+    dictionary.setNumberOfFields(dataFields.size());
     return dictionary;
   }
 

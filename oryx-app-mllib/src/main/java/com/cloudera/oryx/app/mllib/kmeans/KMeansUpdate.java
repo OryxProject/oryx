@@ -162,29 +162,32 @@ public final class KMeansUpdate extends MLUpdate<String> {
   private ClusteringModel pmmlClusteringModel(KMeansModel model,
                                               Map<Integer,Long> clusterSizesMap) {
     Vector[] clusterCenters = model.clusterCenters();
-    ClusteringModel clusteringModel = new ClusteringModel(
-        AppPMMLUtils.buildMiningSchema(inputSchema),
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
-        MiningFunctionType.CLUSTERING,
-        ClusteringModel.ModelClass.CENTER_BASED,
-        clusterCenters.length);
 
+    List<ClusteringField> clusteringFields = new ArrayList<>();
     for (int i = 0; i < inputSchema.getNumFeatures(); i++) {
       if (inputSchema.isActive(i)) {
         FieldName fieldName = FieldName.create(inputSchema.getFeatureNames().get(i));
         ClusteringField clusteringField =
             new ClusteringField(fieldName).withCenterField(ClusteringField.CenterField.TRUE);
-        clusteringModel.getClusteringFields().add(clusteringField);
+        clusteringFields.add(clusteringField);
       }
     }
 
+    List<Cluster> clusters = new ArrayList<>(clusterCenters.length);
     for (int i = 0; i < clusterCenters.length; i++) {
-      clusteringModel.getClusters().add(
-          new Cluster().withId(Integer.toString(i))
-              .withSize(clusterSizesMap.get(i).intValue())
-              .withArray(AppPMMLUtils.toArray(clusterCenters[i].toArray())));
+      clusters.add(new Cluster().withId(Integer.toString(i))
+                       .withSize(clusterSizesMap.get(i).intValue())
+                       .withArray(AppPMMLUtils.toArray(clusterCenters[i].toArray())));
     }
-    return clusteringModel;
+
+    return new ClusteringModel(
+        MiningFunctionType.CLUSTERING,
+        ClusteringModel.ModelClass.CENTER_BASED,
+        clusters.size(),
+        AppPMMLUtils.buildMiningSchema(inputSchema),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        clusteringFields,
+        clusters);
   }
 
   /**

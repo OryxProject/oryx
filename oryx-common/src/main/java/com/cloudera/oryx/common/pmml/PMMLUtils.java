@@ -51,7 +51,7 @@ public final class PMMLUtils {
     Header header = new Header();
     header.setTimestamp(new Timestamp().withContent(formattedDate));
     header.setApplication(new Application("Oryx"));
-    return new PMML(header, null, "4.2.1");
+    return new PMML("4.2.1", header, null);
   }
 
   /**

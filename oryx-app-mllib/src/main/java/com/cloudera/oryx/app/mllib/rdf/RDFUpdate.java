@@ -438,8 +438,7 @@ public final class RDFUpdate extends MLUpdate<String> {
       MultipleModelMethodType multipleModelMethodType = classificationTask ?
           MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE :
           MultipleModelMethodType.WEIGHTED_AVERAGE;
-      Segmentation segmentation = new Segmentation(multipleModelMethodType);
-      miningModel.setSegmentation(segmentation);
+      List<Segment> segments = new ArrayList<>(trees.length);
       for (int treeID = 0; treeID < trees.length; treeID++) {
         TreeModel treeModel =
             toTreeModel(trees[treeID], categoricalValueEncodings, nodeIDCounts.get(treeID));
@@ -448,8 +447,9 @@ public final class RDFUpdate extends MLUpdate<String> {
         segment.setPredicate(new True());
         segment.setModel(treeModel);
         segment.setWeight(1.0); // No weights in MLlib impl now
-        segmentation.getSegments().add(segment);
+        segments.add(segment);
       }
+      miningModel.setSegmentation(new Segmentation(multipleModelMethodType, segments));
     }
 
     model.setFunctionName(classificationTask ?
@@ -592,9 +592,9 @@ public final class RDFUpdate extends MLUpdate<String> {
       }
 
       String joinedValues = TextUtils.joinDelimited(negativeValues, ' ');
-      return new SimpleSetPredicate(new Array(joinedValues, Array.Type.STRING),
-                                    fieldName,
-                                    SimpleSetPredicate.BooleanOperator.IS_NOT_IN);
+      return new SimpleSetPredicate(fieldName,
+                                    SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
+                                    new Array(Array.Type.STRING, joinedValues));
 
     } else {
       // For MLlib, left means <= threshold, so right means >

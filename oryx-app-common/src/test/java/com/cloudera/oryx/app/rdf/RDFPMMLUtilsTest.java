@@ -15,7 +15,9 @@
 
 package com.cloudera.oryx.app.rdf;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
@@ -118,30 +120,32 @@ public final class RDFPMMLUtilsTest extends OryxTest {
   public static PMML buildDummyClassificationModel(int numTrees) {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
-    DataDictionary dataDictionary = new DataDictionary();
-    dataDictionary.setNumberOfFields(2);
+    List<DataField> dataFields = new ArrayList<>();
     DataField predictor =
         new DataField(FieldName.create("color"), OpType.CATEGORICAL, DataType.STRING);
     predictor.getValues().add(new Value("yellow"));
     predictor.getValues().add(new Value("red"));
-    dataDictionary.getDataFields().add(predictor);
+    dataFields.add(predictor);
     DataField target =
         new DataField(FieldName.create("fruit"), OpType.CATEGORICAL, DataType.STRING);
     target.getValues().add(new Value("banana"));
     target.getValues().add(new Value("apple"));
-    dataDictionary.getDataFields().add(target);
+    dataFields.add(target);
+    DataDictionary dataDictionary = new DataDictionary(dataFields);
+    dataDictionary.setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
-    MiningSchema miningSchema = new MiningSchema();
+    List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("color"));
-    predictorMF.setOptype(OpType.CATEGORICAL);
+    predictorMF.setOpType(OpType.CATEGORICAL);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
     predictorMF.setImportance(0.5);
-    miningSchema.getMiningFields().add(predictorMF);
+    miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("fruit"));
-    targetMF.setOptype(OpType.CATEGORICAL);
+    targetMF.setOpType(OpType.CATEGORICAL);
     targetMF.setUsageType(FieldUsageType.PREDICTED);
-    miningSchema.getMiningFields().add(targetMF);
+    miningFields.add(targetMF);
+    MiningSchema miningSchema = new MiningSchema(miningFields);
 
     Node rootNode = new Node();
     rootNode.setId("r");
@@ -159,31 +163,31 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     Node right = new Node();
     right.setId("r+");
     right.setRecordCount(halfCount);
-    right.setPredicate(new SimpleSetPredicate(new Array("red", Array.Type.STRING),
-                                              FieldName.create("color"),
-                                              SimpleSetPredicate.BooleanOperator.IS_NOT_IN));
+    right.setPredicate(new SimpleSetPredicate(FieldName.create("color"),
+                                              SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
+                                              new Array(Array.Type.STRING, "red")));
     right.getScoreDistributions().add(new ScoreDistribution("banana", halfCount));
 
     rootNode.getNodes().add(right);
     rootNode.getNodes().add(left);
 
-    TreeModel treeModel =
-        new TreeModel(miningSchema, rootNode, MiningFunctionType.CLASSIFICATION);
+    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, miningSchema, rootNode);
     treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
     treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
 
     if (numTrees > 1) {
-      MiningModel miningModel = new MiningModel(miningSchema, MiningFunctionType.CLASSIFICATION);
-      Segmentation segmentation = new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE);
+      MiningModel miningModel = new MiningModel(MiningFunctionType.CLASSIFICATION, miningSchema);
+      List<Segment> segments = new ArrayList<>();
       for (int i = 0; i < numTrees; i++) {
         Segment segment = new Segment();
         segment.setId(Integer.toString(i));
         segment.setPredicate(new True());
         segment.setModel(treeModel);
         segment.setWeight(1.0);
-        segmentation.getSegments().add(segment);
+        segments.add(segment);
       }
-      miningModel.setSegmentation(segmentation);
+      miningModel.setSegmentation(
+          new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE, segments));
       pmml.getModels().add(miningModel);
     } else {
       pmml.getModels().add(treeModel);
@@ -195,26 +199,24 @@ public final class RDFPMMLUtilsTest extends OryxTest {
   public static PMML buildDummyRegressionModel() {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
-    DataDictionary dataDictionary = new DataDictionary();
-    dataDictionary.setNumberOfFields(2);
-    DataField predictor =
-        new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(predictor);
-    DataField target =
-        new DataField(FieldName.create("bar"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dataDictionary.getDataFields().add(target);
+    List<DataField> dataFields = new ArrayList<>();
+    dataFields.add(new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE));
+    dataFields.add(new DataField(FieldName.create("bar"), OpType.CONTINUOUS, DataType.DOUBLE));
+    DataDictionary dataDictionary = new DataDictionary(dataFields);
+    dataDictionary.setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
-    MiningSchema miningSchema = new MiningSchema();
+    List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("foo"));
-    predictorMF.setOptype(OpType.CONTINUOUS);
+    predictorMF.setOpType(OpType.CONTINUOUS);
     predictorMF.setUsageType(FieldUsageType.ACTIVE);
     predictorMF.setImportance(0.5);
-    miningSchema.getMiningFields().add(predictorMF);
+    miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("bar"));
-    targetMF.setOptype(OpType.CONTINUOUS);
+    targetMF.setOpType(OpType.CONTINUOUS);
     targetMF.setUsageType(FieldUsageType.PREDICTED);
-    miningSchema.getMiningFields().add(targetMF);
+    miningFields.add(targetMF);
+    MiningSchema miningSchema = new MiningSchema(miningFields);
 
     Node rootNode = new Node();
     rootNode.setId("r");
@@ -241,8 +243,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     rootNode.getNodes().add(right);
     rootNode.getNodes().add(left);
 
-    TreeModel treeModel =
-        new TreeModel(miningSchema, rootNode, MiningFunctionType.REGRESSION);
+    TreeModel treeModel = new TreeModel(MiningFunctionType.REGRESSION, miningSchema, rootNode);
     treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
     treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
     treeModel.setMiningSchema(miningSchema);

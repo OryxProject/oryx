@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.pmml;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
   private static PMML buildDummyModel() {
     Node node = new Node();
     node.setRecordCount(123.0);
-    TreeModel treeModel = new TreeModel(null, node, MiningFunctionType.CLASSIFICATION);
+    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.getModels().add(treeModel);
     return pmml;
@@ -127,8 +128,8 @@ public final class AppPMMLUtilsTest extends OryxTest {
     assertEquals(FieldUsageType.SUPPLEMENTARY, miningFields.get(2).getUsageType());
     assertEquals(FieldUsageType.ACTIVE, miningFields.get(3).getUsageType());
 
-    assertEquals(OpType.CATEGORICAL, miningFields.get(1).getOptype());
-    assertEquals(OpType.CONTINUOUS, miningFields.get(3).getOptype());
+    assertEquals(OpType.CATEGORICAL, miningFields.get(1).getOpType());
+    assertEquals(OpType.CONTINUOUS, miningFields.get(3).getOpType());
   }
 
   @Test
@@ -176,28 +177,28 @@ public final class AppPMMLUtilsTest extends OryxTest {
   private static void checkDataField(DataField field, String name, Boolean categorical) {
     assertEquals(name, field.getName().getValue());
     if (categorical == null) {
-      assertNull(field.getOptype());
+      assertNull(field.getOpType());
       assertNull(field.getDataType());
     } else if (categorical) {
-      assertEquals(OpType.CATEGORICAL, field.getOptype());
+      assertEquals(OpType.CATEGORICAL, field.getOpType());
       assertEquals(DataType.STRING, field.getDataType());
     } else {
-      assertEquals(OpType.CONTINUOUS, field.getOptype());
+      assertEquals(OpType.CONTINUOUS, field.getOpType());
       assertEquals(DataType.DOUBLE, field.getDataType());
     }
   }
 
   @Test
   public void testBuildCategoricalEncoding() {
-    DataDictionary dictionary = new DataDictionary();
-    DataField fooField =
-        new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE);
-    dictionary.getDataFields().add(fooField);
+    List<DataField> dataFields = new ArrayList<>();
+    dataFields.add(new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE));
     DataField barField =
         new DataField(FieldName.create("bar"), OpType.CATEGORICAL, DataType.STRING);
     barField.getValues().add(new Value("b"));
     barField.getValues().add(new Value("a"));
-    dictionary.getDataFields().add(barField);
+    dataFields.add(barField);
+    DataDictionary dictionary = new DataDictionary(dataFields);
+    dictionary.setNumberOfFields(dataFields.size());
     CategoricalValueEncodings encodings = AppPMMLUtils.buildCategoricalValueEncodings(dictionary);
     assertEquals(2, encodings.getValueCount(1));
     assertEquals(0, encodings.getValueEncodingMap(1).get("b").intValue());

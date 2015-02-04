@@ -67,19 +67,19 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
       if (schema.isNumeric(featureName)) {
         assertEquals("Wrong op type for feature " + featureName,
                      OpType.CONTINUOUS,
-                     dataField.getOptype());
+                     dataField.getOpType());
         assertEquals("Wrong data type for feature " + featureName,
                      DataType.DOUBLE,
                      dataField.getDataType());
       } else if (schema.isCategorical(featureName)) {
         assertEquals("Wrong op type for feature " + featureName,
                      OpType.CATEGORICAL,
-                     dataField.getOptype());
+                     dataField.getOpType());
         assertEquals("Wrong data type for feature " + featureName,
                      DataType.STRING,
                      dataField.getDataType());
       } else {
-        assertNull(dataField.getOptype());
+        assertNull(dataField.getOpType());
         assertNull(dataField.getDataType());
       }
     }
@@ -99,7 +99,7 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
       if (schema.isNumeric(expectedFeature)) {
         assertEquals("Wrong op type for feature + " + featureName,
                      OpType.CONTINUOUS,
-                     miningField.getOptype());
+                     miningField.getOpType());
         if (schema.isTarget(expectedFeature)) {
           assertEquals("Wrong usage type for feature + " + featureName,
                        FieldUsageType.PREDICTED,
@@ -114,7 +114,7 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
       } else if (schema.isCategorical(expectedFeature)) {
         assertEquals("Wrong op type for feature " + featureName,
                      OpType.CATEGORICAL,
-                     miningField.getOptype());
+                     miningField.getOpType());
         if (schema.isTarget(expectedFeature)) {
           assertEquals("Wrong usage type for feature " + featureName,
                        FieldUsageType.PREDICTED,
