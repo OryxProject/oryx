@@ -150,7 +150,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
 
     // Want to use some versions that may not match Spark or YARN
     sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
-    sparkConf.setIfMissing("spark.files.userClassPathFirst", "true");
+    // Don't set spark.files.userClassPathFirst (see issue #120)
 
     sparkConf.setMaster(streamingMaster);
     sparkConf.setAppName("OryxBatchLayer");
