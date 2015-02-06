@@ -463,7 +463,7 @@
     <jackson.version>2.5.0</jackson.version>
     <jersey.version>2.15</jersey.version>
     <kafka.version>0.8.2.0</kafka.version>
-    <koloboke.version>0.6.5</koloboke.version>
+    <koloboke.version>0.6.6</koloboke.version>
     <slf4j.version>1.7.10</slf4j.version>
     <spark.version>1.2.0</spark.version>
     <tomcat.version>8.0.18</tomcat.version>
