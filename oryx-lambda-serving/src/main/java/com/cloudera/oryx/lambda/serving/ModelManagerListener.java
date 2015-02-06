@@ -44,6 +44,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.KeyMessageImpl;
 import com.cloudera.oryx.lambda.TopicProducer;
 
 @WebListener
@@ -105,7 +106,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
         new Function<MessageAndMetadata<String,U>, KeyMessage<String,U>>() {
           @Override
           public KeyMessage<String,U> apply(MessageAndMetadata<String,U> input) {
-            return new KeyMessage<>(input.key(), input.message());
+            return new KeyMessageImpl<>(input.key(), input.message());
           }
         });
 

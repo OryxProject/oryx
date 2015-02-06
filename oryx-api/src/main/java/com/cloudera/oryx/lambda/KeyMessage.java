@@ -16,47 +16,16 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
- * Simple value class encapsulating a key and message in a topic.
+ * Simple interface encapsulating a key and message in a topic.
+ *
+ * @see KeyMessageImpl
  */
-public final class KeyMessage<K,M> implements Serializable {
+public interface KeyMessage<K,M> extends Serializable {
 
-  private final K key;
-  private final M message;
+  K getKey();
 
-  public KeyMessage(K key, M message) {
-    this.key = key;
-    this.message = message;
-  }
-
-  public K getKey() {
-    return key;
-  }
-
-  public M getMessage() {
-    return message;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(key) ^ Objects.hashCode(message);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof KeyMessage)) {
-      return false;
-    }
-    @SuppressWarnings("unchecked")
-    KeyMessage<K,M> other = (KeyMessage<K,M>) o;
-    return Objects.equals(key, other.key) && Objects.equals(message, other.message);
-  }
-
-  @Override
-  public String toString() {
-    return key + "," + message;
-  }
+  M getMessage();
 
 }

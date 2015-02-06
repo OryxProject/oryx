@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.KeyMessageImpl;
 
 public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
@@ -35,7 +36,7 @@ public final class MockSpeedModelManager implements SpeedModelManager<String,Str
   public void consume(Iterator<KeyMessage<String,String>> updateIterator) {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> update = updateIterator.next();
-      holder.add(new KeyMessage<>(update.getKey(), update.getMessage()));
+      holder.add(new KeyMessageImpl<>(update.getKey(), update.getMessage()));
     }
   }
 

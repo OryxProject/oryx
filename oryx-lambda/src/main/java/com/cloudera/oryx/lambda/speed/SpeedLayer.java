@@ -52,6 +52,7 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.KeyMessageImpl;
 
 /**
  * Main entry point for Oryx Speed Layer.
@@ -186,7 +187,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
         new Function<MessageAndMetadata<String,U>, KeyMessage<String,U>>() {
           @Override
           public KeyMessage<String,U> apply(MessageAndMetadata<String,U> input) {
-            return new KeyMessage<>(input.key(), input.message());
+            return new KeyMessageImpl<>(input.key(), input.message());
           }
         });
 
