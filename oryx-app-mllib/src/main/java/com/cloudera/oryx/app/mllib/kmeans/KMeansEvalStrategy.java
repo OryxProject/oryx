@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,12 +15,18 @@
 
 package com.cloudera.oryx.app.mllib.kmeans;
 
-import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
+public enum KMeansEvalStrategy {
 
-public abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
+  /* Sum of Squared Errors, default */
+  SSE,
 
-  protected static final int NUM_CLUSTERS = 3;
-  protected static final int NUM_FEATURES = 5;
-  protected static final String EVALUATION_STRATEGY = "SSE";
+  /* Davies Bouldin Index, lower is better */
+  DAVIES_BOULDIN,
+
+  /* Dunn Index, higher is better */
+  DUNN,
+
+  /* Silhouette Coefficient, Range is [-1,1], 1 being the best, -1 the worst */
+  SILHOUETTE,
 
 }

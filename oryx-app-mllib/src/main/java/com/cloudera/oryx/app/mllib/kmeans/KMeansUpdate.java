@@ -59,10 +59,12 @@ public final class KMeansUpdate extends MLUpdate<String> {
   private final int numberOfRuns;
   private final List<HyperParamValues<?>> hyperParamValues;
   private final InputSchema inputSchema;
+  private final KMeansEvalStrategy evaluationStrategy;
 
   public KMeansUpdate(Config config) {
     super(config);
     initializationStrategy = config.getString("oryx.kmeans.initialization-strategy");
+    evaluationStrategy = Enum.valueOf(KMeansEvalStrategy.class, config.getString("oryx.kmeans.evaluation-strategy"));
     numberOfRuns = config.getInt("oryx.kmeans.runs");
     maxIterations = config.getInt("oryx.kmeans.iterations");
     hyperParamValues = new ArrayList<>();
@@ -140,10 +142,35 @@ public final class KMeansUpdate extends MLUpdate<String> {
                          PMML model,
                          Path modelParentPath,
                          JavaRDD<String> testData) {
+    KMeansPMMLUtils.validatePMMLVsSchema(model, inputSchema);
     JavaRDD<Vector> testingData = parsedToVectorRDD(testData.map(MLFunctions.PARSE_FN));
-    double cost = pmmlToKMeansModel(model).computeCost(testingData.rdd());
-    double eval = 1.0 / cost;
-    log.info("Cost {} / eval {}", cost, eval);
+    List<ClusterInfo> clusterInfoList = KMeansPMMLUtils.read(model);
+    KMeansEvaluation kMeansEvaluation = new KMeansEvaluation(clusterInfoList);
+
+    double cost;
+    double eval = 0.0;
+    log.info("Evaluation Strategy is {}", evaluationStrategy.name());
+
+    switch (evaluationStrategy) {
+      case DAVIES_BOULDIN :
+        eval = kMeansEvaluation.daviesBouldinIndex(testingData);
+        log.info("Eval {}", eval);
+        break;
+      case DUNN :
+        eval = kMeansEvaluation.dunnIndex(testingData);
+        log.info("Eval {}", eval);
+        break;
+      case SILHOUETTE:
+        // TODO: in progress
+        log.info("Eval {}", eval);
+        break;
+      case SSE :
+        cost = pmmlToKMeansModel(model).computeCost(testingData.rdd());
+        eval = 1.0 / cost;
+        log.info("Cost {} / eval {}", cost, eval);
+        break;
+    }
+
     return eval;
   }
 

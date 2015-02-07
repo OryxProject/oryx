@@ -57,6 +57,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.kmeans.iterations", 5);
     overlayConfig.put("oryx.input-schema.num-features", NUM_FEATURES);
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
+    overlayConfig.put("oryx.kmeans.evaluation-strategy", EVALUATION_STRATEGY);
 
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
