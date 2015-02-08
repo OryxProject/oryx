@@ -39,10 +39,12 @@ final class KMeansEvaluation implements Serializable {
 
   private final DistanceFn<double[]> distanceFn;
   private final List<ClusterInfo> clusters;
+  private final int numClusters;
 
   KMeansEvaluation(List<ClusterInfo> clusters) {
     this.distanceFn = new SquaredDistanceFn(); //for now using Squared Euclidean only
     this.clusters = clusters;
+    this.numClusters = clusters.size();
   }
 
   /**
@@ -71,14 +73,14 @@ final class KMeansEvaluation implements Serializable {
 
   private double calcDBIndex(Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCounts) {
     double totalDBIndex = 0.0;
-    for (int i = 0; i < clusters.size(); i++) {
+    for (int i = 0; i < numClusters; i++) {
       double maxDBIndex = 0;
 
       if (clusterSumDistAndCounts.containsKey(i)) {
         ClusterInfo c1 = clusters.get(i);
         double clusterScatter1 = clusterSumDistAndCounts.get(i)._1() / clusterSumDistAndCounts.get(i)._2();
 
-        for (int j = 0; j < clusters.size(); j++) {
+        for (int j = 0; j < numClusters; j++) {
           if (i != j) {
             ClusterInfo c2 = clusters.get(j);
 
@@ -97,7 +99,10 @@ final class KMeansEvaluation implements Serializable {
       totalDBIndex += maxDBIndex;
     }
 
-    return (1.0 / (totalDBIndex / clusters.size()));
+    double daviesBouldinIndex = totalDBIndex / numClusters;
+    log.info("Computed Davies-Bouldin Index for {} clusters: {}", numClusters, daviesBouldinIndex);
+
+    return (1.0 / daviesBouldinIndex);
   }
 
   private double calcDunnIndex(List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts) {
@@ -109,13 +114,12 @@ final class KMeansEvaluation implements Serializable {
       }
     }
 
-    log.info("Max Intra cluster distance: {}", maxIntraClusterDistance);
-
     double minInterClusterDistance = Double.POSITIVE_INFINITY;
-    for (int i = 0; i < clusters.size(); i++) {
+
+    for (int i = 0; i < numClusters; i++) {
       double[] center = clusters.get(i).getCenter();
       // Distances are symmetric, hence d(i,j) == d(j,i)
-      for (int j = 0; j < clusters.size(); j++) {
+      for (int j = 0; j < numClusters; j++) {
         if (i != j) {
           double distance = distanceFn.distance(center, clusters.get(j).getCenter());
           if (minInterClusterDistance > distance) {
@@ -125,10 +129,10 @@ final class KMeansEvaluation implements Serializable {
       }
     }
 
-    log.info("Min Inter cluster distance: {}", minInterClusterDistance);
+    double dunnIndex = minInterClusterDistance / maxIntraClusterDistance;
+    log.info("Computed Dunn Index for {} clusters: {}", numClusters, dunnIndex);
 
-    return minInterClusterDistance / maxIntraClusterDistance;
-
+    return dunnIndex;
   }
 
   private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(JavaRDD<Vector> testData) {
@@ -140,7 +144,7 @@ final class KMeansEvaluation implements Serializable {
         int minCluster = -1;
         double[] vec = vector.toArray();
 
-        for (int i = 0; i < clusters.size(); i++) {
+        for (int i = 0; i < numClusters; i++) {
           ClusterInfo cluster = clusters.get(i);
           double distance = distanceFn.distance(cluster.getCenter(), vec);
           if (distance < closestDist) {
