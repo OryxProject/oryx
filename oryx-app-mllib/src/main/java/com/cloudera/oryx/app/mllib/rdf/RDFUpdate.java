@@ -181,7 +181,8 @@ public final class RDFUpdate extends MLUpdate<String> {
   public double evaluate(JavaSparkContext sparkContext,
                          PMML model,
                          Path modelParentPath,
-                         JavaRDD<String> testData) {
+                         JavaRDD<String> testData,
+                         JavaRDD<String> trainData) {
     RDFPMMLUtils.validatePMMLVsSchema(model, inputSchema);
     Pair<DecisionForest,CategoricalValueEncodings> forestAndEncoding = RDFPMMLUtils.read(model);
     DecisionForest forest = forestAndEncoding.getFirst();

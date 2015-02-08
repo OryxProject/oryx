@@ -123,7 +123,8 @@ public final class ALSUpdate extends MLUpdate<String> {
   public double evaluate(JavaSparkContext sparkContext,
                          PMML model,
                          Path modelParentPath,
-                         JavaRDD<String> testData) {
+                         JavaRDD<String> testData,
+                         JavaRDD<String> trainData) {
     JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(MLFunctions.PARSE_FN));
     testRatingData = aggregateScores(testRatingData);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);

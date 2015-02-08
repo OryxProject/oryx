@@ -141,34 +141,38 @@ public final class KMeansUpdate extends MLUpdate<String> {
   public double evaluate(JavaSparkContext sparkContext,
                          PMML model,
                          Path modelParentPath,
-                         JavaRDD<String> testData) {
+                         JavaRDD<String> testData,
+                         JavaRDD<String> trainData) {
     KMeansPMMLUtils.validatePMMLVsSchema(model, inputSchema);
-    JavaRDD<Vector> testingData = parsedToVectorRDD(testData.map(MLFunctions.PARSE_FN));
+    JavaRDD<Vector> evalData =
+        parsedToVectorRDD(trainData.union(testData).map(MLFunctions.PARSE_FN));
     List<ClusterInfo> clusterInfoList = KMeansPMMLUtils.read(model);
     KMeansEvaluation kMeansEvaluation = new KMeansEvaluation(clusterInfoList);
 
-    double cost;
-    double eval = 0.0;
-    log.info("Evaluation Strategy is {}", evaluationStrategy.name());
-
+    log.info("Evaluation Strategy is {}", evaluationStrategy);
+    double eval;
     switch (evaluationStrategy) {
       case DAVIES_BOULDIN :
-        eval = kMeansEvaluation.daviesBouldinIndex(testingData);
-        log.info("Eval {}", eval);
+        double dbIndex = kMeansEvaluation.daviesBouldinIndex(evalData);
+        eval = 1.0 / dbIndex;
+        log.info("Davies-Bouldin index {} / eval {}", dbIndex, eval);
         break;
       case DUNN :
-        eval = kMeansEvaluation.dunnIndex(testingData);
-        log.info("Eval {}", eval);
+        eval = kMeansEvaluation.dunnIndex(evalData);
+        log.info("Dunn index / eval {}", eval);
         break;
       case SILHOUETTE:
         // TODO: in progress
+        eval = Double.NEGATIVE_INFINITY;
         log.info("Eval {}", eval);
         break;
       case SSE :
-        cost = pmmlToKMeansModel(model).computeCost(testingData.rdd());
-        eval = 1.0 / cost;
-        log.info("Cost {} / eval {}", cost, eval);
+        double sse = pmmlToKMeansModel(model).computeCost(evalData.rdd());
+        eval = 1.0 / sse;
+        log.info("Sum of squared error {} / eval {}", sse, eval);
         break;
+      default:
+        throw new IllegalArgumentException("Unknown evaluation strategy " + evaluationStrategy);
     }
 
     return eval;

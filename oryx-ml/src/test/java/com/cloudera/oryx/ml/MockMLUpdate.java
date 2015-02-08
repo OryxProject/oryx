@@ -65,7 +65,8 @@ public final class MockMLUpdate extends MLUpdate<String> {
   public double evaluate(JavaSparkContext sparkContext,
                          PMML model,
                          Path modelParentPath,
-                         JavaRDD<String> testData) {
+                         JavaRDD<String> testData,
+                         JavaRDD<String> trainData) {
     long testDataCount = testData.count();
     testCounts.add((int) testDataCount);
     log.info("Returning eval {}", testDataCount);

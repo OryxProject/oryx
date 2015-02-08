@@ -60,7 +60,7 @@ import com.cloudera.oryx.ml.param.HyperParams;
  * update processes. This implementation contains the framework for test/train split
  * for example, parameter optimization, and so on. Subclasses instead implement
  * methods like {@link #buildModel(JavaSparkContext,JavaRDD,List,Path)} to create a PMML model and
- * {@link #evaluate(JavaSparkContext,PMML,Path,JavaRDD)} to evaluate a model from
+ * {@link #evaluate(JavaSparkContext,PMML,Path,JavaRDD,JavaRDD)} to evaluate a model from
  * held-out test data.
  */
 public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
@@ -133,12 +133,15 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
    * @param model model to evaluate
    * @param modelParentPath directory containing model files, if applicable
    * @param testData data on which to test the model performance
+   * @param trainData data on which model was trained, which can also be useful in evaluating
+   *  unsupervised learning problems
    * @return an evaluation of the model on the test data. Higher should mean "better"
    */
   public abstract double evaluate(JavaSparkContext sparkContext,
                                   PMML model,
                                   Path modelParentPath,
-                                  JavaRDD<M> testData);
+                                  JavaRDD<M> testData,
+                                  JavaRDD<M> trainData);
 
   @Override
   public void runUpdate(JavaSparkContext sparkContext,
@@ -347,7 +350,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
             log.info("No test data available to evaluate model");
           } else {
             log.info("Evaluating model");
-            double thisEval = evaluate(sparkContext, model, candidatePath, testData);
+            double thisEval = evaluate(sparkContext, model, candidatePath, testData, allTrainData);
             eval = Double.isNaN(thisEval) ? null : thisEval;
           }
         }

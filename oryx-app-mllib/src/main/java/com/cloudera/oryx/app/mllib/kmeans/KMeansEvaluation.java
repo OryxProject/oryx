@@ -48,44 +48,30 @@ final class KMeansEvaluation implements Serializable {
   }
 
   /**
-   * Computes the Davies-Bouldin Index, See http://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation
-   * @param testData - data for evaluation
-   * @return Davies Bouldin index - measure of clustering quality, lower the better
+   * Computes the Davies-Bouldin Index
+   * (http://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation)
+   * @param evalData data for evaluation
+   * @return Davies Bouldin index measure of clustering quality; lower is better
    */
-  double daviesBouldinIndex(JavaRDD<Vector> testData) {
-    Map<Integer, Tuple2<Double, Long>> clusterSumDistanceAndCounts =
-        fetchClusterSumDistanceAndCounts(testData).collectAsMap();
+  double daviesBouldinIndex(JavaRDD<Vector> evalData) {
+    Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCounts =
+        fetchClusterSumDistanceAndCounts(evalData).collectAsMap();
 
-    return calcDBIndex(clusterSumDistanceAndCounts);
-  }
-
-  /**
-   * Computes the Dunn Index of a given clustering, See http://en.wikipedia.org/wiki/Dunn_index
-   * @param testData - data for evaluation
-   * @return Dunn Index - higher the better
-   */
-  double dunnIndex(JavaRDD<Vector> testData) {
-    List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistanceAndCounts =
-        fetchClusterSumDistanceAndCounts(testData).collect();
-
-    return calcDunnIndex(clusterSumDistanceAndCounts);
-  }
-
-  private double calcDBIndex(Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCounts) {
     double totalDBIndex = 0.0;
     for (int i = 0; i < numClusters; i++) {
       double maxDBIndex = 0;
 
       if (clusterSumDistAndCounts.containsKey(i)) {
         ClusterInfo c1 = clusters.get(i);
-        double clusterScatter1 = clusterSumDistAndCounts.get(i)._1() / clusterSumDistAndCounts.get(i)._2();
-
+        double clusterScatter1 =
+            clusterSumDistAndCounts.get(i)._1() / clusterSumDistAndCounts.get(i)._2();
         for (int j = 0; j < numClusters; j++) {
           if (i != j) {
             ClusterInfo c2 = clusters.get(j);
 
             if (clusterSumDistAndCounts.containsKey(j)) {
-              double clusterScatter2 = clusterSumDistAndCounts.get(j)._1() / clusterSumDistAndCounts.get(j)._2();
+              double clusterScatter2 =
+                  clusterSumDistAndCounts.get(j)._1() / clusterSumDistAndCounts.get(j)._2();
               double dbIndex = (clusterScatter1 + clusterScatter2) /
                   distanceFn.distance(c1.getCenter(), c2.getCenter());
 
@@ -102,10 +88,19 @@ final class KMeansEvaluation implements Serializable {
     double daviesBouldinIndex = totalDBIndex / numClusters;
     log.info("Computed Davies-Bouldin Index for {} clusters: {}", numClusters, daviesBouldinIndex);
 
-    return (1.0 / daviesBouldinIndex);
+    return daviesBouldinIndex;
   }
 
-  private double calcDunnIndex(List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts) {
+  /**
+   * Computes the Dunn Index of a given clustering
+   * (http://en.wikipedia.org/wiki/Dunn_index)
+   * @param evalData data for evaluation
+   * @return Dunn Index; higher is better
+   */
+  double dunnIndex(JavaRDD<Vector> evalData) {
+    List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts =
+        fetchClusterSumDistanceAndCounts(evalData).collect();
+
     double maxIntraClusterDistance = 0.0;
     for (Tuple2<Integer, Tuple2<Double, Long>> entry : clusterSumDistAndCounts) {
       double intraClusterDistance = entry._2()._1() / entry._2()._2();
@@ -135,7 +130,8 @@ final class KMeansEvaluation implements Serializable {
     return dunnIndex;
   }
 
-  private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(JavaRDD<Vector> testData) {
+  private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
+      JavaRDD<Vector> testData) {
 
     return testData.mapToPair(new PairFunction<Vector, Integer, Tuple2<Double, Long>>() {
       @Override
