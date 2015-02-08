@@ -56,6 +56,7 @@ public final class KMeansHyperParamTuningIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.ml.eval.candidates", 3);
     overlayConfig.put("oryx.ml.eval.parallelism", 2);
+    overlayConfig.put("oryx.kmeans.evaluation-strategy", EVALUATION_STRATEGY);
 
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
