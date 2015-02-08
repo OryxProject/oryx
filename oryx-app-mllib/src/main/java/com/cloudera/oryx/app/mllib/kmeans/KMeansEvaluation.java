@@ -59,26 +59,22 @@ final class KMeansEvaluation implements Serializable {
 
     double totalDBIndex = 0.0;
     for (int i = 0; i < numClusters; i++) {
-      double maxDBIndex = 0;
+      double maxDBIndex = 0.0;
 
-      if (clusterSumDistAndCounts.containsKey(i)) {
-        ClusterInfo c1 = clusters.get(i);
-        double clusterScatter1 =
-            clusterSumDistAndCounts.get(i)._1() / clusterSumDistAndCounts.get(i)._2();
-        for (int j = 0; j < numClusters; j++) {
-          if (i != j) {
-            ClusterInfo c2 = clusters.get(j);
+      ClusterInfo c1 = clusters.get(i);
+      double clusterScatter1 =
+          clusterSumDistAndCounts.get(i)._1() / clusterSumDistAndCounts.get(i)._2();
+      for (int j = 0; j < numClusters; j++) {
+        if (i != j) {
+          ClusterInfo c2 = clusters.get(j);
 
-            if (clusterSumDistAndCounts.containsKey(j)) {
-              double clusterScatter2 =
-                  clusterSumDistAndCounts.get(j)._1() / clusterSumDistAndCounts.get(j)._2();
-              double dbIndex = (clusterScatter1 + clusterScatter2) /
-                  distanceFn.distance(c1.getCenter(), c2.getCenter());
+          double clusterScatter2 =
+              clusterSumDistAndCounts.get(j)._1() / clusterSumDistAndCounts.get(j)._2();
+          double dbIndex = (clusterScatter1 + clusterScatter2) /
+              distanceFn.distance(c1.getCenter(), c2.getCenter());
 
-              if (dbIndex > maxDBIndex) {
-                maxDBIndex = dbIndex;
-              }
-            }
+          if (dbIndex > maxDBIndex) {
+            maxDBIndex = dbIndex;
           }
         }
       }
@@ -131,9 +127,9 @@ final class KMeansEvaluation implements Serializable {
   }
 
   private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
-      JavaRDD<Vector> testData) {
+      JavaRDD<Vector> evalData) {
 
-    return testData.mapToPair(new PairFunction<Vector, Integer, Tuple2<Double, Long>>() {
+    return evalData.mapToPair(new PairFunction<Vector, Integer, Tuple2<Double, Long>>() {
       @Override
       public Tuple2<Integer, Tuple2<Double, Long>> call(Vector vector) {
         double closestDist = Double.POSITIVE_INFINITY;
