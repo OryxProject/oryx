@@ -50,7 +50,7 @@ public abstract class OryxTest extends Assert {
   }
 
   @Before
-  public final void initRandom() {
+  public void initRandom() {
     RandomManager.useTestSeed();
   }
 

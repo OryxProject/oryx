@@ -25,7 +25,7 @@ import com.cloudera.oryx.common.OryxTest;
 
 public final class DecisionTreeTest extends OryxTest {
 
-  private static DecisionTree buildTestTree() {
+  static DecisionTree buildTestTree() {
     TerminalNode rnn = new TerminalNode("r--", new NumericPrediction(0.0, 1));
     TerminalNode rnp = new TerminalNode("r-+", new NumericPrediction(1.0, 1));
     DecisionNode rn = new DecisionNode("r-", new NumericDecision(0, -1.0, false), rnn, rnp);

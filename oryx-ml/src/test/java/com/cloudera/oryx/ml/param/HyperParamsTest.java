@@ -89,6 +89,8 @@ public final class HyperParamsTest extends OryxTest {
            Arrays.asList(0, 1));
     doTest(HyperParams.range(-1, 1), 5,
            Arrays.asList(-1, 0, 1));
+    doTest(HyperParams.range(0, 10), 3,
+           Arrays.asList(0, 5, 10));
   }
 
   @Test
