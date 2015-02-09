@@ -98,16 +98,17 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           if (model == null) {
 
-            log.info("No previous model");
+            log.info("No previous model; creating new model");
             model = new ALSSpeedModel(features);
 
           } else if (features != model.getFeatures()) {
 
-            log.warn("# features has changed! removing old model");
+            log.warn("# features has changed! removing old model and creating new one");
             model = new ALSSpeedModel(features);
 
           } else {
 
+            log.info("Updating current model");
             // First, remove users/items no longer in the model
             List<String> XIDs = AppPMMLUtils.parseArray(
                 AppPMMLUtils.getExtensionContent(pmml, "XIDs"));

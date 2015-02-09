@@ -99,16 +99,17 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
           if (model == null) {
 
-            log.info("No previous model");
+            log.info("No previous model; creating new model");
             model = new ALSServingModel(features, implicit, rescorerProvider);
 
           } else if (features != model.getFeatures()) {
 
-            log.warn("# features has changed! removing old model");
+            log.warn("# features has changed! removing old model and creating new one");
             model = new ALSServingModel(features, implicit, rescorerProvider);
 
           } else {
 
+            log.info("Updating current model");
             // Remove users/items no longer in the model
             Collection<String> XIDs = new HashSet<>(
                 AppPMMLUtils.parseArray(AppPMMLUtils.getExtensionContent(pmml, "XIDs")));

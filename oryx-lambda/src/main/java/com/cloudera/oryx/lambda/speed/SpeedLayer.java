@@ -201,12 +201,14 @@ public final class SpeedLayer<K,M,U> implements Closeable {
 
     dStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
 
+    log.info("Starting Spark Streaming");
+
     streamingContext.start();
   }
 
   public void await() {
     Preconditions.checkState(streamingContext != null);
-    log.info("Waiting for streaming...");
+    log.info("Spark Streaming is running");
     streamingContext.awaitTermination();
   }
 

@@ -23,6 +23,8 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
@@ -33,6 +35,7 @@ import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class KMeansServingModelManager implements ServingModelManager<String> {
 
+  private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final InputSchema inputSchema;
@@ -70,6 +73,7 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           break;
 
         case "MODEL":
+          log.info("Loading new model");
           // New model
           PMML pmml;
           try {

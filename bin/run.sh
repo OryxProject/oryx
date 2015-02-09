@@ -62,8 +62,9 @@ fi
 SPARK_STREAMING_PROPS="-Dspark.yarn.dist.files=${CONFIG_FILE} \
  -Dspark.jars=${SPARK_STREAMING_JARS} \
  -Dsun.io.serialization.extendeddebuginfo=true \
- -Dspark.executor.extraJavaOptions=\"-Dconfig.file=${CONFIG_FILE_NAME} \
-   -Dsun.io.serialization.extendeddebuginfo=true\""
+ -Dspark.executor.extraJavaOptions=-Dconfig.file=${CONFIG_FILE_NAME}"
+# Note: extraJavaOptions has a problem with spaces in its value before Spark 1.3
+# TODO: later, re-add -Dsun.io.serialization.extendeddebuginfo=true here too
 
 case "${LAYER}" in
   oryx-batch)

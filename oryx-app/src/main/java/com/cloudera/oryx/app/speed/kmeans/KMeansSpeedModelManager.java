@@ -63,6 +63,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           // do nothing, hearing our own updates
           break;
         case "MODEL":
+          log.info("Loading new model");
           // New model
           PMML pmml;
           try {

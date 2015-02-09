@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.als;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -25,6 +26,7 @@ import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
+import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
@@ -41,7 +43,10 @@ public abstract class AbstractALSResource extends AbstractOryxResource {
     alsServingModel = (ALSServingModel) getServingModelManager().getModel();
   }
 
-  final ALSServingModel getALSServingModel() {
+  final ALSServingModel getALSServingModel() throws OryxServingException {
+    if (alsServingModel == null) {
+      throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
+    }
     return alsServingModel;
   }
 

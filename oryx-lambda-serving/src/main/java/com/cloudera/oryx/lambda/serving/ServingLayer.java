@@ -260,6 +260,7 @@ public final class ServingLayer implements Closeable {
     context.setWebappVersion("3.1");
     context.setName("Oryx");
 
+    context.addWelcomeFile("index.html");
     addErrorPages(context);
 
     // OryxApplication only needs one config value, so just pass it

@@ -33,6 +33,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.dmg.pmml.PMML;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.app.common.fn.MLFunctions;
@@ -54,6 +56,8 @@ import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 
 public final class RDFSpeedModelManager implements SpeedModelManager<String,String,String> {
 
+  private static final Logger log = LoggerFactory.getLogger(RDFSpeedModelManager.class);
+
   private final InputSchema inputSchema;
   private RDFSpeedModel model;
 
@@ -72,6 +76,7 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           // Nothing to do; just hearing our own updates
           break;
         case "MODEL":
+          log.info("Loading new model");
           // New model
           PMML pmml;
           try {

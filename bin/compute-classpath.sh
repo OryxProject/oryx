@@ -18,6 +18,8 @@
 HADOOP_CONF_DIR="/etc/hadoop/conf"
 CDH_JARS_DIR="/opt/cloudera/parcels/CDH/jars"
 
+# Some are known to have multiple versions, and so are fully specified:
+
 echo ${HADOOP_CONF_DIR}
 ls -1 \
  ${CDH_JARS_DIR}/zookeeper-*.jar \
@@ -31,9 +33,10 @@ ls -1 \
  ${CDH_JARS_DIR}/hadoop-yarn-client-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-common-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-server-web-proxy-*.jar \
- ${CDH_JARS_DIR}/commons-cli-*.jar \
+ ${CDH_JARS_DIR}/commons-cli-1.2.jar \
  ${CDH_JARS_DIR}/commons-collections-*.jar \
- ${CDH_JARS_DIR}/commons-configuration-*.jar \
- ${CDH_JARS_DIR}/commons-lang-*.jar \
+ ${CDH_JARS_DIR}/commons-configuration-1.7.jar \
+ ${CDH_JARS_DIR}/commons-lang-2.6.jar \
  ${CDH_JARS_DIR}/protobuf-java-*.jar \
+ ${CDH_JARS_DIR}/snappy-java-1.0.5.jar \
  | grep -E "[0-9]\\.jar$"

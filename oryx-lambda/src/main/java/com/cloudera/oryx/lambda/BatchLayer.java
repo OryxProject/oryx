@@ -197,14 +197,14 @@ public final class BatchLayer<K,M,U> implements Closeable {
                                outputFormatClass,
                                streamingContext.sparkContext().hadoopConfiguration()));
 
-    log.info("Starting streaming");
+    log.info("Starting Spark Streaming");
 
     streamingContext.start();
   }
 
   public void await() {
     Preconditions.checkState(streamingContext != null);
-    log.info("Waiting for streaming...");
+    log.info("Spark Streaming is running");
     streamingContext.awaitTermination();
   }
 

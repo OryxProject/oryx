@@ -16,9 +16,11 @@
 package com.cloudera.oryx.app.serving.kmeans;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 
@@ -33,7 +35,10 @@ public abstract class AbstractKMeansResource extends AbstractOryxResource {
     kmeansModel = (KMeansServingModel) getServingModelManager().getModel();
   }
 
-  final KMeansServingModel getKMeansModel() {
+  final KMeansServingModel getKMeansModel() throws OryxServingException {
+    if (kmeansModel == null) {
+      throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
+    }
     return kmeansModel;
   }
 
