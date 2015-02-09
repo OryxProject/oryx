@@ -15,8 +15,10 @@
 
 package com.cloudera.oryx.common.random;
 
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
@@ -28,7 +30,8 @@ public final class RandomManager {
 
   private static final long TEST_SEED = 1_234_567_890_123_456_789L;
 
-  private static final Map<RandomGenerator,Boolean> INSTANCES = new WeakHashMap<>();
+  private static final Reference<? extends Collection<RandomGenerator>> INSTANCES =
+      new SoftReference<>(new ArrayList<RandomGenerator>());
   private static boolean useTestSeed;
 
   private RandomManager() {
@@ -43,21 +46,29 @@ public final class RandomManager {
       return new Well19937c(TEST_SEED);
     }
     RandomGenerator random = new Well19937c();
-    synchronized (INSTANCES) {
-      INSTANCES.put(random, Boolean.TRUE); // Value does not matter
-    }
+    Collection<RandomGenerator> instances = INSTANCES.get();
+    if (instances != null) {
+      synchronized (instances) {
+        instances.add(random);
+      }
+    } // else oh well, only matters in tests
     return random;
   }
 
   /**
-   * <em>Only call in test code.</em> Causes all known instances of {@link RandomGenerator}, and future ones,
-   * to be started from a fixed seed. This is useful for making tests deterministic.
+   * <em>Only call in test code.</em> Causes all known instances of {@link RandomGenerator},
+   * and future ones, to be started from a fixed seed. This is useful for making
+   * tests deterministic.
    */
   public static void useTestSeed() {
     useTestSeed = true;
-    synchronized (INSTANCES) {
-      for (RandomGenerator random : INSTANCES.keySet()) {
-        random.setSeed(TEST_SEED);
+    Collection<RandomGenerator> instances = INSTANCES.get();
+    if (instances != null) {
+      synchronized (instances) {
+        for (RandomGenerator random : instances) {
+          random.setSeed(TEST_SEED);
+        }
+        instances.clear();
       }
       INSTANCES.clear();
     }

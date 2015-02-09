@@ -36,7 +36,6 @@ public final class RandomManagerRandomTest extends OryxTest {
     RandomManager.useTestSeed();
     double seededValue = generator.nextDouble();
     assertNotEquals(unseededValue, seededValue);
-    RandomManager.useTestSeed();
     assertEquals(seededValue, RandomManager.getRandom().nextDouble());
   }
 
