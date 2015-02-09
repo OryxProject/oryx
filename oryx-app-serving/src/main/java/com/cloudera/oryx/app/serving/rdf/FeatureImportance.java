@@ -45,7 +45,7 @@ public final class FeatureImportance extends AbstractRDFResource {
 
   @GET
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public List<Double> getAllImportances() {
+  public List<Double> getAllImportances() throws OryxServingException {
     RDFServingModel model = getRDFServingModel();
     double[] importances = model.getForest().getFeatureImportances();
     List<Double> result = new ArrayList<>(importances.length);

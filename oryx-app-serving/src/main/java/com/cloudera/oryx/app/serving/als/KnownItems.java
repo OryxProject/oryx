@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a GET request to {@code /knownItems/[userID]}.</p>
@@ -37,7 +38,7 @@ public final class KnownItems extends AbstractALSResource {
   @GET
   @Path("{userID}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public Collection<String> get(@PathParam("userID") String userID) {
+  public Collection<String> get(@PathParam("userID") String userID) throws OryxServingException {
     Collection<String> knownItems = getALSServingModel().getKnownItems(userID);
     if (knownItems == null) {
       return Collections.emptyList();

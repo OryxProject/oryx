@@ -22,6 +22,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
@@ -41,7 +42,7 @@ public final class PopularRepresentativeItems extends AbstractALSResource {
 
   @GET
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public List<String> get() {
+  public List<String> get() throws OryxServingException {
     ALSServingModel model = getALSServingModel();
     int features = model.getFeatures();
     List<String> items = new ArrayList<>(features);

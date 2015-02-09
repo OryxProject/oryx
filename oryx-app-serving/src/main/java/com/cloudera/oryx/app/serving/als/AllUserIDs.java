@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.Collection;
 
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a GET request to {@code /user/allIDs}.</p>
@@ -34,7 +35,7 @@ public final class AllUserIDs extends AbstractALSResource {
   @GET
   @Path("/allIDs")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public Collection<String> get() {
+  public Collection<String> get() throws OryxServingException {
     return getALSServingModel().getAllUserIDs();
   }
 
