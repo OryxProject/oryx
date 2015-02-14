@@ -27,8 +27,6 @@ import org.apache.commons.math3.stat.descriptive.AbstractStorelessUnivariateStat
  * Math3 framework.</p>
  *
  * <p>This class is not thread-safe.</p>
- *
- * @see org.apache.commons.math3.stat.descriptive.moment.Mean
  */
 public final class DoubleWeightedMean
     extends AbstractStorelessUnivariateStatistic implements Serializable {
