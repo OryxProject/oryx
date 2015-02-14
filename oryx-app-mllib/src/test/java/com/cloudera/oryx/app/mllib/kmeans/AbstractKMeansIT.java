@@ -21,6 +21,6 @@ public abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
 
   protected static final int NUM_CLUSTERS = 3;
   protected static final int NUM_FEATURES = 5;
-  protected static final String EVALUATION_STRATEGY = "SSE";
+  protected static final KMeansEvalStrategy EVALUATION_STRATEGY = KMeansEvalStrategy.SSE;
 
 }

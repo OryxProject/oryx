@@ -162,9 +162,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
         log.info("Dunn index / eval {}", eval);
         break;
       case SILHOUETTE:
-        // TODO: in progress
-        eval = Double.NEGATIVE_INFINITY;
-        log.info("Eval {}", eval);
+        eval = kMeansEvaluation.silhouetteCoefficient(evalData);
+        log.info("Silhouette Coefficient / eval {}", eval);
         break;
       case SSE :
         double sse = pmmlToKMeansModel(model).computeCost(evalData.rdd());

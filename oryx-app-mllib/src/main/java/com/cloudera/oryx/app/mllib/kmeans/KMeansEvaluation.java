@@ -16,10 +16,12 @@
 package com.cloudera.oryx.app.mllib.kmeans;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function2;
@@ -36,6 +38,7 @@ import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 final class KMeansEvaluation implements Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansEvaluation.class);
+  private static final long MAX_SAMPLE_SIZE = 100000;
 
   private final DistanceFn<double[]> distanceFn;
   private final List<ClusterInfo> clusters;
@@ -83,7 +86,6 @@ final class KMeansEvaluation implements Serializable {
 
     double daviesBouldinIndex = totalDBIndex / numClusters;
     log.info("Computed Davies-Bouldin Index for {} clusters: {}", numClusters, daviesBouldinIndex);
-
     return daviesBouldinIndex;
   }
 
@@ -122,8 +124,51 @@ final class KMeansEvaluation implements Serializable {
 
     double dunnIndex = minInterClusterDistance / maxIntraClusterDistance;
     log.info("Computed Dunn Index for {} clusters: {}", numClusters, dunnIndex);
-
     return dunnIndex;
+  }
+
+  /**
+   * Computes the Silhouette Coefficient for this clustering, range is [-1,1]
+   * (http://www.sciencedirect.com/science/article/pii/0377042787901257)
+   * Here we are computing the overall Silhouette Coefficient across all of the clustering
+   * Another option is to compute the Silhouette coefficient for each of the individual clusters
+   * @param evalData data for evaluation
+   * @return Silhouette Coefficient, closer to 1 is better
+   */
+  double silhouetteCoefficient(JavaRDD<Vector> evalData) {
+    JavaRDD<Vector> data = evalData;
+
+    if (evalData.count() > MAX_SAMPLE_SIZE) {
+      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / evalData.count());
+    }
+
+    Map<Integer, Iterable<double[]>> clusteredPointsMap =
+        fetchClusteredPoints(data).collectAsMap();
+
+    double overallSilhouetteCoefficientForClustering = 0.0;
+    for (Map.Entry<Integer, Iterable<double[]>> entry : clusteredPointsMap.entrySet()) {
+      Iterable<double[]> clusteredPoints = entry.getValue();
+      double silhouetteCoefficientForCluster = 0.0;
+      // if there's only one element in a cluster, then assume the silhouetteCoefficient for
+      // the cluster = 0
+      if (Iterables.size(clusteredPoints) > 1) {
+        for (double[] point : clusteredPoints) {
+          double pointIntraClusterDissimilarity =
+              clusterDissimilarityForPoint(point, clusteredPoints, true);
+          double pointInterClusterDissimilarity =
+              minInterClusterDissimilarityForPoint(entry.getKey(), point, clusteredPointsMap);
+
+          silhouetteCoefficientForCluster +=
+              calcSilhouetteCoefficient(pointIntraClusterDissimilarity, pointInterClusterDissimilarity);
+        }
+      }
+
+      overallSilhouetteCoefficientForClustering += silhouetteCoefficientForCluster;
+    }
+
+    double silhouetteCoefficient = overallSilhouetteCoefficientForClustering / data.count();
+    log.info("Computed Silhouette Coefficient for {} clusters: {}", numClusters, silhouetteCoefficient);
+    return silhouetteCoefficient;
   }
 
   private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
@@ -158,6 +203,75 @@ final class KMeansEvaluation implements Serializable {
             return new Tuple2<>(intraClusterDistanceSum, clusteredPointsCount);
           }
         });
+  }
+
+  private JavaPairRDD<Integer, Iterable<double[]>> fetchClusteredPoints(JavaRDD<Vector> evalData) {
+
+    return evalData.mapToPair(new PairFunction<Vector, Integer, double[]>() {
+      @Override
+      public Tuple2<Integer, double[]> call(Vector vector) {
+        double closestDist = Double.POSITIVE_INFINITY;
+        int minCluster = -1;
+        double[] vec = vector.toArray();
+
+        for (int i = 0; i < numClusters; i++) {
+          ClusterInfo cluster = clusters.get(i);
+          double distance = distanceFn.distance(cluster.getCenter(), vec);
+          if (distance < closestDist) {
+            closestDist = distance;
+            minCluster = i;
+          }
+        }
+        Preconditions.checkState(minCluster >= 0);
+        return new Tuple2<>(minCluster, vec);
+      }
+    }).groupByKey();
+  }
+
+  private double clusterDissimilarityForPoint(double[] vector, Iterable<double[]> points,
+                                              boolean ownCluster) {
+    double dissimilarity = 0.0;
+    for (double[] point : points) {
+      if (!Arrays.equals(vector, point)) {
+        dissimilarity += distanceFn.distance(vector, point);
+      }
+    }
+
+    if (ownCluster) {
+      // (points.size -1) because a point's dissimilarity is being measured with other
+      // points in its own cluster, hence there would be (n - 1) dissimilarities computed
+      return dissimilarity / (Iterables.size(points) - 1);
+    } else {
+      // point dissimilarity is being measured with all points of one of other clusters
+      return dissimilarity / Iterables.size(points);
+    }
+  }
+
+  private double minInterClusterDissimilarityForPoint(int parentClusterId, double[] vector,
+                                                      Map<Integer, Iterable<double[]>> clusteredPointsMap) {
+
+    double minInterClusterDissimilarity = Double.POSITIVE_INFINITY;
+
+    for (Map.Entry<Integer, Iterable<double[]>> entry : clusteredPointsMap.entrySet()) {
+      // only compute dissimilarities with other clusters
+      if (!entry.getKey().equals(parentClusterId)) {
+        double otherClusterDissimilarity =
+            clusterDissimilarityForPoint(vector, entry.getValue(), false);
+        if (otherClusterDissimilarity < minInterClusterDissimilarity) {
+          minInterClusterDissimilarity = otherClusterDissimilarity;
+        }
+      }
+    }
+    return minInterClusterDissimilarity;
+  }
+
+  private double calcSilhouetteCoefficient(double d1, double d2) {
+    if (d1 < d2) {
+      return 1.0 - (d1 / d2);
+    } else if (d1 > d2) {
+      return (d2 / d1) - 1.0;
+    }
+    return 0.0;
   }
 
 }
