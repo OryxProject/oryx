@@ -65,11 +65,19 @@ final class KMeansEvaluation implements Serializable {
       double maxDBIndex = 0.0;
       double[] center = clusters.get(i).getCenter();
       double clusterScatter1 = scatter(clusterSumDistAndCounts.get(i));
-      for (int j = i + 1; j < numClusters; j++) {
-        double dbIndex = (clusterScatter1 + scatter(clusterSumDistAndCounts.get(j))) /
-            distanceFn.distance(center, clusters.get(j).getCenter());
-        if (dbIndex > maxDBIndex) {
-          maxDBIndex = dbIndex;
+      // this inner loop should not be set to j = (i+1) as DB Index computation is not symmetric.
+      // For a given cluster i, we look for a cluster j that maximizes
+      // the ratio of (the sum of average distances from points in cluster i to its center and
+      // points in cluster j to its center) to (the distance between cluster i and cluster j).
+      // The key here is the Maximization of the DB Index for a cluster:
+      // the cluster that maximizes this ratio may be j for i but not necessarily i for j
+      for (int j = 0; j < numClusters; j++) {
+        if (i != j) {
+          double dbIndex = (clusterScatter1 + scatter(clusterSumDistAndCounts.get(j))) /
+              distanceFn.distance(center, clusters.get(j).getCenter());
+          if (dbIndex > maxDBIndex) {
+            maxDBIndex = dbIndex;
+          }
         }
       }
       totalDBIndex += maxDBIndex;
