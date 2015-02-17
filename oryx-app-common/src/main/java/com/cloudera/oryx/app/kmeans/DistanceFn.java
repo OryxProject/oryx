@@ -23,6 +23,8 @@ import java.io.Serializable;
 public interface DistanceFn<T> extends Serializable {
 
   /**
+   * @param t1 object t1
+   * @param t2 object t2
    * @return some notion of distance between t1 and t2
    */
   double distance(T t1, T t2);
