@@ -147,6 +147,7 @@ public final class BatchLayer<K,M,U> implements Closeable {
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
+    sparkConf.setIfMissing("spark.ui.showConsoleProgress", "false");
 
     // Want to use some versions that may not match Spark or YARN
     sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
