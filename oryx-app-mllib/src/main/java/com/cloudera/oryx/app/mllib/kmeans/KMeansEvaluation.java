@@ -57,9 +57,10 @@ final class KMeansEvaluation implements Serializable {
    * @return Davies Bouldin index measure of clustering quality; lower is better
    */
   double daviesBouldinIndex(JavaRDD<Vector> evalData) {
-    Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCounts =
-        fetchClusterSumDistanceAndCounts(evalData).collectAsMap();
+    return daviesBouldinIndex(fetchClusterSumDistanceAndCounts(evalData).collectAsMap());
+  }
 
+  double daviesBouldinIndex(Map<Integer,Tuple2<Double,Long>> clusterSumDistAndCounts) {
     double totalDBIndex = 0.0;
     for (int i = 0; i < numClusters; i++) {
       double maxDBIndex = 0.0;
@@ -96,9 +97,10 @@ final class KMeansEvaluation implements Serializable {
    * @return Dunn Index; higher is better
    */
   double dunnIndex(JavaRDD<Vector> evalData) {
-    List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts =
-        fetchClusterSumDistanceAndCounts(evalData).collect();
+    return dunnIndex(fetchClusterSumDistanceAndCounts(evalData).collect());
+  }
 
+  double dunnIndex(List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts) {
     double maxIntraClusterDistance = 0.0;
     for (Tuple2<Integer, Tuple2<Double, Long>> entry : clusterSumDistAndCounts) {
       double intraClusterDistance = entry._2()._1() / entry._2()._2();
@@ -136,22 +138,25 @@ final class KMeansEvaluation implements Serializable {
    * @return Silhouette Coefficient, closer to 1 is better
    */
   double silhouetteCoefficient(JavaRDD<Vector> evalData) {
-    JavaRDD<Vector> data = evalData;
+    JavaRDD<Vector> sampleData = fetchSampleData(evalData);
+    return silhouetteCoefficient(fetchClusteredPoints(sampleData).collectAsMap());
+  }
 
-    if (evalData.count() > MAX_SAMPLE_SIZE) {
-      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / evalData.count());
-    }
-
-    Map<Integer, Iterable<double[]>> clusteredPointsMap =
-        fetchClusteredPoints(data).collectAsMap();
-
+  double silhouetteCoefficient(Map<Integer,Iterable<double[]>> clusteredPointsMap) {
     double overallSilhouetteCoefficientForClustering = 0.0;
+    long sampleCount = 0L;
+
     for (Map.Entry<Integer, Iterable<double[]>> entry : clusteredPointsMap.entrySet()) {
       Iterable<double[]> clusteredPoints = entry.getValue();
       double silhouetteCoefficientForCluster = 0.0;
+      // No. of points in this cluster
+      long clusterSize = Iterables.size(clusteredPoints);
+      // Increment the total sample count for computing silhouette coefficient
+      sampleCount += clusterSize;
       // if there's only one element in a cluster, then assume the silhouetteCoefficient for
-      // the cluster = 0
-      if (Iterables.size(clusteredPoints) > 1) {
+      // the cluster = 0, this is an arbitrary choice per Section 2: Construction of Silhouettes
+      // in the referenced paper
+      if (clusterSize > 1) {
         for (double[] point : clusteredPoints) {
           double pointIntraClusterDissimilarity =
               clusterDissimilarityForPoint(point, clusteredPoints, true);
@@ -166,9 +171,18 @@ final class KMeansEvaluation implements Serializable {
       overallSilhouetteCoefficientForClustering += silhouetteCoefficientForCluster;
     }
 
-    double silhouetteCoefficient = overallSilhouetteCoefficientForClustering / data.count();
+    double silhouetteCoefficient = overallSilhouetteCoefficientForClustering / sampleCount;
     log.info("Computed Silhouette Coefficient for {} clusters: {}", numClusters, silhouetteCoefficient);
     return silhouetteCoefficient;
+  }
+
+  private JavaRDD<Vector> fetchSampleData(JavaRDD<Vector> evalData) {
+    JavaRDD<Vector> data = evalData;
+
+    if (evalData.count() > MAX_SAMPLE_SIZE) {
+      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / evalData.count());
+    }
+    return data;
   }
 
   private JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
