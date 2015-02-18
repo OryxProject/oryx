@@ -25,18 +25,21 @@ public final class ClusterInfoTest extends OryxTest {
   public void testUpdate() {
     ClusterInfo info = new ClusterInfo(0, new double[] { -1.0, 2.0 }, 2);
     assertEquals(0, info.getID());
-    assertArrayEquals(new double[] { -1.0, 2.0 }, info.getCenter());
+    assertArrayEquals(new double[]{-1.0, 2.0}, info.getCenter());
     assertEquals(2, info.getCount());
+    assertTrue("0 [-1.0, 2.0] 2".equals(info.toString()));
 
     info.update(new double[] { -1.0, -1.0 });
     assertEquals(0, info.getID());
     assertArrayEquals(new double[] { -1.0, 1.0 }, info.getCenter());
     assertEquals(3, info.getCount());
+    assertTrue("0 [-1.0, 1.0] 3".equals(info.toString()));
 
     info.update(new double[] { 0.0, 0.0 }, 3);
     assertEquals(0, info.getID());
     assertArrayEquals(new double[] { -0.5, 0.5 }, info.getCenter());
     assertEquals(6, info.getCount());
+    assertTrue("0 [-0.5, 0.5] 6".equals(info.toString()));
   }
 
 }
