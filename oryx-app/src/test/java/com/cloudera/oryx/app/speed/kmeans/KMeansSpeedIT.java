@@ -43,7 +43,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
   private static final int NUM_CLUSTERS = 3;
 
   @Test
-  public void testKMeansServingModel() throws Exception {
+  public void testKMeansSpeed() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", KMeansSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
