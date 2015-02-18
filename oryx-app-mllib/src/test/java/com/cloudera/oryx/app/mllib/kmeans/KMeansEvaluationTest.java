@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
-import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +30,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansPMMLUtilsTest;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.common.OryxTest;
 
@@ -101,8 +101,8 @@ public final class KMeansEvaluationTest extends OryxTest {
   }
 
   private static KMeansEvaluation getKMeansEvaluationCriteria() {
-    PMML pmml = KMeansPMMLUtils.buildDummyClusteringModel();
-    return new KMeansEvaluation(KMeansPMMLUtils.read(pmml));
+    return new KMeansEvaluation(
+        KMeansPMMLUtils.read(KMeansPMMLUtilsTest.buildDummyClusteringModel()));
   }
 
   private static Map<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(

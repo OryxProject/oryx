@@ -78,6 +78,12 @@
     </dependency>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>oryx-app-common</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>kafka-util</artifactId>
       <scope>test</scope>
     </dependency>

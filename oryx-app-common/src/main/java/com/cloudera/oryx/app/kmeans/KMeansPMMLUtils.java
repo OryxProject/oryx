@@ -20,26 +20,16 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.Cluster;
-import org.dmg.pmml.ClusteringField;
 import org.dmg.pmml.ClusteringModel;
-import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.DataDictionary;
-import org.dmg.pmml.DataField;
-import org.dmg.pmml.DataType;
-import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
-import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
-import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
-import org.dmg.pmml.SquaredEuclidean;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 public final class KMeansPMMLUtils {
@@ -95,50 +85,6 @@ public final class KMeansPMMLUtils {
     }
 
     return clusterInfoList;
-  }
-
-  public static PMML buildDummyClusteringModel() {
-    PMML pmml = PMMLUtils.buildSkeletonPMML();
-
-    List<DataField> dataFields = new ArrayList<>();
-    dataFields.add(new DataField(FieldName.create("x"), OpType.CONTINUOUS, DataType.DOUBLE));
-    dataFields.add(new DataField(FieldName.create("y"), OpType.CONTINUOUS, DataType.DOUBLE));
-    DataDictionary dataDictionary = new DataDictionary(dataFields);
-    dataDictionary.setNumberOfFields(dataFields.size());
-    pmml.setDataDictionary(dataDictionary);
-
-    List<MiningField> miningFields = new ArrayList<>();
-    MiningField xMF = new MiningField(FieldName.create("x"));
-    xMF.setOpType(OpType.CONTINUOUS);
-    xMF.setUsageType(FieldUsageType.ACTIVE);
-    miningFields.add(xMF);
-    MiningField yMF = new MiningField(FieldName.create("y"));
-    yMF.setOpType(OpType.CONTINUOUS);
-    yMF.setUsageType(FieldUsageType.ACTIVE);
-    miningFields.add(yMF);
-    MiningSchema miningSchema = new MiningSchema(miningFields);
-
-    List<ClusteringField> clusteringFields = new ArrayList<>();
-    clusteringFields.add(new ClusteringField(
-        FieldName.create("x")).withCenterField(ClusteringField.CenterField.TRUE));
-    clusteringFields.add(new ClusteringField(
-        FieldName.create("y")).withCenterField(ClusteringField.CenterField.TRUE));
-
-    List<Cluster> clusters = new ArrayList<>();
-    clusters.add(new Cluster().withId("0").withSize(1).withArray(AppPMMLUtils.toArray(1.0, 0.0)));
-    clusters.add(new Cluster().withId("1").withSize(2).withArray(AppPMMLUtils.toArray(2.0, -1.0)));
-    clusters.add(new Cluster().withId("2").withSize(3).withArray(AppPMMLUtils.toArray(-1.0, 0.0)));
-
-    pmml.getModels().add(new ClusteringModel(
-        MiningFunctionType.CLUSTERING,
-        ClusteringModel.ModelClass.CENTER_BASED,
-        clusters.size(),
-        miningSchema,
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
-        clusteringFields,
-        clusters));
-
-    return pmml;
   }
 
 }

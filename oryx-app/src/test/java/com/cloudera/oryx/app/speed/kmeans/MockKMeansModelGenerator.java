@@ -21,7 +21,7 @@ import java.util.List;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
-import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansPMMLUtilsTest;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
@@ -32,7 +32,7 @@ public final class MockKMeansModelGenerator implements DatumGenerator<String,Str
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
     if (id == 0) {
-      PMML pmml = KMeansPMMLUtils.buildDummyClusteringModel();
+      PMML pmml = KMeansPMMLUtilsTest.buildDummyClusteringModel();
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
       List<?> data = Arrays.asList(id % 3, Arrays.asList(id, id), id);
