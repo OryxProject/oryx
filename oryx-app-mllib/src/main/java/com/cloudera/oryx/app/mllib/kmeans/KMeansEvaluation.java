@@ -49,6 +49,10 @@ final class KMeansEvaluation implements Serializable {
     this.numClusters = clusters.size();
   }
 
+  List<ClusterInfo> getClusters() {
+    return clusters;
+  }
+
   /**
    * Computes the Davies-Bouldin Index
    * (http://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation)

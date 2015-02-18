@@ -36,24 +36,22 @@ import com.cloudera.oryx.common.OryxTest;
 
 public final class KMeansEvaluationTest extends OryxTest {
 
-  private final static Logger log = LoggerFactory.getLogger(KMeansEvaluationTest.class);
+  private static final Logger log = LoggerFactory.getLogger(KMeansEvaluationTest.class);
 
   private static final int NUM_CLUSTERS = 3;
-
-  private static final List<double[]> points =
+  private static final List<double[]> POINTS =
       Arrays.asList(new double[][]{
           {1.0, 0.0}, {2.0, -2.0}, {2.0, 0.0},
           {-2.0, 0.0}, {-0.5, -1.0}, {-0.5, 1.0}
       });
-
-  private static List<ClusterInfo> clusters;
-  private static DistanceFn<double[]> distanceFn = new SquaredDistanceFn();
+  private static final DistanceFn<double[]> DISTANCE_FN = new SquaredDistanceFn();
 
   @Test
   public void testDaviesBouldinIndexForClustering() {
     KMeansEvaluation kMeansEvaluation = getKMeansEvaluationCriteria();
+    List<ClusterInfo> clusters = kMeansEvaluation.getClusters();
     Map<Integer, Tuple2<Double, Long>> clusterSumDistancesAndCounts =
-        fetchClusterSumDistanceAndCounts(points);
+        fetchClusterSumDistanceAndCounts(clusters, POINTS);
 
     double daviesBouldinIndex = kMeansEvaluation.daviesBouldinIndex(clusterSumDistancesAndCounts);
     assertEquals(NUM_CLUSTERS, clusters.size());
@@ -64,8 +62,9 @@ public final class KMeansEvaluationTest extends OryxTest {
   @Test
   public void testDunnIndexForClustering() {
     KMeansEvaluation kMeansEvaluation = getKMeansEvaluationCriteria();
+    List<ClusterInfo> clusters = kMeansEvaluation.getClusters();
     List<Tuple2<Integer, Tuple2<Double, Long>>> clustersList =
-        fetchClusterSumDistanceAndCountsAsList(clusters, points);
+        fetchClusterSumDistanceAndCountsAsList(clusters, POINTS);
 
     double dunnIndex = kMeansEvaluation.dunnIndex(clustersList);
     assertEquals(NUM_CLUSTERS, clusters.size());
@@ -76,10 +75,11 @@ public final class KMeansEvaluationTest extends OryxTest {
   @Test
   public void testSilhouetteCoefficientForClustering() {
     KMeansEvaluation kMeansEvaluation = getKMeansEvaluationCriteria();
+    List<ClusterInfo> clusters = kMeansEvaluation.getClusters();
     Map<Integer, Iterable<double[]>> pointsMap = new HashMap<>();
 
-    for (double[] point : points) {
-      Tuple2<Integer, Double> pointAssignedToCluster = pointClusterAssign(point);
+    for (double[] point : POINTS) {
+      Tuple2<Integer, Double> pointAssignedToCluster = pointClusterAssign(clusters, point);
       int clusterId = pointAssignedToCluster._1();
       List<double[]> pointsToClusterList;
 
@@ -102,17 +102,17 @@ public final class KMeansEvaluationTest extends OryxTest {
 
   private static KMeansEvaluation getKMeansEvaluationCriteria() {
     PMML pmml = KMeansPMMLUtils.buildDummyClusteringModel();
-    clusters = KMeansPMMLUtils.read(pmml);
-    return new KMeansEvaluation(clusters);
+    return new KMeansEvaluation(KMeansPMMLUtils.read(pmml));
   }
 
   private static Map<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
+      List<ClusterInfo> clusters,
       List<double[]> points) {
 
     Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCountsMap = new HashMap<>();
 
     for (double[] point : points) {
-      Tuple2<Integer, Double> clusterAssign = pointClusterAssign(point);
+      Tuple2<Integer, Double> clusterAssign = pointClusterAssign(clusters, point);
       int clusterId = clusterAssign._1();
       double closestDist = clusterAssign._2();
 
@@ -135,7 +135,7 @@ public final class KMeansEvaluationTest extends OryxTest {
       List<double[]> points) {
 
     Map<Integer, Tuple2<Double, Long>> clusterSumDistAndCountsMap =
-        fetchClusterSumDistanceAndCounts(points);
+        fetchClusterSumDistanceAndCounts(clusters, points);
     List<Tuple2<Integer, Tuple2<Double, Long>>> clustersList = new ArrayList<>();
 
     for (int i = 0; i < clusters.size(); i++) {
@@ -145,13 +145,14 @@ public final class KMeansEvaluationTest extends OryxTest {
     return clustersList;
   }
 
-  private static Tuple2<Integer, Double> pointClusterAssign(double[] point) {
+  private static Tuple2<Integer, Double> pointClusterAssign(List<ClusterInfo> clusters,
+                                                            double[] point) {
     double closestDist = Double.POSITIVE_INFINITY;
     int minCluster = -1;
 
     for (int i = 0; i < clusters.size(); i++) {
       ClusterInfo cluster = clusters.get(i);
-      double distance = distanceFn.distance(cluster.getCenter(), point);
+      double distance = DISTANCE_FN.distance(cluster.getCenter(), point);
       if (distance < closestDist) {
         closestDist = distance;
         minCluster = i;
