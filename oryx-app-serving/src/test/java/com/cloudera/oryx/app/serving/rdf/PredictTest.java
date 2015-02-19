@@ -15,11 +15,11 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.List;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;

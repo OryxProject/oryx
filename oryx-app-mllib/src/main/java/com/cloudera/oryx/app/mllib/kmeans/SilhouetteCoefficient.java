@@ -159,7 +159,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
     return minInterClusterDissimilarity;
   }
 
-  private static double calcSilhouetteCoefficient(double d1, double d2) {
+  static double calcSilhouetteCoefficient(double d1, double d2) {
     if (d1 < d2) {
       return 1.0 - (d1 / d2);
     }
