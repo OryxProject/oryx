@@ -34,4 +34,10 @@ public final class CategoricalFeatureTest extends OryxTest {
     assertSame(f, CategoricalFeature.forEncoding(1));
   }
 
+  @Test
+  public void testToString() {
+    CategoricalFeature f = CategoricalFeature.forEncoding(1);
+    assertEquals(":1", f.toString());
+  }
+
 }
