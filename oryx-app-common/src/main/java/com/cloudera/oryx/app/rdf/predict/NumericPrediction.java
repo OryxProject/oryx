@@ -15,10 +15,6 @@
 
 package com.cloudera.oryx.app.rdf.predict;
 
-import com.google.common.base.Preconditions;
-import org.apache.commons.math3.stat.descriptive.StorelessUnivariateStatistic;
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
-
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.app.rdf.example.FeatureType;
 import com.cloudera.oryx.app.rdf.example.NumericFeature;
@@ -78,15 +74,6 @@ public final class NumericPrediction extends Prediction {
   @Override
   public String toString() {
     return Double.toString(prediction);
-  }
-
-  static NumericPrediction buildNumericPrediction(Iterable<Example> examples) {
-    StorelessUnivariateStatistic mean = new Mean();
-    for (Example example : examples) {
-      mean.increment(((NumericFeature) example.getTarget()).getValue());
-    }
-    Preconditions.checkState(mean.getN() > 0);
-    return new NumericPrediction(mean.getResult(), (int) mean.getN());
   }
 
 }

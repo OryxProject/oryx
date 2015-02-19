@@ -88,7 +88,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
     return silhouetteCoefficient;
   }
 
-  private static JavaRDD<Vector> fetchSampleData(JavaRDD<Vector> evalData) {
+  static JavaRDD<Vector> fetchSampleData(JavaRDD<Vector> evalData) {
     JavaRDD<Vector> data = evalData;
 
     if (evalData.count() > MAX_SAMPLE_SIZE) {
