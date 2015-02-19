@@ -147,22 +147,24 @@ public final class KMeansUpdate extends MLUpdate<String> {
     JavaRDD<Vector> evalData =
         parsedToVectorRDD(trainData.union(testData).map(MLFunctions.PARSE_FN));
     List<ClusterInfo> clusterInfoList = KMeansPMMLUtils.read(model);
-    KMeansEvaluation kMeansEvaluation = new KMeansEvaluation(clusterInfoList);
 
     log.info("Evaluation Strategy is {}", evaluationStrategy);
     double eval;
     switch (evaluationStrategy) {
       case DAVIES_BOULDIN :
-        double dbIndex = kMeansEvaluation.daviesBouldinIndex(evalData);
+        DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusterInfoList);
+        double dbIndex = daviesBouldinIndex.evaluate(evalData);
         eval = 1.0 / dbIndex;
         log.info("Davies-Bouldin index {} / eval {}", dbIndex, eval);
         break;
       case DUNN :
-        eval = kMeansEvaluation.dunnIndex(evalData);
+        DunnIndex dunnIndex = new DunnIndex(clusterInfoList);
+        eval = dunnIndex.evaluate(evalData);
         log.info("Dunn index / eval {}", eval);
         break;
       case SILHOUETTE:
-        eval = kMeansEvaluation.silhouetteCoefficient(evalData);
+        SilhouetteCoefficient silhouetteCoefficient = new SilhouetteCoefficient(clusterInfoList);
+        eval = silhouetteCoefficient.evaluate(evalData);
         log.info("Silhouette Coefficient / eval {}", eval);
         break;
       case SSE :
