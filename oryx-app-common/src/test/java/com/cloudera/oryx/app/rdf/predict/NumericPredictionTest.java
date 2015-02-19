@@ -49,4 +49,24 @@ public final class NumericPredictionTest extends OryxTest {
     assertEquals(3.0, prediction.getPrediction());
   }
 
+  @Test
+  public void testHashCode() {
+    NumericPrediction prediction = new NumericPrediction(1.5, 1);
+    assertEquals(1073217536, prediction.hashCode());
+    prediction.update(2.0, 2);
+    assertEquals(1789394944, prediction.hashCode());
+  }
+
+  @Test
+  public void testEquals() {
+    NumericPrediction prediction = new NumericPrediction(1.5, 1);
+    NumericPrediction prediction1 = new NumericPrediction(1.5, 2);
+    assertEquals(prediction, prediction1);
+    assertTrue(prediction.equals(prediction1));
+    prediction1.update(2.0, 2);
+    assertFalse(prediction.equals(prediction1));
+    prediction1.update(1.5, 4);
+    assertFalse(prediction.equals(prediction1));
+  }
+
 }

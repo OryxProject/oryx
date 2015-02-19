@@ -15,13 +15,27 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
+import javax.ws.rs.core.Response;
+
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.serving.MockTopicProducer;
+import com.cloudera.oryx.common.collection.Pair;
+
 public final class AssignTest extends AbstractKMeansServingTest {
+
+  private static final String ASSIGN_DATA = "-1.5,0.5\n1.0,0.0\n-1.0,0.0\n0.5,2.0\n";
+  private static final String[][] EXPECTED_TOPIC = {
+      {"-1.5", "-0.5"},
+      {"1.0", "0.0"},
+      {"-1.0", "0.0"},
+      {"0.5", "2.0"}
+  };
 
   @Test
   public void testAssign() {
@@ -41,6 +55,22 @@ public final class AssignTest extends AbstractKMeansServingTest {
     String prediction = target("/assign").request().post(Entity.text("-1.5,0.5\n-1,0"))
         .readEntity(String.class);
     Assert.assertEquals("2\n2\n", prediction);
+  }
+
+  @Test
+  public void testFormAssign() throws Exception {
+    checkResponse(getFormPostResponse(ASSIGN_DATA, "/assign", null, null));
+  }
+
+  private static void checkResponse(Response response) {
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    List<Pair<String,String>> data = MockTopicProducer.getData();
+    for (int i = 0; i < data.size(); i++) {
+      Pair<String,String> actual = data.get(i);
+      Assert.assertNull(actual.getFirst());
+      String[] tokens = actual.getSecond().split(",");
+      Assert.assertArrayEquals(EXPECTED_TOPIC[i], tokens);
+    }
   }
 
 }
