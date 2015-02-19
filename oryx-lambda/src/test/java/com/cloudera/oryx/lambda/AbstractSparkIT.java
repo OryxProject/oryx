@@ -17,31 +17,30 @@ package com.cloudera.oryx.lambda;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import com.cloudera.oryx.common.OryxTest;
 
 public abstract class AbstractSparkIT extends OryxTest {
 
-  private JavaSparkContext javaSparkContext;
+  private static JavaSparkContext javaSparkContext;
 
-  @Before
-  public final void setUp() {
-    SparkConf sparkConf = new SparkConf()
-        .setMaster("local[4]")
-        .setAppName("SparkKMeansTest");
-
+  @BeforeClass
+  public static void setUp() {
+    SparkConf sparkConf = new SparkConf().setMaster("local[*]").setAppName("SparkIT");
     javaSparkContext = new JavaSparkContext(sparkConf);
   }
 
-  @After
-  public final void tearDown() {
-    javaSparkContext.close();
-    javaSparkContext = null;
+  @AfterClass
+  public static void tearDown() {
+    if (javaSparkContext != null) {
+      javaSparkContext.close();
+      javaSparkContext = null;
+    }
   }
 
-  protected final JavaSparkContext getJavaSparkContext() {
+  protected static JavaSparkContext getJavaSparkContext() {
     return javaSparkContext;
   }
 }

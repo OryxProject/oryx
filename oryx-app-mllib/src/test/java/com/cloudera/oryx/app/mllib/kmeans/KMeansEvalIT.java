@@ -35,15 +35,11 @@ public final class KMeansEvalIT extends AbstractSparkIT {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansEvalIT.class);
 
-  private static final int NUM_CLUSTERS = 3;
-  private final List<double[]> POINTS =
-      Arrays.asList(new double[][]{
-          {1.0, 0.0}, {2.0, -2.0}, {2.0, 0.0},
-          {-2.0, 0.0}, {-0.5, -1.0}, {-0.5, 1.0}
-      });
-
-  protected final JavaRDD<Vector> getRddOfVectors(List<double[]> pointsList) {
-    return getJavaSparkContext().parallelize(pointsList).map(new ToVectorFn());
+  private static JavaRDD<Vector> getRddOfVectors() {
+    List<double[]> points = Arrays.asList(new double[][] {
+        {1.0, 0.0}, {2.0, -2.0}, {2.0, 0.0}, {-2.0, 0.0}, {-0.5, -1.0}, {-0.5, 1.0}
+    });
+    return getJavaSparkContext().parallelize(points).map(new ToVectorFn());
   }
 
   private static final class ToVectorFn implements Function<double[], Vector> {
@@ -59,7 +55,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
 
   @Test
   public void testFetchSampleEvalData() {
-    JavaRDD<Vector> evalData = SilhouetteCoefficient.fetchSampleData(getRddOfVectors(POINTS));
+    JavaRDD<Vector> evalData = SilhouetteCoefficient.fetchSampleData(getRddOfVectors());
     assertEquals(6, evalData.count());
   }
 
@@ -67,8 +63,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
   public void testDunnIndexForClustering() {
     List<ClusterInfo> clusters = getClusters();
     DunnIndex dunnIndex = new DunnIndex(clusters);
-    double eval = dunnIndex.evaluate(getRddOfVectors(POINTS));
-    assertEquals(3, clusters.size());
+    double eval = dunnIndex.evaluate(getRddOfVectors());
     log.info("Dunn Index for {} clusters: {}", clusters.size(), eval);
     assertEquals(1.7142857142857142, eval);
   }
@@ -77,8 +72,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
   public void testDaviesBouldinIndexForClustering() {
     List<ClusterInfo> clusters = getClusters();
     DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusters);
-    double eval = daviesBouldinIndex.evaluate(getRddOfVectors(POINTS));
-    assertEquals(NUM_CLUSTERS, clusters.size());
+    double eval = daviesBouldinIndex.evaluate(getRddOfVectors());
     log.info("Davies Bouldin Index for {} clusters: {}", clusters.size(), eval);
     assertEquals(0.638888888888889, eval);
   }
@@ -87,8 +81,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
   public void testSilhouetteCoefficientForClustering() {
     List<ClusterInfo> clusters = getClusters();
     SilhouetteCoefficient silhouetteCoefficient = new SilhouetteCoefficient(clusters);
-    double eval = silhouetteCoefficient.evaluate(getRddOfVectors(POINTS));
-    assertEquals(NUM_CLUSTERS, clusters.size());
+    double eval = silhouetteCoefficient.evaluate(getRddOfVectors());
     log.info("Silhouette Coefficient for {} clusters: {}", clusters.size(), eval);
     assertEquals(0.48484126984126985, eval);
   }
