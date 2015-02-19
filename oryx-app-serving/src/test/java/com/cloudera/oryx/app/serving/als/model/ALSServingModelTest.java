@@ -116,6 +116,12 @@ public final class ALSServingModelTest extends OryxTest {
     assertNull(model.getKnownItems("U2"));
   }
 
+  @Test
+  public void testToString() {
+    ALSServingModel model = new ALSServingModel(2, true, null);
+    assertEquals("ALSServingModel[features:2, implicit:true, X:(0 users), Y:(0 items)]", model.toString());
+  }
+
   private static void populateKnownItems(ALSServingModel model) {
     for (int i = 0; i < 10; i++) {
       String userID = "U" + i;
