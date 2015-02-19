@@ -60,4 +60,15 @@ public final class SilhouetteCoefficientTest extends AbstractKMeansEvalTest {
     log.info("Silhouette Coefficient for {} clusters: {}", clusters.size(), eval);
     assertEquals(0.48484126984126985, eval);
   }
+
+  @Test
+  public void testSilhouetteCoefficientComputation() {
+    Double d1 = 0.89;
+    Double d2 = -0.23;
+    assertEquals(-1.2584269662921348, SilhouetteCoefficient.calcSilhouetteCoefficient(d1, d2));
+    assertEquals(4.869565217391305, SilhouetteCoefficient.calcSilhouetteCoefficient(-d1, -d2));
+    d2 = Double.POSITIVE_INFINITY;
+    assertEquals(1.0, SilhouetteCoefficient.calcSilhouetteCoefficient(d1, d2));
+    assertEquals(0.0, SilhouetteCoefficient.calcSilhouetteCoefficient(0.0, 0.0));
+  }
 }
