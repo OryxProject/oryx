@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -46,7 +47,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
   public void testKMeansSpeed() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", KMeansSpeedModelManager.class.getName());
-    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
+    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 6);
     overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"x\",\"y\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
@@ -67,7 +68,8 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     int numUpdates = updates.size();
 
-    assertEquals(NUM_CLUSTERS + 1, updates.size());
+    // Model plus at least 3 updates, 1 per cluster
+    assertTrue(updates.size() >= NUM_CLUSTERS + 1);
     assertEquals("MODEL", updates.get(0).getFirst());
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
@@ -78,24 +80,33 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
     List<Cluster> clusters = clusteringModel.getClusters();
 
+    Map<Integer,ClusterInfo> clusterInfos = new HashMap<>();
     for (int i = 1; i < numUpdates; i++) {
       Pair<String,String> update = updates.get(i);
       assertEquals("UP", update.getFirst());
       List<?> fields = MAPPER.readValue(update.getSecond(), List.class);
       int clusterID = (Integer) fields.get(0);
-
       double[] updatedCenter = MAPPER.convertValue(fields.get(1), double[].class);
-      Cluster cluster = clusters.get(clusterID);
+      int updatedClusterSize = (Integer) fields.get(2);
+      clusterInfos.put(clusterID, new ClusterInfo(clusterID, updatedCenter, updatedClusterSize));
+    }
+
+    assertEquals(3, clusterInfos.size());
+
+    for (ClusterInfo clusterInfo : clusterInfos.values()) {
+      int id = clusterInfo.getID();
+      Cluster cluster = clusters.get(id);
 
       String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
       double[] modelCenter = VectorMath.parseVector(tokens);
 
+      double[] updatedCenter = clusterInfo.getCenter();
       assertEquals(tokens.length, modelCenter.length);
       assertFalse(Arrays.equals(modelCenter, updatedCenter));
       // Should be heavily weighted now towards the update point
-      assertArrayEquals(updatedCenter, MockKMeansInputGenerator.UPDATE_POINTS[i - 1], 0.1);
+      assertArrayEquals(updatedCenter, MockKMeansInputGenerator.UPDATE_POINTS[id], 0.1);
 
-      int updatedClusterSize = (Integer) fields.get(2);
+      long updatedClusterSize = clusterInfo.getCount();
       assertTrue(updatedClusterSize > cluster.getSize());
       assertEquals(100 + cluster.getSize(), updatedClusterSize);
     }
