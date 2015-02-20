@@ -44,4 +44,11 @@ public final class KnownItemsTest extends AbstractALSServingTest {
     }
   }
 
+  @Test
+  public void testEmptyItems() {
+    List<String> items = target("/knownItems/X1").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
+    Assert.assertEquals(0, items.size());
+  }
+
 }
