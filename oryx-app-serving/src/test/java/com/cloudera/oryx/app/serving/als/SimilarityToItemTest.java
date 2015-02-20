@@ -44,4 +44,12 @@ public final class SimilarityToItemTest extends AbstractALSServingTest {
     testCSVScores(2, response);
   }
 
+  @Test
+  public void testZeroSimilarityToItem() {
+    List<Double> items = target("/similarityToItem/I1/I10").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
+    Assert.assertEquals(1, items.size());
+    Assert.assertEquals(0.0, items.get(0), FLOAT_EPSILON);
+  }
+
 }
