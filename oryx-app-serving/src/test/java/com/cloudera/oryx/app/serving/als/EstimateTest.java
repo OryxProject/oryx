@@ -45,4 +45,12 @@ public final class EstimateTest extends AbstractALSServingTest {
     target("/estimate/Z").request().get(String.class);
   }
 
+  @Test
+  public void testZeroEstimate() {
+    List<Double> items = target("/estimate/U0/I10").request()
+        .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
+    Assert.assertEquals(1, items.size());
+    Assert.assertEquals(0.0, items.get(0), FLOAT_EPSILON);
+  }
+
 }
