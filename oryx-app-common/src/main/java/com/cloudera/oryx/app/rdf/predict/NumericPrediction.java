@@ -28,7 +28,7 @@ import com.cloudera.oryx.common.lang.LangUtils;
  */
 public final class NumericPrediction extends Prediction {
 
-  private double prediction;
+  private volatile double prediction;
 
   public NumericPrediction(double prediction, int initialCount) {
     super(initialCount);
@@ -45,16 +45,17 @@ public final class NumericPrediction extends Prediction {
   }
 
   @Override
-  public synchronized void update(Example train) {
+  public void update(Example train) {
     NumericFeature target = (NumericFeature) train.getTarget();
     update(target.getValue(), 1);
   }
 
-  public synchronized void update(double mean, int count) {
-    int oldCount = getCount();
-    int newCount = oldCount + count;
-    setCount(newCount);
-    prediction = (oldCount / (double) newCount) * prediction + (mean * count) / newCount;
+  public synchronized void update(double newPrediction, int newCount) {
+    int count = getCount();
+    int newTotalCount = count + newCount;
+    double newToTotal = (double) newCount / newTotalCount;
+    setCount(newTotalCount);
+    prediction += newToTotal * (newPrediction - prediction);
   }
 
   @Override

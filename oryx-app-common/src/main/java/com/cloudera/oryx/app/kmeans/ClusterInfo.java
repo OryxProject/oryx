@@ -23,8 +23,8 @@ import com.google.common.base.Preconditions;
 public final class ClusterInfo implements Serializable {
 
   private final int id;
-  private double[] center;
-  private long count;
+  private volatile double[] center;
+  private volatile long count;
 
   public ClusterInfo(int id, double[] center, long initialCount) {
     Preconditions.checkArgument(center.length > 0);
@@ -46,7 +46,7 @@ public final class ClusterInfo implements Serializable {
     return count;
   }
 
-  public synchronized void update(double[] newPoint) {
+  public void update(double[] newPoint) {
     update(newPoint, 1);
   }
 
@@ -54,15 +54,18 @@ public final class ClusterInfo implements Serializable {
     int length = center.length;
     Preconditions.checkArgument(length == newPoint.length);
     double[] newCenter = new double[length];
+    long newTotalCount = newCount + count;
+    double newToTotal = (double) newCount / newTotalCount;
     for (int i = 0; i < length; i++) {
-      newCenter[i] = (newPoint[i] * newCount + center[i] * count) / (newCount + count);
+      double centerI = center[i];
+      newCenter[i] = centerI + newToTotal * (newPoint[i] - centerI);
     }
-    this.center = newCenter;
-    count += newCount;
+    center = newCenter;
+    count = newTotalCount;
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     return id + " " + Arrays.toString(center) + " " + count;
   }
 

@@ -28,7 +28,7 @@ import com.cloudera.oryx.app.rdf.example.FeatureType;
  */
 public abstract class Prediction implements Serializable {
 
-  private int count;
+  private volatile int count;
 
   Prediction(int initialCount) {
     this.count = initialCount;

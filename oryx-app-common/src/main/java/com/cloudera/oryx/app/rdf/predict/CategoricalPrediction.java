@@ -32,13 +32,12 @@ import com.cloudera.oryx.app.rdf.example.FeatureType;
 public final class CategoricalPrediction extends Prediction {
 
   private final int[] categoryCounts;
-  private final double[] categoryProbabilities;
-  private int maxCategory;
+  private volatile double[] categoryProbabilities;
+  private volatile int maxCategory;
 
   public CategoricalPrediction(int[] categoryCounts) {
     super(sum(categoryCounts));
     this.categoryCounts = categoryCounts;
-    this.categoryProbabilities = new double[categoryCounts.length];
     recompute();
   }
 
@@ -50,18 +49,20 @@ public final class CategoricalPrediction extends Prediction {
     return total;
   }
 
-  private void recompute() {
+  private synchronized void recompute() {
     int total = getCount();
     int maxCount = -1;
     int theMaxCategory = -1;
-    for (int i = 0; i < categoryCounts.length; i++) {
+    double[] newCategoryProbabilities = new double[categoryCounts.length];
+    for (int i = 0; i < newCategoryProbabilities.length; i++) {
       int count = categoryCounts[i];
       if (count > maxCount) {
         maxCount = count;
         theMaxCategory = i;
       }
-      categoryProbabilities[i] = (double) count / total;
+      newCategoryProbabilities[i] = (double) count / total;
     }
+    categoryProbabilities = newCategoryProbabilities;
     Preconditions.checkArgument(theMaxCategory >= 0);
     maxCategory = theMaxCategory;
   }
@@ -104,7 +105,7 @@ public final class CategoricalPrediction extends Prediction {
   }
 
   @Override
-  public synchronized void update(Example train) {
+  public void update(Example train) {
     CategoricalFeature target = (CategoricalFeature) train.getTarget();
     update(target.getEncoding(), 1);
   }
