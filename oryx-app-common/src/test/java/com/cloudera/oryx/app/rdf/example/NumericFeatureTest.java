@@ -30,19 +30,13 @@ public final class NumericFeatureTest extends OryxTest {
     assertEquals(FeatureType.NUMERIC, f.getFeatureType());
     assertEquals(1.5, f.getValue());
     assertEquals(f, NumericFeature.forValue(1.5));
+    assertNotEquals(f, NumericFeature.forValue(Double.NaN));
   }
 
   @Test
   public void testToString() {
     NumericFeature f = NumericFeature.forValue(1.5);
     assertEquals("1.5", f.toString());
-  }
-
-  @Test
-  public void testEquals() {
-    NumericFeature f = NumericFeature.forValue(1.5);
-    assertFalse(f.equals(NumericFeature.forValue(Double.NaN)));
-    assertTrue(f.equals(NumericFeature.forValue(1.5)));
   }
 
   @Test
