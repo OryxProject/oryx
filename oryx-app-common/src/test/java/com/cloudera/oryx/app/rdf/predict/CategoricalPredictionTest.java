@@ -74,4 +74,25 @@ public final class CategoricalPredictionTest extends OryxTest {
                       prediction.getCategoryProbabilities());
   }
 
+  @Test
+  public void testHashCode() {
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
+    CategoricalPrediction prediction = new CategoricalPrediction(counts);
+    assertEquals(-504480959, prediction.hashCode());
+  }
+
+  @Test
+  public void testToString() {
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
+    CategoricalPrediction prediction = new CategoricalPrediction(counts);
+    assertEquals(":[0.0, 0.125, 0.375, 0.0, 0.5, 0.0]", prediction.toString());
+  }
+
+  @Test
+  public void testEquals() {
+    int[] counts = { 0, 1, 3, 0, 4, 0 };
+    CategoricalPrediction prediction = new CategoricalPrediction(counts);
+    assertNotEquals(prediction, new CategoricalPrediction(new int[] { 1, 2, 4, 5, 6, 7 }));
+  }
+
 }
