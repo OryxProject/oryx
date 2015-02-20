@@ -385,7 +385,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.1.4.RELEASE</version>
+        <version>4.1.5.RELEASE</version>
         <scope>test</scope>
       </dependency>
 
@@ -465,7 +465,7 @@
     <koloboke.version>0.6.6</koloboke.version>
     <slf4j.version>1.7.10</slf4j.version>
     <spark.version>1.2.1</spark.version>
-    <tomcat.version>8.0.18</tomcat.version>
+    <tomcat.version>8.0.20</tomcat.version>
     <zookeeper.version>3.5.0-alpha</zookeeper.version>
   </properties>
 
@@ -913,10 +913,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <configuration>
-          <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-        </configuration>
         <reportSets>
           <reportSet>
             <reports>
@@ -1047,19 +1043,13 @@
         <repository>
           <id>cloudera</id>
           <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
         </repository>
       </repositories>
       <!-- Latest version; can be overridden -->
       <properties>
-        <hadoop.version>2.5.0-cdh5.3.1</hadoop.version>
-        <spark.version>1.2.0-cdh5.3.1</spark.version>
-        <kafka.version>0.8.2-beta-clabs-kafka-1.1.0</kafka.version>
+        <hadoop.version>2.5.0-cdh5.3.2</hadoop.version>
+        <spark.version>1.2.0-cdh5.3.2</spark.version>
+        <kafka.version>0.8.2.0-kafka-1.2.0</kafka.version>
       </properties>
     </profile>
     <profile>
