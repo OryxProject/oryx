@@ -46,7 +46,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
   public void testKMeansSpeed() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", KMeansSpeedModelManager.class.getName());
-    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
+    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 30);
     overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"x\",\"y\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
@@ -58,7 +58,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
         startServerProduceConsumeTopics(config,
                                         new MockKMeansInputGenerator(),
                                         new MockKMeansModelGenerator(),
-                                        300, // @10 msec should make 1 interval
+                                        210, // @10 msec should make 1 interval
                                         1);
 
     for (Pair<String, String> update : updates) {
@@ -97,7 +97,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
       int updatedClusterSize = (Integer) fields.get(2);
       assertTrue(updatedClusterSize > cluster.getSize());
-      assertEquals(100 + cluster.getSize(), updatedClusterSize);
+      assertEquals(70 + cluster.getSize(), updatedClusterSize);
     }
   }
 
