@@ -1,5 +1,3 @@
-# Overview
-
 <img align="right" src="https://raw.github.com/wiki/OryxProject/oryx/OryxLogoSmall.png"/>
 
 Oryx 2 is a realization of the lambda architecture built on [Apache Spark](http://spark.apache.org) 
@@ -133,7 +131,7 @@ Example configuration that enables these applications is available in the
 
 # Getting Started
 
-See [[Cluster-Setup]] to get your cluster ready, then head to [[Running-Oryx]] to learn how to 
+See [Cluster Setup](https://github.com/OryxProject/oryx/wiki/Cluster-Setup) to get your cluster ready, then head to [Running Oryx](https://github.com/OryxProject/oryx/wiki/Running-Oryx) to learn how to 
 take an application for a test drive!
 
 ------
