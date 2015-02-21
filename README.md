@@ -8,7 +8,7 @@ learning. It is a framework for building applications, but also includes package
 applications for collaborative filtering, classification, regression and clustering.
 
 Oryx 2 is a rearchitecting and continuation of the original [Oryx 1](http://github.com/cloudera/oryx) project. 
-See [[Differences-From-Oryx-1]] for an overview of changes.
+The [Differences from Oryx 1 wiki](https://github.com/OryxProject/oryx/wiki/Differences-From-Oryx-1) describes changes.
 
 It consists of three _tiers_, each of which builds on the one below:
 
@@ -126,9 +126,10 @@ used as the basis for a custom application:
 - Clustering based on k-means
 - Classification and regression based on random decision forests
 
-The REST API endpoints provided by the serving layer application implementations is documented at
-[[API-Endpoint-Reference]]. Example configuration that enables these applications is available at 
-[[Configuration-Reference]].
+The REST API endpoints provided by the serving layer application implementations is documented in the 
+[API Endpoint Reference](https://github.com/OryxProject/oryx/wiki/API-Endpoint-Reference) wiki. 
+Example configuration that enables these applications is available in the 
+[Configuration Reference](https://github.com/OryxProject/oryx/wiki/Configuration-Reference) wiki.
 
 # Getting Started
 
