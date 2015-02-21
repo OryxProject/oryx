@@ -1,4 +1,4 @@
-<img align="right" src="https://raw.github.com/wiki/OryxProject/oryx/OryxLogoSmall.png" border="30" width="123" height="123" />
+<img align="right" src="https://raw.github.com/wiki/OryxProject/oryx/OryxLogoMedium.png" />
 
 Oryx 2 is a realization of the lambda architecture built on [Apache Spark](http://spark.apache.org) 
 and [Apache Kafka](http://kafka.apache.org), but with specialization for real-time large scale machine 
