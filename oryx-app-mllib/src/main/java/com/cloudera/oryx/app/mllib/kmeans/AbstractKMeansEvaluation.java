@@ -32,9 +32,9 @@ import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 
 abstract class AbstractKMeansEvaluation implements Serializable {
 
-  protected final DistanceFn<double[]> distanceFn;
-  protected final int numClusters;
-  protected final List<ClusterInfo> clusters;
+  private final DistanceFn<double[]> distanceFn;
+  private final int numClusters;
+  private final List<ClusterInfo> clusters;
 
   AbstractKMeansEvaluation(List<ClusterInfo> clusters) {
     this.distanceFn = new SquaredDistanceFn(); // for now using Squared Euclidean only
@@ -42,8 +42,16 @@ abstract class AbstractKMeansEvaluation implements Serializable {
     this.numClusters = clusters.size();
   }
 
+  final DistanceFn<double[]> getDistanceFn() {
+    return distanceFn;
+  }
+
   final int getNumClusters() {
-    return this.numClusters;
+    return numClusters;
+  }
+
+  final List<ClusterInfo> getClusters() {
+    return clusters;
   }
 
   abstract double evaluate(JavaRDD<Vector> evalData);

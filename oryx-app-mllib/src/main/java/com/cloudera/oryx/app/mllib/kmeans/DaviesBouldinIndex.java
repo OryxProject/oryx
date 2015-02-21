@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
 
@@ -47,7 +48,9 @@ final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
    */
   double daviesBouldinIndex(Map<Integer,Tuple2<Double,Long>> clusterSumDistAndCounts) {
     double totalDBIndex = 0.0;
+    List<ClusterInfo> clusters = getClusters();
     int numClusters = getNumClusters();
+    DistanceFn<double[]> distanceFn = getDistanceFn();
     for (int i = 0; i < numClusters; i++) {
       double maxDBIndex = 0.0;
       double[] center = clusters.get(i).getCenter();

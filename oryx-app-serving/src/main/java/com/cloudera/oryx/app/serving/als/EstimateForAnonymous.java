@@ -26,11 +26,12 @@ import javax.ws.rs.core.PathSegment;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
-import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.math.VectorMath;
+import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.VectorMath;
 
 /**
  * <p>Responds to a GET request to
@@ -99,28 +100,12 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   private static double computeTargetQui(ALSServingModel model, double value, double currentValue) {
     // We want Qui to change based on value. What's the target value, Qui'?
     // Then we find a new vector Xu' such that Qui' = Xu' * (Yi)^t
-    double targetQui;
     if (model.isImplicit()) {
-      // Target is really 1, or 0, depending on whether value is positive or negative.
-      // This wouldn't account for the strength though. Instead the target is a function
-      // of the current value and strength. If the current value is c, and value is positive
-      // then the target is somewhere between c and 1 depending on the strength. If current
-      // value is already >= 1, there's no effect. Similarly for negative values.
-      if (value > 0.0f && currentValue < 1.0) {
-        double diff = 1.0 - Math.max(0.0, currentValue);
-        targetQui = currentValue + (1.0 - 1.0 / (1.0 + value)) * diff;
-      } else if (value < 0.0f && currentValue > 0.0) {
-        double diff = -Math.min(1.0, currentValue);
-        targetQui = currentValue + (1.0 - 1.0 / (1.0 - value)) * diff;
-      } else {
-        // No change
-        targetQui = Double.NaN;
-      }
+      return ALSUtils.implicitTargetQui(value, currentValue);
     } else {
       // Non-implicit -- value is supposed to be the new value
-      targetQui = value;
+      return value;
     }
-    return targetQui;
   }
 
 }

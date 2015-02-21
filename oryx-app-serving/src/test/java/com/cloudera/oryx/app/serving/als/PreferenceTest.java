@@ -21,21 +21,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.serving.MockTopicProducer;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
+import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class PreferenceTest extends AbstractALSServingTest {
 
   private static final String PREFERENCE_DATA = "2.5\n";
-
-  @Before
-  public void clearProducerData() {
-    MockTopicProducer.getData().clear();
-  }
 
   @Test
   public void testPostJson() {

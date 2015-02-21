@@ -310,20 +310,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                   nodeIDCount.incrementAndGet(node.id());
                   Split split = node.split().get();
                   int featureIndex = split.feature();
-                  double featureValue = featureVector[featureIndex];
-                  if (split.featureType().equals(FeatureType.Continuous())) {
-                    if (featureValue <= split.threshold()) {
-                      node = node.leftNode().get();
-                    } else {
-                      node = node.rightNode().get();
-                    }
-                  } else {
-                    if (split.categories().contains(featureValue)) {
-                      node = node.leftNode().get();
-                    } else {
-                      node = node.rightNode().get();
-                    }
-                  }
+                  node = nextNode(featureVector, node, split, featureIndex);
                 }
                 nodeIDCount.incrementAndGet(node.id());
               }
@@ -380,20 +367,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                   int featureIndex = split.feature();
                   // Count feature
                   featureIndexCount.incrementAndGet(featureIndex);
-                  double featureValue = featureVector[featureIndex];
-                  if (split.featureType().equals(FeatureType.Continuous())) {
-                    if (featureValue <= split.threshold()) {
-                      node = node.leftNode().get();
-                    } else {
-                      node = node.rightNode().get();
-                    }
-                  } else {
-                    if (split.categories().contains(featureValue)) {
-                      node = node.leftNode().get();
-                    } else {
-                      node = node.rightNode().get();
-                    }
-                  }
+                  node = nextNode(featureVector, node, split, featureIndex);
                 }
               }
             }
@@ -408,6 +382,27 @@ public final class RDFUpdate extends MLUpdate<String> {
           }
         }
       ).asMap();
+  }
+
+  private static org.apache.spark.mllib.tree.model.Node nextNode(
+      double[] featureVector,
+      org.apache.spark.mllib.tree.model.Node node,
+      Split split,
+      int featureIndex) {
+    double featureValue = featureVector[featureIndex];
+    if (split.featureType().equals(FeatureType.Continuous())) {
+      if (featureValue <= split.threshold()) {
+        return node.leftNode().get();
+      } else {
+        return node.rightNode().get();
+      }
+    } else {
+      if (split.categories().contains(featureValue)) {
+        return node.leftNode().get();
+      } else {
+        return node.rightNode().get();
+      }
+    }
   }
 
   private static AtomicLongMap<Integer> merge(AtomicLongMap<Integer> a, AtomicLongMap<Integer> b) {

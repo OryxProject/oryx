@@ -43,8 +43,10 @@ import org.glassfish.jersey.test.ServletDeploymentContext;
 import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.junit.Assert;
 import org.junit.Before;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.KeyMessage;
@@ -62,6 +64,11 @@ public abstract class AbstractServingTest extends JerseyTest {
   @Before
   public final void initRandom() {
     RandomManager.useTestSeed();
+  }
+
+  @Before
+  public void clearProducerData() {
+    MockTopicProducer.getData().clear();
   }
 
   @Override
@@ -137,6 +144,19 @@ public abstract class AbstractServingTest extends JerseyTest {
       throw new IllegalStateException(e);
     }
     return bytes.toByteArray();
+  }
+
+  protected static void checkResponse(Response response,
+                                      Response.Status expectedStatus,
+                                      String[][] expectedTopic) {
+    Assert.assertEquals(expectedStatus.getStatusCode(), response.getStatus());
+    List<Pair<String,String>> data = MockTopicProducer.getData();
+    for (int i = 0; i < data.size(); i++) {
+      Pair<String,String> actual = data.get(i);
+      Assert.assertNull(actual.getFirst());
+      String[] tokens = actual.getSecond().split(",");
+      Assert.assertArrayEquals(expectedTopic[i], tokens);
+    }
   }
 
   public abstract static class AbstractServletContextListener implements ServletContextListener {

@@ -25,13 +25,13 @@ import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 
-import com.cloudera.oryx.app.serving.MockTopicProducer;
-import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.app.serving.als.model.TestALSModelFactory;
+import com.cloudera.oryx.lambda.serving.AbstractServingTest;
+import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public abstract class AbstractALSServingTest extends AbstractServingTest {
 

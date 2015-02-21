@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
 
@@ -84,7 +85,8 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
     }
 
     double silhouetteCoefficient = overallSilhouetteCoefficientForClustering / sampleCount;
-    log.info("Computed Silhouette Coefficient for {} clusters: {}", numClusters, silhouetteCoefficient);
+    log.info("Computed Silhouette Coefficient for {} clusters: {}",
+             getNumClusters(), silhouetteCoefficient);
     return silhouetteCoefficient;
   }
 
@@ -106,6 +108,9 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
         int minCluster = -1;
         double[] vec = vector.toArray();
 
+        List<ClusterInfo> clusters = getClusters();
+        int numClusters = getNumClusters();
+        DistanceFn<double[]> distanceFn = getDistanceFn();
         for (int i = 0; i < numClusters; i++) {
           ClusterInfo cluster = clusters.get(i);
           double distance = distanceFn.distance(cluster.getCenter(), vec);
@@ -123,6 +128,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
   private double clusterDissimilarityForPoint(double[] vector,
                                               List<double[]> points,
                                               boolean ownCluster) {
+    DistanceFn<double[]> distanceFn = getDistanceFn();
     double totalDissimilarity = 0.0;
     for (double[] point : points) {
       totalDissimilarity += distanceFn.distance(vector, point);

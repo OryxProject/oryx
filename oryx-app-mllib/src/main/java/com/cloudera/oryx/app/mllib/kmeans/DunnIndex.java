@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DunnIndex extends AbstractKMeansEvaluation {
 
@@ -55,6 +56,9 @@ final class DunnIndex extends AbstractKMeansEvaluation {
 
     double minInterClusterDistance = Double.POSITIVE_INFINITY;
 
+    List<ClusterInfo> clusters = getClusters();
+    int numClusters = getNumClusters();
+    DistanceFn<double[]> distanceFn = getDistanceFn();
     for (int i = 0; i < numClusters; i++) {
       double[] center = clusters.get(i).getCenter();
       // Distances are symmetric, hence d(i,j) == d(j,i)

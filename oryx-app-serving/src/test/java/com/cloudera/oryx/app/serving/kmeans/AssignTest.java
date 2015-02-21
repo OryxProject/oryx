@@ -19,13 +19,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.cloudera.oryx.app.serving.MockTopicProducer;
-import com.cloudera.oryx.common.collection.Pair;
 
 public final class AssignTest extends AbstractKMeansServingTest {
 
@@ -63,14 +58,7 @@ public final class AssignTest extends AbstractKMeansServingTest {
   }
 
   private static void checkResponse(Response response) {
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-    List<Pair<String,String>> data = MockTopicProducer.getData();
-    for (int i = 0; i < data.size(); i++) {
-      Pair<String,String> actual = data.get(i);
-      Assert.assertNull(actual.getFirst());
-      String[] tokens = actual.getSecond().split(",");
-      Assert.assertArrayEquals(EXPECTED_TOPIC[i], tokens);
-    }
+    checkResponse(response, Response.Status.OK, EXPECTED_TOPIC);
   }
 
 }

@@ -25,11 +25,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Variant;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class IngestTest extends AbstractALSServingTest {
 
@@ -41,11 +40,6 @@ public final class IngestTest extends AbstractALSServingTest {
       {"c", "D", ""},
       {"a", "C", "2.0"},
   };
-
-  @Before
-  public void clearProducerData() {
-    MockTopicProducer.getData().clear();
-  }
 
   @Test
   public void testSimpleIngest() {

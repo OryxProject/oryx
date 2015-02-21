@@ -27,10 +27,10 @@ import org.junit.Test;
 
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
-import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.app.serving.rdf.model.TestRDFClassificationModelFactory;
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class ClassificationDistributionTest extends AbstractRDFServingTest {
 

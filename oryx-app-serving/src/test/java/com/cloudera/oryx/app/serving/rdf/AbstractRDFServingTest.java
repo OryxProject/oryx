@@ -22,24 +22,17 @@ import javax.ws.rs.core.GenericType;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
-import com.cloudera.oryx.app.serving.MockTopicProducer;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.app.serving.rdf.model.TestRDFRegressionModelFactory;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
+import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public abstract class AbstractRDFServingTest extends AbstractServingTest {
 
   protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
-
-  @Before
-  public void clearProducerData() {
-    MockTopicProducer.getData().clear();
-  }
 
   @Override
   protected final List<String> getResourcePackages() {
