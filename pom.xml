@@ -795,6 +795,7 @@
               <exclude>**/*.md</exclude>
               <exclude>**/*.properties</exclude>
               <exclude>**/*.txt</exclude>
+              <exclude>**/*.fragment</exclude>
               <exclude>**/gen/**</exclude>
               <exclude>**/target/**</exclude>
               <exclude>**/dependency-reduced-pom.xml</exclude>

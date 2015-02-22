@@ -23,6 +23,6 @@ import com.cloudera.oryx.app.serving.AbstractConsoleResource;
 public final class Console extends AbstractConsoleResource {
   @Override
   protected String getConsoleResource() {
-    return "kmeans/kmeans.html";
+    return "kmeans/kmeans.html.fragment";
   }
 }

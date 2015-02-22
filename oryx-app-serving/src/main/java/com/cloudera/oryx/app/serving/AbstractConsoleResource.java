@@ -33,9 +33,9 @@ public abstract class AbstractConsoleResource {
   @PostConstruct
   public final void loadHTML() throws IOException {
     StringBuilder htmlBuilder = new StringBuilder(10000);
-    for (String resource : new String[] { "console-header.html",
+    for (String resource : new String[] { "console-header.html.fragment",
                                           getConsoleResource(),
-                                          "console-footer.html" }) {
+                                          "console-footer.html.fragment" }) {
       URL resourceURL = Resources.getResource(AbstractConsoleResource.class, resource);
       htmlBuilder.append(Resources.toString(resourceURL, StandardCharsets.UTF_8));
     }

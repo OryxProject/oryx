@@ -23,6 +23,6 @@ import com.cloudera.oryx.app.serving.AbstractConsoleResource;
 public final class Console extends AbstractConsoleResource {
   @Override
   protected String getConsoleResource() {
-    return "rdf/rdf.html";
+    return "rdf/rdf.html.fragment";
   }
 }
