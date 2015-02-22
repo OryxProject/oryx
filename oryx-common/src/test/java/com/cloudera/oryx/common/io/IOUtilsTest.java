@@ -17,9 +17,12 @@ package com.cloudera.oryx.common.io;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -111,6 +114,21 @@ public final class IOUtilsTest extends OryxTest {
     List<Path> files = IOUtils.listFiles(testDir, "*/*");
     assertEquals(testDir.resolve("subDir1").resolve("subDir2"), files.get(0));
     assertEquals(testDir.resolve("subDir1").resolve("subFile2"), files.get(1));
+  }
+
+  @Test
+  public void testReadLines() throws IOException {
+    Path tempDir = getTempDir();
+    Path textFile = tempDir.resolve("file.txt");
+    Files.write(textFile, Arrays.asList("foo", "bar", "baz"), StandardCharsets.UTF_8);
+    Iterator<String> it = IOUtils.readLines(textFile).iterator();
+    assertTrue(it.hasNext());
+    assertEquals("foo", it.next());
+    assertTrue(it.hasNext());
+    assertEquals("bar", it.next());
+    assertTrue(it.hasNext());
+    assertEquals("baz", it.next());
+    assertFalse(it.hasNext());
   }
 
   @Test

@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.mllib.als;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -192,7 +191,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       throws IOException {
     Collection<Integer> seenIDs = new HashSet<>();
     for (Path file : IOUtils.listFiles(path, "part-*")) {
-      for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+      for (String line : IOUtils.readLines(file)) {
         List<?> update = MAPPER.readValue(line, List.class);
         seenIDs.add(Integer.valueOf(update.get(0).toString()));
         assertEquals(FEATURES, MAPPER.convertValue(update.get(1), float[].class).length);
