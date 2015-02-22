@@ -167,4 +167,26 @@ public final class HyperParams {
     return result;
   }
 
+  /**
+   * @param numParams number of different hyperparameters
+   * @param candidates minimum number of candidates to be built
+   * @return smallest value such that pow(value, numParams) is at least the number of candidates
+   *  requested to build. Returns 0 if numParams is less than 1.
+   */
+  public static int chooseValuesPerHyperParam(int numParams, int candidates) {
+    if (numParams < 1) {
+      return 0;
+    }
+    int valuesPerHyperParam = 0;
+    int total;
+    do {
+      valuesPerHyperParam++;
+      total = 1;
+      for (int i = 0; i < numParams; i++) {
+        total *= valuesPerHyperParam;
+      }
+    } while (total < candidates);
+    return valuesPerHyperParam;
+  }
+
 }

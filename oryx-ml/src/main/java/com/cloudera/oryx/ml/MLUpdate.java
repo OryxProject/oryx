@@ -176,7 +176,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     }
 
     List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
-    int valuesPerHyperParam = chooseValuesPerHyperParam(hyperParamValues.size());
+    int valuesPerHyperParam =
+        HyperParams.chooseValuesPerHyperParam(hyperParamValues.size(), candidates);
     List<List<?>> hyperParameterCombos =
         HyperParams.chooseHyperParameterCombos(hyperParamValues,
                                                candidates,
@@ -220,26 +221,6 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     if (pastData != null) {
       pastData.unpersist();
     }
-  }
-
-  /**
-   * @return smallest value such that pow(value, numParams) is at least the number of candidates
-   *  requested to build. Returns 0 if numParams is less than 1.
-   */
-  private int chooseValuesPerHyperParam(int numParams) {
-    if (numParams < 1) {
-      return 0;
-    }
-    int valuesPerHyperParam = 0;
-    int total;
-    do {
-      valuesPerHyperParam++;
-      total = 1;
-      for (int i = 0; i < numParams; i++) {
-        total *= valuesPerHyperParam;
-      }
-    } while (total < candidates);
-    return valuesPerHyperParam;
   }
 
   private Path findBestCandidatePath(JavaSparkContext sparkContext,

@@ -24,7 +24,7 @@ public final class PairTest extends OryxTest {
   @Test
   public void testEquals() {
     assertEquals(new Pair<>(3.0, "foo"), new Pair<>(3.0, "foo"));
-    assertTrue((new Pair<>(null, null)).equals(new Pair<>(null, null)));
+    assertEquals(new Pair<>(null, null), new Pair<>(null, null));
     assertFalse(new Pair<>(3.0, "foo").equals(new Pair<>(4.0, "foo")));
     assertNotEquals(new Pair<>(3.0, "foo"), new Pair<>("foo", 3.0));
     assertNotEquals("3.0,foo", new Pair<>(3.0, "foo"));
@@ -38,7 +38,7 @@ public final class PairTest extends OryxTest {
 
   @Test
   public void testToString() {
-    assertEquals("3.0,foo", (new Pair<>(3.0, "foo")).toString());
+    assertEquals("3.0,foo", new Pair<>(3.0, "foo").toString());
   }
 
 }

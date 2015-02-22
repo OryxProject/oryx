@@ -170,6 +170,19 @@ public final class HyperParamsTest extends OryxTest {
            2, Arrays.asList(5.3, 6.6));
   }
 
+  @Test
+  public void testChooseValues() {
+    assertEquals(0, HyperParams.chooseValuesPerHyperParam(0, 1));
+    assertEquals(1, HyperParams.chooseValuesPerHyperParam(1, 1));
+    assertEquals(3, HyperParams.chooseValuesPerHyperParam(1, 3));
+    assertEquals(1, HyperParams.chooseValuesPerHyperParam(2, 1));
+    assertEquals(2, HyperParams.chooseValuesPerHyperParam(2, 2));
+    assertEquals(2, HyperParams.chooseValuesPerHyperParam(2, 4));
+    assertEquals(1, HyperParams.chooseValuesPerHyperParam(3, 1));
+    assertEquals(2, HyperParams.chooseValuesPerHyperParam(3, 7));
+    assertEquals(2, HyperParams.chooseValuesPerHyperParam(3, 8));
+  }
+
   private static <T> void doTest(HyperParamValues<T> hyperParams,
                                  int howMany,
                                  List<T> expected) {

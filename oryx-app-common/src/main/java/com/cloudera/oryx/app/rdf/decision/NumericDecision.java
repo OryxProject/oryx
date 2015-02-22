@@ -38,12 +38,6 @@ public final class NumericDecision extends Decision {
     this.defaultDecision = defaultDecision;
   }
 
-  private NumericDecision(int featureNumber, double threshold, double mean) {
-    super(featureNumber);
-    this.threshold = threshold;
-    this.defaultDecision = mean >= threshold;
-  }
-
   /**
    * @return decision threshold; feature values greater than or equal are considered positive
    */

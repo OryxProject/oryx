@@ -102,19 +102,15 @@ public final class IOUtils {
     return new LineIterable(file);
   }
 
-  public static OutputStream writeMaybeCompressed(Path file) throws IOException {
-    return writeMaybeCompressed(file, 1 << 12);
-  }
-
-    /**
-     * Opens an {@link OutputStream} to the file. If it should be compressed, because its
-     * file name ends in ".gz" or ".zip", then data written will be compressed accordingly.
-     *
-     * @param file file, possibly compressed, to write to
-     * @param bufferSize suggested output buffer size in bytes
-     * @return {@link OutputStream} receiving uncompressed contents
-     * @throws IOException if the stream can't be opened or is invalid or can't be written
-     */
+  /**
+   * Opens an {@link OutputStream} to the file. If it should be compressed, because its
+   * file name ends in ".gz" or ".zip", then data written will be compressed accordingly.
+   *
+   * @param file file, possibly compressed, to write to
+   * @param bufferSize suggested output buffer size in bytes
+   * @return {@link OutputStream} receiving uncompressed contents
+   * @throws IOException if the stream can't be opened or is invalid or can't be written
+   */
   public static OutputStream writeMaybeCompressed(Path file, int bufferSize) throws IOException {
     String name = file.getFileName().toString();
     OutputStream out = Files.newOutputStream(file);
