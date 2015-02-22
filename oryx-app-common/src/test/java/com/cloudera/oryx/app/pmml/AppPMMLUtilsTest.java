@@ -85,14 +85,6 @@ public final class AppPMMLUtilsTest extends OryxTest {
   }
 
   @Test
-  public void testToArray() {
-    Array a = AppPMMLUtils.toArray(Arrays.asList("foo", "b ar"), Array.Type.STRING);
-    assertEquals(2, a.getN().intValue());
-    assertEquals(Array.Type.STRING, a.getType());
-    assertEquals("foo \"b ar\"", a.getValue());
-  }
-
-  @Test
   public void testToArrayDouble() {
     Array a = AppPMMLUtils.toArray(-1.0, 2.01, 3.5);
     assertEquals(3, a.getN().intValue());

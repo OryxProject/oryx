@@ -94,15 +94,6 @@ public final class IOUtils {
   }
 
   /**
-   * @param file file to read lines of, which may be compressed. It will be read using
-   *  UTF-8 encoding and assumes line separators consistent with {@link java.io.BufferedReader}
-   * @return an {@link Iterable} over the lines of the file
-   */
-  public static Iterable<String> readLines(Path file) {
-    return new LineIterable(file);
-  }
-
-  /**
    * Opens an {@link OutputStream} to the file. If it should be compressed, because its
    * file name ends in ".gz" or ".zip", then data written will be compressed accordingly.
    *

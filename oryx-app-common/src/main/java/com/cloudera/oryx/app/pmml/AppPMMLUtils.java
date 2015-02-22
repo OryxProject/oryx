@@ -112,16 +112,6 @@ public final class AppPMMLUtils {
   }
 
   /**
-   * @param values values to make into a PMML {@link Array}
-   * @param type type of {@link Array} elements
-   * @return PMML {@link Array} representation
-   */
-  public static Array toArray(Collection<?> values, Array.Type type) {
-    String arrayValue = TextUtils.joinDelimited(values, ' ');
-    return new Array(type, arrayValue).withN(values.size());
-  }
-
-  /**
    * @param schema {@link InputSchema} whose information should be encoded in PMML
    * @return a {@link MiningSchema} representing the information contained in an
    *  {@link InputSchema}

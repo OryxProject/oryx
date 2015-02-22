@@ -40,7 +40,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.rdd.RDD;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
@@ -52,6 +51,7 @@ import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.lambda.BatchLayerUpdate;
 import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.lambda.fn.Functions;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
@@ -157,22 +157,15 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> newData = newKeyMessageData.values();
     JavaRDD<M> pastData = pastKeyMessageData == null ? null : pastKeyMessageData.values();
 
-    VoidFunction<Iterator<M>> noOpFn = new VoidFunction<Iterator<M>>() {
-      @Override
-      public void call(Iterator<M> it) {
-        // do nothing
-      }
-    };
-
     if (newData != null) {
       newData.cache();
       // This forces caching of the RDD. This shouldn't be necessary but we see some freezes
       // when many workers try to materialize the RDDs at once. Hence the workaround.
-      newData.foreachPartition(noOpFn);
+      newData.foreachPartition(Functions.<Iterator<M>>noOp());
     }
     if (pastData != null) {
       pastData.cache();
-      pastData.foreachPartition(noOpFn);
+      pastData.foreachPartition(Functions.<Iterator<M>>noOp());
     }
 
     List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();

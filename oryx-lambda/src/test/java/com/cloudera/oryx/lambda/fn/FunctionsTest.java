@@ -22,35 +22,6 @@ import com.cloudera.oryx.common.OryxTest;
 public final class FunctionsTest extends OryxTest {
 
   @Test
-  public void testSumInt() throws Exception {
-    assertEquals(3, Functions.SUM_INT.call(2, 1).intValue());
-    assertEquals(2, Functions.SUM_INT.call(2, 0).intValue());
-    assertEquals(-3, Functions.SUM_INT.call(-2, -1).intValue());
-    assertEquals(Integer.MAX_VALUE, Functions.SUM_INT.call(Integer.MAX_VALUE, 0).intValue());
-  }
-
-  @Test
-  public void testSumLong() throws Exception {
-    assertEquals(3L, Functions.SUM_LONG.call(2L, 1L).longValue());
-    assertEquals(2L, Functions.SUM_LONG.call(2L, 0L).longValue());
-    assertEquals(-3L, Functions.SUM_LONG.call(-2L, -1L).longValue());
-    assertEquals(Long.MAX_VALUE, Functions.SUM_LONG.call(Long.MAX_VALUE, 0L).longValue());
-  }
-
-  @Test
-  public void testSumDouble() throws Exception {
-    assertEquals(3.0, Functions.SUM_DOUBLE.call(2.0, 1.0).doubleValue());
-    assertEquals(2.0, Functions.SUM_DOUBLE.call(2.0, 0.0).doubleValue());
-    assertEquals(-3.0, Functions.SUM_DOUBLE.call(-2.0, -1.0).doubleValue());
-    assertEquals(Double.POSITIVE_INFINITY,
-                 Functions.SUM_DOUBLE.call(Double.POSITIVE_INFINITY, 0.0).doubleValue());
-    assertEquals(Double.NEGATIVE_INFINITY,
-                 Functions.SUM_DOUBLE.call(Double.NEGATIVE_INFINITY, 0.0).doubleValue());
-    assertTrue(Double.isNaN(Functions.SUM_DOUBLE.call(1.0, Double.NaN)));
-    assertTrue(Double.isNaN(Functions.SUM_DOUBLE.call(Double.NaN, 1.0)));
-  }
-
-  @Test
   public void testToString() throws Exception {
     assertEquals("1.0", Functions.toStringValue().call(1.0));
     assertEquals("null", Functions.toStringValue().call(null));

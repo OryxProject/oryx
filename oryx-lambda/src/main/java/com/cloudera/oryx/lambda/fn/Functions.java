@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.fn;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.VoidFunction;
 
 /**
  * Utility {@link Function2} implementations.
@@ -24,39 +25,6 @@ import org.apache.spark.api.java.function.Function2;
 public final class Functions {
 
   private Functions() {}
-
-  /**
-   * A function that sums its (int) arguments.
-   */
-  public static final Function2<Integer,Integer,Integer> SUM_INT =
-      new Function2<Integer,Integer,Integer>() {
-        @Override
-        public Integer call(Integer a, Integer b) {
-          return a + b;
-        }
-      };
-
-  /**
-   * A function that sums its (long) arguments.
-   */
-  public static final Function2<Long,Long,Long> SUM_LONG =
-      new Function2<Long,Long,Long>() {
-        @Override
-        public Long call(Long a, Long b) {
-          return a + b;
-        }
-      };
-
-  /**
-   * A function that sums its (double) arguments.
-   */
-  public static final Function2<Double,Double,Double> SUM_DOUBLE =
-      new Function2<Double,Double,Double>() {
-        @Override
-        public Double call(Double a, Double b) {
-          return a + b;
-        }
-      };
 
   /**
    * @return a function that maps objects to their {@link Object#toString()} representation.
@@ -80,6 +48,15 @@ public final class Functions {
       @Override
       public T call(T current, T next) {
         return next;
+      }
+    };
+  }
+
+  public static <T> VoidFunction<T> noOp() {
+    return new VoidFunction<T>() {
+      @Override
+      public void call(T t) {
+        // do nothing
       }
     };
   }
