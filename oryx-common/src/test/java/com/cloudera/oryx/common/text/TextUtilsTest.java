@@ -42,40 +42,65 @@ public final class TextUtilsTest extends OryxTest {
   }
 
   @Test
-  public void testParseCSV() throws Exception {
-    assertArrayEquals(new String[] {"a", "1", "foo"}, TextUtils.parseCSV("a,1,foo"));
-    assertArrayEquals(new String[] {"a", "1", "foo", ""}, TextUtils.parseCSV("a,1,foo,"));
-    assertArrayEquals(new String[] {"2.3"}, TextUtils.parseCSV("2.3"));
-    // Different from JSON, sort of:
-    assertArrayEquals(new String[] {""}, TextUtils.parseCSV(""));
-  }
-
-  @Test
   public void testParseDelimited() throws Exception {
+    assertArrayEquals(new String[] {"a", "1", "foo"}, TextUtils.parseDelimited("a,1,foo", ','));
+    assertArrayEquals(new String[] {"a", "1", "foo", ""},
+                      TextUtils.parseDelimited("a,1,foo,", ','));
+    assertArrayEquals(new String[] {"2.3"}, TextUtils.parseDelimited("2.3", ','));
+    assertArrayEquals(new String[] {"\"a\""}, TextUtils.parseDelimited("\"\"\"a\"\"\"", ','));
+    assertArrayEquals(new String[] {"\"", "\"\""},
+                      TextUtils.parseDelimited("\"\"\"\" \"\"\"\"\"\"", ' '));
+    // Different from JSON, sort of:
+    assertArrayEquals(new String[] {""}, TextUtils.parseDelimited("", ','));
     assertArrayEquals(new String[] {"a", "1,", ",foo"},
                       TextUtils.parseDelimited("a\t1,\t,foo", '\t'));
     assertArrayEquals(new String[] {"a", "1", "foo", ""},
                       TextUtils.parseDelimited("a 1 foo ", ' '));
+    assertArrayEquals(new String[] {"-1.0", "a\" \"b"},
+                      TextUtils.parseDelimited("-1.0 a\"\\ \"b", ' '));
+    assertArrayEquals(new String[] {"-1.0", "a\"b\"c"},
+                      TextUtils.parseDelimited("-1.0 \"a\\\"b\\\"c\"", ' '));
+
   }
 
   @Test
-  public void testJoinCSV() {
-    assertEquals("1,2,3", TextUtils.joinCSV(Arrays.asList("1", "2", "3")));
-    assertEquals("\"a,b\"", TextUtils.joinCSV(Arrays.asList("a,b")));
-    assertEquals("\"\"\"a\"\"\"", TextUtils.joinCSV(Arrays.asList("\"a\"")));
+  public void testParsePMMLDelimited() {
+    assertArrayEquals(new String[] {"1", "22", "3"}, TextUtils.parsePMMLDelimited("1 22 3"));
+    assertArrayEquals(new String[] {"ab", "a b", "with \"quotes\" "},
+                      TextUtils.parsePMMLDelimited("ab  \"a b\"   \"with \\\"quotes\\\" \" "));
+    assertArrayEquals(new String[] {"\" \""},
+                      TextUtils.parsePMMLDelimited("\"\\\" \\\"\""));
+    assertArrayEquals(new String[] {" c\" d \"e ", " c\" d \"e "},
+                      TextUtils.parsePMMLDelimited(" \" c\\\" d \\\"e \" \" c\\\" d \\\"e \" "));
   }
 
   @Test
   public void testJoinDelimited() {
+    assertEquals("1,2,3", TextUtils.joinDelimited(Arrays.asList("1", "2", "3"), ','));
+    assertEquals("\"a,b\"", TextUtils.joinDelimited(Arrays.asList("a,b"), ','));
+    assertEquals("\"\"\"a\"\"\"", TextUtils.joinDelimited(Arrays.asList("\"a\""), ','));
     assertEquals("1 2 3", TextUtils.joinDelimited(Arrays.asList("1", "2", "3"), ' '));
     assertEquals("\"1 \" \"2 \" 3", TextUtils.joinDelimited(Arrays.asList("1 ", "2 ", "3"), ' '));
+    assertEquals("\"\"\"a\"\"\"", TextUtils.joinDelimited(Arrays.asList("\"a\""), ' '));
+    assertEquals("\"\"\"\" \"\"\"\"\"\"",
+                 TextUtils.joinDelimited(Arrays.asList("\"", "\"\""), ' '));
     assertEquals("", TextUtils.joinDelimited(Collections.emptyList(), '\t'));
   }
 
   @Test
-  public void testJoinDelimitedNoQuote() {
+  public void testJoinPMMLDelimited() {
+    assertEquals("ab \"a b\" \"with \\\"quotes\\\" \"",
+                 TextUtils.joinPMMLDelimited(Arrays.asList("ab", "a b", "with \"quotes\" ")));
+    assertEquals("1 22 3",
+                 TextUtils.joinPMMLDelimited(Arrays.asList("1", "22", "3")));
+    assertEquals("\" c\\\" d \\\"e \" \" c\\\" d \\\"e \"",
+                 TextUtils.joinPMMLDelimited(Arrays.asList(" c\" d \"e ", " c\" d \"e ")));
+  }
+
+  @Test
+  public void testJoinPMMLDelimitedNumbers() {
     assertEquals("-1.0 2.01 3.5",
-                 TextUtils.joinDelimited(Arrays.asList(-1.0, 2.01, 3.5), ' ', true));
+                 TextUtils.joinPMMLDelimitedNumbers(Arrays.asList(-1.0, 2.01, 3.5)));
   }
 
   @Test

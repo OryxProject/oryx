@@ -91,7 +91,7 @@ public final class Assign extends AbstractKMeansResource {
 
   private Integer nearestClusterID(String datum) throws OryxServingException {
     check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
-    String[] tokens = TextUtils.parseCSV(datum);
+    String[] tokens = TextUtils.parseDelimited(datum, ',');
     return cluster(tokens).getFirst();
   }
 

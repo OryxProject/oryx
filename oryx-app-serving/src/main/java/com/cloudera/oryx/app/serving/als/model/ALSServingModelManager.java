@@ -111,10 +111,8 @@ public final class ALSServingModelManager implements ServingModelManager<String>
 
             log.info("Updating current model");
             // Remove users/items no longer in the model
-            Collection<String> XIDs = new HashSet<>(
-                AppPMMLUtils.parseArray(AppPMMLUtils.getExtensionContent(pmml, "XIDs")));
-            Collection<String> YIDs = new HashSet<>(
-                AppPMMLUtils.parseArray(AppPMMLUtils.getExtensionContent(pmml, "YIDs")));
+            Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+            Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
             model.pruneKnownItems(XIDs, YIDs);
             model.pruneX(XIDs);
             model.pruneY(YIDs);

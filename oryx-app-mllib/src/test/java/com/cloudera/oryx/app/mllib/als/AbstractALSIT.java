@@ -20,15 +20,13 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
-import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 
 public abstract class AbstractALSIT extends AbstractAppMLlibIT {
 
   static Collection<Integer> parseIDsFromContent(List<?> content) {
-    List<String> values = AppPMMLUtils.parseArray(content);
-    Collection<Integer> result = new HashSet<>(values.size());
-    for (String s : values) {
-      result.add(Integer.valueOf(s));
+    Collection<Integer> result = new HashSet<>(content.size());
+    for (Object s : content) {
+      result.add(Integer.valueOf(s.toString()));
     }
     return result;
   }

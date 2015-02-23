@@ -85,7 +85,7 @@ public final class Ingest extends AbstractALSResource {
     TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
-      String[] tokens = TextUtils.parseCSV(line);
+      String[] tokens = TextUtils.parseDelimited(line, ',');
       check(tokens.length >= 2, line);
       String userID = tokens[0];
       String itemID = tokens[1];

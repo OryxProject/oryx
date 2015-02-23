@@ -102,7 +102,7 @@ public final class Predict extends AbstractRDFResource {
     RDFServingModel model = getRDFServingModel();
     InputSchema inputSchema = model.getInputSchema();
 
-    Prediction prediction = makePrediction(TextUtils.parseCSV(datum));
+    Prediction prediction = makePrediction(TextUtils.parseDelimited(datum, ','));
 
     String result;
     if (inputSchema.isClassification()) {

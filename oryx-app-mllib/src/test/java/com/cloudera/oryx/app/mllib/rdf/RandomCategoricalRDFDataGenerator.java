@@ -53,7 +53,7 @@ final class RandomCategoricalRDFDataGenerator implements DatumGenerator<String,S
       elements.add(Double.toString(d));
     }
     elements.add(Boolean.toString(positive));
-    return new Pair<>(Integer.toString(id), TextUtils.joinCSV(elements));
+    return new Pair<>(Integer.toString(id), TextUtils.joinDelimited(elements, ','));
   }
 
 }

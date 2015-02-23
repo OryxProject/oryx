@@ -587,7 +587,7 @@ public final class RDFUpdate extends MLUpdate<String> {
         negativeValues.add(encodingToValue.get(negativeEncoding));
       }
 
-      String joinedValues = TextUtils.joinDelimited(negativeValues, ' ');
+      String joinedValues = TextUtils.joinPMMLDelimited(negativeValues);
       return new SimpleSetPredicate(fieldName,
                                     SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
                                     new Array(Array.Type.STRING, joinedValues));

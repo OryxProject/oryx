@@ -111,10 +111,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
             log.info("Updating current model");
             // First, remove users/items no longer in the model
-            List<String> XIDs = AppPMMLUtils.parseArray(
-                AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-            List<String> YIDs = AppPMMLUtils.parseArray(
-                AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+            List<String> XIDs = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
+            List<String> YIDs = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
             model.pruneX(XIDs);
             model.pruneY(YIDs);
 

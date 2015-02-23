@@ -43,7 +43,7 @@ public final class MLFunctions {
             return TextUtils.parseJSONArray(line);
           } else {
             // CSV
-            return TextUtils.parseCSV(line);
+            return TextUtils.parseDelimited(line, ',');
           }
         }
       };

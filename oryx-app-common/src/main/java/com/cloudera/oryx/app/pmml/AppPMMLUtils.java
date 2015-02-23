@@ -56,46 +56,49 @@ public final class AppPMMLUtils {
     return null;
   }
 
-  public static List<Object> getExtensionContent(PMML pmml, String name) {
+  /**
+   * @param pmml PMML model to query for extensions
+   * @param name name of extension to query
+   * @return content of the extension, parsed as if it were a PMML {@link Array}:
+   *  space-separated values, with PMML quoting rules
+   */
+  public static List<String> getExtensionContent(PMML pmml, String name) {
     for (Extension extension : pmml.getExtensions()) {
       if (name.equals(extension.getName())) {
-        return extension.getContent();
+        List<?> content = extension.getContent();
+        Preconditions.checkArgument(content.size() <= 1);
+        if (content.isEmpty()) {
+          return Collections.emptyList();
+        }
+        return Arrays.asList(TextUtils.parsePMMLDelimited(content.get(0).toString()));
       }
     }
     return null;
   }
 
+  /**
+   * @param pmml PMML model to add extension to, with no content. It may possibly duplicate
+   *  existing extensions.
+   * @param key extension key
+   * @param value extension value
+   */
   public static void addExtension(PMML pmml, String key, Object value) {
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.setValue(value.toString());
-    pmml.getExtensions().add(extension);
+    pmml.getExtensions().add(new Extension().withName(key).withValue(value.toString()));
   }
 
+  /**
+   * @param pmml PMML model to add extension to, with a single {@code String} content and no value.
+   *  The content is encoded as if they were being added to a PMML {@link Array} and are
+   *  space-separated with PMML quoting rules
+   * @param key extension key
+   * @param content list of values to add as a {@code String}
+   */
   public static void addExtensionContent(PMML pmml, String key, Collection<?> content) {
     if (content.isEmpty()) {
       return;
     }
-    Collection<String> stringContent = new ArrayList<>(content.size());
-    for (Object o : content) {
-      stringContent.add(o.toString());
-    }
-    Extension extension = new Extension();
-    extension.setName(key);
-    extension.getContent().addAll(stringContent);
-    pmml.getExtensions().add(extension);
-  }
-
-  /**
-   * @param pmmlArrayContent the content of a node that serializes an array PMML-style
-   * @return array values in order
-   */
-  public static List<String> parseArray(List<?> pmmlArrayContent) {
-    String spaceSeparated = pmmlArrayContent.get(0).toString();
-    if (spaceSeparated.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return Arrays.asList(TextUtils.parseDelimited(spaceSeparated, ' '));
+    String joined = TextUtils.joinPMMLDelimited(content);
+    pmml.getExtensions().add(new Extension().withName(key).withContent(joined));
   }
 
   /**
@@ -107,7 +110,7 @@ public final class AppPMMLUtils {
     for (double value : values) {
       valueList.add(value);
     }
-    String arrayValue = TextUtils.joinDelimited(valueList, ' ', true);
+    String arrayValue = TextUtils.joinPMMLDelimitedNumbers(valueList);
     return new Array(Array.Type.REAL, arrayValue).withN(valueList.size());
   }
 

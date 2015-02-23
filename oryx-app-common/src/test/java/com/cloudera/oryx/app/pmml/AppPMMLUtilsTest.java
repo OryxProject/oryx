@@ -58,30 +58,29 @@ public final class AppPMMLUtilsTest extends OryxTest {
   }
 
   @Test
-  public void testExtensionValue() {
+  public void testExtensionValue() throws Exception {
     PMML model = buildDummyModel();
     assertNull(AppPMMLUtils.getExtensionValue(model, "foo"));
     AppPMMLUtils.addExtension(model, "foo", "bar");
-    assertEquals("bar", AppPMMLUtils.getExtensionValue(model, "foo"));
+
+    PMML reserializedModel = PMMLUtils.fromString(PMMLUtils.toString(model));
+    assertEquals("bar", AppPMMLUtils.getExtensionValue(reserializedModel, "foo"));
   }
 
   @Test
-  public void testExtensionContent() {
+  public void testExtensionContent() throws Exception {
     PMML model = buildDummyModel();
     assertNull(AppPMMLUtils.getExtensionContent(model, "foo"));
-    AppPMMLUtils.addExtensionContent(model, "foo", Arrays.asList("bar", "baz"));
-    assertEquals(Arrays.<Object>asList("bar", "baz"),
-                 AppPMMLUtils.getExtensionContent(model, "foo"));
-    AppPMMLUtils.addExtensionContent(model, "foo", Collections.emptyList());
-    assertEquals(Arrays.<Object>asList("bar", "baz"),
-                 AppPMMLUtils.getExtensionContent(model, "foo"));
-  }
+    AppPMMLUtils.addExtensionContent(model, "foo1", Arrays.asList("bar", "baz"));
+    AppPMMLUtils.addExtensionContent(model, "foo2", Collections.emptyList());
+    AppPMMLUtils.addExtensionContent(model, "foo3", Arrays.asList(" c\" d \"e ", " c\" d \"e "));
 
-  @Test
-  public void testParseArray() {
-    assertEquals(Arrays.asList("foo", "bar", "baz"),
-                 AppPMMLUtils.parseArray(Collections.singletonList("foo bar baz")));
-    assertTrue(AppPMMLUtils.parseArray(Collections.singletonList("")).isEmpty());
+    PMML reserializedModel = PMMLUtils.fromString(PMMLUtils.toString(model));
+    assertEquals(Arrays.asList("bar", "baz"),
+                 AppPMMLUtils.getExtensionContent(reserializedModel, "foo1"));
+    assertNull(AppPMMLUtils.getExtensionContent(reserializedModel, "foo2"));
+    assertEquals(Arrays.asList(" c\" d \"e ", " c\" d \"e "),
+                 AppPMMLUtils.getExtensionContent(reserializedModel, "foo3"));
   }
 
   @Test

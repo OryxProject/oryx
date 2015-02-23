@@ -17,7 +17,9 @@ package com.cloudera.oryx.common.text;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,18 +36,13 @@ import org.apache.commons.csv.QuoteMode;
 public final class TextUtils {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
-  private static final CSVFormat CSV_FORMAT = CSVFormat.RFC4180.withSkipHeaderRecord();
+  private static final CSVFormat CSV_FORMAT =
+      CSVFormat.RFC4180.withSkipHeaderRecord().withEscape('\\');
   private static final String[] EMPTY_STRING = { "" };
 
   private TextUtils() {}
 
-  /**
-   * @param csv line of CSV-formatted text
-   * @return delimited strings, parsed according to RFC 4180
-   */
-  public static String[] parseCSV(String csv) {
-    return parseDelimited(csv, ',');
-  }
+  // Delimited --
 
   /**
    * @param delimited line of delimited text
@@ -53,7 +50,27 @@ public final class TextUtils {
    * @return delimited strings, parsed according to RFC 4180 but with the given delimiter
    */
   public static String[] parseDelimited(String delimited, char delimiter) {
-    CSVFormat format = formatForDelimiter(delimiter, false);
+    return doParseDelimited(delimited, formatForDelimiter(delimiter));
+  }
+
+  /**
+   * @param delimited PMML-style space-delimited value string
+   * @return delimited values, parsed according to PMML rules
+   */
+  public static String[] parsePMMLDelimited(String delimited) {
+    // Although you'd think ignoreSurroundingSpaces helps here, won't work with space
+    // delimiter. So manually trim below.
+    String[] rawResult = doParseDelimited(delimited, formatForDelimiter(' '));
+    List<String> resultList = new ArrayList<>();
+    for (String raw : rawResult) {
+      if (!raw.isEmpty()) {
+        resultList.add(raw);
+      }
+    }
+    return resultList.toArray(new String[resultList.size()]);
+  }
+
+  private static String[] doParseDelimited(String delimited, CSVFormat format) {
     Iterator<CSVRecord> records;
     try {
       records = CSVParser.parse(delimited, format).iterator();
@@ -68,43 +85,46 @@ public final class TextUtils {
   }
 
   /**
-   * @param json line of JSON text
-   * @return delimited strings, the elements of the JSON array
-   * @throws IOException if JSON parsing fails
-   */
-  public static String[] parseJSONArray(String json) throws IOException {
-    return MAPPER.readValue(json, String[].class);
-  }
-
-  /**
-   * @param elements values to join by comma to make one line of CSV
-   * @return one line of CSV, with RFC 4180 escaping (values with comma are quoted; double-quotes
-   *  are escaped by doubling)
-   */
-  public static String joinCSV(Iterable<?> elements) {
-    return joinDelimited(elements, ',');
-  }
-
-  /**
    * @param elements values to join by the delimiter to make one line of text
    * @param delimiter delimiter to put between fields
    * @return one line of text, with RFC 4180 escaping (values with comma are quoted; double-quotes
    *  are escaped by doubling) and using the given delimiter
    */
   public static String joinDelimited(Iterable<?> elements, char delimiter) {
-    return joinDelimited(elements, delimiter, false);
+    return doJoinDelimited(elements, formatForDelimiter(delimiter));
   }
 
   /**
-   * @param elements values to join by the delimiter to make one line of text
-   * @param delimiter delimiter to put between fields
-   * @param noQuote force no quoting. Useful in some cases where it's known that quoting
-   *  isn't needed
-   * @return one line of text, with RFC 4180 escaping (values with comma are quoted; double-quotes
-   *  are escaped by doubling, unless {@code noQuote} is set) and using the given delimiter
+   * @param elements values to join by space to make one line of text
+   * @return one line of text, formatted according to PMML quoting rules
+   *  (\" instead of "" for escaping quotes; ignore space surrounding values
    */
-  public static String joinDelimited(Iterable<?> elements, char delimiter, boolean noQuote) {
-    CSVFormat format = formatForDelimiter(delimiter, noQuote);
+  public static String joinPMMLDelimited(Iterable<?> elements) {
+    String rawResult = doJoinDelimited(elements, formatForDelimiter(' '));
+    // Must change "" into \"
+    return rawResult.replace("\"\"", "\\\"");
+  }
+
+  /**
+   * @param elements numbers to join by space to make one line of text
+   * @return one line of text, formatted according to PMML quoting rules
+   */
+  public static String joinPMMLDelimitedNumbers(Iterable<? extends Number> elements) {
+    // bit of a workaround because NON_NUMERIC quote mode still quote "-1"!
+    CSVFormat format = formatForDelimiter(' ').withQuoteMode(QuoteMode.NONE);
+    // No quoting, no need to convert quoting
+    return doJoinDelimited(elements, format);
+  }
+
+  private static CSVFormat formatForDelimiter(char delimiter) {
+    CSVFormat format = CSV_FORMAT;
+    if (delimiter != format.getDelimiter()) {
+      format = format.withDelimiter(delimiter);
+    }
+    return format;
+  }
+
+  private static String doJoinDelimited(Iterable<?> elements, CSVFormat format) {
     StringWriter out = new StringWriter();
     try (CSVPrinter printer = new CSVPrinter(out, format)) {
       for (Object element : elements) {
@@ -117,23 +137,27 @@ public final class TextUtils {
     return out.toString();
   }
 
+  /// JSON --
+
+  /**
+   * @param json line of JSON text
+   * @return delimited strings, the elements of the JSON array
+   * @throws IOException if JSON parsing fails
+   */
+  public static String[] parseJSONArray(String json) throws IOException {
+    return MAPPER.readValue(json, String[].class);
+  }
+
+  /**
+   * @param elements elements to be joined in a JSON string. May be any objects.
+   * @return JSON representation of the list of objects
+   */
   public static String joinJSON(Iterable<?> elements) {
     try {
       return MAPPER.writeValueAsString(elements);
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException(e);
     }
-  }
-
-  private static CSVFormat formatForDelimiter(char delimiter, boolean noQuote) {
-    CSVFormat format = CSV_FORMAT;
-    if (delimiter != format.getDelimiter()) {
-      format = format.withDelimiter(delimiter);
-    }
-    if (noQuote) {
-      format = format.withEscape('\\').withQuoteMode(QuoteMode.NONE);
-    }
-    return format;
   }
 
 }

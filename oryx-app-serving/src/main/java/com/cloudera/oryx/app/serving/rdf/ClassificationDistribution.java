@@ -58,7 +58,7 @@ public final class ClassificationDistribution extends AbstractRDFResource {
     InputSchema inputSchema = model.getInputSchema();
     check(inputSchema.isClassification(), "Only applicable for classification");
 
-    Prediction prediction = makePrediction(TextUtils.parseCSV(datum));
+    Prediction prediction = makePrediction(TextUtils.parseDelimited(datum, ','));
 
     double[] probabilities = ((CategoricalPrediction) prediction).getCategoryProbabilities();
     int targetIndex = inputSchema.getTargetFeatureIndex();
