@@ -94,8 +94,14 @@ public abstract class OryxTest extends Assert {
     assertArrayEquals(expecteds, actuals, DOUBLE_EPSILON);
   }
 
-  protected static <T> void assertContainsSame(Collection<T> a, Collection<T> b) {
-    assertTrue((a == null && b == null) || (a.containsAll(b) && b.containsAll(a)));
+  protected static <T> void assertContainsSame(Collection<T> expected, Collection<T> actual) {
+    if (expected == null) {
+      assertNull(actual);
+    } else {
+      assertNotNull(actual);
+      assertEquals(expected.size(), actual.size());
+      assertTrue(expected.containsAll(actual) && actual.containsAll(expected));
+    }
   }
 
 }

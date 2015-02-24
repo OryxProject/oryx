@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     Map<Integer,String> reverseIDLookup = parsedRDD.
         flatMapToPair(new ToReverseLookupFn()).
         reduceByKey(Functions.<String>last()).collectAsMap();
+    // Clone, due to some serialization problems with the result of collectAsMap?
+    reverseIDLookup = new HashMap<>(reverseIDLookup);
 
     PMML pmml = mfModelToPMML(model,
                               features,
