@@ -5,13 +5,11 @@ script: mvn -Pjava${JAVA_VERSION} ${CDH} ${JACOCO} -Dmaven.javadoc.skip=true -q 
 matrix:
  include:
    - jdk: openjdk7
-     env: JAVA_VERSION=7
-     env: JACOCO=-Pjacoco
+     env: JAVA_VERSION=7 JACOCO=-Pjacoco
    - jdk: oraclejdk8
      env: JAVA_VERSION=8
    - jdk: oraclejdk7
-     env: JAVA_VERSION=7
-     env: CDH=-Pcdh5
+     env: JAVA_VERSION=7 CDH=-Pcdh5
 cache:
   directories:
     - $HOME/.m2
