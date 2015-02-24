@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.mllib.als;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -26,7 +25,7 @@ import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 
 final class EnqueueFeatureVecsAndKnownItemsFn
-    implements VoidFunction<Tuple2<Integer,Tuple2<double[],Collection<Integer>>>> {
+    implements VoidFunction<Tuple2<String,Tuple2<double[],Collection<String>>>> {
 
   private final String whichMatrix;
   private final TopicProducer<String, String> modelUpdateTopic;
@@ -38,17 +37,13 @@ final class EnqueueFeatureVecsAndKnownItemsFn
   }
 
   @Override
-  public void call(Tuple2<Integer,Tuple2<double[],Collection<Integer>>> keyAndVectorAndItems) {
-    Integer id = keyAndVectorAndItems._1();
-    Tuple2<double[],Collection<Integer>> vectorAndItems = keyAndVectorAndItems._2();
+  public void call(Tuple2<String,Tuple2<double[],Collection<String>>> keyAndVectorAndItems) {
+    String id = keyAndVectorAndItems._1();
+    Tuple2<double[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
     double[] vector = vectorAndItems._1();
-    Collection<Integer> knowItemIDs = vectorAndItems._2();
-    Collection<String> knownItemIDsStrings = new ArrayList<>(knowItemIDs.size());
-    for (Integer i : knowItemIDs) {
-      knownItemIDsStrings.add(i.toString());
-    }
+    Collection<String> knowItemIDs = vectorAndItems._2();
     modelUpdateTopic.send("UP", TextUtils.joinJSON(
-        Arrays.asList(whichMatrix, id, vector, knownItemIDsStrings)));
+        Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
   }
 
 }

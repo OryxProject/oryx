@@ -16,13 +16,18 @@
 package com.cloudera.oryx.app.mllib.als;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.GzipCodec;
@@ -31,6 +36,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
@@ -63,6 +69,8 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdate.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final HashFunction HASH = Hashing.md5();
+  private static final Pattern MOST_INTS_PATTERN = Pattern.compile("(0|-?[1-9][0-9]{0,9})");
 
   private final int iterations;
   private final boolean implicit;
@@ -105,7 +113,9 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
 
-    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(trainData.map(MLFunctions.PARSE_FN));
+    JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
+
+    JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD);
     trainRatingData = aggregateScores(trainRatingData);
     MatrixFactorizationModel model;
     if (implicit) {
@@ -114,7 +124,17 @@ public final class ALSUpdate extends MLUpdate<String> {
       model = ALS.train(trainRatingData.rdd(), features, iterations, lambda);
     }
 
-    PMML pmml = mfModelToPMML(model, features, lambda, alpha, implicit, candidatePath);
+    Map<Integer,String> reverseIDLookup = parsedRDD.
+        flatMapToPair(new ToReverseLookupFn()).
+        reduceByKey(Functions.<String>last()).collectAsMap();
+
+    PMML pmml = mfModelToPMML(model,
+                              features,
+                              lambda,
+                              alpha,
+                              implicit,
+                              candidatePath,
+                              reverseIDLookup);
     unpersist(model);
     return pmml;
   }
@@ -165,32 +185,25 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     log.info("Sending user / X data as model updates");
     String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
-    JavaPairRDD<Integer,double[]> userRDD =
-        fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString)));
+    JavaPairRDD<String,double[]> userRDD =
+        readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
 
     if (noKnownItems) {
       userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateTopic));
     } else {
       log.info("Sending known item data with model updates");
-      JavaPairRDD<Integer,Collection<Integer>> knownItems = knownsRDD(allData, true);
+      JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
       userRDD.join(knownItems).foreach(
           new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateTopic));
     }
 
     log.info("Sending item / Y data as model updates");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
-    JavaPairRDD<Integer,double[]> productRDD =
-        fromRDD(readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString)));
+    JavaPairRDD<String,double[]> productRDD =
+        readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
 
     // For now, there is no use in sending known users for each item
-    //if (noKnownItems) {
     productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateTopic));
-    //} else {
-    //  log.info("Sending known user data with model updates");
-    //  JavaPairRDD<Integer,Collection<Integer>> knownUsers = knownsRDD(allData, false);
-    //  productRDD.join(knownUsers).foreach(
-    //      new EnqueueFeatureVecsAndKnownItemsFn("Y", modelUpdateTopic));
-    //}
   }
 
   /**
@@ -235,18 +248,7 @@ public final class ALSUpdate extends MLUpdate<String> {
    * @return {@link Rating}s ordered by timestamp
    */
   private JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
-    JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(
-        new PairFunction<String[],Long,Rating>() {
-          @Override
-          public Tuple2<Long,Rating> call(String[] tokens) {
-            return new Tuple2<>(
-                Long.valueOf(tokens[3]),
-                new Rating(Integer.parseInt(tokens[0]),
-                           Integer.parseInt(tokens[1]),
-                           // Empty value means 'delete'; propagate as NaN
-                           tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
-          }
-        });
+    JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(new ParseRatingFn());
 
     if (decayFactor < 1.0) {
       final double factor = decayFactor;
@@ -281,6 +283,66 @@ public final class ALSUpdate extends MLUpdate<String> {
     }
 
     return timestampRatingRDD.sortByKey().values();
+  }
+
+  private static final class ToReverseLookupFn
+      implements PairFlatMapFunction<String[],Integer,String> {
+    @Override
+    public Iterable<Tuple2<Integer,String>> call(String[] tokens) {
+      List<Tuple2<Integer,String>> results = new ArrayList<>(2);
+      for (int i = 0; i < 2; i++) {
+        String s = tokens[i];
+        if (MOST_INTS_PATTERN.matcher(s).matches()) {
+          try {
+            Integer.parseInt(s);
+            continue;
+          } catch (NumberFormatException nfe) {
+            // continue
+          }
+        }
+        results.add(new Tuple2<>(hash(s), s));
+      }
+      return results;
+    }
+  }
+
+  /**
+   * @param s string to hash
+   * @return top 32 bits of MD5 hash of string, with 0 top bit (so result is nonnegative)
+   */
+  private static int hash(String s) {
+    return HASH.hashString(s).asInt() & 0x7FFFFFFF;
+  }
+
+  private static final class ParseRatingFn implements PairFunction<String[],Long,Rating> {
+    @Override
+    public Tuple2<Long,Rating> call(String[] tokens) {
+      return new Tuple2<>(
+          Long.valueOf(tokens[3]),
+          new Rating(parseOrHashInt(tokens[0]),
+                     parseOrHashInt(tokens[1]),
+                     // Empty value means 'delete'; propagate as NaN
+                     tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+    }
+  }
+
+  /**
+   * @param s value to parse or hash as an {@link Integer}
+   * @return {@link Integer} value of argument if it parses as an {@link Integer}, or else
+   *  the hash according to {@link #hash(String)}
+   */
+  private static int parseOrHashInt(String s) {
+    // Optimization: matches all ints (and then some) and is cheaper than the frequent exceptions
+    // generated by trying to parse everything
+    if (MOST_INTS_PATTERN.matcher(s).matches()) {
+      // may or may not parseable as int
+      try {
+        return Integer.parseInt(s);
+      } catch (NumberFormatException nfe) {
+        // number a bit too large/small for an int, so hash anyway
+      }
+    }
+    return hash(s);
   }
 
   /**
@@ -322,9 +384,14 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     double lambda,
                                     double alpha,
                                     boolean implicit,
-                                    Path candidatePath) {
-    saveFeaturesRDD(model.userFeatures(), new Path(candidatePath, "X"));
-    saveFeaturesRDD(model.productFeatures(), new Path(candidatePath, "Y"));
+                                    Path candidatePath,
+                                    Map<Integer,String> reverseIDMapping) {
+
+    JavaPairRDD<Integer,double[]> userFeaturesRDD = massageToIntKey(model.userFeatures());
+    JavaPairRDD<Integer,double[]> itemFeaturesRDD = massageToIntKey(model.productFeatures());
+
+    saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseIDMapping);
+    saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseIDMapping);
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     AppPMMLUtils.addExtension(pmml, "X", "X/");
@@ -335,24 +402,41 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       AppPMMLUtils.addExtension(pmml, "alpha", alpha);
     }
-    addIDsExtension(pmml, "XIDs", model.userFeatures());
-    addIDsExtension(pmml, "YIDs", model.productFeatures());
+    addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseIDMapping);
+    addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseIDMapping);
     return pmml;
+  }
+
+  private static <A,B> JavaPairRDD<Integer,B> massageToIntKey(RDD<Tuple2<A,B>> in) {
+    // More horrible hacks to get around Scala-Java unfriendliness
+    @SuppressWarnings("unchecked")
+    JavaPairRDD<Integer,B> javaRDD = fromRDD((RDD<Tuple2<Integer,B>>) (RDD<?>) in);
+    return javaRDD;
   }
 
   private static void addIDsExtension(PMML pmml,
                                       String key,
-                                      RDD<Tuple2<Object,double[]>> features) {
-    List<String> ids = fromRDD(features).keys().map(Functions.toStringValue()).collect();
+                                      JavaPairRDD<Integer,double[]> features,
+                                      Map<Integer,String> reverseIDMapping) {
+    List<Integer> hashedIDs = features.keys().collect();
+    List<String> ids = new ArrayList<>(hashedIDs.size());
+    for (Integer hashedID : hashedIDs) {
+      String originalID = reverseIDMapping.get(hashedID);
+      ids.add(originalID == null ? hashedID.toString() : originalID);
+    }
     AppPMMLUtils.addExtensionContent(pmml, key, ids);
   }
 
-  private static void saveFeaturesRDD(RDD<Tuple2<Object,double[]>> features, Path path) {
+  private static void saveFeaturesRDD(JavaPairRDD<Integer,double[]> features,
+                                      Path path,
+                                      final Map<Integer,String> reverseIDMapping) {
     log.info("Saving features RDD to {}", path);
-    fromRDD(features).map(new Function<Tuple2<Object,double[]>, String>() {
+    features.map(new Function<Tuple2<Integer, double[]>, String>() {
       @Override
-      public String call(Tuple2<Object, double[]> keyAndVector) {
-        Object key = keyAndVector._1();
+      public String call(Tuple2<Integer, double[]> keyAndVector) {
+        Integer id = keyAndVector._1();
+        String originalKey = reverseIDMapping.get(id);
+        Object key = originalKey == null ? id : originalKey;
         double[] vector = keyAndVector._2();
         return TextUtils.joinJSON(Arrays.asList(key, vector));
       }
@@ -364,47 +448,51 @@ public final class ALSUpdate extends MLUpdate<String> {
                                                         Path modelParentPath) {
     String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
-
-    RDD<Tuple2<Integer,double[]>> userRDD =
+    JavaPairRDD<String,double[]> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
-    RDD<Tuple2<Integer,double[]>> productRDD =
+    JavaPairRDD<String,double[]> productRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
-    // This mimics the persistence level establish by ALS training methods
-    userRDD.persist(StorageLevel.MEMORY_AND_DISK());
-    productRDD.persist(StorageLevel.MEMORY_AND_DISK());
-
-    // Cast is needed for some reason with this Scala API returning array
-    @SuppressWarnings("unchecked")
-    Tuple2<?,double[]> first = (Tuple2<?,double[]>) ((Object[]) userRDD.take(1))[0];
-    int rank = first._2().length;
+    int rank = userRDD.first()._2().length;
     return new MatrixFactorizationModel(
-        rank, massageToObjectKey(userRDD), massageToObjectKey(productRDD));
+        rank, readAndConvertFeatureRDD(userRDD), readAndConvertFeatureRDD(productRDD));
   }
 
-  private static RDD<Tuple2<Integer,double[]>> readFeaturesRDD(JavaSparkContext sparkContext,
+  private static RDD<Tuple2<Object,double[]>> readAndConvertFeatureRDD(
+      JavaPairRDD<String,double[]> javaRDD) {
+
+    RDD<Tuple2<Integer,double[]>> scalaRDD = javaRDD.mapToPair(
+        new PairFunction<Tuple2<String,double[]>,Integer,double[]>() {
+          @Override
+          public Tuple2<Integer,double[]> call(Tuple2<String, double[]> t) {
+            return new Tuple2<>(parseOrHashInt(t._1()), t._2());
+          }
+        }).rdd();
+
+    // This mimics the persistence level establish by ALS training methods
+    scalaRDD.persist(StorageLevel.MEMORY_AND_DISK());
+
+    @SuppressWarnings("unchecked")
+    RDD<Tuple2<Object,double[]>> objKeyRDD = (RDD<Tuple2<Object,double[]>>) (RDD<?>) scalaRDD;
+    return objKeyRDD;
+  }
+
+  private static JavaPairRDD<String,double[]> readFeaturesRDD(JavaSparkContext sparkContext,
                                                               Path path) {
     log.info("Loading features RDD from {}", path);
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
-    return featureLines.map(new Function<String,Tuple2<Integer,double[]>>() {
+    return featureLines.mapToPair(new PairFunction<String,String,double[]>() {
       @Override
-      public Tuple2<Integer,double[]> call(String line) throws IOException {
+      public Tuple2<String, double[]> call(String line) throws IOException {
         List<?> update = MAPPER.readValue(line, List.class);
-        Integer key = Integer.valueOf(update.get(0).toString());
+        String key = update.get(0).toString();
         double[] vector = MAPPER.convertValue(update.get(1), double[].class);
         return new Tuple2<>(key, vector);
       }
-    }).rdd();
+    });
   }
 
-  private static <A,B> RDD<Tuple2<Object,B>> massageToObjectKey(RDD<Tuple2<A,B>> in) {
-    // More horrible hacks to get around Scala-Java unfriendliness
-    @SuppressWarnings("unchecked")
-    RDD<Tuple2<Object,B>> result = (RDD<Tuple2<Object,B>>) (RDD<?>) in;
-    return result;
-  }
-
-  private static JavaPairRDD<Integer,Collection<Integer>> knownsRDD(JavaRDD<String[]> allData,
-                                                                    final boolean knownItems) {
+  private static JavaPairRDD<String,Collection<String>> knownsRDD(JavaRDD<String[]> allData,
+                                                                  final boolean knownItems) {
     JavaRDD<String[]> sorted = allData.sortBy(
         new Function<String[], Long>() {
           @Override
@@ -413,12 +501,12 @@ public final class ALSUpdate extends MLUpdate<String> {
           }
         }, true, allData.partitions().size());
 
-    JavaPairRDD<Integer,Tuple2<Integer,Boolean>> tuples = sorted.mapToPair(
-        new PairFunction<String[],Integer,Tuple2<Integer,Boolean>>() {
+    JavaPairRDD<String,Tuple2<String,Boolean>> tuples = sorted.mapToPair(
+        new PairFunction<String[],String,Tuple2<String,Boolean>>() {
           @Override
-          public Tuple2<Integer,Tuple2<Integer,Boolean>> call(String[] datum) {
-            Integer user = Integer.valueOf(datum[0]);
-            Integer item = Integer.valueOf(datum[1]);
+          public Tuple2<String,Tuple2<String,Boolean>> call(String[] datum) {
+            String user = datum[0];
+            String item = datum[1];
             Boolean delete = datum[2].isEmpty();
             return knownItems ?
                 new Tuple2<>(user, new Tuple2<>(item, delete)) :
@@ -429,11 +517,11 @@ public final class ALSUpdate extends MLUpdate<String> {
     // TODO likely need to figure out a way to avoid groupByKey but collectByKey
     // won't work here -- doesn't guarantee enough about ordering
     return tuples.groupByKey().mapValues(
-        new Function<Iterable<Tuple2<Integer, Boolean>>, Collection<Integer>>() {
+        new Function<Iterable<Tuple2<String,Boolean>>,Collection<String>>() {
           @Override
-          public Collection<Integer> call(Iterable<Tuple2<Integer, Boolean>> idDeletes) {
-            Collection<Integer> ids = new HashSet<>();
-            for (Tuple2<Integer, Boolean> idDelete : idDeletes) {
+          public Collection<String> call(Iterable<Tuple2<String,Boolean>> idDeletes) {
+            Collection<String> ids = new HashSet<>();
+            for (Tuple2<String,Boolean> idDelete : idDeletes) {
               if (idDelete._2()) {
                 ids.remove(idDelete._1());
               } else {

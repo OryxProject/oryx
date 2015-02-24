@@ -23,7 +23,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 
-final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<Integer,double[]>> {
+final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<String,double[]>> {
 
   private final String whichMatrix;
   private final TopicProducer<String, String> modelUpdateTopic;
@@ -34,8 +34,8 @@ final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<Integer,double[]
   }
 
   @Override
-  public void call(Tuple2<Integer,double[]> keyAndVector) {
-    Integer id = keyAndVector._1();
+  public void call(Tuple2<String,double[]> keyAndVector) {
+    String id = keyAndVector._1();
     double[] vector = keyAndVector._2();
     modelUpdateTopic.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
   }

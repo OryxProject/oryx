@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.fn;
 
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.VoidFunction;
 
@@ -25,19 +24,6 @@ import org.apache.spark.api.java.function.VoidFunction;
 public final class Functions {
 
   private Functions() {}
-
-  /**
-   * @return a function that maps objects to their {@link Object#toString()} representation.
-   * @param <T> (unused) input type
-   */
-  public static <T> Function<T,String> toStringValue() {
-    return new Function<T,String>() {
-      @Override
-      public String call(T o) {
-        return String.valueOf(o);
-      }
-    };
-  }
 
   /**
    * @return a function that returns the second of two values

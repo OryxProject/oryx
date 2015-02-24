@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.dmg.pmml.PMML;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
@@ -38,18 +39,18 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
    */
   public static final Map<String,Collection<String>> A = new HashMap<>();
   static {
-    A.put("6", Arrays.asList("1", "4"));
-    A.put("7", Arrays.asList("2", "4", "5"));
-    A.put("8", Arrays.asList("1", "2", "3", "4"));
-    A.put("9", Arrays.asList("2"));
+    A.put(ALSUtilsTest.idToStringID(6), Arrays.asList("1", "4"));
+    A.put(ALSUtilsTest.idToStringID(7), Arrays.asList("2", "4", "5"));
+    A.put(ALSUtilsTest.idToStringID(8), Arrays.asList("1", "2", "3", "4"));
+    A.put(ALSUtilsTest.idToStringID(9), Arrays.asList("2"));
   }
   public static final Map<String,Collection<String>> At = new HashMap<>();
   static {
-    At.put("1", Arrays.asList("6", "8"));
-    At.put("2", Arrays.asList("7", "8", "9"));
-    At.put("3", Arrays.asList("8"));
-    At.put("4", Arrays.asList("6", "7", "8"));
-    At.put("5", Arrays.asList("7"));
+    At.put(ALSUtilsTest.idToStringID(1), Arrays.asList("6", "8"));
+    At.put(ALSUtilsTest.idToStringID(2), Arrays.asList("7", "8", "9"));
+    At.put(ALSUtilsTest.idToStringID(3), Arrays.asList("8"));
+    At.put(ALSUtilsTest.idToStringID(4), Arrays.asList("6", "7", "8"));
+    At.put(ALSUtilsTest.idToStringID(5), Arrays.asList("7"));
   }
 
   /*
@@ -87,7 +88,7 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
       return new Pair<>("MODEL", PMMLUtils.toString(pmml));
     } else {
       int xOrYID = id % 10;
-      String xOrYIDString = Integer.toString(xOrYID);
+      String xOrYIDString = ALSUtilsTest.idToStringID(id);
       String message;
       boolean isX = xOrYID >= 6;
       if (isX) {
@@ -105,7 +106,7 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
     Map<String,float[]> matrix = new HashMap<>(rows.length);
     int index = startIndex;
     for (double[] row : rows) {
-      matrix.put(Integer.toString(index), VectorMath.toFloats(row));
+      matrix.put(ALSUtilsTest.idToStringID(index), VectorMath.toFloats(row));
       index++;
     }
     return Collections.unmodifiableMap(matrix);

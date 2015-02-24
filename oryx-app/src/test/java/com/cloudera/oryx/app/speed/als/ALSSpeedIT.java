@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -107,7 +108,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
       String id = update.get(1).toString();
       float[] expected = (isX ? X : Y).get(id);
       assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class), 1.0e-5f);
-      String otherID = Integer.toString(Integer.parseInt(id) - 99);
+      String otherID = ALSUtilsTest.idToStringID(ALSUtilsTest.stringIDtoID(id) - 99);
       @SuppressWarnings("unchecked")
       Collection<String> knownUsersItems = (Collection<String>) update.get(3);
       assertEquals(1, knownUsersItems.size());

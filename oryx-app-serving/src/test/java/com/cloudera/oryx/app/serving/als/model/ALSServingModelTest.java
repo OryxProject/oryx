@@ -17,7 +17,6 @@ package com.cloudera.oryx.app.serving.als.model;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.junit.Test;
@@ -36,17 +35,17 @@ public final class ALSServingModelTest extends OryxTest {
     assertArrayEquals(new float[] { 1.5f, -2.5f }, model.getUserVector("U1"));
     model.setItemVector("I0", new float[]{0.5f, 0.0f});
     assertArrayEquals(new float[] { 0.5f, 0.0f }, model.getItemVector("I0"));
-    assertEquals(Arrays.asList("U1"), model.getAllUserIDs());
-    assertEquals(Arrays.asList("I0"),   model.getAllItemIDs());
+    assertContainsSame(Arrays.asList("U1"), model.getAllUserIDs());
+    assertContainsSame(Arrays.asList("I0"), model.getAllItemIDs());
   }
 
   @Test
   public void testKnownItems() {
     ALSServingModel model = new ALSServingModel(2, true, null);
     populateKnownItems(model);
-    assertEquals(new HashSet<>(Arrays.asList("I0", "I1")), model.getKnownItems("U0"));
-    assertEquals(new HashSet<>(Arrays.asList("I0", "I1", "I2")), model.getKnownItems("U1"));
-    assertEquals(new HashSet<>(Arrays.asList("I8", "I9")), model.getKnownItems("U9"));
+    assertContainsSame(Arrays.asList("I0", "I1"), model.getKnownItems("U0"));
+    assertContainsSame(Arrays.asList("I0", "I1", "I2"), model.getKnownItems("U1"));
+    assertContainsSame(Arrays.asList("I8", "I9"), model.getKnownItems("U9"));
     Map<String,Integer> userCounts = model.getUserCounts();
     assertEquals(2, userCounts.get("U0").intValue());
     assertEquals(3, userCounts.get("U1").intValue());

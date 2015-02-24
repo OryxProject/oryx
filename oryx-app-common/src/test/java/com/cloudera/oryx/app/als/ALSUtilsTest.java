@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.als;
 
+import com.google.common.math.IntMath;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -30,6 +31,24 @@ public final class ALSUtilsTest extends OryxTest {
     assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(-0.5, 0.0)));
     assertEquals(0.75, ALSUtils.implicitTargetQui(1.0, 0.5));
     assertEquals(0.25, ALSUtils.implicitTargetQui(-1.0, 0.5));
+  }
+
+  // Utilities used in ALS-related tests
+
+  /**
+   * @param id nonnegative ID
+   * @return string like "A0", "B1", ... "A26" ...
+   */
+  public static String idToStringID(int id) {
+    return Character.toString((char) ('A' + IntMath.mod(id, 26))) + Integer.toString(id);
+  }
+
+  /**
+   * @param stringID string ID like "A0", "B1", etc.
+   * @return numeric ID portion 0, 1, etc.
+   */
+  public static int stringIDtoID(String stringID) {
+    return Integer.parseInt(stringID.substring(1));
   }
 
 }

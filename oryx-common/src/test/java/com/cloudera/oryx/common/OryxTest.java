@@ -18,6 +18,7 @@ package com.cloudera.oryx.common;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -70,7 +71,7 @@ public abstract class OryxTest extends Assert {
    * @param actual actual value
    */
   protected static void assertEquals(float expected, float actual) {
-    Assert.assertEquals(expected, actual, FLOAT_EPSILON);
+    assertEquals(expected, actual, FLOAT_EPSILON);
   }
 
   /**
@@ -82,15 +83,19 @@ public abstract class OryxTest extends Assert {
    */
   @SuppressWarnings("deprecation")
   public static void assertEquals(double expected, double actual) {
-    Assert.assertEquals(expected, actual, DOUBLE_EPSILON);
+    assertEquals(expected, actual, DOUBLE_EPSILON);
   }
 
   protected static void assertArrayEquals(float[] expecteds, float[] actuals) {
-    Assert.assertArrayEquals(expecteds, actuals, FLOAT_EPSILON);
+    assertArrayEquals(expecteds, actuals, FLOAT_EPSILON);
   }
 
   protected static void assertArrayEquals(double[] expecteds, double[] actuals) {
-    Assert.assertArrayEquals(expecteds, actuals, DOUBLE_EPSILON);
+    assertArrayEquals(expecteds, actuals, DOUBLE_EPSILON);
+  }
+
+  protected static <T> void assertContainsSame(Collection<T> a, Collection<T> b) {
+    assertTrue((a == null && b == null) || (a.containsAll(b) && b.containsAll(a)));
   }
 
 }

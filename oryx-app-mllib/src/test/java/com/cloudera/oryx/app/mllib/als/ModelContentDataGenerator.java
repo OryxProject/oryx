@@ -20,12 +20,13 @@ import java.util.List;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 /**
- * Generates a synthetic data set over users 0-3, items 0-3. Users u interact with all items i
- * where i >= u. But then interactions where i == u are deleted. But then the interaction 0 -> 0
+ * Generates a synthetic data set over users A0-D3, items A0-D3. Users u interact with all items i
+ * where i >= u. But then interactions where i == u are deleted. But then the interaction A0 -> A0
  * is restored.
  *
  * @see ALSModelContentIT
@@ -40,14 +41,17 @@ final class ModelContentDataGenerator implements DatumGenerator<String,String> {
     long startTime = System.currentTimeMillis();
     data = new ArrayList<>();
     for (int user = 0; user < NUM_USERS_ITEMS; user++) {
+      String userString = ALSUtilsTest.idToStringID(user);
       for (int item = user; item < NUM_USERS_ITEMS; item++) {
-        data.add(user + "," + item + ",1," + startTime++);
+        String itemString = ALSUtilsTest.idToStringID(item);
+        data.add(userString + "," + itemString + ",1," + startTime++);
       }
     }
     for (int userItem = 0; userItem < NUM_USERS_ITEMS; userItem++) {
-      data.add(userItem + "," + userItem + ",," + startTime++);
+      String userItemString = ALSUtilsTest.idToStringID(userItem);
+      data.add(userItemString + "," + userItemString + ",," + startTime++);
     }
-    data.add("0,0,1," + startTime);
+    data.add("A0,A0,1," + startTime);
   }
 
   List<String> getSentData() {

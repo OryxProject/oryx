@@ -17,12 +17,14 @@ package com.cloudera.oryx.app.mllib.als;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
 /**
  * Generates random "user,product,rating,timestamp" data. The user is an integer chosen from
  * [0,numUsers) uniformly at random, and likewise for the product, from [0,numProducts).
+ * User and product IDs are actually non-numeric, and generated as "A0", "B1", ... , "A26", etc.
  * Rating is an integer chosen from [minRating,maxRating]. Timestamp is the current time.
  */
 final class RandomALSDataGenerator implements DatumGenerator<String,String> {
@@ -44,11 +46,11 @@ final class RandomALSDataGenerator implements DatumGenerator<String,String> {
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
-    return new Pair<>(Integer.toString(id),
-                      random.nextInt(numUsers) + "," +
-                      random.nextInt(numProducts) + "," +
-                      (random.nextInt(maxRating - minRating + 1) + minRating) + "," +
-                      System.currentTimeMillis());
+    String userString = ALSUtilsTest.idToStringID(random.nextInt(numUsers));
+    String itemString = ALSUtilsTest.idToStringID(random.nextInt(numProducts));
+    int rating = random.nextInt(maxRating - minRating + 1) + minRating;
+    String datum = userString + "," +  itemString + "," + rating + "," + System.currentTimeMillis();
+    return new Pair<>(Integer.toString(id), datum);
   }
 
 }

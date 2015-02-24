@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.speed.als;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
@@ -24,10 +25,12 @@ public final class MockALSInputGenerator implements DatumGenerator<String,String
 
   @Override
   public Pair<String,String> generate(int id, RandomGenerator random) {
+    String largeID = ALSUtilsTest.idToStringID(100 + id);
+    String smallID = ALSUtilsTest.idToStringID(1 + id);
     if (id < 5) {
-      return new Pair<>("", (100 + id) + "," + (1 + id) + ",1," + System.currentTimeMillis());
+      return new Pair<>("", largeID + "," + smallID + ",1," + System.currentTimeMillis());
     } else {
-      return new Pair<>("", (1 + id) + "," + (100 + id) + ",1," + System.currentTimeMillis());
+      return new Pair<>("", smallID + "," + largeID + ",1," + System.currentTimeMillis());
     }
   }
 

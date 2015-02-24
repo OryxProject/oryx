@@ -22,12 +22,6 @@ import com.cloudera.oryx.common.OryxTest;
 public final class FunctionsTest extends OryxTest {
 
   @Test
-  public void testToString() throws Exception {
-    assertEquals("1.0", Functions.toStringValue().call(1.0));
-    assertEquals("null", Functions.toStringValue().call(null));
-  }
-
-  @Test
   public void testLast() throws Exception {
     assertEquals(3.0, Functions.last().call(7.0, 3.0));
   }

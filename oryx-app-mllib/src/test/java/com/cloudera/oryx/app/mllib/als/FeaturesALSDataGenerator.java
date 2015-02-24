@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.mllib.als;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
 
@@ -24,6 +25,7 @@ import com.cloudera.oryx.kafka.util.DatumGenerator;
  * Creates random data where products associated to users fall neatly into
  * a given number of distinct categories, which is most naturally modeled
  * by a factorization with that same number of features.
+ * User and product IDs are actually non-numeric, and generated as "A0", "B1", ... , "A26", etc.
  */
 final class FeaturesALSDataGenerator implements DatumGenerator<String,String> {
 
@@ -43,8 +45,9 @@ final class FeaturesALSDataGenerator implements DatumGenerator<String,String> {
     int randProduct = random.nextInt(numProducts);
     // Want product === user mod features
     int product = ((user % features) + (randProduct / features) * features) % numProducts;
-    return new Pair<>(Integer.toString(id),
-                      user + "," + product + ",1," + System.currentTimeMillis());
+    String datum = ALSUtilsTest.idToStringID(user) + "," + ALSUtilsTest.idToStringID(product) +
+        ",1," + System.currentTimeMillis();
+    return new Pair<>(Integer.toString(id), datum);
   }
 
 }

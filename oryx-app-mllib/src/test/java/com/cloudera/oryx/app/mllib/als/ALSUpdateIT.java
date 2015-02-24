@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -79,10 +80,10 @@ public final class ALSUpdateIT extends AbstractALSIT {
     int generations = modelInstanceDirs.size();
     checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
-    List<Collection<Integer>> userIDs = new ArrayList<>();
-    userIDs.add(Collections.<Integer>emptySet()); // Add dummy empty set as prior value
-    List<Collection<Integer>> productIDs = new ArrayList<>();
-    productIDs.add(Collections.<Integer>emptySet()); // Add dummy empty set as prior value
+    List<Collection<String>> userIDs = new ArrayList<>();
+    userIDs.add(Collections.<String>emptySet()); // Add dummy empty set as prior value
+    List<Collection<String>> productIDs = new ArrayList<>();
+    productIDs.add(Collections.<String>emptySet()); // Add dummy empty set as prior value
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
@@ -100,12 +101,12 @@ public final class ALSUpdateIT extends AbstractALSIT {
     userIDs.remove(0);
     productIDs.remove(0);
 
-    Collection<Integer> expectedUsers = null;
-    Collection<Integer> expectedProducts = null;
-    Collection<Integer> seenUsers = null;
-    Collection<Integer> seenProducts = null;
-    Collection<Integer> lastModelUsers = null;
-    Collection<Integer> lastModelProducts = null;
+    Collection<String> expectedUsers = null;
+    Collection<String> expectedProducts = null;
+    Collection<String> seenUsers = null;
+    Collection<String> seenProducts = null;
+    Collection<String> lastModelUsers = null;
+    Collection<String> lastModelProducts = null;
     int whichGeneration = -1;
     for (Pair<String,String> km : updates) {
 
@@ -129,7 +130,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
         boolean isUser = "X".equals(whichMatrixField);
         boolean isProduct = "Y".equals(whichMatrixField);
         // Next is user/item ID
-        Integer id = Integer.valueOf(update.get(1).toString());
+        String id = update.get(1).toString();
         assertTrue(isUser || isProduct);
         if (isUser) {
           seenUsers.add(id);
@@ -147,7 +148,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           Collection<String> knownUsersItems = (Collection<String>) update.get(3);
           assertFalse(knownUsersItems.isEmpty());
           for (String known : knownUsersItems) {
-            int i = Integer.parseInt(known);
+            int i = ALSUtilsTest.stringIDtoID(known);
             assertTrue(i >= 0 && i < NUM_USERS_ITEMS);
           }
         }
@@ -166,12 +167,12 @@ public final class ALSUpdateIT extends AbstractALSIT {
         checkExtensions(pmml, expected);
 
         // See if users/item sets seen in updates match what was expected from output
-        assertEquals(expectedUsers, seenUsers);
-        assertEquals(expectedProducts, seenProducts);
+        assertContainsSame(expectedUsers, seenUsers);
+        assertContainsSame(expectedProducts, seenProducts);
 
         // Also check key sets reported in model
-        assertEquals(expectedUsers, lastModelUsers);
-        assertEquals(expectedProducts, lastModelProducts);
+        assertContainsSame(expectedUsers, lastModelUsers);
+        assertContainsSame(expectedProducts, lastModelProducts);
 
         // Update for next round
         whichGeneration++;
@@ -179,21 +180,21 @@ public final class ALSUpdateIT extends AbstractALSIT {
         expectedProducts = productIDs.get(whichGeneration);
         seenUsers = new HashSet<>();
         seenProducts = new HashSet<>();
-        lastModelUsers = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-        lastModelProducts = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+        lastModelUsers = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
+        lastModelProducts = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
 
       }
     }
 
   }
 
-  private static Collection<Integer> checkFeatures(Path path, Collection<Integer> previousIDs)
+  private static Collection<String> checkFeatures(Path path, Collection<String> previousIDs)
       throws IOException {
-    Collection<Integer> seenIDs = new HashSet<>();
+    Collection<String> seenIDs = new HashSet<>();
     for (Path file : IOUtils.listFiles(path, "part-*")) {
       for (String line : IOUtils.readLines(file)) {
         List<?> update = MAPPER.readValue(line, List.class);
-        seenIDs.add(Integer.valueOf(update.get(0).toString()));
+        seenIDs.add(update.get(0).toString());
         assertEquals(FEATURES, MAPPER.convertValue(update.get(1), float[].class).length);
       }
     }

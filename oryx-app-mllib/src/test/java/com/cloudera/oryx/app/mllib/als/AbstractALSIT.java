@@ -15,20 +15,8 @@
 
 package com.cloudera.oryx.app.mllib.als;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
 import com.cloudera.oryx.app.mllib.AbstractAppMLlibIT;
 
 public abstract class AbstractALSIT extends AbstractAppMLlibIT {
-
-  static Collection<Integer> parseIDsFromContent(List<?> content) {
-    Collection<Integer> result = new HashSet<>(content.size());
-    for (Object s : content) {
-      result.add(Integer.valueOf(s.toString()));
-    }
-    return result;
-  }
-
+  // nothing here yet
 }

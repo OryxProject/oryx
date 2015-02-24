@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -65,9 +64,9 @@ public final class ALSModelContentIT extends AbstractALSIT {
         generator.getSentData().size(),
         20);
 
-    Collection<Integer> modelUsers = null;
-    Collection<Integer> modelItems = null;
-    Map<Integer,Collection<Integer>> knownUsersItems = new HashMap<>();
+    Collection<String> modelUsers = null;
+    Collection<String> modelItems = null;
+    Map<String,Collection<String>> knownUsersItems = new HashMap<>();
 
     for (Pair<String, String> km : updates) {
       String type = km.getFirst();
@@ -78,31 +77,27 @@ public final class ALSModelContentIT extends AbstractALSIT {
 
         List<?> update = MAPPER.readValue(value, List.class);
         if ("X".equals(update.get(0).toString())) {
-          Integer userID = Integer.valueOf(update.get(1).toString());
+          String userID = update.get(1).toString();
           @SuppressWarnings("unchecked")
           Collection<String> userKnownItems = (Collection<String>) update.get(3);
-          Collection<Integer> knownItemsIDs = new ArrayList<>();
-          for (String itemString : userKnownItems) {
-            knownItemsIDs.add(Integer.valueOf(itemString));
-          }
-          knownUsersItems.put(userID, knownItemsIDs);
+          knownUsersItems.put(userID, new ArrayList<>(userKnownItems));
         }
 
       } else { // "MODEL"
 
         PMML pmml = PMMLUtils.fromString(value);
-        modelUsers = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-        modelItems = parseIDsFromContent(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+        modelUsers = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
+        modelItems = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
 
       }
 
     }
 
-    assertEquals(new HashSet<>(Arrays.asList(0, 1, 2)), modelUsers);
-    assertEquals(new HashSet<>(Arrays.asList(0, 1, 2, 3)), modelItems);
-    assertEquals(Arrays.asList(0, 1, 2, 3), knownUsersItems.get(0));
-    assertEquals(Arrays.asList(2, 3), knownUsersItems.get(1));
-    assertEquals(Arrays.asList(3), knownUsersItems.get(2));
+    assertContainsSame(Arrays.asList("A0", "B1", "C2"), modelUsers);
+    assertContainsSame(Arrays.asList("A0", "B1", "C2", "D3"), modelItems);
+    assertContainsSame(Arrays.asList("A0", "B1", "C2", "D3"), knownUsersItems.get("A0"));
+    assertContainsSame(Arrays.asList("C2", "D3"), knownUsersItems.get("B1"));
+    assertContainsSame(Arrays.asList("D3"), knownUsersItems.get("C2"));
   }
 
 }
