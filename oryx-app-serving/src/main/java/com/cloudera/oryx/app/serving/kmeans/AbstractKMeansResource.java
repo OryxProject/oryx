@@ -42,8 +42,9 @@ public abstract class AbstractKMeansResource extends AbstractOryxResource {
     return kmeansModel;
   }
 
-  Pair<Integer,Double> cluster(String[] data) {
-    InputSchema inputSchema = kmeansModel.getInputSchema();
+  Pair<Integer,Double> cluster(String[] data) throws OryxServingException {
+    KMeansServingModel model = getKMeansModel();
+    InputSchema inputSchema = model.getInputSchema();
     double[] features = new double[inputSchema.getNumPredictors()];
     for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
       if (inputSchema.isActive(featureIndex)) {
@@ -51,7 +52,7 @@ public abstract class AbstractKMeansResource extends AbstractOryxResource {
             Double.parseDouble(data[featureIndex]);
       }
     }
-    return kmeansModel.closestCluster(features);
+    return model.closestCluster(features);
   }
 
 }
