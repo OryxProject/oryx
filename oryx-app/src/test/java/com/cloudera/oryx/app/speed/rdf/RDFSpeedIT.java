@@ -158,9 +158,10 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       Map<String,Integer> countMap = (Map<String,Integer>) fields.get(2);
       assertEquals(0, treeID);
       assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
-      int yellowCount = countMap.get(yellow);
-      int redCount = countMap.get(red);
+      int yellowCount = countMap.containsKey(yellow) ? countMap.get(yellow) : 0;
+      int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
       int count = yellowCount + redCount;
+      assertTrue(count > 0);
       BinomialDistribution dist = new BinomialDistribution(count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow
