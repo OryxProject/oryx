@@ -32,9 +32,9 @@ query operations on the result.
 
 The project may be reused tier by tier: for example, the packaged app tier can be ignored, and it 
 can be a framework for building new ML applications. It can be reused layer by layer too: 
-for example, the Speeed Layer can be omitted if a deployment does not need incremental updates. 
-It can be modified piece-by-piece too: the collaborative filtering application's model-buildling 
-batch layer could be swapped for a custom implemetnation based on a new algorithm outside 
+for example, the Speed Layer can be omitted if a deployment does not need incremental updates.
+It can be modified piece-by-piece too: the collaborative filtering application's model-building
+batch layer could be swapped for a custom implementation based on a new algorithm outside
 Spark MLlib while retaining the serving and speed layer implementations.
 
 <img src="https://raw.github.com/wiki/OryxProject/oryx/Architecture.png"/>
