@@ -28,9 +28,11 @@ public final class MockALSInputGenerator implements DatumGenerator<String,String
     String largeID = ALSUtilsTest.idToStringID(100 + id);
     String smallID = ALSUtilsTest.idToStringID(1 + id);
     if (id < 5) {
-      return new Pair<>("", largeID + "," + smallID + ",1," + System.currentTimeMillis());
+      return new Pair<>(Integer.toString(id),
+                        largeID + "," + smallID + ",1," + System.currentTimeMillis());
     } else {
-      return new Pair<>("", smallID + "," + largeID + ",1," + System.currentTimeMillis());
+      return new Pair<>(Integer.toString(id),
+                        smallID + "," + largeID + ",1," + System.currentTimeMillis());
     }
   }
 

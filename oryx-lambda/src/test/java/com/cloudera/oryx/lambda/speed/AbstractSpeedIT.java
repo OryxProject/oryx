@@ -88,11 +88,14 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       log.info("Producing updates");
       updateProducer.start();
 
+      // Sleep generation to make sure updates are digested
+      long genIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
+      Thread.sleep(genIntervalSec * 1000);
+
       log.info("Producing input");
       inputProducer.start();
 
       // Sleep generation before shutting down server to let it finish
-      long genIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
       Thread.sleep(genIntervalSec * 1000);
 
       keyMessages = consumeUpdate.getKeyMessages();
