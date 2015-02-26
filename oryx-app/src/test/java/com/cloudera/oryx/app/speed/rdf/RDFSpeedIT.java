@@ -180,7 +180,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     double expected = 0.9 * count;
     double probAsExtreme = majorityCount <= expected ?
         dist.cumulativeProbability(majorityCount) :
-        1.0 - dist.cumulativeProbability(majorityCount);
+        (1.0 - dist.cumulativeProbability(majorityCount)) + dist.probability(majorityCount);
     assertTrue(majorityCount + " should be about " + expected + " (~90% of " + count + ")",
                probAsExtreme >= 0.001);
   }
