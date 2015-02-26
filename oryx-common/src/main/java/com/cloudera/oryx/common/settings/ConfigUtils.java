@@ -21,6 +21,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -35,7 +36,15 @@ public final class ConfigUtils {
 
   private static final Logger log = LoggerFactory.getLogger(ConfigUtils.class);
 
+  private static final Pattern REDACT_PATTERN =
+      Pattern.compile("(\\w*password\\w*\\s*=\\s*).+", Pattern.CASE_INSENSITIVE);
   private static final Config DEFAULT_CONFIG = ConfigFactory.load();
+  private static final ConfigRenderOptions RENDER_OPTS =
+      ConfigRenderOptions.defaults()
+        .setComments(false)
+        .setOriginComments(false)
+        .setFormatted(true)
+        .setJson(false);
 
   private ConfigUtils() {}
 
@@ -121,12 +130,11 @@ public final class ConfigUtils {
    *  inherited from the local JVM environment
    */
   public static String prettyPrint(Config config) {
-    ConfigRenderOptions options = ConfigRenderOptions.defaults()
-        .setComments(false)
-        .setOriginComments(false)
-        .setFormatted(true)
-        .setJson(false);
-    return config.root().withOnlyKey("oryx").render(options);
+    return redact(config.root().withOnlyKey("oryx").render(RENDER_OPTS));
+  }
+
+  static String redact(String s) {
+    return REDACT_PATTERN.matcher(s).replaceAll("$1*****");
   }
 
 }

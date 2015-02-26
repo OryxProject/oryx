@@ -82,6 +82,21 @@ public final class ConfigUtilsTest extends OryxTest {
     assertTrue(pretty.contains("oryx {"));
     assertTrue(pretty.contains("batch {"));
     assertTrue(pretty.contains("master=yarn-client"));
+    assertTrue(pretty.contains("password=*****"));
+    assertTrue(pretty.contains("keystore-password=*****"));
+  }
+
+  @Test
+  public void testRedact() {
+    String redacted = ConfigUtils.redact("  password=foo \nPassword=foo\nPASSWORD = foo\n" +
+                                             " the-password= foo \nThe-Password =foo");
+    assertFalse(redacted.contains("foo"));
+    assertTrue(redacted.contains("*****"));
+    assertTrue(redacted.contains("password="));
+    assertTrue(redacted.contains("Password="));
+    assertTrue(redacted.contains("PASSWORD = "));
+    assertTrue(redacted.contains("the-password= "));
+    assertTrue(redacted.contains("The-Password ="));
   }
 
 }
