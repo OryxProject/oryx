@@ -19,12 +19,16 @@ public final class IDCount extends IDEntity {
 
   private final int count;
 
+  public IDCount() {
+    this(null, 0);
+  }
+
   public IDCount(String id, int count) {
     super(id);
     this.count = count;
   }
 
-  public int getValue() {
+  public int getCount() {
     return count;
   }
 

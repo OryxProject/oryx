@@ -19,6 +19,10 @@ public final class IDValue extends IDEntity {
 
   private final double value;
 
+  public IDValue() {
+    this(null, 0.0);
+  }
+
   public IDValue(String id, double value) {
     super(id);
     this.value = value;

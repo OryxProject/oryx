@@ -31,14 +31,14 @@ public final class MostActiveUsersTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
     Assert.assertEquals(7, top.size());
     for (int i = 0; i < top.size(); i++) {
-      int thisCount = top.get(i).getValue();
+      int thisCount = top.get(i).getCount();
       Assert.assertTrue(thisCount >= 1);
       if (i > 0) {
-        Assert.assertTrue(top.get(i - 1).getValue() >= thisCount);
+        Assert.assertTrue(top.get(i - 1).getCount() >= thisCount);
       }
     }
-    Assert.assertEquals(7, top.get(0).getValue());
-    Assert.assertEquals(6, top.get(1).getValue());
+    Assert.assertEquals(7, top.get(0).getCount());
+    Assert.assertEquals(6, top.get(1).getCount());
   }
 
   @Test
@@ -52,8 +52,8 @@ public final class MostActiveUsersTest extends AbstractALSServingTest {
     List<IDCount> top = target("/mostActiveUsers").queryParam("rescorerParams", "foo").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
     Assert.assertEquals(3, top.size());
-    Assert.assertEquals(7, top.get(0).getValue());
-    Assert.assertEquals(5, top.get(1).getValue());
+    Assert.assertEquals(7, top.get(0).getCount());
+    Assert.assertEquals(5, top.get(1).getCount());
   }
 
 }
