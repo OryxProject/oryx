@@ -15,44 +15,27 @@
 
 package com.cloudera.oryx.app.serving;
 
-public final class IDCount implements HasCSV {
+public final class IDCount extends IDEntity {
 
-  private String id;
-  private int count;
-
-  public IDCount() {
-    this(null, 0);
-  }
+  private final int count;
 
   public IDCount(String id, int count) {
-    this.id = id;
+    super(id);
     this.count = count;
-  }
-
-  public String getID() {
-    return id;
-  }
-
-  public void setID(String id) {
-    this.id = id;
   }
 
   public int getValue() {
     return count;
   }
 
-  public void setValue(int count) {
-    this.count = count;
-  }
-
   @Override
   public String toString() {
-    return id + ":" + count;
+    return getID() + ":" + count;
   }
 
   @Override
   public String toCSV() {
-    return id + "," + count;
+    return getID() + "," + count;
   }
 
 }

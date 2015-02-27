@@ -37,14 +37,7 @@ public final class JVMUtilsTest extends OryxTest {
   @Test
   public void testUsedMemory() {
     // Reasonable guess
-    assertTrue(JVMUtils.getMaxMemory() >= 1L << 20);
-    assertTrue(JVMUtils.getMaxMemory() > JVMUtils.getUsedMemory());
-  }
-
-  @Test
-  public void testMaxMemory() {
-    // Reasonable guess
-    assertTrue(JVMUtils.getMaxMemory() >= 1L << 24);
+    assertTrue(JVMUtils.getUsedMemory() >= 1L << 20);
   }
 
 }

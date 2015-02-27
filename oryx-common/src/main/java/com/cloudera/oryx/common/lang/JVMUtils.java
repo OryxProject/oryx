@@ -16,13 +16,19 @@
 package com.cloudera.oryx.common.lang;
 
 import java.io.Closeable;
+import java.util.Deque;
+import java.util.LinkedList;
 
-import com.cloudera.oryx.common.io.ClosingRunnable;
+import com.google.common.base.Preconditions;
+
+import com.cloudera.oryx.common.io.IOUtils;
 
 /**
  * JVM-related utility methods.
  */
 public final class JVMUtils {
+
+  private static final Deque<Closeable> closeAtShutdown = new LinkedList<>();
 
   private JVMUtils() {
   }
@@ -34,7 +40,20 @@ public final class JVMUtils {
    * @param closeable thing to close
    */
   public static void closeAtShutdown(Closeable closeable) {
-    Runtime.getRuntime().addShutdownHook(new Thread(new ClosingRunnable(closeable)));
+    Preconditions.checkNotNull(closeable);
+    synchronized (closeAtShutdown) {
+      if (closeAtShutdown.isEmpty()) {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+          @Override
+          public void run() {
+            for (Closeable c : closeAtShutdown) {
+              IOUtils.closeQuietly(c);
+            }
+          }
+        }));
+      }
+      closeAtShutdown.push(closeable);
+    }
   }
 
   /**
@@ -43,13 +62,6 @@ public final class JVMUtils {
   public static long getUsedMemory() {
     Runtime runtime = Runtime.getRuntime();
     return runtime.totalMemory() - runtime.freeMemory();
-  }
-
-  /**
-   * @return maximum size that the heap may grow to, in bytes
-   */
-  public static long getMaxMemory() {
-    return Runtime.getRuntime().maxMemory();
   }
 
 }

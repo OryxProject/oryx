@@ -15,44 +15,27 @@
 
 package com.cloudera.oryx.app.serving;
 
-public final class IDValue implements HasCSV {
+public final class IDValue extends IDEntity {
 
-  private String id;
-  private double value;
-
-  public IDValue() {
-    this(null, Double.NaN);
-  }
+  private final double value;
 
   public IDValue(String id, double value) {
-    this.id = id;
+    super(id);
     this.value = value;
-  }
-
-  public String getID() {
-    return id;
-  }
-
-  public void setID(String id) {
-    this.id = id;
   }
 
   public double getValue() {
     return value;
   }
 
-  public void setValue(double value) {
-    this.value = value;
-  }
-
   @Override
   public String toString() {
-    return id + ":" + value;
+    return getID() + ":" + value;
   }
 
   @Override
   public String toCSV() {
-    return id + "," + value;
+    return getID() + "," + value;
   }
 
 }

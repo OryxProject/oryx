@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +40,7 @@ public final class TextUtils {
   private static final CSVFormat CSV_FORMAT =
       CSVFormat.RFC4180.withSkipHeaderRecord().withEscape('\\');
   private static final String[] EMPTY_STRING = { "" };
+  private static final Pattern TWO_DOUBLE_QUOTE = Pattern.compile("\"\"", Pattern.LITERAL);
 
   private TextUtils() {}
 
@@ -102,7 +104,7 @@ public final class TextUtils {
   public static String joinPMMLDelimited(Iterable<?> elements) {
     String rawResult = doJoinDelimited(elements, formatForDelimiter(' '));
     // Must change "" into \"
-    return rawResult.replace("\"\"", "\\\"");
+    return TWO_DOUBLE_QUOTE.matcher(rawResult).replaceAll("\\\"");
   }
 
   /**

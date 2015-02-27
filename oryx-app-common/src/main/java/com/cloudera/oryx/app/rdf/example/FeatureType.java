@@ -29,10 +29,4 @@ public enum FeatureType {
    */
   CATEGORICAL,
 
-  /**
-   * Special value used to represent features whose value is present in the data but
-   * not parsed or used.
-   */
-  IGNORED,
-
 }

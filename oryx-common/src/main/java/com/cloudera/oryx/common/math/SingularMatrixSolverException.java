@@ -24,11 +24,6 @@ public final class SingularMatrixSolverException extends RuntimeException {
     this.apparentRank = apparentRank;
   }
   
-  public SingularMatrixSolverException(int apparentRank, Throwable cause) {
-    super(cause);
-    this.apparentRank = apparentRank;
-  }
-  
   public int getApparentRank() {
     return apparentRank;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,27 +13,18 @@
  * License.
  */
 
-package com.cloudera.oryx.common.io;
+package com.cloudera.oryx.app.serving;
 
-import java.io.Closeable;
+abstract class IDEntity implements HasCSV {
 
-import com.google.common.base.Preconditions;
+  private final String id;
 
-/**
- * Simply closes a {@link Closeable}.
- */
-public final class ClosingRunnable implements Runnable {
-
-  private final Closeable closeable;
-
-  public ClosingRunnable(Closeable closeable) {
-    Preconditions.checkNotNull(closeable);
-    this.closeable = closeable;
+  IDEntity(String id) {
+    this.id = id;
   }
 
-  @Override
-  public void run() {
-    IOUtils.closeQuietly(closeable);
+  public final String getID() {
+    return id;
   }
 
 }
