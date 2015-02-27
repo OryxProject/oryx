@@ -91,7 +91,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
 
     Properties consumerProps = new Properties();
-    consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
+    consumerProps.setProperty("group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
     // Do start from the beginning of the update queue
     consumerProps.setProperty("auto.offset.reset", "smallest");
