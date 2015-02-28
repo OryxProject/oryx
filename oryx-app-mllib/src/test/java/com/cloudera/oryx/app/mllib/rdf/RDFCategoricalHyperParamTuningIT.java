@@ -54,7 +54,7 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    overlayConfig.put("oryx.rdf.num-trees", NUM_TREES);
+    overlayConfig.put("oryx.rdf.num-trees", 10);
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", MAX_DEPTH);
     // Low values like 1 are deliberately bad, won't work
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", "[1," + MAX_DEPTH + "]");
@@ -97,9 +97,10 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     CategoricalValueEncodings encoding = forestEncoding.getSecond();
     Map<String,Integer> targetEncoding = encoding.getValueEncodingMap(4);
 
-    for (int f1 = 0; f1 <= 1; f1++) {
-      for (int f2 = 0; f2 <= 1; f2++) {
-        for (int f3 = 0; f3 <= 1; f3++) {
+    int[] zeroOne = { 0, 1 };
+    for (int f1 : zeroOne) {
+      for (int f2 : zeroOne) {
+        for (int f3 : zeroOne) {
           CategoricalPrediction prediction =
               (CategoricalPrediction) forest.predict(new Example(null,
                                                                  null,
