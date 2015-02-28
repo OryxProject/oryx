@@ -43,12 +43,12 @@ Spark MLlib while retaining the serving and speed layer implementations.
 
 Major modules and their relation to tiers and layers:
 
-|                   | *Serving*               | *Speed*                         | *Batch*                         |
-| -----------------:| ----------------------- | ------------------------------- | ------------------------------- |
-| *Packaged binary* | `oryx-serving`          | `oryx-speed`                    | `oryx-batch`                    |
-| *App*             | `oryx-app-serving`      | `oryx-app-mllib`, `oryx-app`    | `oryx-app-mllib`, `oryx-app`    |
-| *ML*              |                         | `oryx-ml`                       | `oryx-ml`                       |
-| *Lambda*          | `oryx-lambda-serving`   | `oryx-lambda`                   | `oryx-lambda`                   |
+|          | *Serving*             | *Speed*                     | *Batch*                     |
+| --------:| --------------------- | --------------------------- | --------------------------- |
+| *Binary* | `oryx-serving`        | `oryx-speed`                | `oryx-batch`                |
+| *App*    | `oryx-app-serving`    | `oryx-app-mllib` `oryx-app` | `oryx-app-mllib` `oryx-app` |
+| *ML*     |                       | `oryx-ml`                   | `oryx-ml`                   |
+| *Lambda* | `oryx-lambda-serving` | `oryx-lambda`               | `oryx-lambda`               |
 
 Supporting modules like `oryx-common`, `oryx-app-common`, `oryx-api, `oryx-app-api` are not shown.
 
