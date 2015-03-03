@@ -50,7 +50,7 @@ Major modules and their relation to tiers and layers:
 | *ML*     |                       | `oryx-ml`                   | `oryx-ml`                   |
 | *Lambda* | `oryx-lambda-serving` | `oryx-lambda`               | `oryx-lambda`               |
 
-Supporting modules like `oryx-common`, `oryx-app-common`, `oryx-api, `oryx-app-api` are not shown.
+Supporting modules like `oryx-common`, `oryx-app-common`, `oryx-api`, `oryx-app-api` are not shown.
 
 # Lambda Tier Implementation
 
