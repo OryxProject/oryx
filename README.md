@@ -41,6 +41,8 @@ Spark MLlib while retaining the serving and speed layer implementations.
 
 ## Module Mapping
 
+[![Join the chat at https://gitter.im/OryxProject/oryx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OryxProject/oryx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Major modules and their relation to tiers and layers:
 
 |          | *Serving*             | *Speed*                     | *Batch*                     |
