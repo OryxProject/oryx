@@ -58,6 +58,8 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>clirr-maven-plugin</artifactId>
+            <!-- needed to avoid a spurious warning -->
+            <version>${clirr.version}</version>
           </plugin>
         </plugins>
       </build>
