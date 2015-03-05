@@ -68,13 +68,13 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
       new Thread(consumeInput).start();
 
       // Sleep to let consumer start
-      Thread.sleep(3000);
+      sleepSeconds(3);
 
       for (String input : inputs) {
         inputProducer.send("", input);
       }
 
-      Thread.sleep(1000);
+      sleepSeconds(1);
 
       keyMessages = consumeInput.getKeyMessages();
     }

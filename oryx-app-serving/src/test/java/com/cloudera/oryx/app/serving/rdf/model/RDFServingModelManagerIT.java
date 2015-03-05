@@ -56,7 +56,7 @@ public final class RDFServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockRDFClassificationModelGenerator(), 5);
 
     // Let updates finish
-    Thread.sleep(1000);
+    sleepSeconds(1);
 
     RDFServingModelManager manager = (RDFServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(

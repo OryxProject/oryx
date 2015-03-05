@@ -49,7 +49,7 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockKMeansModelGenerator(), 10);
 
     // Let updates finish
-    Thread.sleep(1000);
+    sleepSeconds(1);
 
     KMeansServingModelManager manager = (KMeansServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(

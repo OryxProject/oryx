@@ -19,7 +19,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Preconditions;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,6 +103,17 @@ public abstract class OryxTest extends Assert {
       assertNotNull(actual);
       assertEquals(expected.size(), actual.size());
       assertTrue(expected.containsAll(actual) && actual.containsAll(expected));
+    }
+  }
+
+  protected static void sleepSeconds(int seconds) {
+    Preconditions.checkArgument(seconds >= 0);
+    if (seconds > 0) {
+      try {
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(seconds, TimeUnit.SECONDS));
+      } catch (InterruptedException e) {
+        log.warn("Interrupted while sleeping; continuing");
+      }
     }
   }
 

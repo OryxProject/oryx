@@ -65,13 +65,13 @@ public final class ProduceConsumeIT extends OryxTest {
         new Thread(consumeTopic).start();
 
         // Sleep to let consumer start
-        Thread.sleep(3000);
+        sleepSeconds(3);
 
         log.info("Producing data");
         produce.start();
 
         // Sleep for a while before shutting down producer to let both finish
-        Thread.sleep(1000);
+        sleepSeconds(1);
 
         keys = consumeTopic.getKeys();
       } finally {

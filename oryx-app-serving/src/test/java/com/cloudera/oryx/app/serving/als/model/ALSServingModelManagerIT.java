@@ -46,7 +46,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockALSModelUpdateGenerator(), 10);
 
     // Let updates finish
-    Thread.sleep(1000);
+    sleepSeconds(1);
 
     ALSServingModelManager manager = (ALSServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(

@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -73,19 +74,22 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       log.info("Starting batch layer");
       batchLayer.start();
 
+      // Sleep to let batch layer start
+      sleepSeconds(3);
+
       log.info("Starting consumer thread");
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
       new Thread(consumeInput).start();
 
       // Sleep to let consumer start
-      Thread.sleep(3000);
+      sleepSeconds(3);
 
       log.info("Producing data");
       produce.start();
 
       // Sleep generation before shutting down server to let it finish
-      long genIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
-      Thread.sleep(genIntervalSec * 1000);
+      int genIntervalSec = config.getInt("oryx.batch.streaming.generation-interval-sec");
+      sleepSeconds(genIntervalSec);
 
       keyMessages = consumeInput.getKeyMessages();
     } finally {
