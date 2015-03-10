@@ -440,22 +440,22 @@
   </dependencyManagement>
 
   <modules>
-    <module>oryx-api</module>
-    <module>oryx-common</module>
-    <module>kafka-util</module>
-    <module>zk-util</module>
-    <module>oryx-lambda</module>
-    <module>oryx-lambda-serving</module>
-    <module>oryx-ml</module>
-    <module>oryx-app-api</module>
-    <module>oryx-app-common</module>
-    <module>oryx-app-mllib</module>
-    <module>oryx-app</module>
-    <module>oryx-app-serving</module>
-    <module>oryx-batch</module>
-    <module>oryx-speed</module>
-    <module>oryx-serving</module>
-    <module>example</module>
+    <module>framework/oryx-api</module>
+    <module>framework/oryx-common</module>
+    <module>framework/kafka-util</module>
+    <module>framework/zk-util</module>
+    <module>framework/oryx-lambda</module>
+    <module>framework/oryx-lambda-serving</module>
+    <module>framework/oryx-ml</module>
+    <module>app/oryx-app-api</module>
+    <module>app/oryx-app-common</module>
+    <module>app/oryx-app-mllib</module>
+    <module>app/oryx-app</module>
+    <module>app/oryx-app-serving</module>
+    <module>app/example</module>
+    <module>deploy/oryx-batch</module>
+    <module>deploy/oryx-speed</module>
+    <module>deploy/oryx-serving</module>
   </modules>
 
   <properties>
