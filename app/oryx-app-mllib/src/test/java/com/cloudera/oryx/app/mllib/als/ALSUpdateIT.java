@@ -38,7 +38,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.ml.MLUpdate;
+import com.cloudera.oryx.ml.batch.MLUpdate;
 
 public final class ALSUpdateIT extends AbstractALSIT {
 

@@ -15,11 +15,11 @@
 
 package com.cloudera.oryx.example;
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
-
 import java.io.IOException;
 import java.util.Iterator;
+
+import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class ExampleServingModelManager implements ServingModelManager<String> {
 

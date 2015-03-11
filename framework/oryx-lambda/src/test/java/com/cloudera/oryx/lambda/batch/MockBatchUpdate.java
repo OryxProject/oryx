@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +23,9 @@ import java.util.List;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
+
+import com.cloudera.oryx.lambda.TopicProducer;
+
 
 /**
  * A dummy {@link BatchLayerUpdate} that collects data seen by the

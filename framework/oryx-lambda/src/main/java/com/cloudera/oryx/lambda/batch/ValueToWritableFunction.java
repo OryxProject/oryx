@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

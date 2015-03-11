@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.ml;
+package com.cloudera.oryx.ml.batch;
 
 import java.util.List;
 

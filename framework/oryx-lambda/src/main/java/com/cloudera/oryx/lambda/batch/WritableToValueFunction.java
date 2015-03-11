@@ -13,11 +13,10 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-
 import org.apache.hadoop.io.Writable;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;

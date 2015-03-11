@@ -13,11 +13,13 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import com.cloudera.oryx.lambda.TopicProducer;
 
 public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpdate<K,M,U> {
 

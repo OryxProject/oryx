@@ -13,23 +13,20 @@
  * License.
  */
 
-package com.cloudera.oryx.example
+package com.cloudera.oryx.lambda.batch
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.lambda.TopicProducer
-import com.cloudera.oryx.lambda.batch.ScalaBatchLayerUpdate
 
-class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,String] {
+trait ScalaBatchLayerUpdate[K,M,U] {
 
   def configureUpdate(sparkContext: SparkContext,
                       timestamp: Long,
-                      newData: RDD[(String,String)],
-                      pastData: RDD[(String,String)],
+                      newData: RDD[(K,M)],
+                      pastData: RDD[(K,M)],
                       modelDirString: String,
-                      modelUpdateTopic: TopicProducer[String,String]): Unit = {
-
-  }
+                      modelUpdateTopic: TopicProducer[String,U]): Unit
 
 }

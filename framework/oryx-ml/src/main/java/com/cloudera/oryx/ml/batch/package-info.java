@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,18 +13,4 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda
-
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-
-trait ScalaBatchLayerUpdate[K,M,U] {
-
-  def configureUpdate(sparkContext: SparkContext,
-                      timestamp: Long,
-                      newData: RDD[(K,M)],
-                      pastData: RDD[(K,M)],
-                      modelDirString: String,
-                      modelUpdateTopic: TopicProducer[String,U]): Unit
-
-}
+package com.cloudera.oryx.ml.batch;

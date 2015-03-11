@@ -30,7 +30,7 @@ import org.dmg.pmml.PMML;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.lambda.AbstractBatchIT;
+import com.cloudera.oryx.lambda.batch.AbstractBatchIT;
 
 /**
  * Superclass of app-tier MLlib-based batch layer integration tests.

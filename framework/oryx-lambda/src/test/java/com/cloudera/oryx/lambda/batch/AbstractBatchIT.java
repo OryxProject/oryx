@@ -13,12 +13,11 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -36,6 +35,7 @@ import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
 import com.cloudera.oryx.kafka.util.ProduceData;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
+import com.cloudera.oryx.lambda.AbstractLambdaIT;
 
 public abstract class AbstractBatchIT extends AbstractLambdaIT {
 

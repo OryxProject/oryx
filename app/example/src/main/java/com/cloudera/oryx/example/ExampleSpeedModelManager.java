@@ -15,12 +15,13 @@
 
 package com.cloudera.oryx.example;
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.speed.SpeedModelManager;
-import org.apache.spark.api.java.JavaPairRDD;
-
 import java.io.IOException;
 import java.util.Iterator;
+
+import org.apache.spark.api.java.JavaPairRDD;
+
+import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
