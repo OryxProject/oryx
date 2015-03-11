@@ -15,12 +15,13 @@
 
 package com.cloudera.oryx.example;
 
-import com.cloudera.oryx.lambda.BatchLayerUpdate;
-import com.cloudera.oryx.lambda.TopicProducer;
+import java.io.IOException;
+
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
-import java.io.IOException;
+import com.cloudera.oryx.lambda.batch.BatchLayerUpdate;
+import com.cloudera.oryx.lambda.TopicProducer;
 
 public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,String,String> {
 

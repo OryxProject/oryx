@@ -15,20 +15,21 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.kafka.util.ProduceData;
-import com.cloudera.oryx.kafka.util.DatumGenerator;
-import com.cloudera.oryx.lambda.AbstractLambdaIT;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.typesafe.config.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.ProduceData;
+import com.cloudera.oryx.kafka.util.DatumGenerator;
+import com.cloudera.oryx.lambda.AbstractLambdaIT;
 
 public abstract class AbstractServingIT extends AbstractLambdaIT {
 

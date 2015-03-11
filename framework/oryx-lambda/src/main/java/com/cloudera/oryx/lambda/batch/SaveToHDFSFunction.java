@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;

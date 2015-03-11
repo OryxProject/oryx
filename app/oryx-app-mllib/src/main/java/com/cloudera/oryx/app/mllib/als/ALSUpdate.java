@@ -57,7 +57,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.fn.Functions;
-import com.cloudera.oryx.ml.MLUpdate;
+import com.cloudera.oryx.ml.batch.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 import com.cloudera.oryx.common.pmml.PMMLUtils;

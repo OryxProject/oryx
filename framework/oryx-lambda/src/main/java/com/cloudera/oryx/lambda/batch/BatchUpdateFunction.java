@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
 import java.io.IOException;
 
@@ -33,6 +33,9 @@ import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 /**
  * Framework for executing the batch layer update, and storing data to persistent storage,

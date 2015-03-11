@@ -26,7 +26,7 @@
   <artifactId>oryx-app-mllib</artifactId>
   <packaging>jar</packaging>
   <name>Apps: Spark MLlib</name>
-  <description>Speed and batch components of machine learning applications built on
+  <description>Speed and Batch components of machine learning applications built on
   Spark MLlib</description>
   <version>2.0.0-SNAPSHOT</version>
 

@@ -13,24 +13,27 @@
  * License.
  */
 
-package com.cloudera.oryx.lambda;
+package com.cloudera.oryx.lambda.batch;
 
-import com.cloudera.oryx.common.OryxTest;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
 import org.junit.Test;
 import scala.Tuple2;
 
-public final class WritableToValueFunctionTest extends OryxTest {
+import com.cloudera.oryx.common.OryxTest;
+
+public final class ValueToWritableFunctionTest extends OryxTest {
 
   @Test
   public void testFunction() {
-    WritableToValueFunction<String,String> function =
-        new WritableToValueFunction<>(String.class, String.class, Text.class, Text.class);
-    Tuple2<Writable,Writable> in = new Tuple2<Writable,Writable>(new Text("bizz"), new Text("buzz"));
-    Tuple2<String,String> out = function.call(in);
-    assertEquals("bizz", out._1());
-    assertEquals("buzz", out._2());
+    ValueToWritableFunction<Integer,Long> function =
+        new ValueToWritableFunction<>(Integer.class, Long.class,
+                                      IntWritable.class, LongWritable.class);
+    Tuple2<Integer,Long> in = new Tuple2<>(3, 4L);
+    Tuple2<Writable,Writable> out = function.call(in);
+    assertEquals(new IntWritable(3), out._1());
+    assertEquals(new LongWritable(4L), out._2());
   }
 
 }
