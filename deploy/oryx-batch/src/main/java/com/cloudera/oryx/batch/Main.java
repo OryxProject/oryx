@@ -17,7 +17,7 @@ package com.cloudera.oryx.batch;
 
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.BatchLayer;
+import com.cloudera.oryx.lambda.batch.BatchLayer;
 
 /**
  * Runs {@link BatchLayer} from the command line. It will use configuration as loaded

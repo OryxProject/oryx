@@ -17,7 +17,8 @@ package com.cloudera.oryx.lambda.serving;
 
 import java.util.Iterator;
 
-import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 
 public final class MockServingModelManager implements ServingModelManager<String> {
 

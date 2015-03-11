@@ -40,12 +40,14 @@ import kafka.utils.VerifiableProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.KeyMessageImpl;
+import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.api.serving.ScalaServingModelManager;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.KeyMessageImpl;
-import com.cloudera.oryx.lambda.TopicProducer;
 
 @WebListener
 public final class ModelManagerListener<K,M,U> implements ServletContextListener {

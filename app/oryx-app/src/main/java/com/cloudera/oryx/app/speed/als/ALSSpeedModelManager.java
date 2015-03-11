@@ -35,17 +35,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.als.ALSUtils;
+import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.fn.Functions;
-import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
-import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.lambda.Functions;
 
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 

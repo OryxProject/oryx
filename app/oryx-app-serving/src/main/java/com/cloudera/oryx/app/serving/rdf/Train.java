@@ -31,7 +31,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.fileupload.FileItem;
 
-import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 

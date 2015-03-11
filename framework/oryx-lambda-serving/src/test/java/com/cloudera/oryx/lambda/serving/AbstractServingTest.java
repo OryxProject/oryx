@@ -46,10 +46,11 @@ import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Assert;
 import org.junit.Before;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
-import com.cloudera.oryx.lambda.KeyMessage;
 
 public abstract class AbstractServingTest extends JerseyTest {
 

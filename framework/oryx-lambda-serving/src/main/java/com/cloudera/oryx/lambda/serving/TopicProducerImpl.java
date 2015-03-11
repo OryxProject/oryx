@@ -22,7 +22,7 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.StringEncoder;
 
-import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.api.TopicProducer;
 
 /**
  * Wraps access to a Kafka message topic {@link Producer}.

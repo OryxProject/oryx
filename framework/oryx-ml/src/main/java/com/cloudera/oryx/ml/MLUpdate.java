@@ -46,12 +46,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
-import com.cloudera.oryx.lambda.BatchLayerUpdate;
-import com.cloudera.oryx.lambda.TopicProducer;
-import com.cloudera.oryx.lambda.fn.Functions;
+import com.cloudera.oryx.lambda.Functions;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 

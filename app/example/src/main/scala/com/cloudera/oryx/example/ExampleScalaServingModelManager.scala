@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.example
 
-import com.cloudera.oryx.lambda.KeyMessage
-import com.cloudera.oryx.lambda.serving.ScalaServingModelManager
+import com.cloudera.oryx.api.KeyMessage
+import com.cloudera.oryx.api.serving.ScalaServingModelManager
 
 class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
 

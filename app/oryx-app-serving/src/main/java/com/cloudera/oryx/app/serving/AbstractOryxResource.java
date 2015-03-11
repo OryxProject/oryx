@@ -35,8 +35,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import com.cloudera.oryx.lambda.TopicProducer;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
+import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 
 public abstract class AbstractOryxResource {
 

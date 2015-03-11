@@ -21,8 +21,9 @@ import java.util.List;
 
 import org.apache.spark.api.java.JavaPairRDD;
 
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.KeyMessageImpl;
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.KeyMessageImpl;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
 
 public final class MockSpeedModelManager implements SpeedModelManager<String,String,String> {
 
