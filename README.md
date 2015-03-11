@@ -8,7 +8,26 @@ applications for collaborative filtering, classification, regression and cluster
 Oryx 2 is a rearchitecting and continuation of the original [Oryx 1](http://github.com/cloudera/oryx) project. 
 The [Differences from Oryx 1 wiki](https://github.com/OryxProject/oryx/wiki/Differences-From-Oryx-1) describes changes.
 
-It consists of three _tiers_, each of which builds on the one below:
+# Applications
+
+Just looking to deploy a ready-made, end-to-end application for collaborative filtering, clustering or classification? Easy.
+Proceed directly to:
+
+- Prepare your Hadoop cluster with [[Cluster-Setup]]
+- Get a [Release](https://github.com/OryxProject/oryx/releases)
+- Prepare configuration according to [[Configuration-Reference]]
+- Run the binaries with [[Running-Oryx]]
+- Learn about the REST API endpoints you can call in [[PI-Endpoint-Reference]]
+
+# Framework
+
+Developers can consume Oryx 2 as a framework for building custom applications as well. 
+Following the architecture overview below, proceed to [[Making-an-Oryx-App]] to learn how to create
+a new application.
+
+## Overview
+
+Oryx 2 consists of three _tiers_, each of which builds on the one below:
 
 1. A generic lambda architecture tier, providing batch/speed/serving layers, which is not 
 specific to machine learning
@@ -57,16 +76,16 @@ Major modules and their relation to tiers and layers:
 * Support modules like `oryx-common`, `oryx-app-common`, `kafka-util` and `zk-util` are not shown.
 * APIs that applications implement to integrate with the ML and Lambda tier are in `oryx-api`; APIs exposed by the packaged apps themsleves are in `oryx-app-api`
 
-# Lambda Tier Implementation
+## Lambda Tier Implementation
 
-## Data transport
+### Data transport
 
 The data transport mechanism is an [Apache Kafka](http://kafka.apache.org/) topic. 
 Any process -- including but not limited to the serving layer -- can put data onto the topic, 
 to be seen by the speed and batch layers. Kafka topics are also used to publish both
 *models* and *model updates*, for consumption by the speed and serving layers.
 
-## Batch Layer
+### Batch Layer
 
 The batch layer is implemented as a [Spark Streaming](http://spark.apache.org/streaming/) 
 process on a Hadoop cluster, which reads data from the input Kafka topic. The Streaming process 
@@ -75,14 +94,14 @@ current window of data to HDFS, and then combine with all historical data on HDF
 initiate building of a new result. The result is written to HDFS, and, also published
 to a Kafka update topic.
 
-## Speed Layer
+### Speed Layer
 
 The speed layer is implemented as a Spark Streaming process as well, which also listens for
 data from the input Kafka topic. It has a much shorter period, on the order of seconds. 
 It periodically loads a new model from the update topic and continually produces model updates.
 These are put back onto the update topic too.
 
-## Serving Layer
+### Serving Layer
 
 The serving layer listens for model and model updates on the update topic. It maintains model
 state in memory. It exposes an HTTP 
@@ -96,18 +115,7 @@ by providing a command line argument which specifies a config file to load
 (e.g. `-Dconfig.file=<path>/cfg.conf`) or even by specifying individual properties on the command line 
 (e.g. `-D<property>=<value>`).
 
-## Usage and Deployment
-
-The application is written in Java, using Spark 1.2.x+, 
-[Hadoop](http://hadoop.apache.org/) 2.5.x+, [Tomcat](http://tomcat.apache.org/) 8.x+,
-Kafka 0.8.2+, [Zookeeper](http://zookeeper.apache.org/) and more. Configuration uses a single 
-[Typesafe Config](https://github.com/typesafehub/config) config file, wherein 
-applications configure an entire deployment of the system. This includes implementations of 
-key interface classes which implement the batch, speed, and serving logic. Applications  
-package and deploy their implementations with each instance of the layer binaries. Each 
-of these is a runnable Java `.jar` which starts all necessary services.
-
-# ML Tier Implementation
+## ML Tier Implementation
 
 The ML tier is simply an implementation and specialization of the generic interfaces mentioned 
 above, which implement common ML needs and then expose a different ML-specific interface for
@@ -119,25 +127,16 @@ It can automatically repeat this, and with different hyperparameter values, choo
 result. It manages serialization of the model via 
 [PMML](http://www.dmg.org/v4-2-1/GeneralStructure.html).
 
-# End-to-end Application Implementation
+## Usage and Deployment
 
-In addition to being a framework, Oryx 2 contains complete implementations of the batch, speed and 
-serving layer for three machine learning use cases. These are ready to deploy out-of-the-box, or to be
-used as the basis for a custom application:
-
-- Collaborative filtering / recommendation based on Alternating Least Squares
-- Clustering based on k-means
-- Classification and regression based on random decision forests
-
-The REST API endpoints provided by the serving layer application implementations is documented in the 
-[API Endpoint Reference](https://github.com/OryxProject/oryx/wiki/API-Endpoint-Reference) wiki. 
-Example configuration that enables these applications is available in the 
-[Configuration Reference](https://github.com/OryxProject/oryx/wiki/Configuration-Reference) wiki.
-
-# Getting Started
-
-See [Cluster Setup](https://github.com/OryxProject/oryx/wiki/Cluster-Setup) to get your cluster ready, then head to [Running Oryx](https://github.com/OryxProject/oryx/wiki/Running-Oryx) to learn how to 
-take an application for a test drive!
+The application is written in Java, using Spark 1.2.x+, 
+[Hadoop](http://hadoop.apache.org/) 2.5.x+, [Tomcat](http://tomcat.apache.org/) 8.x+,
+Kafka 0.8.2+, [Zookeeper](http://zookeeper.apache.org/) and more. Configuration uses a single 
+[Typesafe Config](https://github.com/typesafehub/config) config file, wherein 
+applications configure an entire deployment of the system. This includes implementations of 
+key interface classes which implement the batch, speed, and serving logic. Applications  
+package and deploy their implementations with each instance of the layer binaries. Each 
+of these is a runnable Java `.jar` which starts all necessary services.
 
 ------
 
