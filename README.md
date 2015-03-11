@@ -13,11 +13,11 @@ The [Differences from Oryx 1 wiki](https://github.com/OryxProject/oryx/wiki/Diff
 Just looking to deploy a ready-made, end-to-end application for collaborative filtering, clustering or classification? Easy.
 Proceed directly to:
 
-- Prepare your Hadoop cluster with [[Cluster-Setup]]
+- Prepare your Hadoop cluster with [Cluster Setup](https://github.com/OryxProject/oryx/wiki/Cluster-Setup)
 - Get a [Release](https://github.com/OryxProject/oryx/releases)
-- Prepare configuration according to [[Configuration-Reference]]
-- Run the binaries with [[Running-Oryx]]
-- Learn about the REST API endpoints you can call in [[PI-Endpoint-Reference]]
+- Prepare a config file from the [Configuration Reference](https://github.com/OryxProject/oryx/wiki/Configuration-Reference)
+- Run the binaries with [Running Oryx](https://github.com/OryxProject/oryx/wiki/Running-Oryx)
+- Learn about the REST API endpoints you can call in the [API Endpoint Reference](https://github.com/OryxProject/oryx/wiki/API-Endpoint-Reference)
 
 # Framework
 
