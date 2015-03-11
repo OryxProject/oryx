@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.AbstractBatchIT;
+import com.cloudera.oryx.lambda.batch.AbstractBatchIT;
 
 /**
  * Tests {@link MLUpdate}.

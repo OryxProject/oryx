@@ -22,7 +22,8 @@ import org.apache.spark.api.java.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.lambda.TopicProducer;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 /**

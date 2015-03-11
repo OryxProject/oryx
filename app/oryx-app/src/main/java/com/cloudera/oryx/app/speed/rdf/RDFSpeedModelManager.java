@@ -37,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.ToExampleFn;
@@ -51,8 +53,6 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.speed.SpeedModelManager;
 
 public final class RDFSpeedModelManager implements SpeedModelManager<String,String,String> {
 

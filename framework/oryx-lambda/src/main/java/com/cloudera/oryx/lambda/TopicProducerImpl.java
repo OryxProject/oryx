@@ -25,6 +25,8 @@ import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.StringEncoder;
 
+import com.cloudera.oryx.api.TopicProducer;
+
 /**
  * Wraps access to a Kafka message topic {@link Producer}, including logic to instantiate the
  * object. This is a wrapper that can be serialized and re-create the {@link Producer}

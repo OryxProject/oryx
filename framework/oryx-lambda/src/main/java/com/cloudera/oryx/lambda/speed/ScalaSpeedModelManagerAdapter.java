@@ -21,7 +21,9 @@ import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
 import scala.collection.JavaConversions;
 
-import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
 
 public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelManager<K,M,U> {
 

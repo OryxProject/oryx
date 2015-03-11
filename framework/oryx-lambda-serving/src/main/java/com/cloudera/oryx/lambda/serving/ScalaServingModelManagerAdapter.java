@@ -20,7 +20,9 @@ import java.util.Iterator;
 import com.google.common.base.Preconditions;
 import scala.collection.JavaConversions;
 
-import com.cloudera.oryx.lambda.KeyMessage;
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.serving.ScalaServingModelManager;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 
 public final class ScalaServingModelManagerAdapter<U> implements ServingModelManager<U> {
 

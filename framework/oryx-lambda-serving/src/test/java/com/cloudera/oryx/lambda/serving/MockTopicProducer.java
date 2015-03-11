@@ -18,8 +18,8 @@ package com.cloudera.oryx.lambda.serving;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.lambda.TopicProducer;
 
 public final class MockTopicProducer implements TopicProducer<String,String> {
 

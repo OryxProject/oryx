@@ -24,14 +24,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
-import com.cloudera.oryx.lambda.TopicProducer;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
-import com.cloudera.oryx.app.serving.AbstractOryxResource;
 
 public final class ALSServingInputProducerIT extends AbstractServingIT {
 

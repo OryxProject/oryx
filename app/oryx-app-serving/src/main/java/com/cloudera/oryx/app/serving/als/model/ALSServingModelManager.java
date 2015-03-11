@@ -28,13 +28,13 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class ALSServingModelManager implements ServingModelManager<String> {
 

@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.example
 
-import com.cloudera.oryx.lambda.{TopicProducer, ScalaBatchLayerUpdate}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+
+import com.cloudera.oryx.api.TopicProducer
+import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate
 
 class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,String] {
 

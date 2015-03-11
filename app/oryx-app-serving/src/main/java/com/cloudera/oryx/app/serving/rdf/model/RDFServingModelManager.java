@@ -27,6 +27,8 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
@@ -36,8 +38,6 @@ import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.serving.ServingModelManager;
 
 public final class RDFServingModelManager implements ServingModelManager<String> {
 

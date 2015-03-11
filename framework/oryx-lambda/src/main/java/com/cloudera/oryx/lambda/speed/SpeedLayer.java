@@ -48,11 +48,13 @@ import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.KeyMessageImpl;
+import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.lambda.KeyMessage;
-import com.cloudera.oryx.lambda.KeyMessageImpl;
 
 /**
  * Main entry point for Oryx Speed Layer.

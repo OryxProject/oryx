@@ -13,12 +13,12 @@
  * License.
  */
 
-
 package com.cloudera.oryx.example
 
-import com.cloudera.oryx.lambda.KeyMessage
-import com.cloudera.oryx.lambda.speed.ScalaSpeedModelManager
 import org.apache.spark.rdd.RDD
+
+import com.cloudera.oryx.api.KeyMessage
+import com.cloudera.oryx.api.speed.ScalaSpeedModelManager
 
 class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
 
