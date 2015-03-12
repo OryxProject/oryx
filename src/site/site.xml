@@ -19,14 +19,38 @@
          name="${project.name}">
 
   <skin>
-    <groupId>org.apache.maven.skins</groupId>
-    <artifactId>maven-fluido-skin</artifactId>
-    <version>1.3.1</version>
+    <groupId>lt.velykis.maven.skins</groupId>
+    <artifactId>reflow-maven-skin</artifactId>
+    <version>1.1.1</version>
   </skin>
 
+  <bannerLeft>
+    <name>Oryx</name>
+    <href>http://oryxproject.github.io/oryx/</href>
+  </bannerLeft>
+
+  <custom>
+    <reflowSkin>
+      <toc offsetTop="800">side</toc>
+      <tocTopMax>6</tocTopMax>
+      <brand>
+        <name>Oryx 2</name>
+        <href>index.html</href>
+      </brand>
+      <theme>bootswatch-united</theme>
+      <toc>sidebar</toc>
+
+    </reflowSkin>
+  </custom>
+
   <body>
-    <breadcrumbs/>
-    <menu ref="reports"/>
+    <links>
+      <item name="Overview" href="overview.html"/>
+      <item name="Documentation" href="docs/index.html"/>
+      <item name="Contribute" href="contribute.html"/>
+      <item name="Download" href="download.html"/>
+    </links>
+
   </body>
 
 </project>

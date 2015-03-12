@@ -13,7 +13,9 @@
   the specific language governing permissions and limitations under the
   License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.cloudera.oryx</groupId>
@@ -517,7 +519,7 @@
               <id>enforce</id>
               <configuration>
                 <rules>
-                  <dependencyConvergence />
+                  <dependencyConvergence/>
                   <requireMavenVersion>
                     <version>3.2.1</version>
                   </requireMavenVersion>
@@ -728,6 +730,25 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>3.4</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-module-markdown</artifactId>
+              <version>1.6</version>
+            </dependency>
+            <dependency>
+              <groupId>lt.velykis.maven.skins</groupId>
+              <artifactId>reflow-velocity-tools</artifactId>
+              <!--> Must depend on snapshot version for markdown to render correctly. <-->
+              <version>1.1.2-SNAPSHOT</version>
+            </dependency>
+            <!-- Reflow skin requires Velocity >= 1.7  -->
+            <dependency>
+              <groupId>org.apache.velocity</groupId>
+              <artifactId>velocity</artifactId>
+              <version>1.7</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -966,7 +987,8 @@
     applications on top of Spark, Spark Streaming and Kafka. On this, it provides further
     support for real-time, large scale machine learning, and end-to-end applications of
     this support for common machine learning use cases, like recommendations, clustering,
-    classification and regression.</description>
+    classification and regression.
+  </description>
   <url>https://github.com/OryxProject/oryx</url>
   <inceptionYear>2014</inceptionYear>
   <licenses>
