@@ -470,8 +470,8 @@
     <clirr.version>2.6.1</clirr.version>
     <hadoop.version>2.6.0</hadoop.version>
     <jackson.version>2.5.1</jackson.version>
-    <jersey.version>2.16</jersey.version>
-    <kafka.version>0.8.2.0</kafka.version>
+    <jersey.version>2.17</jersey.version>
+    <kafka.version>0.8.2.1</kafka.version>
     <koloboke.version>0.6.6</koloboke.version>
     <slf4j.version>1.7.10</slf4j.version>
     <spark.version>1.2.1</spark.version>
