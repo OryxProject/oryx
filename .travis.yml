@@ -1,13 +1,16 @@
 language: java
 before_install: sudo pip install codecov
-install: mvn -Pjava${JAVA_VERSION} ${CDH} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script: mvn -Pjava${JAVA_VERSION} ${CDH} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
+install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK_VERSION} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+script: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK_VERSION} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
+   # Covert Java 7, Open JDK, and code coverage
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
+   # Covert Java 8, Oracle JDK, and Spark 1.3 (for now)
    - jdk: oraclejdk8
-     env: JAVA_VERSION=8
+     env: JAVA_VERSION=8 SPARK_VERSION=-Dspark.version=1.3.0
+   # Covers latest CDH5 build
    - jdk: oraclejdk7
      env: JAVA_VERSION=7 CDH=-Pcdh5
 cache:
