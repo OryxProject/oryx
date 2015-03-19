@@ -37,13 +37,13 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
   private static final Logger log = LoggerFactory.getLogger(RDFSpeedIT.class);
 
-  private static final int NUM_INPUT = 1000;
+  private static final int NUM_INPUT = 500;
 
   @Test
   public void testRDFSpeedRegression() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", RDFSpeedModelManager.class.getName());
-    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 5);
+    overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
     overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
