@@ -79,12 +79,13 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int treeID = (Integer) fields.get(0);
       String nodeID = fields.get(1).toString();
       double mean = (Double) fields.get(2);
+      int count = (Integer) fields.get(3);
       assertEquals(0, treeID);
       assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
       if ("r+".equals(nodeID)) {
-        assertEquals(5.0, mean, 0.5);
+        assertEquals(expectedPositiveMean(count), mean, 0.1);
       } else {
-        assertEquals(-4.0, mean, 0.5);
+        assertEquals(expectedNegativeMean(count), mean, 0.1);
       }
     }
 
@@ -105,6 +106,22 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       }
     }
 
+  }
+
+  private static double expectedPositiveMean(int n) {
+    int total = 0;
+    for (int i = 0; i < n; i++) {
+      total += 1 + 2 * (i % 5);
+    }
+    return (double) total / n;
+  }
+
+  private static double expectedNegativeMean(int n) {
+    int total = 0;
+    for (int i = 0; i < n; i++) {
+      total += -2 * (i % 5);
+    }
+    return (double) total / n;
   }
 
   @Test
