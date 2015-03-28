@@ -15,16 +15,10 @@
 
 package com.cloudera.oryx.lambda.speed;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -38,13 +32,8 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.storage.StorageLevel;
-import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +43,7 @@ import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
-import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.lambda.AbstractSparkLayer;
 
 /**
  * Main entry point for Oryx Speed Layer.
@@ -63,119 +52,53 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
  * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
  */
-public final class SpeedLayer<K,M,U> implements Closeable {
+public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
   private static final Logger log = LoggerFactory.getLogger(SpeedLayer.class);
 
-  private final Config config;
-  private final String id;
-  private final String streamingMaster;
-  private final String inputTopicLockMaster;
-  private final String messageTopic;
   private final String updateBroker;
   private final String updateTopic;
   private final String updateTopicLockMaster;
   private final String modelManagerClassName;
-  private final int numExecutors;
-  private final int executorCores;
-  private final String executorMemoryString;
-  private final String driverMemoryString;
-  private final int receiverParallelism;
-  private final int generationIntervalSec;
-  private final int blockIntervalSec;
-  private final Class<? extends Decoder<?>> keyDecoderClass;
-  private final Class<? extends Decoder<?>> messageDecoderClass;
   private final Class<? extends Decoder<U>> updateDecoderClass;
   private JavaStreamingContext streamingContext;
   private ConsumerConnector consumer;
   private SpeedModelManager<K,M,U> modelManager;
-  private final Class<K> keyClass;
-  private final Class<M> messageClass;
-  private final int uiPort;
 
   @SuppressWarnings("unchecked")
   public SpeedLayer(Config config) {
-    Preconditions.checkNotNull(config);
-    log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
-    this.config = config;
-    this.id = ConfigUtils.getOptionalString(config, "oryx.id");
-    this.streamingMaster = config.getString("oryx.speed.streaming.master");
-    this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
-    this.messageTopic = config.getString("oryx.input-topic.message.topic");
+    super(config);
     this.updateBroker = config.getString("oryx.update-topic.broker");
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
-    this.numExecutors = config.getInt("oryx.speed.streaming.num-executors");
-    this.executorCores = config.getInt("oryx.speed.streaming.executor-cores");
-    this.executorMemoryString = config.getString("oryx.speed.streaming.executor-memory");
-    this.driverMemoryString = config.getString("oryx.speed.streaming.driver-memory");
-    this.receiverParallelism = config.getInt("oryx.batch.streaming.receiver-parallelism");
-    this.generationIntervalSec = config.getInt("oryx.speed.streaming.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("oryx.speed.streaming.block-interval-sec");
-    this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
-    this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
-        config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
-    this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
-    this.messageClass =
-        ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
-    this.uiPort = config.getInt("oryx.speed.ui.port");
+  }
 
-    Preconditions.checkArgument(numExecutors >= 1);
-    Preconditions.checkArgument(executorCores >= 1);
-    Preconditions.checkArgument(receiverParallelism >= 1);
-    Preconditions.checkArgument(generationIntervalSec > 0);
-    Preconditions.checkArgument(blockIntervalSec > 0);
-    Preconditions.checkArgument(uiPort > 0);
+  @Override
+  protected String getConfigGroup() {
+    return "speed";
+  }
+
+  @Override
+  protected String getLayerName() {
+    return "SpeedLayer";
   }
 
   public synchronized void start() {
+    String id = getID();
     if (id != null) {
       log.info("Starting Speed Layer {}", id);
     }
-    log.info("Starting SparkContext for master {}, interval {} seconds",
-             streamingMaster, generationIntervalSec);
 
-    long blockIntervalMS = TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS);
-
-    SparkConf sparkConf = new SparkConf();
-
-    sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-
-    sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
-    sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
-    sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
-    sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
-
-    String blockIntervalString = Long.toString(blockIntervalMS);
-    sparkConf.setIfMissing("spark.streaming.blockInterval", blockIntervalString);
-    // Turn this down to prevent long blocking at shutdown
-    sparkConf.setIfMissing("spark.streaming.gracefulStopTimeout", blockIntervalString);
-    sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
-    sparkConf.setIfMissing("spark.logConf", "true");
-    sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
-    sparkConf.setIfMissing("spark.ui.showConsoleProgress", "false");
-
-    // Want to use some versions that may not match Spark or YARN
-    sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
-    // Don't set spark.files.userClassPathFirst (see issue #120)
-
-    sparkConf.setMaster(streamingMaster);
-    sparkConf.setAppName("OryxSpeedLayer");
-    long batchDurationMS = TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
-
-    streamingContext = new JavaStreamingContext(new JavaSparkContext(sparkConf),
-                                                new Duration(batchDurationMS));
-
+    streamingContext = buildStreamingContext();
     log.info("Creating message stream from topic");
-
-    JavaPairDStream<K,M> dStream = buildDStream();
+    JavaPairDStream<K,M> dStream = buildInputDStream(streamingContext);
 
     Properties consumerProps = new Properties();
-    consumerProps.setProperty("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
+    consumerProps.setProperty("group.id",
+                              "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis());
     consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
     // Do start from the beginning of the update queue
     consumerProps.setProperty("auto.offset.reset", "smallest");
@@ -234,37 +157,6 @@ public final class SpeedLayer<K,M,U> implements Closeable {
     }
   }
 
-  private JavaPairDStream<K,M> buildDStream() {
-    Map<String,String> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
-    kafkaParams.put("group.id", "OryxGroup-SpeedLayer-" + System.currentTimeMillis());
-    // Don't re-consume old messages from input
-    kafkaParams.put("auto.offset.reset", "largest");
-    if (id != null) {
-      // Set consumer.id to access last read offset for the layer
-      kafkaParams.put("consumer.id", "Oryx-SpeedLayer-" + id);
-    }
-
-    List<JavaPairDStream<K,M>> streams = new ArrayList<>(receiverParallelism);
-    for (int i = 0; i < receiverParallelism; i++) {
-      streams.add(KafkaUtils.createStream(
-                    streamingContext,
-                    keyClass,
-                    messageClass,
-                    keyDecoderClass,
-                    messageDecoderClass,
-                    kafkaParams,
-                    Collections.singletonMap(messageTopic, 1),
-                    StorageLevel.MEMORY_AND_DISK_2()));
-    }
-
-    if (streams.size() == 1) {
-      return streams.get(0);
-    } else {
-      return streamingContext.union(streams.get(0), streams.subList(1, streams.size()));
-    }
-  }
-
   @SuppressWarnings("unchecked")
   private SpeedModelManager<K,M,U> loadManagerInstance() {
     Class<?> managerClass = ClassUtils.loadClass(modelManagerClassName);
@@ -276,7 +168,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
             modelManagerClassName,
             SpeedModelManager.class,
             new Class<?>[] { Config.class },
-            new Object[] { config });
+            new Object[] { getConfig() });
       } catch (IllegalArgumentException iae) {
         return ClassUtils.loadInstanceOf(modelManagerClassName, SpeedModelManager.class);
       }
@@ -288,7 +180,7 @@ public final class SpeedLayer<K,M,U> implements Closeable {
             modelManagerClassName,
             ScalaSpeedModelManager.class,
             new Class<?>[] { Config.class },
-            new Object[] { config }));
+            new Object[] { getConfig() }));
       } catch (IllegalArgumentException iae) {
         return new ScalaSpeedModelManagerAdapter<>(ClassUtils.loadInstanceOf(
             modelManagerClassName, ScalaSpeedModelManager.class));
