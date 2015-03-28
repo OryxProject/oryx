@@ -17,7 +17,7 @@ package com.cloudera.oryx.lambda.batch;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.OutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.streaming.Time;
@@ -37,27 +37,23 @@ final class SaveToHDFSFunction
   private final String suffix;
   private final Class<? extends Writable> keyWritableClass;
   private final Class<? extends Writable> messageWritableClass;
-  private final Class<? extends OutputFormat<?, ?>> outputFormatClass;
   private final Configuration hadoopConf;
 
   SaveToHDFSFunction(String prefix,
                      String suffix,
                      Class<? extends Writable> keyWritableClass,
                      Class<? extends Writable> messageWritableClass,
-                     Class<? extends OutputFormat<?, ?>> outputFormatClass,
                      Configuration hadoopConf) {
     this.prefix = prefix;
     this.suffix = suffix;
     this.keyWritableClass = keyWritableClass;
     this.messageWritableClass = messageWritableClass;
-    this.outputFormatClass = outputFormatClass;
     this.hadoopConf = hadoopConf;
   }
 
   @Override
   public Void call(JavaPairRDD<Writable, Writable> rdd, Time time) {
-    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
-    if (rdd.take(1).isEmpty()) {
+    if (rdd.isEmpty()) {
       log.info("RDD was empty, not saving to HDFS");
     } else {
       String file = prefix + "-" + time.milliseconds() + "." + suffix;
@@ -65,7 +61,7 @@ final class SaveToHDFSFunction
       rdd.saveAsNewAPIHadoopFile(file,
                                  keyWritableClass,
                                  messageWritableClass,
-                                 outputFormatClass,
+                                 SequenceFileOutputFormat.class,
                                  hadoopConf);
     }
     return null;

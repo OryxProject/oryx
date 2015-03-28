@@ -44,8 +44,12 @@ public final class LoadIT extends AbstractALSServingTest {
   @Override
   protected void configureProperties() {
     super.configureProperties();
-    disable(TestProperties.LOG_TRAFFIC);
-    disable(TestProperties.DUMP_ENTITY);
+    if (isEnabled(TestProperties.LOG_TRAFFIC)) {
+      disable(TestProperties.LOG_TRAFFIC);
+    }
+    if (isEnabled(TestProperties.DUMP_ENTITY)) {
+      disable(TestProperties.DUMP_ENTITY);
+    }
   }
 
   @Ignore("Difficult to assert about time in cross-platform way; run manually")

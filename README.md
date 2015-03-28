@@ -74,7 +74,7 @@ Major modules and their relation to tiers and layers:
 * `oryx-app-mllib` and `oryx-app` implement packaged applications' Batch and Speed layers, some parts of which are built on Spark MLlib and some of which are not, respectively. Serving layer application implementations exist separately in `oryx-app-serving`
 * `oryx-batch`, `oryx-speed` and `oryx-serving` are simply packaging modules that create finished runnable binaries from the above.
 * Support modules like `oryx-common`, `oryx-app-common`, `kafka-util` and `zk-util` are not shown.
-* APIs that applications implement to integrate with the ML and Lambda tier are in `oryx-api`; APIs exposed by the packaged apps themsleves are in `oryx-app-api`
+* APIs that applications implement to integrate with the ML and Lambda tier are in `oryx-api`; APIs exposed by the packaged apps themselves are in `oryx-app-api`
 
 ## Lambda Tier Implementation
 

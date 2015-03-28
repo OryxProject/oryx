@@ -48,8 +48,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
 
   @Override
   public Void call(JavaPairRDD<K,M> newData) throws IOException {
-    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
-    if (newData.take(1).isEmpty()) {
+    if (newData.isEmpty()) {
       log.debug("RDD was empty");
     } else {
       try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {

@@ -336,8 +336,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   }
 
   private static boolean empty(JavaRDD<?> rdd) {
-    // Check is faster than count() == 0. Later, replace with RDD.isEmpty
-    return rdd == null || rdd.take(1).isEmpty();
+    return rdd == null || rdd.isEmpty();
   }
 
   private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {

@@ -18,8 +18,6 @@ package com.cloudera.oryx.lambda.batch;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
@@ -106,18 +104,12 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
                                           keyWritableClass,
                                           messageWritableClass));
 
-    // This horrible, separate declaration is necessary to appease the compiler
-    @SuppressWarnings("unchecked")
-    Class<? extends OutputFormat<?,?>> outputFormatClass =
-        (Class<? extends OutputFormat<?,?>>) (Class<?>) SequenceFileOutputFormat.class;
-
     // "Inline" saveAsNewAPIHadoopFiles to be able to skip saving empty RDDs
     writableDStream.foreachRDD(
         new SaveToHDFSFunction(dataDirString + "/oryx",
                                "data",
                                keyWritableClass,
                                messageWritableClass,
-                               outputFormatClass,
                                streamingContext.sparkContext().hadoopConfiguration()));
 
     log.info("Starting Spark Streaming");

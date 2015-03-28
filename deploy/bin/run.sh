@@ -58,9 +58,9 @@ fi
 
 LAYER=`echo ${LAYER_JAR} | grep -oE "oryx-[^-]+"`
 CONFIG_FILE_NAME=`basename ${CONFIG_FILE}`
-BASE_CLASSPATH=`./$COMPUTE_CLASSPATH | paste -s -d: -`
+BASE_CLASSPATH=`./${COMPUTE_CLASSPATH} | paste -s -d: -`
 # Need to ship examples JAR with app as it conveniently contains right Kafka, in Spark
-SPARK_EXAMPLES_JAR=`./$COMPUTE_CLASSPATH | grep spark-examples`
+SPARK_EXAMPLES_JAR=`./${COMPUTE_CLASSPATH} | grep spark-examples`
 
 SPARK_STREAMING_JARS="${LAYER_JAR},${SPARK_EXAMPLES_JAR}"
 if [ "${APP_JAR}" != "" ]; then
