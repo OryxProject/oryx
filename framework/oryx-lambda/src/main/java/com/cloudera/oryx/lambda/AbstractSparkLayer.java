@@ -163,19 +163,20 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
     sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
 
-    long blockIntervalMS = TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS);
-    String blockIntervalString = Long.toString(blockIntervalMS);
-    sparkConf.setIfMissing("spark.streaming.blockInterval", blockIntervalString);
+    sparkConf.setIfMissing(
+        "spark.streaming.blockInterval",
+        Long.toString(TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS)));
     // Turn this down to prevent long blocking at shutdown
-    sparkConf.setIfMissing("spark.streaming.gracefulStopTimeout", blockIntervalString);
+    sparkConf.setIfMissing(
+        "spark.streaming.gracefulStopTimeout",
+        Long.toString(TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS)));
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
     sparkConf.setIfMissing("spark.logConf", "true");
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setIfMissing("spark.ui.showConsoleProgress", "false");
 
-    // Want to use some versions that may not match Spark or YARN
-    sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
-    // Don't set spark.files.userClassPathFirst (see issue #120)
+    sparkConf.setIfMissing("spark.driver.userClassPathFirst", "true");
+    sparkConf.setIfMissing("spark.executor.userClassPathFirst", "true");
 
     long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);

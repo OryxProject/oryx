@@ -39,8 +39,8 @@ import com.cloudera.oryx.ml.MLUpdate;
 
 public final class RDFNumericHyperParamTuningIT extends AbstractRDFIT {
 
-  private static final int DATA_TO_WRITE = 10000;
-  private static final int WRITE_INTERVAL_MSEC = 2;
+  private static final int DATA_TO_WRITE = 1000;
+  private static final int WRITE_INTERVAL_MSEC = 10;
   private static final String IMPURITY = "variance";
 
   @Test
@@ -53,7 +53,7 @@ public final class RDFNumericHyperParamTuningIT extends AbstractRDFIT {
     overlayConfig.put("oryx.batch.update-class", RDFUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
-    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
+    overlayConfig.put("oryx.batch.streaming.generation-interval-sec", 15);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", NUM_TREES);
     // Low values like 1 are deliberately bad, won't work
@@ -98,21 +98,23 @@ public final class RDFNumericHyperParamTuningIT extends AbstractRDFIT {
     CategoricalValueEncodings encoding = forestEncoding.getSecond();
 
     for (int f1 = 0; f1 <= 1; f1++) {
+      CategoricalFeature feature1 = CategoricalFeature.forEncoding(
+          encoding.getValueEncodingMap(1).get(f1 == 1 ? "A" : "B"));
       for (int f2 = 0; f2 <= 1; f2++) {
+        CategoricalFeature feature2 = CategoricalFeature.forEncoding(
+            encoding.getValueEncodingMap(2).get(f2 == 1 ? "A" : "B"));
         for (int f3 = 0; f3 <= 1; f3++) {
-          NumericPrediction prediction = (NumericPrediction) forest.predict(new Example(null,
-              null,
-              CategoricalFeature.forEncoding(encoding.getValueEncodingMap(1).get(f1 == 1 ? "A" : "B")),
-              CategoricalFeature.forEncoding(encoding.getValueEncodingMap(2).get(f2 == 1 ? "A" : "B")),
-              CategoricalFeature.forEncoding(encoding.getValueEncodingMap(3).get(f3 == 1 ? "A" : "B"))));
+          CategoricalFeature feature3 = CategoricalFeature.forEncoding(
+              encoding.getValueEncodingMap(3).get(f3 == 1 ? "A" : "B"));
+          NumericPrediction prediction = (NumericPrediction)
+              forest.predict(new Example(null, null, feature1, feature2, feature3));
           int expectedCount = f1 + f2 + f3;
           if (expectedCount == 3) {
             // TODO this might be a bug in Spark RDF. The tree never creates a node for all
             // positive classes even though it should. Plenty of nodes, info gain, etc.
-            assertEquals(2, Math.round(prediction.getPrediction()));
-          } else {
-            assertEquals(expectedCount, Math.round(prediction.getPrediction()));
+            expectedCount = 2;
           }
+          assertEquals(expectedCount, Math.round(prediction.getPrediction()));
         }
       }
     }
