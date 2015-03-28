@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
 #

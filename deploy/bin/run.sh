@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
 #
@@ -13,6 +13,8 @@
 # the specific language governing permissions and limitations under the
 # License.
 
+# The file compute-classpath.sh must be in the same directory as this file.
+#
 # Usage: run.sh --layer-jar [Oryx .jar file] --conf [Oryx .conf file]
 #               --app-jar [user .jar file] --jvm-args [args]
 
@@ -49,11 +51,16 @@ if [ ! -f "${CONFIG_FILE}" ]; then
   usageAndExit "Config file does not exist"
 fi
 
+COMPUTE_CLASSPATH="compute-classpath.sh"
+if [ ! -x "$COMPUTE_CLASSPATH" ]; then
+  usageAndExit "$COMPUTE_CLASSPATH does not exist or isn't executable"
+fi
+
 LAYER=`echo ${LAYER_JAR} | grep -oE "oryx-[^-]+"`
 CONFIG_FILE_NAME=`basename ${CONFIG_FILE}`
-BASE_CLASSPATH=`./compute-classpath.sh | paste -s -d: -`
+BASE_CLASSPATH=`./$COMPUTE_CLASSPATH | paste -s -d: -`
 # Need to ship examples JAR with app as it conveniently contains right Kafka, in Spark
-SPARK_EXAMPLES_JAR=`./compute-classpath.sh | grep spark-examples`
+SPARK_EXAMPLES_JAR=`./$COMPUTE_CLASSPATH | grep spark-examples`
 
 SPARK_STREAMING_JARS="${LAYER_JAR},${SPARK_EXAMPLES_JAR}"
 if [ "${APP_JAR}" != "" ]; then
