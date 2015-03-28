@@ -149,7 +149,16 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
     sparkConf.setIfMissing("spark.speculation", "true");
 
-    sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
+    // Enable dynamic allocation for YARN
+    if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
+      sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
+      sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
+      sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors", Integer.toString(numExecutors));
+      sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
+    } else {
+      sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
+    }
+
     sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
     sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
     sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
@@ -168,11 +177,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.yarn.user.classpath.first", "true");
     // Don't set spark.files.userClassPathFirst (see issue #120)
 
-    long batchDurationMS =
+    long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
 
     return new JavaStreamingContext(new JavaSparkContext(sparkConf),
-                                    new Duration(batchDurationMS));
+                                    new Duration(generationIntervalMS));
   }
 
   protected final JavaPairDStream<K,M> buildInputDStream(JavaStreamingContext streamingContext) {
