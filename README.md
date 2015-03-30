@@ -22,7 +22,7 @@ Proceed directly to:
 # Framework
 
 Developers can consume Oryx 2 as a framework for building custom applications as well. 
-Following the architecture overview below, proceed to [[Making-an-Oryx-App]] to learn how to create
+Following the architecture overview below, proceed to [Making an Oryx App](https://github.com/OryxProject/oryx/wiki/Making-an-Oryx-App) to learn how to create
 a new application.
 
 ## Overview
@@ -33,7 +33,7 @@ Oryx 2 consists of three _tiers_, each of which builds on the one below:
 specific to machine learning
 1. A specialization on top providing ML abstractions for hyperparameter selection, etc.
 1. An end-to-end implementation of the same standard ML algorithms as an application
-([ALS](labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf), 
+([ALS](http://labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf), 
 [random decision forests](http://en.wikipedia.org/wiki/Random_forest), 
 [k-means](http://en.wikipedia.org/wiki/K-means_clustering)) on top
 
