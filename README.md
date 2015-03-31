@@ -129,7 +129,7 @@ result. It manages serialization of the model via
 
 ## Usage and Deployment
 
-The application is written in Java, using Spark 1.2.x+, 
+The application is written in Java, using Spark 1.3.x+, 
 [Hadoop](http://hadoop.apache.org/) 2.5.x+, [Tomcat](http://tomcat.apache.org/) 8.x+,
 Kafka 0.8.2+, [Zookeeper](http://zookeeper.apache.org/) and more. Configuration uses a single 
 [Typesafe Config](https://github.com/typesafehub/config) config file, wherein 
