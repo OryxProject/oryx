@@ -148,6 +148,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
     sparkConf.setIfMissing("spark.speculation", "true");
+    sparkConf.setIfMissing("spark.shuffle.manager", "sort");
 
     // Enable dynamic allocation for YARN
     if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
