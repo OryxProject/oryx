@@ -149,7 +149,7 @@ public final class ServingLayer implements Closeable {
   }
 
   @Override
-  public synchronized void close() {
+  public synchronized void close() throws IOException {
     if (tomcat != null) {
       try {
         tomcat.stop();
@@ -159,11 +159,7 @@ public final class ServingLayer implements Closeable {
       } finally {
         tomcat = null;
       }
-      try {
-        IOUtils.deleteRecursively(noSuchBaseDir);
-      } catch (IOException e) {
-        log.warn("Failed to delete {}", noSuchBaseDir);
-      }
+      IOUtils.deleteRecursively(noSuchBaseDir);
     }
   }
 

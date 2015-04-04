@@ -37,7 +37,7 @@ public final class ClassUtils {
   public static <T> Class<T> loadClass(String className) {
     try {
       @SuppressWarnings("unchecked")
-      Class<T> theClass = (Class<T>) Class.forName(className);
+      Class<T> theClass = (Class<T>) forName(className);
       return theClass;
     } catch (ClassNotFoundException cnfe) {
       throw new IllegalStateException("No valid " + className + " exists", cnfe);
@@ -51,7 +51,11 @@ public final class ClassUtils {
    * @return {@link Class} for that named class
    */
   public static <T> Class<? extends T> loadClass(String className, Class<T> superClass) {
-    return doLoadClass(className, superClass, ClassUtils.class.getClassLoader());
+    try {
+      return forName(className).asSubclass(superClass);
+    } catch (ClassNotFoundException cnfe) {
+      throw new IllegalStateException("No valid " + superClass + " binding exists", cnfe);
+    }
   }
 
   /**
@@ -60,21 +64,19 @@ public final class ClassUtils {
    */
   public static boolean classExists(String implClassName) {
     try {
-      Class.forName(implClassName);
+      forName(implClassName);
       return true;
     } catch (ClassNotFoundException ignored) {
       return false;
     }
   }
 
-  private static <T> Class<? extends T> doLoadClass(String implClassName,
-                                                    Class<T> superClass,
-                                                    ClassLoader classLoader) {
-    try {
-      return Class.forName(implClassName, true, classLoader).asSubclass(superClass);
-    } catch (ClassNotFoundException cnfe) {
-      throw new IllegalStateException("No valid " + superClass + " binding exists", cnfe);
+  private static Class<?> forName(String implClassName) throws ClassNotFoundException {
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+      cl = ClassUtils.class.getClassLoader();
     }
+    return Class.forName(implClassName, true, cl);
   }
 
   /**
@@ -116,20 +118,8 @@ public final class ClassUtils {
                                      Class<T> superClass,
                                      Class<?>[] constructorTypes,
                                      Object[] constructorArgs) {
-    return doLoadInstanceOf(implClassName,
-                            superClass,
-                            constructorTypes,
-                            constructorArgs,
-                            ClassUtils.class.getClassLoader());
-  }
-
-  private static <T> T doLoadInstanceOf(String implClassName,
-                                        Class<T> superClass,
-                                        Class<?>[] constructorTypes,
-                                        Object[] constructorArgs,
-                                        ClassLoader classLoader) {
     try {
-      Class<? extends T> configClass = doLoadClass(implClassName, superClass, classLoader);
+      Class<? extends T> configClass = loadClass(implClassName, superClass);
       Constructor<? extends T> constructor = configClass.getConstructor(constructorTypes);
       return constructor.newInstance(constructorArgs);
     } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e) {

@@ -88,8 +88,10 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
 
   private static RescorerProvider loadInstanceOf(String implClassName) {
     try {
+      // ClassUtils is not available here
       Class<? extends RescorerProvider> configClass =
-          Class.forName(implClassName).asSubclass(RescorerProvider.class);
+          Class.forName(implClassName, true, AbstractRescorerProvider.class.getClassLoader())
+              .asSubclass(RescorerProvider.class);
       Constructor<? extends RescorerProvider> constructor = configClass.getConstructor();
       return constructor.newInstance();
     } catch (ClassNotFoundException e) {

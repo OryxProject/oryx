@@ -20,8 +20,8 @@
 
 function usageAndExit {
   echo "Error: $1"
-  echo "usage: run.sh --layer-jar oryx-{serving,speed,batch}-x.y.z.jar --conf my.conf \
-        [--app-jar my-app.jar] [--jvm-args 'jvm args']"
+  echo "usage: run.sh --layer-jar oryx-{serving,speed,batch}-x.y.z.jar --conf my.conf"\
+       "[--app-jar my-app.jar] [--jvm-args 'jvm args']"
   exit 1
 }
 

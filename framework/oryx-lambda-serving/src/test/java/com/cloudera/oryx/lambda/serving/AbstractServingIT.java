@@ -83,7 +83,7 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
   }
 
   @After
-  public void tearDownServingLayer() {
+  public void tearDownServingLayer() throws IOException {
     if (servingLayer != null) {
       servingLayer.close();
     }
