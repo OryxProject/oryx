@@ -33,6 +33,7 @@ ls -1 \
  ${CDH_JARS_DIR}/hadoop-yarn-client-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-common-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-server-web-proxy-*.jar \
+ ${CDH_JARS_DIR}/hadoop-yarn-applications-distributedshell-*.jar \
  ${CDH_JARS_DIR}/commons-cli-1.2.jar \
  ${CDH_JARS_DIR}/commons-collections-*.jar \
  ${CDH_JARS_DIR}/commons-configuration-1.7.jar \

@@ -60,7 +60,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final int numExecutors;
   private final int executorCores;
   private final String executorMemoryString;
-  private final String driverMemoryString;
+  //private final String driverMemoryString;
   private final int receiverParallelism;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
@@ -87,7 +87,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.numExecutors = config.getInt("oryx." + group + ".streaming.num-executors");
     this.executorCores = config.getInt("oryx." + group + ".streaming.executor-cores");
     this.executorMemoryString = config.getString("oryx." + group + ".streaming.executor-memory");
-    this.driverMemoryString = config.getString("oryx." + group + ".streaming.driver-memory");
+    //this.driverMemoryString = config.getString("oryx." + group + ".streaming.driver-memory");
     this.receiverParallelism = config.getInt("oryx." + group + ".streaming.receiver-parallelism");
     this.generationIntervalSec =
         config.getInt("oryx." + group + ".streaming.generation-interval-sec");
@@ -162,7 +162,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
     sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
-    sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
+    //sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
 
     sparkConf.setIfMissing(
         "spark.streaming.blockInterval",
