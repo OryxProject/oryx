@@ -24,8 +24,8 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready}
- * and returns {@link javax.ws.rs.core.Response.Status#OK}
- * or {@link javax.ws.rs.core.Response.Status#SERVICE_UNAVAILABLE} status depending or whether the model is
+ * and returns {@link Response.Status#OK}
+ * or {@link Response.Status#SERVICE_UNAVAILABLE} status depending or whether the model is
  * available or not.</p>
  */
 @Path("/ready")

@@ -74,14 +74,13 @@ public abstract class AbstractOryxResource {
     // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
     // Good old Commons FileUpload it is:
 
-    synchronized (sharedFileItemFactory) {
-      if (sharedFileItemFactory.get() == null) {
-        DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
-            1 << 16, (File) servletContext.getAttribute("javax.servlet.context.tempdir"));
-        fileItemFactory.setFileCleaningTracker(
-            FileCleanerCleanup.getFileCleaningTracker(servletContext));
-        sharedFileItemFactory.set(fileItemFactory);
-      }
+    if (sharedFileItemFactory.get() == null) {
+      // Not a big deal if two threads actually set this up
+      DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
+          1 << 16, (File) servletContext.getAttribute("javax.servlet.context.tempdir"));
+      fileItemFactory.setFileCleaningTracker(
+          FileCleanerCleanup.getFileCleaningTracker(servletContext));
+      sharedFileItemFactory.compareAndSet(null, fileItemFactory);
     }
 
     List<FileItem> fileItems;

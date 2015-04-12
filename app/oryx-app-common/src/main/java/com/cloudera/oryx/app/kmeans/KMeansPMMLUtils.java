@@ -39,7 +39,7 @@ public final class KMeansPMMLUtils {
   /**
    * Validates that the encoded PMML model received matches expected schema.
    *
-   * @param pmml {@link org.dmg.pmml.PMML} encoding of KMeans Clustering
+   * @param pmml {@link PMML} encoding of KMeans Clustering
    * @param schema expected schema attributes of KMeans Clustering
    */
   public static void validatePMMLVsSchema(PMML pmml, InputSchema schema) {

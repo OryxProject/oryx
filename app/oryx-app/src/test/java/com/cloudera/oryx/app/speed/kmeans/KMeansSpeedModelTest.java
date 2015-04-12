@@ -35,7 +35,6 @@ public final class KMeansSpeedModelTest extends OryxTest {
     KMeansSpeedModel model = new KMeansSpeedModel(clusters);
     ClusterInfo cluster = model.getCluster(1);
     cluster.update(new double[]{-1.0,-1.0}, 3);
-    cluster = model.getCluster(1);
 
     assertEquals(1, cluster.getID());
     assertEquals(6, cluster.getCount());

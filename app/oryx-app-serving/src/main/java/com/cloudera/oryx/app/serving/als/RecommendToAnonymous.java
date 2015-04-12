@@ -47,7 +47,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  *
  * <p>Results are recommended items for an "anonymous" user, along with a score. The user is
  * defined by a set of items and optional interaction strengths, as in
- * {@link com.cloudera.oryx.app.serving.als.EstimateForAnonymous}.
+ * {@link EstimateForAnonymous}.
  * Outputs contain item and score pairs, where the score is an opaque
  * value where higher values mean a better recommendation.</p>
  *
