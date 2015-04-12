@@ -49,7 +49,7 @@ public final class PMMLUtils {
     String formattedDate =
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ", Locale.ENGLISH).format(new Date());
     Header header = new Header();
-    header.setTimestamp(new Timestamp().withContent(formattedDate));
+    header.setTimestamp(new Timestamp().addContent(formattedDate));
     header.setApplication(new Application("Oryx"));
     return new PMML("4.2.1", header, null);
   }

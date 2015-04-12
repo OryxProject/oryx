@@ -83,7 +83,7 @@ public final class AppPMMLUtils {
    * @param value extension value
    */
   public static void addExtension(PMML pmml, String key, Object value) {
-    pmml.getExtensions().add(new Extension().withName(key).withValue(value.toString()));
+    pmml.getExtensions().add(new Extension().setName(key).setValue(value.toString()));
   }
 
   /**
@@ -98,7 +98,7 @@ public final class AppPMMLUtils {
       return;
     }
     String joined = TextUtils.joinPMMLDelimited(content);
-    pmml.getExtensions().add(new Extension().withName(key).withContent(joined));
+    pmml.getExtensions().add(new Extension().setName(key).addContent(joined));
   }
 
   /**
@@ -111,7 +111,7 @@ public final class AppPMMLUtils {
       valueList.add(value);
     }
     String arrayValue = TextUtils.joinPMMLDelimitedNumbers(valueList);
-    return new Array(Array.Type.REAL, arrayValue).withN(valueList.size());
+    return new Array(Array.Type.REAL, arrayValue).setN(valueList.size());
   }
 
   /**
@@ -135,7 +135,7 @@ public final class AppPMMLUtils {
     Preconditions.checkArgument(
         importances == null || (importances.length == schema.getNumPredictors()));
     List<String> featureNames = schema.getFeatureNames();
-    Collection<MiningField> miningFields = new ArrayList<>();
+    List<MiningField> miningFields = new ArrayList<>();
     for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
       String featureName = featureNames.get(featureIndex);
       MiningField field = new MiningField(FieldName.create(featureName));
@@ -160,7 +160,7 @@ public final class AppPMMLUtils {
       }
       miningFields.add(field);
     }
-    return new MiningSchema().withMiningFields(miningFields);
+    return new MiningSchema(miningFields);
   }
 
   /**

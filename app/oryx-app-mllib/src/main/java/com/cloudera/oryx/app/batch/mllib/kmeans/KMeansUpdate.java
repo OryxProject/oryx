@@ -200,16 +200,16 @@ public final class KMeansUpdate extends MLUpdate<String> {
       if (inputSchema.isActive(i)) {
         FieldName fieldName = FieldName.create(inputSchema.getFeatureNames().get(i));
         ClusteringField clusteringField =
-            new ClusteringField(fieldName).withCenterField(ClusteringField.CenterField.TRUE);
+            new ClusteringField(fieldName).setCenterField(ClusteringField.CenterField.TRUE);
         clusteringFields.add(clusteringField);
       }
     }
 
     List<Cluster> clusters = new ArrayList<>(clusterCenters.length);
     for (int i = 0; i < clusterCenters.length; i++) {
-      clusters.add(new Cluster().withId(Integer.toString(i))
-                       .withSize(clusterSizesMap.get(i).intValue())
-                       .withArray(AppPMMLUtils.toArray(clusterCenters[i].toArray())));
+      clusters.add(new Cluster().setId(Integer.toString(i))
+                       .setSize(clusterSizesMap.get(i).intValue())
+                       .setArray(AppPMMLUtils.toArray(clusterCenters[i].toArray())));
     }
 
     return new ClusteringModel(
@@ -217,7 +217,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         AppPMMLUtils.buildMiningSchema(inputSchema),
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).setMeasure(new SquaredEuclidean()),
         clusteringFields,
         clusters);
   }

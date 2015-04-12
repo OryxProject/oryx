@@ -94,21 +94,21 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
 
     List<ClusteringField> clusteringFields = new ArrayList<>();
     clusteringFields.add(new ClusteringField(
-        FieldName.create("x")).withCenterField(ClusteringField.CenterField.TRUE));
+        FieldName.create("x")).setCenterField(ClusteringField.CenterField.TRUE));
     clusteringFields.add(new ClusteringField(
-        FieldName.create("y")).withCenterField(ClusteringField.CenterField.TRUE));
+        FieldName.create("y")).setCenterField(ClusteringField.CenterField.TRUE));
 
     List<Cluster> clusters = new ArrayList<>();
-    clusters.add(new Cluster().withId("0").withSize(1).withArray(AppPMMLUtils.toArray(1.0, 0.0)));
-    clusters.add(new Cluster().withId("1").withSize(2).withArray(AppPMMLUtils.toArray(2.0, -1.0)));
-    clusters.add(new Cluster().withId("2").withSize(3).withArray(AppPMMLUtils.toArray(-1.0, 0.0)));
+    clusters.add(new Cluster().setId("0").setSize(1).setArray(AppPMMLUtils.toArray(1.0, 0.0)));
+    clusters.add(new Cluster().setId("1").setSize(2).setArray(AppPMMLUtils.toArray(2.0, -1.0)));
+    clusters.add(new Cluster().setId("2").setSize(3).setArray(AppPMMLUtils.toArray(-1.0, 0.0)));
 
     pmml.getModels().add(new ClusteringModel(
         MiningFunctionType.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         miningSchema,
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).withMeasure(new SquaredEuclidean()),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).setMeasure(new SquaredEuclidean()),
         clusteringFields,
         clusters));
 
