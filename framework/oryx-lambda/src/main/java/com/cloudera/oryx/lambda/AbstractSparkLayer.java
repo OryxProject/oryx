@@ -16,27 +16,29 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import kafka.common.TopicAndPartition;
+import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.storage.StorageLevel;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
+import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
@@ -53,15 +55,15 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final String streamingMaster;
   private final String inputTopic;
   private final String inputTopicLockMaster;
+  private final String inputBroker;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final Class<? extends Decoder<?>> keyDecoderClass;
-  private final Class<? extends Decoder<?>> messageDecoderClass;
+  private final Class<? extends Decoder<K>> keyDecoderClass;
+  private final Class<? extends Decoder<M>> messageDecoderClass;
   private final int numExecutors;
   private final int executorCores;
   private final String executorMemoryString;
   //private final String driverMemoryString;
-  private final int receiverParallelism;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int uiPort;
@@ -73,22 +75,23 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     String group = getConfigGroup();
     this.config = config;
-    this.id = ConfigUtils.getOptionalString(config, "oryx.id");
+    String configuredID = ConfigUtils.getOptionalString(config, "oryx.id");
+    this.id = configuredID == null ? generateRandomID() : configuredID;
     this.streamingMaster = config.getString("oryx." + group + ".streaming.master");
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
     this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
+    this.inputBroker = config.getString("oryx.input-topic.broker");
     this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
-    this.keyDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+    this.keyDecoderClass = (Class<? extends Decoder<K>>) ClassUtils.loadClass(
         config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
-    this.messageDecoderClass = (Class<? extends Decoder<?>>) ClassUtils.loadClass(
+    this.messageDecoderClass = (Class<? extends Decoder<M>>) ClassUtils.loadClass(
         config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
     this.numExecutors = config.getInt("oryx." + group + ".streaming.num-executors");
     this.executorCores = config.getInt("oryx." + group + ".streaming.executor-cores");
     this.executorMemoryString = config.getString("oryx." + group + ".streaming.executor-memory");
     //this.driverMemoryString = config.getString("oryx." + group + ".streaming.driver-memory");
-    this.receiverParallelism = config.getInt("oryx." + group + ".streaming.receiver-parallelism");
     this.generationIntervalSec =
         config.getInt("oryx." + group + ".streaming.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx." + group + ".streaming.block-interval-sec");
@@ -96,10 +99,13 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     Preconditions.checkArgument(numExecutors >= 1);
     Preconditions.checkArgument(executorCores >= 1);
-    Preconditions.checkArgument(receiverParallelism >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
     Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(uiPort > 0);
+  }
+
+  private static String generateRandomID() {
+    return Integer.toString(RandomManager.getRandom().nextInt() & 0x7FFFFFFF);
   }
 
   /**
@@ -120,20 +126,20 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     return id;
   }
 
+  protected final String getGroupID() {
+    return "OryxGroup-" + getLayerName() + "-" + getID();
+  }
+
+  protected final String getInputTopicLockMaster() {
+    return inputTopicLockMaster;
+  }
+
   protected final Class<K> getKeyClass() {
     return keyClass;
   }
 
   protected final Class<M> getMessageClass() {
     return messageClass;
-  }
-
-  protected final Class<? extends Decoder<?>> getKeyDecoderClass() {
-    return keyDecoderClass;
-  }
-
-  protected final Class<? extends Decoder<?>> getMessageDecoderClass() {
-    return messageDecoderClass;
   }
 
   protected final JavaStreamingContext buildStreamingContext() {
@@ -154,7 +160,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
       sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
       sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
-      sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors", Integer.toString(numExecutors));
+      sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors",
+                             Integer.toString(numExecutors));
       sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
     } else {
       sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
@@ -186,37 +193,57 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
                                     new Duration(generationIntervalMS));
   }
 
-  protected final JavaPairDStream<K,M> buildInputDStream(JavaStreamingContext streamingContext) {
+  protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(
+      JavaStreamingContext streamingContext) {
     Map<String,String> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
-    kafkaParams.put("group.id", "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis());
-    // Don't re-consume old messages from input
+    //kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
+    String groupID = getGroupID();
+    kafkaParams.put("group.id", groupID);
+    // Don't re-consume old messages from input by default
     kafkaParams.put("auto.offset.reset", "largest");
+    kafkaParams.put("metadata.broker.list", inputBroker);
+    // Newer version of metadata.broker.list:
+    kafkaParams.put("bootstrap.servers", inputBroker);
 
-    String id = getID();
-    if (id != null) {
-      // Set consumer.id to access last read offset for the layer
-      kafkaParams.put("consumer.id", "Oryx-" +  getLayerName() + "-" + id);
-    }
+    Map<TopicAndPartition,Long> offsets =
+        com.cloudera.oryx.kafka.util.KafkaUtils.getOffsets(inputTopicLockMaster,
+                                                           getGroupID(),
+                                                           inputTopic);
+    log.info("Initial offsets: {}", offsets);
 
-    List<JavaPairDStream<K,M>> streams = new ArrayList<>(receiverParallelism);
-    for (int i = 0; i < receiverParallelism; i++) {
-      streams.add(KafkaUtils.createStream(
-          streamingContext,
-          getKeyClass(),
-          getMessageClass(),
-          getKeyDecoderClass(),
-          getMessageDecoderClass(),
-          kafkaParams,
-          Collections.singletonMap(inputTopic, 1),
-          StorageLevel.MEMORY_AND_DISK_2()));
-    }
+    // Ugly compiler-pleasing acrobatics:
+    @SuppressWarnings("unchecked")
+    Class<MessageAndMetadata<K,M>> streamClass =
+        (Class<MessageAndMetadata<K,M>>) (Class<?>) MessageAndMetadata.class;
+    Function<MessageAndMetadata<K,M>,MessageAndMetadata<K,M>> identity = identity();
 
-    if (streams.size() == 1) {
-      return streams.get(0);
-    } else {
-      return streamingContext.union(streams.get(0), streams.subList(1, streams.size()));
-    }
+    return KafkaUtils.createDirectStream(streamingContext,
+                                         keyClass,
+                                         messageClass,
+                                         keyDecoderClass,
+                                         messageDecoderClass,
+                                         streamClass,
+                                         kafkaParams,
+                                         offsets,
+                                         identity);
+  }
+
+  private static <T> Function<T,T> identity() {
+    return new Function<T,T>() {
+      @Override
+      public T call(T t) {
+        return t;
+      }
+    };
+  }
+
+  protected static <T,U> PairFunction<MessageAndMetadata<T,U>,T,U> kmToPair() {
+    return new PairFunction<MessageAndMetadata<T, U>, T, U>() {
+      @Override
+      public Tuple2<T, U> call(MessageAndMetadata<T, U> km) {
+        return new Tuple2<>(km.key(), km.message());
+      }
+    };
   }
 
 }

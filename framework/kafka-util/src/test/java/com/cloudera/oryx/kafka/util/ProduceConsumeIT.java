@@ -47,8 +47,9 @@ public final class ProduceConsumeIT extends OryxTest {
       localZKServer.start();
       localKafkaBroker.start();
 
-      KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
-      KafkaUtils.maybeCreateTopic("localhost", zkPort, TOPIC);
+      String zkHostPort = "localhost:" + zkPort;
+      KafkaUtils.deleteTopic(zkHostPort, TOPIC);
+      KafkaUtils.maybeCreateTopic(zkHostPort, TOPIC);
 
       ProduceData produce = new ProduceData(new DefaultCSVDatumGenerator(),
                                             zkPort,
@@ -75,7 +76,7 @@ public final class ProduceConsumeIT extends OryxTest {
 
         keys = consumeTopic.getKeys();
       } finally {
-        KafkaUtils.deleteTopic("localhost", zkPort, TOPIC);
+        KafkaUtils.deleteTopic(zkHostPort, TOPIC);
       }
 
       if (keys.size() != NUM_DATA) {

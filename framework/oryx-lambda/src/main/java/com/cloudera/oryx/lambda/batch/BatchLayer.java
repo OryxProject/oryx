@@ -17,7 +17,10 @@ package com.cloudera.oryx.lambda.batch;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.io.Writable;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
@@ -27,6 +30,7 @@ import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.lambda.AbstractSparkLayer;
+import com.cloudera.oryx.lambda.UpdateOffsetsFn;
 
 /**
  * Main entry point for Oryx Batch Layer.
@@ -81,11 +85,14 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     streamingContext = buildStreamingContext();
     log.info("Creating message stream from topic");
-    JavaPairDStream<K,M> dStream = buildInputDStream(streamingContext);
+    JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
+
+    PairFunction<MessageAndMetadata<K,M>,K,M> kmToPair = kmToPair();
+    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(kmToPair);
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();
-    dStream.foreachRDD(
+    pairDStream.foreachRDD(
         new BatchUpdateFunction<>(getConfig(),
                                   keyClass,
                                   messageClass,
@@ -98,7 +105,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     // Save data to HDFS. Write the original message type, not transformed.
     JavaPairDStream<Writable,Writable> writableDStream =
-        dStream.repartition(storagePartitions).mapToPair(
+        pairDStream.repartition(storagePartitions).mapToPair(
             new ValueToWritableFunction<>(keyClass,
                                           messageClass,
                                           keyWritableClass,
@@ -111,6 +118,8 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
                                keyWritableClass,
                                messageWritableClass,
                                streamingContext.sparkContext().hadoopConfiguration()));
+
+    dStream.foreachRDD(new UpdateOffsetsFn<K,M>(getGroupID(), getInputTopicLockMaster()));
 
     log.info("Starting Spark Streaming");
 

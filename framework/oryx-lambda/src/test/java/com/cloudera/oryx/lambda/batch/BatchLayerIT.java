@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.batch;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -42,15 +41,6 @@ public final class BatchLayerIT extends AbstractBatchIT {
 
   @Test
   public void testBatchLayer() throws Exception {
-    doTestBatchLayer(2, 1);
-  }
-
-  @Test
-  public void testBatchLayerMultipleReceivers() throws Exception {
-    doTestBatchLayer(4, 4);
-  }
-
-  private void doTestBatchLayer(int partitions, int receivers) throws IOException, InterruptedException {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
     Map<String,Object> overlayConfig = new HashMap<>();
@@ -59,8 +49,7 @@ public final class BatchLayerIT extends AbstractBatchIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.storage.partitions", partitions);
-    overlayConfig.put("oryx.batch.streaming.receiver-parallelism", receivers);
+    overlayConfig.put("oryx.batch.storage.partitions", 2);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     List<IntervalData<String,String>> intervalData = MockBatchUpdate.getIntervalDataHolder();

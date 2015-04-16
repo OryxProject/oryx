@@ -32,6 +32,8 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
@@ -44,6 +46,7 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.lambda.AbstractSparkLayer;
+import com.cloudera.oryx.lambda.UpdateOffsetsFn;
 
 /**
  * Main entry point for Oryx Speed Layer.
@@ -94,7 +97,11 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     streamingContext = buildStreamingContext();
     log.info("Creating message stream from topic");
-    JavaPairDStream<K,M> dStream = buildInputDStream(streamingContext);
+
+    JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
+
+    PairFunction<MessageAndMetadata<K,M>,K,M> kmToPair = kmToPair();
+    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(kmToPair);
 
     Properties consumerProps = new Properties();
     consumerProps.setProperty("group.id",
@@ -125,7 +132,9 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
       }
     }).start();
 
-    dStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
+    pairDStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
+
+    dStream.foreachRDD(new UpdateOffsetsFn<K,M>(getGroupID(), getInputTopicLockMaster()));
 
     log.info("Starting Spark Streaming");
 

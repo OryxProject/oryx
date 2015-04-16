@@ -64,17 +64,19 @@ public abstract class AbstractLambdaIT extends OryxTest {
     log.info("Starting local Kafka broker");
     localKafkaBroker = new LocalKafkaBroker(localKafkaBrokerPort, localZKPort);
     localKafkaBroker.start();
-    KafkaUtils.deleteTopic("localhost", localZKPort, INPUT_TOPIC);
-    KafkaUtils.deleteTopic("localhost", localZKPort, UPDATE_TOPIC);
-    KafkaUtils.maybeCreateTopic("localhost", localZKPort, INPUT_TOPIC);
-    KafkaUtils.maybeCreateTopic("localhost", localZKPort, UPDATE_TOPIC);
+    String zkHostPort = "localhost:" + localZKPort;
+    KafkaUtils.deleteTopic(zkHostPort, INPUT_TOPIC);
+    KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
+    KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC);
+    KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC);
   }
 
   @After
   public final void tearDownKafkaZK() {
     if (localZKServer != null) {
-      KafkaUtils.deleteTopic("localhost", localZKPort, INPUT_TOPIC);
-      KafkaUtils.deleteTopic("localhost", localZKPort, UPDATE_TOPIC);
+      String zkHostPort = "localhost:" + localZKPort;
+      KafkaUtils.deleteTopic(zkHostPort, INPUT_TOPIC);
+      KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
     }
     if (localKafkaBroker != null) {
       log.info("Stopping Kafka");
