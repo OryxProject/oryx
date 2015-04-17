@@ -92,8 +92,6 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       sleepSeconds(genIntervalSec);
 
       keyMessages = consumeInput.getKeyMessages();
-    } finally {
-      produce.deleteTopic();
     }
 
     return keyMessages;

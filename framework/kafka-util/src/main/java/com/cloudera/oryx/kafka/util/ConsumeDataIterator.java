@@ -57,6 +57,7 @@ final class ConsumeDataIterator
   public void close() {
     if (!closed) {
       closed = true;
+      consumer.commitOffsets();
       consumer.shutdown();
     }
   }

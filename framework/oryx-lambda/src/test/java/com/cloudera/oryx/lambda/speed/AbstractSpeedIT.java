@@ -102,9 +102,6 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       sleepSeconds(genIntervalSec);
 
       keyMessages = consumeUpdate.getKeyMessages();
-    } finally {
-      inputProducer.deleteTopic();
-      updateProducer.deleteTopic();
     }
 
     return keyMessages;

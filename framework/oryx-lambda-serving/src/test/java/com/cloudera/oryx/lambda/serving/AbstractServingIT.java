@@ -87,9 +87,6 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     if (servingLayer != null) {
       servingLayer.close();
     }
-    if (updateProducer != null) {
-      updateProducer.deleteTopic();
-    }
   }
 
   protected final int getHTTPPort() {

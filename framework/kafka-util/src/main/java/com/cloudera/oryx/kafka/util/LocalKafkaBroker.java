@@ -95,6 +95,7 @@ public final class LocalKafkaBroker implements Closeable {
     log.info("Closing...");
     if (kafkaServer != null) {
       kafkaServer.shutdown();
+      kafkaServer.awaitShutdown();
       kafkaServer = null;
     }
     if (logsDir != null) {

@@ -143,6 +143,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     }
     if (consumer != null) {
       log.info("Shutting down consumer");
+      consumer.commitOffsets();
       consumer.shutdown();
       consumer = null;
     }

@@ -156,6 +156,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     }
     if (consumer != null) {
       log.info("Shutting down consumer");
+      consumer.commitOffsets();
       consumer.shutdown();
       consumer = null;
     }

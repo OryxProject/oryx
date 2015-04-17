@@ -104,8 +104,4 @@ public final class ProduceData {
     }
   }
 
-  public void deleteTopic() {
-    KafkaUtils.deleteTopic("localhost:" + zkPort, topic);
-  }
-
 }
