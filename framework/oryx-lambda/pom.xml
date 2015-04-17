@@ -33,6 +33,10 @@
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
+      <artifactId>kafka-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
     </dependency>
     <dependency>
@@ -65,11 +69,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>kafka-util</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

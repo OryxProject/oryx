@@ -80,7 +80,7 @@ public final class ProduceData {
   }
 
   public void start() throws InterruptedException {
-    KafkaUtils.maybeCreateTopic("localhost", zkPort, topic);
+    KafkaUtils.maybeCreateTopic("localhost:" + zkPort, topic);
     RandomGenerator random = RandomManager.getRandom();
 
     Properties producerProps = new Properties();
@@ -105,7 +105,7 @@ public final class ProduceData {
   }
 
   public void deleteTopic() {
-    KafkaUtils.deleteTopic("localhost", zkPort, topic);
+    KafkaUtils.deleteTopic("localhost:" + zkPort, topic);
   }
 
 }
