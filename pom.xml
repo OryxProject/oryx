@@ -257,6 +257,17 @@
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
         <version>1.2.0</version>
+        <exclusions>
+          <!-- Not needed in Java 7+ -->
+          <exclusion>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>

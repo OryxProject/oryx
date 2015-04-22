@@ -22,6 +22,9 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+/**
+ * Represents and endpoint that should receive requests in a traffic test.
+ */
 public abstract class Endpoint {
 
   private final String path;

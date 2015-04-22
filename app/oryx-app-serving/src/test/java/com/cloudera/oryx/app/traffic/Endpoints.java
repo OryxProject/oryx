@@ -18,6 +18,10 @@ package com.cloudera.oryx.app.traffic;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.random.RandomGenerator;
 
+/**
+ * Represents a collection {@link Endpoint}s that can be randomly chosen from
+ * to generate a diverse set of traffic for testing.
+ */
 final class Endpoints {
 
   private final Endpoint[] endpoints;
