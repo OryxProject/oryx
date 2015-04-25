@@ -5,9 +5,7 @@ and [Apache Kafka](http://kafka.apache.org), but with specialization for real-ti
 learning. It is a framework for building applications, but also includes packaged, end-to-end 
 applications for collaborative filtering, classification, regression and clustering.
 
-Oryx 2 is a rearchitecting and continuation of the original [Oryx 1](http://github.com/cloudera/oryx) project. 
-
-<img src="http://oryxproject.github.io/oryx/img/Architecture.png"/>
+Proceed to the [Oryx 2 site](http://oryxproject.github.io/oryx/) for full documentation.
 
 Just looking to deploy a ready-made, end-to-end application for collaborative filtering, clustering or classification? Easy.
 Proceed directly to:
@@ -22,6 +20,8 @@ Developers can consume Oryx 2 as a framework for building custom applications as
 Following the architecture overview below, proceed to 
 [Making an Oryx App](http://oryxproject.github.io/oryx/docs/index.html#Making_an_Oryx_App) 
 to learn how to create a new application.
+
+<img src="http://oryxproject.github.io/oryx/img/Architecture.png"/>
 
 ------
 
