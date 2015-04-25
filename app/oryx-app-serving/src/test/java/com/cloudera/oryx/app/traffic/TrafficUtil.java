@@ -48,9 +48,9 @@ import com.cloudera.oryx.common.random.RandomManager;
  * application.
  *
  * <ol>
- *   <ul>{@code inputFile} local file containing input to base requests on, one per line.</ul>
- *   <ul>{@code hosts} comma-separated distinct host:port pairs to send HTTP requests to</ul>
- *   <ul>{@code requestIntervalMS} average delay between requests in MS</ul>
+ *   <li>{@code inputFile} local file containing input to base requests on, one per line.</li>
+ *   <li>{@code hosts} comma-separated distinct host:port pairs to send HTTP requests to</li>
+ *   <li>{@code requestIntervalMS} average delay between requests in MS</li>
  * </ol>
  */
 public final class TrafficUtil {

@@ -1,179 +1,12 @@
-# Documentation
-
-* [JavaDoc and Other Project Reports](../project-reports.html)
-* [API Endpoint Reference](api-end-pt-ref.html)
-* [FAQ and Trouble Shooting](faq-and-troubleshooting.html)
-* [Differences From Oryx 1](oryx-1-diff.html)
-* [Oryx 2 First Release](oryx-2-first-release.html)
-* [Wiki](https://github.com/cloudera/oryx/wiki)
-
-# Build From Source
-## Requirements
-
-Building from source requires:
-
-* [`git`](http://git-scm.com/), or an IDE that supports Git
-* [Apache Maven](http://maven.apache.org/) 3.0.0 or later
-* [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (not just JRE) 6 or later
-
-Some or all of these may already be installed on your development machine.
-
-## Build
-
-Clone the repository from GitHub in your desired local directory, which will create `oryx`. Build it:
-
-```bash
-git clone https://github.com/cloudera/oryx.git
-cd oryx
-mvn -DskipTests install
-```
-
-This will build the following binaries:
-
-* Serving Layer: `serving/target/oryx-serving-x.y.z.jar`
-* Computation Layer: `computation/target/oryx-computation-x.y.z.jar`
-
-# Developing from Source
-
-Note that if you are interested in developing on Oryx, you should probably [fork this repository](https://help.github.com/articles/fork-a-repo) and then work on your own fork, so that you can submit pull requests with changes.
-
-## Older Hadoop Version (< 2.3.0) Note
-
-To use Oryx with versions of Hadoop 2.x prior to 2.3.0, it is necessary to create compatible binaries by recompiling against the specific version of Hadoop you're using. To do so, use the `hadoop200` profile and set the `hadoop.version` property.
-
-`mvn -phadoop200 -Dhadoop.version=...`
-
-# Cluster Setup
-## Requirements
-
-- Java 7 or later (JRE only is required) (_In the near future, Java 8 may be required_)
-- A Hadoop cluster running the following components:
-    - Apache Hadoop 2.5.0 or later
-    - Apache Zookeeper 3.4.5 or later
-    - Apache Kafka 0.8.2 or later
-    - Apache Spark 1.3.0 or later
-
-[CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
-5.4.0 and later meet these requirements, although any Hadoop distribution with these
-components should work fine. While the rest of the instructions will refer to a CDH 5.4.0+
-distribution, this is not a requirement.
-
-_Note that the "alpha 1" release requires only Spark 1.2.0, and thus works with CDH 5.3.0+_
-
-A single-node cluster can be sufficient, although running all of these components on one machine
-may require a reasonable amount of RAM.
-
-## Cluster Setup
-
-Install and configure the Hadoop cluster normally. The following services need to be enabled:
-
-- HDFS
-- YARN
-- Zookeeper
-- Kafka
-- Spark (on YARN)
-
-Note that for CDH, Kafka is available as a "CLABS 1.0.0" parcel from
-[Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
-
-Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
-and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default
-port here is 2181. Default ports will be used in subsequent examples.
-
-Where a Kafka broker or Zookeeper server is called for, you can and should specify a comma-separated
-list of `host:port` pairs where there are multiple hosts. Example: `your-zk-1:2181,your-zk-2:2181`.
-
-Also note whether your Zookeeper instance is using a chroot path. This is simply a path suffixed
-to the `host:port`, like `your-zk:2181/your-chroot`.
-For example in CDH, Kafka uses a `/kafka` chroot, and subsequent examples will
-use this chroot. You can omit this if you are not using a chroot.
-
-Note: if you have multiple Zookeeper servers, and a chroot, only add the chroot once, at
-the end: `your-zk-1:2181,your-zk-2:2181/kafka`
-
-## Verifying Kafka (Optional)
-
-To quickly verify that Kafka and ZK are running correctly:
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 1 --partitions 1 --topic test
-kafka-console-consumer --zookeeper your-zk:2181/kafka \
-  --topic test --from-beginning
-```
-
-In another console, take any text file (here `data.csv`) and send it to the topic:
-
-```bash
-cat data.csv | kafka-console-producer \
-  --broker-list your-kafka-broker:9092 --topic test
-```
-
-You should see the contents of the text file echoed onto the other consumer's console soon thereafter.
-
-Delete the test topic when done.
-
-```bash
-kafka-topics --delete --zookeeper your-zk:2181/kafka --topic test
-```
-
-## Configuring Kafka
-
-
-Oryx will use two Kafka topics for data transport. One carries input data to the batch and
-Speed Layer, and the other carries model updates from there on to the Serving Layer. The default
-names of these topics are "OryxInput" and "OryxUpdate" respectively. They need to be
-created before Oryx is started.
-
-Each can default to have one partition, but more can be configured if much higher read
-throughput is needed.
-The example below shows 1 partition. Replication factor can be any value, but 3 is recommended.
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 3 --partitions 1 --topic OryxInput
-...
-Created topic "OryxInput".
-```
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 3 --partitions 1 --topic OryxUpdate
-...
-Created topic "OryxUpdate".
-```
-
-You may need to configure the retention time for one or both topics. In particular,
-it's typically important to limit the retention time for the update topic, since the Speed
-and Serving Layer read the entire topic from the start on startup to catch up. Setting it
-to twice the Batch Layer update interval is a good start. For example, to set it to 2 days
-(2 * 24 * 60 * 60 * 1000 = 172800000 ms):
-
-```bash
-kafka-topics --zookeeper your-zk:2181/kafka --alter --topic OryxUpdate \
-  --config retention.ms=172800000
-```
-
-This is not as important for the input topic, which is not re-read from the beginning.
-
-Continue to [[Running-Oryx]] to start the servers, and run an example.
-
-# Configuration
-Refer to the default configuration file for a list and explanation of configuration parameters:
-[`reference.conf`](/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf)
-
-Skeleton examples may be found at:
-
-- [`app/conf/als-example.conf`](/OryxProject/oryx/blob/master/app/conf/als-example.conf)
-- [`app/conf/kmeans-example.conf`](/OryxProject/oryx/blob/master/app/conf/kmeans-example.conf)
-- [`app/conf/rdf-example.conf`](/OryxProject/oryx/blob/master/app/conf/rdf-example.conf)
-
-# Running Oryx
-_This is a temporary, manual process for distributing and running the binaries._
+# End Users
 
 ## Running
 
-Download the [latest release](https://github.com/OryxProject/oryx/releases) of the Oryx Batch, Speed and Serving Layer, both `.jar` files and `.sh` scripts. Alternatively, build them from source (see [[Building-from-Source]]).
+_This is a temporary, manual process for distributing and running the binaries._
+
+Download the [latest release](https://github.com/OryxProject/oryx/releases) of the Oryx Batch, 
+Speed and Serving Layer, both `.jar` files and `.sh` scripts. Alternatively, build them 
+from source.
 
 Copy binaries and scripts to machines that are part of the Hadoop cluster.
 They may be deployed on different machines, or on one for purposes of testing.
@@ -181,7 +14,7 @@ The Speed and Batch Layers should run on at most one machine, each. The Serving 
 can run on many.
 
 Create a configuration file for your application. You may start with the example in
-[conf/als-example.conf](/OryxProject/oryx/blob/master/app/conf/als-example.conf). Modify
+[conf/als-example.conf](https://github.com/OryxProject/oryx/blob/master/app/conf/als-example.conf). Modify
 host names, ports and directories. In particular, choose data and model directories on HDFS
 that exist and will be accessible to the user running Oryx binaries.
 
@@ -204,21 +37,17 @@ The Serving Layer may be run on several machines.
 
 That's all!
 
-## Trying the ALS Example
+### Trying the ALS Example
 
 If you've used the configuration above, you are running an instance of the ALS-based
 recommender application.
 
-Obtain the [http://grouplens.org/datasets/movielens/](GroupLens 100k) data set and find the
+Obtain the [GroupLens 100K](http://grouplens.org/datasets/movielens/) data set and find the
 `u.data` file within. This needs to be converted to csv:
 
 ```bash
 tr '\t' ',' < u.data > data.csv
 ```
-
-You may wish to monitor the content of the input and update topic while it is in action.
-[[Cluster-Setup]] explains how to tail topics with `kafka-console-consumer`. The topics are
-named `OryxInput` and `OryxUpdate` by default.
 
 Push the input to a Serving Layer, with a local command line tool like `curl`:
 
@@ -327,20 +156,133 @@ wget --quiet --output-document - \
 285,0.6398968471343595
 ```
 
-Congratulations, it's a live recommender!
+Congratulations, it's a live recommender! When done, all processes can be killed with Ctrl-C safely.
 
-When done, all processes can be killed with Ctrl-C safely.
+## API Endpoint Reference
 
-See more about endpoints that are available in [[API-Endpoint-Reference]].
+Oryx bundles several end-to-end applications, including a Serving Layer with REST endpoints.
 
-# Making an Oryx App
+### Collaborative filtering / Recommendation
+
+* [`/recommend`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Recommend.html)
+* [`/recommendToMany`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/RecommendToMany.html)
+* [`/recommendToAnonymous`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/RecommendToAnonymous.html)
+* [`/similarity`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Similarity.html)
+* [`/similarityToItem`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/SimilarityToItem.html)
+* [`/knownItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/KnownItems.html)
+* [`/estimate`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Estimate.html)
+* [`/estimateForAnonymous`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/EstimateForAnonymous.html)
+* [`/because`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Because.html)
+* [`/mostSurprising`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostSurprising.html)
+* [`/popularRepresentativeItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/PopularRepresentativeItems.html)
+* [`/mostActiveUsers`] (http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
+* [`/mostPopularItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostPopularItems.html)
+* [`/mostActiveUsers`] (http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
+* [`/item/allIDs`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/AllItemIDs.html)
+* [`/ready`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Ready.html)
+* [`/pref`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Preference.html)
+* [`/ingest`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Ingest.html)
+
+### Classification / Regression
+
+* [`/predict`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/Predict.html)
+* [`/classificationDistribution`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/ClassificationDistribution.html)
+* [`/train`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/Train.html)
+
+### Clustering
+
+* [`/assign`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/Assign.html)
+* [`/distanceToNearest`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/DistanceToNearest.html)
+* [`/add`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/Add.html)
+
+## Configuration
+
+Refer to the default configuration file for a list and explanation of configuration parameters:
+[`reference.conf`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf)
+
+Or see one of the following examples:
+
+- [`app/conf/als-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/als-example.conf)
+- [`app/conf/kmeans-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/kmeans-example.conf)
+- [`app/conf/rdf-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/rdf-example.conf)
+
+
+# Developers
+
+## Building from Source
+
+### Requirements
+
+- [`git`](http://git-scm.com/), or an IDE that supports Git
+- [Apache Maven](http://maven.apache.org/) 3.2.1 or later
+- [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (not just JRE) 7 or later
+
+Some or all of these may already be installed on your development machine.
+
+### Building
+
+Clone the repository in your desired local directory and build it:
+
+```bash
+git clone https://github.com/OryxProject/oryx.git oryx
+cd oryx
+mvn -DskipTests package
+```
+
+This will build the following binaries:
+
+- Batch Layer: `deploy/oryx-batch/target/oryx-batch-x.y.z.jar`
+- Speed Layer: `deploy/oryx-speed/target/oryx-speed-x.y.z.jar`
+- Serving Layer: `deploy/oryx-serving/target/oryx-serving-x.y.z.jar`
+
+... where `x.y.z` is the current version string, like `2.0.0`.
+
+Note that if you are interested in developing on Oryx, you should probably 
+[fork this repository](https://help.github.com/articles/fork-a-repo) and then work on 
+your own fork, so that you can submit pull requests with changes.
+
+#### Java 8
+
+To configure the build to use Java 8, add `-Pjava8` to build and test commands here.
+
+#### Platform Only
+
+The default build includes end-to-end ML applications based on Spark MLlib and other
+libraries. To build only the lambda tier and ML tier, for use with your own app, disable
+the `app-tier` profile: `-P!app-tier`. Note that in `bash`, `!` is reserved, so you may
+need to add `-P\!app-tier`.
+
+### Testing
+
+`mvn test` runs all unit tests. `mvn verify` will run all integration tests too, which takes
+significantly longer.
+
+## Module Mapping
+
+Major modules and their relation to tiers and layers:
+
+|          | *Serving*             | *Speed*                     | *Batch*                     |
+| --------:| --------------------- | --------------------------- | --------------------------- |
+| *Binary* | [`oryx-serving`](https://github.com/OryxProject/oryx/tree/master/deploy/oryx-serving) | [`oryx-speed`](https://github.com/OryxProject/oryx/tree/master/deploy/oryx-speed) | [`oryx-batch`](https://github.com/OryxProject/oryx/tree/master/deploy/oryx-batch) |
+| *App*    | [`oryx-app-serving`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-serving) | [`oryx-app-mllib`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-mllib) [`oryx-app`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app) | [`oryx-app-mllib`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-mllib) [`oryx-app`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app) |
+| *ML*     |                       | [`oryx-ml`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-ml) | [`oryx-ml`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-ml) |
+| *Lambda* | [`oryx-lambda-serving`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-lambda-serving) | [`oryx-lambda`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-lambda) | [`oryx-lambda`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-lambda) |
+
+Supporting modules like 
+[`oryx-common`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-common), 
+[`oryx-app-common`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-common),
+[`oryx-api`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-api), and
+[`oryx-app-api`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-api) are not shown.
+
+## Making an Oryx App
+
 Oryx comes with an "app tier", implementations of actual Batch, Speed and Serving Layer
 logic for recommendation, clustering and classification. However, any implementation
 may be used with Oryx. They can be mixed and matched too. For example, you could reimplement
 the Batch Layer for ALS-related recommendation and instead supply this alternative
 implementation while still using the provided ALS Serving and Speed Layers.
 
-## Creating an App
+### Creating an App
 
 In each case, creating a custom Batch, Speed or Serving Layer app amounts to implementing
 one Java interface or Scala trait. These interfaces/traits are found in the `oryx-api` module
@@ -348,17 +290,17 @@ within the project.
 
 |         | Java                                                |
 | -------:|:--------------------------------------------------- |
-| Batch   | `com.cloudera.oryx.api.batch.BatchLayerUpdate`      |
-| Speed   | `com.cloudera.oryx.api.speed.SpeedModelManager`     |
-| Serving | `com.cloudera.oryx.api.serving.ServingModelManager` |
+| Batch   | [`com.cloudera.oryx.api.batch.BatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/batch/BatchLayerUpdate.java)      |
+| Speed   | [`com.cloudera.oryx.api.speed.SpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/speed/SpeedModelManager.java)     |
+| Serving | [`com.cloudera.oryx.api.serving.ServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/serving/ServingModelManager.java) |
 
 |         | Scala                                                    |
 | -------:|:-------------------------------------------------------- |
-| Batch   | `com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate`      |
-| Speed   | `com.cloudera.oryx.api.speed.ScalaSpeedModelManager`     |
-| Serving | `com.cloudera.oryx.api.serving.ScalaServingModelManager` |
+| Batch   | [`com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-lambda/src/main/java/com/cloudera/oryx/lambda/batch/ScalaBatchLayerUpdateAdapter.java)      |
+| Speed   | [`com.cloudera.oryx.api.speed.ScalaSpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/speed/ScalaSpeedModelManager.scala)     |
+| Serving | [`com.cloudera.oryx.api.serving.ScalaServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/serving/ScalaServingModelManager.scala) |
 
-## Building an App
+### Building an App
 
 To access these interfaces/traits in your application, add a dependency on
 `com.cloudera.oryx:oryx-api`. The scope should be `provided`.
@@ -376,12 +318,12 @@ In Maven, this would mean adding a dependency like:
 </dependencies>
 ```
 
-A minimal skeleton project can be found at [example/](/OryxProject/oryx/tree/master/app/example).
+A minimal skeleton project can be found at [example/](https://github.com/OryxProject/oryx/tree/master/app/example).
 
 Compile your code and create a JAR file containing only your implementation, and any supporting
 third-party code. With Maven, this happens with `mvn package`.
 
-## Customizing an Oryx App
+### Customizing an Oryx App
 
 When deploying the prepackaged applications that come with Oryx, in some cases, it's possible
 to supply additional implementations to customize their behavior. For example, the ALS recommender
@@ -401,7 +343,7 @@ here for stand-alone applications.
 </dependencies>
 ```
 
-## Deploying an App
+### Deploying an App
 
 Copy the resulting JAR file -- call it `myapp.jar` -- to the directory containing the
 Oryx binary JAR file it will be run with.
@@ -412,12 +354,128 @@ class, as appropriate.
 When running the Batch / Speed / Serving Layers, add `--app-jar myapp.jar` to the `run.sh`
 command line.
 
-# Handling Failure
+
+# Administrators
+
+## Cluster Setup
+
+The following are required:
+
+- Java 7 or later (JRE only is required)
+- A Hadoop cluster running the following components:
+    - Apache Hadoop 2.6.0 or later
+    - Apache Zookeeper 3.4.5 or later
+    - Apache Kafka 0.8.2 or later
+    - Apache Spark 1.3.0 or later
+
+[CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
+5.4.0 and later meet these requirements, although any Hadoop distribution with these
+components should work fine. While the rest of the instructions will refer to a CDH 5.4.0+
+distribution, this is not a requirement.
+
+_Note that the "alpha 1" release requires only Spark 1.2.0, and thus works with CDH 5.3.0+_
+
+A single-node cluster can be sufficient, although running all of these components on one machine
+may require a reasonable amount of RAM.
+
+### Services
+
+Install and configure the Hadoop cluster normally. The following services need to be enabled:
+
+- HDFS
+- YARN
+- Zookeeper
+- Kafka
+- Spark (on YARN)
+
+Note that for CDH, Kafka is available as a parcel from
+[Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
+
+Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
+and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default
+port here is 2181. Default ports will be used in subsequent examples.
+
+Where a Kafka broker or Zookeeper server is called for, you can and should specify a comma-separated
+list of `host:port` pairs where there are multiple hosts. Example: `your-zk-1:2181,your-zk-2:2181`.
+
+Also note whether your Zookeeper instance is using a chroot path. This is simply a path suffixed
+to the `host:port`, like `your-zk:2181/your-chroot`.
+For example in CDH, Kafka uses a `/kafka` chroot, and subsequent examples will
+use this chroot. You can omit this if you are not using a chroot.
+
+Note: if you have multiple Zookeeper servers, and a chroot, only add the chroot once, at
+the end: `your-zk-1:2181,your-zk-2:2181/kafka`
+
+### Verifying Kafka (Optional)
+
+To quickly verify that Kafka and ZK are running correctly:
+
+```bash
+kafka-topics --create --zookeeper your-zk:2181/kafka \
+  --replication-factor 1 --partitions 1 --topic test
+kafka-console-consumer --zookeeper your-zk:2181/kafka \
+  --topic test --from-beginning
+```
+
+In another console, take any text file (here `data.csv`) and send it to the topic:
+
+```bash
+cat data.csv | kafka-console-producer \
+  --broker-list your-kafka-broker:9092 --topic test
+```
+
+You should see the contents of the text file echoed onto the other consumer's console soon thereafter.
+
+Delete the test topic when done.
+
+```bash
+kafka-topics --delete --zookeeper your-zk:2181/kafka --topic test
+```
+
+### Configuring Kafka
+
+Oryx will use two Kafka topics for data transport. One carries input data to the batch and
+Speed Layer, and the other carries model updates from there on to the Serving Layer. The default
+names of these topics are "OryxInput" and "OryxUpdate" respectively. They need to be
+created before Oryx is started.
+
+Each can default to have one partition, but more can be configured if much higher read
+throughput is needed.
+The example below shows 1 partition. Replication factor can be any value, but 3 is recommended.
+
+```bash
+kafka-topics --create --zookeeper your-zk:2181/kafka \
+  --replication-factor 3 --partitions 1 --topic OryxInput
+...
+Created topic "OryxInput".
+```
+
+```bash
+kafka-topics --create --zookeeper your-zk:2181/kafka \
+  --replication-factor 3 --partitions 1 --topic OryxUpdate
+...
+Created topic "OryxUpdate".
+```
+
+You may need to configure the retention time for one or both topics. In particular,
+it's typically important to limit the retention time for the update topic, since the Speed
+and Serving Layer read the entire topic from the start on startup to catch up. Setting it
+to twice the Batch Layer update interval is a good start. For example, to set it to 2 days
+(2 * 24 * 60 * 60 * 1000 = 172800000 ms):
+
+```bash
+kafka-topics --zookeeper your-zk:2181/kafka --alter --topic OryxUpdate \
+  --config retention.ms=172800000
+```
+
+This is not as important for the input topic, which is not re-read from the beginning.
+
+## Handling Failure
 
 Eventually, you'll want to stop one or more of the Layers running, or restart it. Or maybe
 a server decides to die. What happens then? What's the worst that can happen?
 
-## Data Loss
+### Data Loss
 
 Historical data is saved in HDFS, which should be configured for replication. HDFS ensures
 data is stored reliably. Kafka is also designed to cope with failure when configured to use
@@ -427,13 +485,13 @@ That is, there is nothing special to do here in order to ensure that data is
 never completely lost. It is the job of HDFS and Kafka to always be available and not lose
 data.
 
-## Server Failure
+### Server Failure
 
 In general, all three Layer server processes should run continuously, and can and should be
 restarted immediately if they have to be stopped, or in case of a failure.
 This can be accomplished with an init script or similar mechanism (not included, yet).
 
-### Serving Layer
+#### Serving Layer
 
 The Serving Layer has no state. On startup, it reads all models and updates available on the
 update topic. It begins answering queries as soon as any first, valid model is
@@ -442,7 +500,7 @@ available. For this reason, it's desirable to limit the retention time for the u
 The operation of the Serving Layer is not distributed. Each instance is independent, and may
 stop or start without affecting others.
 
-### Speed Layer
+#### Speed Layer
 
 The Speed Layer also has no state, and also reads all models and updates available on the
 update topic. It begins producing updates as soon as it has a valid model. It also begins
@@ -464,7 +522,7 @@ Because the role of the Speed Layer is to provide an approximate, "best effort" 
 last published model, this behavior is generally no problem, and desirable because of its
 simplicity.
 
-### Batch Layer
+#### Batch Layer
 
 The Batch Layer is the most complex, since it does generate some state:
 
@@ -488,3 +546,72 @@ As above, if the entire process dies and is restarted, and `oryx.id` has
 been set, then reading will be able to resume from the last offset recorded by Kafka,
 and otherwise, it will resume reading from the latest offset.
 
+## Differences from Oryx 1
+
+Design goals for Oryx 2 were:
+
+- Provide a more reusable platform for [lambda-architecture](http://lambda-architecture.net/)-style
+designs, with batch, speed and serving layers
+- Make each layer usable independently
+- Better support for common machine learning needs
+  - Test/train set split and evaluation
+  - Parallel model build
+  - Hyper-parameter selection
+- Use newer technologies like Spark and Streaming in order to simplify:
+  - Remove separate in-core implementations for scale-down
+  - Remove custom data transport implementation in favor of [Apache Kafka](http://kafka.apache.org/)
+  - Use a 'real' streaming framework instead of reimplementing a simple one
+  - Remove complex MapReduce-based implementations in favor of
+  [Apache Spark](http://spark.apache.org/)-based implementations
+- Support more input (i.e. not just [CSV](http://en.wikipedia.org/wiki/Comma-separated_values))
+
+### Architecture Differences
+
+| Oryx 1 | Oryx 2 |
+| ------ | ------ |
+| One monolithic "tier" for lambda architecture and apps | Three tiers: lambda,  ML, apps |
+| No app-level extensibility | Platform for building other lambda- and ML-based apps |
+| Two layers: Computation and Serving | Three layers: Batch, Speed and Serving |
+| Based on Crunch, MapReduce, HDFS, Tomcat | Based on HDFS, YARN, Spark (+ Streaming, MLlib), Kafka, Zookeeper, Tomcat |
+| 27K lines production code / 4K test | 10K lines production code / 7.5K test: simpler, better tested |
+
+### Deployment Differences
+
+| Oryx 1 | Oryx 2 |
+| ------ | ------ |
+| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 7, core Hadoop 2.5+ (YARN, not "MR1") Spark 1.3+, Kafka 0.8.2+, Zookeeper 3.4.5+ |
+| Supports local, non-Hadoop deployment  | No non-Hadoop deployment |
+| Supports MapReduce-based Hadoop deployment | Supports  only deployment with core Hadoop, YARN, Spark, Kafka |
+
+### Scale and Reliability Differences
+
+| Oryx 1 | Oryx 2 |
+| ------ | ------ |
+| Memory-efficient | Fast, memory-hungry |
+| Custom, best-effort data transport between layers | Reliable data transport via Kafka |
+| Custom MapReduce-based algorithm implementations in Computation Layer | Spark Streaming-based batch layer framework and Spark MLlib-based algorithm implementations |
+| Custom in-core incremental model update ("speed layer") | Spark Streaming-based distributed model update |
+
+### Migration
+
+The bad news is that no direct migration is possible between Oryx 1 and Oryx 2; they have very different implementations. However, differences in the user- and developer-facing aspects are by design similar or identical.
+
+#### REST API
+
+Oryx 2 contains the same set of end-to-end ML applications as Oryx 1, and exposes virtually the same REST API, unchanged. The only significant difference is that there is no longer a `/refresh` endpoint, because it is unnecessary.
+
+#### Configuration
+
+Both implementations use a single configuration file parsed by Typesafe Config. The property namespaces are different but there are some similarities. Compare the [Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) to the [Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/oryx-common/src/main/resources/reference.conf) to understand some of the correspondence and difference.
+
+#### Data Storage and Transport
+
+In Oryx 1, all data was stored in a series of directories in HDFS. In Oryx 2, data is transported via Kafka (which ultimately stores data in HDFS) and in HDFS as managed by a Spark Streaming process. Although it is still possible to side-load data files via HDFS in Oryx 2, it is not supported and is discouraged, in favor of sending data directly to a Kafka queue.
+
+#### Data Formats
+
+In theory, the framework is agnostic to data types and encodings passed between layers. In practice, the provided applications consume the same CSV-encoded data format as Oryx 1.
+
+#### Deployment
+
+The deployment requirements are the most different. Although all layers are still distributed as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN, Kafka, Spark, and Zookeeper services. Your environment or cluster must be updated to include these services before you can use Oryx 2.

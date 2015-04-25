@@ -25,7 +25,7 @@
   </skin>
 
   <bannerLeft>
-    <name>Oryx</name>
+    <name>Oryx 2</name>
     <href>http://oryxproject.github.io/oryx/</href>
   </bannerLeft>
 
@@ -39,18 +39,16 @@
       </brand>
       <theme>bootswatch-united</theme>
       <toc>sidebar</toc>
-
     </reflowSkin>
   </custom>
 
   <body>
     <links>
-      <item name="Overview" href="overview.html"/>
+      <item name="Overview" href="index.html"/>
       <item name="Documentation" href="docs/index.html"/>
-      <item name="Contribute" href="contribute.html"/>
-      <item name="Download" href="download.html"/>
+      <item name="Javadoc" href="apidocs/index.html"/>
+      <item name="Download" href="https://github.com/OryxProject/oryx/releases"/>
     </links>
-
   </body>
 
 </project>

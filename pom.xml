@@ -647,7 +647,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.1</version>
+          <version>2.5.2</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.scm</groupId>
@@ -750,8 +750,7 @@
             <dependency>
               <groupId>lt.velykis.maven.skins</groupId>
               <artifactId>reflow-velocity-tools</artifactId>
-              <!--> Must depend on snapshot version for markdown to render correctly. <-->
-              <version>1.1.2-SNAPSHOT</version>
+              <version>1.1.1</version>
             </dependency>
             <!-- Reflow skin requires Velocity >= 1.7  -->
             <dependency>
@@ -1000,7 +999,7 @@
     this support for common machine learning use cases, like recommendations, clustering,
     classification and regression.
   </description>
-  <url>https://github.com/OryxProject/oryx</url>
+  <url>http://oryxproject.github.io/oryx/</url>
   <inceptionYear>2014</inceptionYear>
   <licenses>
     <license>
