@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -311,10 +312,11 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   /**
    * @param s string to hash
-   * @return top 32 bits of MD5 hash of string, with 0 top bit (so result is nonnegative)
+   * @return top 32 bits of MD5 hash of UTF-8 encoding of the string,
+   *  with 0 top bit (so result is nonnegative)
    */
   private static int hash(String s) {
-    return HASH.hashString(s).asInt() & 0x7FFFFFFF;
+    return HASH.hashString(s, StandardCharsets.UTF_8).asInt() & 0x7FFFFFFF;
   }
 
   private static final class ParseRatingFn implements PairFunction<String[],Long,Rating> {
