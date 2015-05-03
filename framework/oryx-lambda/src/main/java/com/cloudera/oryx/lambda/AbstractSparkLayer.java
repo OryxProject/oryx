@@ -160,6 +160,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
       sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
       sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
+      sparkConf.setIfMissing("spark.dynamicAllocation.minExecutors", "1");
       sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors",
                              Integer.toString(numExecutors));
       sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
