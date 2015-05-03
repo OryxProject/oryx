@@ -1,5 +1,4 @@
 language: java
-before_install: sudo pip install codecov
 install: mvn -Pjava${JAVA_VERSION} ${CDH} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
 script: mvn -Pjava${JAVA_VERSION} ${CDH} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
 matrix:
@@ -15,4 +14,4 @@ cache:
     - $HOME/.m2
 git:
   depth: 5
-after_success: codecov
+after_success: bash <(curl -s https://codecov.io/bash)
