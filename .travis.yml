@@ -27,5 +27,5 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: srowen@gmail.com
     build_command_prepend: "mvn clean"
-    build_command: "mvn -DskipTests=true compile test-compile"
+    build_command: "mvn -Pjava${JAVA_VERSION} -DskipTests=true compile test-compile"
     branch_pattern: coverity_scan
