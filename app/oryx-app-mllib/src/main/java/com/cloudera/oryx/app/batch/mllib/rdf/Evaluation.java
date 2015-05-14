@@ -47,6 +47,9 @@ final class Evaluation {
 
   static double accuracy(final DecisionForest forest, JavaRDD<Example> examples) {
     long total = examples.count();
+    if (total == 0) {
+      return 0.0;
+    }
     long correct = examples.filter(
         new Function<Example, Boolean>() {
           @Override

@@ -84,6 +84,9 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
 
     }
 
+    if (sampleCount == 0) {
+      return 0.0;
+    }
     double silhouetteCoefficient = overallSilhouetteCoefficientForClustering / sampleCount;
     log.info("Computed Silhouette Coefficient for {} clusters: {}",
              getNumClusters(), silhouetteCoefficient);
@@ -92,9 +95,9 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
 
   static JavaRDD<Vector> fetchSampleData(JavaRDD<Vector> evalData) {
     JavaRDD<Vector> data = evalData;
-
-    if (evalData.count() > MAX_SAMPLE_SIZE) {
-      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / evalData.count());
+    long count = evalData.count();
+    if (count > MAX_SAMPLE_SIZE) {
+      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / count);
     }
     return data;
   }

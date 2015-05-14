@@ -144,6 +144,9 @@ final class Evaluation {
                 total++;
               }
             }
+            if (total == 0) {
+              return 0.0;
+            }
             return (double) correct / total;
           }
         }).mean();

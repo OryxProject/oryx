@@ -46,8 +46,10 @@ public final class JVMUtils {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
           @Override
           public void run() {
-            for (Closeable c : closeAtShutdown) {
-              IOUtils.closeQuietly(c);
+            synchronized (closeAtShutdown) {
+              for (Closeable c : closeAtShutdown) {
+                IOUtils.closeQuietly(c);
+              }
             }
           }
         }));

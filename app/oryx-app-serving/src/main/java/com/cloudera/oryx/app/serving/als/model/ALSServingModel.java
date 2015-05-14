@@ -259,11 +259,15 @@ public final class ALSServingModel {
       return null;
     }
     Collection<String> knownItems = getKnownItems(user);
-    if (knownItems == null || knownItems.isEmpty()) {
+    if (knownItems == null) {
       return null;
     }
-    List<Pair<String,float[]>> idVectors = new ArrayList<>(knownItems.size());
     synchronized (knownItems) {
+      int size = knownItems.size();
+      if (size == 0) {
+        return null;
+      }
+      List<Pair<String,float[]>> idVectors = new ArrayList<>(size);
       for (String itemID : knownItems) {
         int partition = partition(itemID);
         float[] vector;
@@ -272,8 +276,8 @@ public final class ALSServingModel {
         }
         idVectors.add(new Pair<>(itemID, vector));
       }
+      return idVectors;
     }
-    return idVectors;
   }
 
   public List<Pair<String,Double>> topN(ToDoubleFunction<float[]> scoreFn, int howMany) {
