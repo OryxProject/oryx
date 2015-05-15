@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
+/**
+ * Evaluation metrics for k-means clustering.
+ */
 public enum KMeansEvalStrategy {
 
   /* Sum of Squared Errors, default */

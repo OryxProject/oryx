@@ -20,6 +20,9 @@ import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Encapsulates a cluster, including its center and number of points assigned to the cluster.
+ */
 public final class ClusterInfo implements Serializable {
 
   private final int id;

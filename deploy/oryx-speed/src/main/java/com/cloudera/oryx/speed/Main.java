@@ -19,6 +19,10 @@ import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.speed.SpeedLayer;
 
+/**
+ * Runs {@link SpeedLayer} from the command line. It will use configuration as loaded
+ * by TypeSafe Config's {@code ConfigFactory}.
+ */
 public final class Main {
 
   private Main() {

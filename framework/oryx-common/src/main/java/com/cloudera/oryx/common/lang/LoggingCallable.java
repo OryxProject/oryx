@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 /**
  * A {@link Callable} that logs errors thrown from {@link #call()}. Useful in cases where
  * it would otherwise silently disappear into an executor.
+ *
+ * @param <V> result type
  */
 public abstract class LoggingCallable<V> implements Callable<V> {
 

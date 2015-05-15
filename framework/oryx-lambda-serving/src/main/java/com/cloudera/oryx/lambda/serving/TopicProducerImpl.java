@@ -26,6 +26,9 @@ import com.cloudera.oryx.api.TopicProducer;
 
 /**
  * Wraps access to a Kafka message topic {@link Producer}.
+ *
+ * @param <K> key type to send
+ * @param <M> message type to send
  */
 public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
 

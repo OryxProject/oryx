@@ -27,6 +27,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 
+/**
+ * A {@link MessageBodyWriter} that can produce CSV ({@code text/csv}). If given an
+ * {@link Iterable}, produces a line of CSV for each element. If an element implements
+ * {@link HasCSV} then {@link HasCSV#toCSV()} is used to compute its CSV representation; otherwise
+ * {@link Object#toString()} is.
+ */
 @Produces({MediaType.TEXT_PLAIN, "text/csv"})
 public final class CSVMessageBodyWriter implements MessageBodyWriter<Object> {
 

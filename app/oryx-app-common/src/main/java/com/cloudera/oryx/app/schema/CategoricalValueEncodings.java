@@ -24,6 +24,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+/**
+ * Encapsulates a two-way mapping between the set of values for one categorical feature
+ * as strings, and their encodings as integers.
+ */
 public final class CategoricalValueEncodings implements Serializable {
 
   private final Map<Integer,BiMap<String,Integer>> encodingsForIndex;

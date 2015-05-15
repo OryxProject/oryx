@@ -20,8 +20,23 @@ import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.TopicProducer
 
+/**
+ * Scala counterpart to Java BatchLayerUpdate.
+ *
+ * @tparam K type of key read from input topic
+ * @tparam M type of message read from input topic
+ * @tparam U type of model message written
+ */
 trait ScalaBatchLayerUpdate[K,M,U] {
 
+  /**
+   * @param sparkContext Spark context
+   * @param timestamp timestamp of current interval
+   * @param newData data that has arrived in current interval
+   * @param pastData all previously-known data (may be { @code null})
+   * @param modelDirString String representation of path where models should be output, if desired
+   * @param modelUpdateTopic topic to push models onto, if desired
+   */
   def configureUpdate(sparkContext: SparkContext,
                       timestamp: Long,
                       newData: RDD[(K,M)],

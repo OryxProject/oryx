@@ -26,6 +26,9 @@ import org.apache.commons.math3.random.RandomDataGenerator;
 
 import com.cloudera.oryx.common.random.RandomManager;
 
+/**
+ * Utility methods related to expressing and selecting hyperparameter values.
+ */
 public final class HyperParams {
 
   private static final int MAX_COMBOS = 65536;

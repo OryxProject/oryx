@@ -49,6 +49,14 @@ import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
+/**
+ * {@link ServletContextListener} that initializes a {@link ServingModelManager} at web
+ * app startup time in the Serving Layer.
+ *
+ * @param <K> type of key written to input topic
+ * @param <M> type of value written to input topic
+ * @param <U> type of update/model read from update topic
+ */
 @WebListener
 public final class ModelManagerListener<K,M,U> implements ServletContextListener {
 

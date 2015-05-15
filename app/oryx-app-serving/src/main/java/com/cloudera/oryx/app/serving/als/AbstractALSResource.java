@@ -32,6 +32,9 @@ import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 
+/**
+ * Superclass of all Serving Layer ALS application endpoints.
+ */
 public abstract class AbstractALSResource extends AbstractOryxResource {
 
   private ALSServingModel alsServingModel;

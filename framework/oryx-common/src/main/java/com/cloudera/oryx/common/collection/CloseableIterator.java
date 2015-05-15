@@ -20,6 +20,8 @@ import java.util.Iterator;
 
 /**
  * Implementations are {@link Iterator}s that are also {@link Closeable}.
+ *
+ * @param <T> iterator element type
  */
 public interface CloseableIterator<T> extends Iterator<T>, Closeable {
   // Adds nothing

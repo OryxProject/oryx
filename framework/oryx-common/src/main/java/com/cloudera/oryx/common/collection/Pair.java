@@ -18,6 +18,12 @@ package com.cloudera.oryx.common.collection;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Encapsulates a pair of objects.
+ *
+ * @param <A> first object type
+ * @param <B> second object type
+ */
 public final class Pair<A,B> implements Serializable {
 
   private final A first;

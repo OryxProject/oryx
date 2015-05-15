@@ -20,12 +20,20 @@ import java.io.Serializable;
 /**
  * Simple interface encapsulating a key and message in a topic.
  *
+ * @param <K> key type
+ * @param <M> message type
  * @see KeyMessageImpl
  */
 public interface KeyMessage<K,M> extends Serializable {
 
+  /**
+   * @return key
+   */
   K getKey();
 
+  /**
+   * @return message
+   */
   M getMessage();
 
 }

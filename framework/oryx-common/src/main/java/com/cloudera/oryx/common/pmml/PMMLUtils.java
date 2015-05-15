@@ -36,6 +36,9 @@ import org.jpmml.model.JAXBUtil;
 
 import com.cloudera.oryx.common.io.IOUtils;
 
+/**
+ * PMML-related utility methods.
+ */
 public final class PMMLUtils {
 
   private PMMLUtils() {

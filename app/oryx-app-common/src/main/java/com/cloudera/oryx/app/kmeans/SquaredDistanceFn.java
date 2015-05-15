@@ -17,6 +17,9 @@ package com.cloudera.oryx.app.kmeans;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Returns the squared Euclidean distance between two {@code double[]}.
+ */
 public final class SquaredDistanceFn implements DistanceFn<double[]> {
 
   @Override

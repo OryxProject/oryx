@@ -54,6 +54,10 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
+/**
+ * Implementation of {@link SpeedModelManager} that maintains and updates a random decision
+ * forest model in memory.
+ */
 public final class RDFSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFSpeedModelManager.class);

@@ -17,6 +17,12 @@ package com.cloudera.oryx.ml.param;
 
 import java.util.List;
 
+/**
+ * Encapsulates a range or set of values for a hyperparameter, from which
+ * a subset can be selected.
+ *
+ * @param <T> hyperparameter value type (e.g. {@link Integer})
+ */
 public interface HyperParamValues<T> {
 
   /**

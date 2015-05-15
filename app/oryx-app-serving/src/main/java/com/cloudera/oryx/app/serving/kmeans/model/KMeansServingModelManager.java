@@ -33,6 +33,10 @@ import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 
+/**
+ * A {@link ServingModelManager} that manages and provides access to an {@link KMeansServingModel}
+ * for the k-means Serving Layer application.
+ */
 public final class KMeansServingModelManager implements ServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);

@@ -36,6 +36,9 @@ import org.slf4j.LoggerFactory;
 import scala.Option;
 import scala.collection.JavaConversions;
 
+/**
+ * Kafka-related utility methods.
+ */
 public final class KafkaUtils {
 
   private static final Logger log = LoggerFactory.getLogger(KafkaUtils.class);

@@ -32,6 +32,9 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.text.TextUtils;
 
+/**
+ * Utility methods related to PMML serialization of k-means clustering models.
+ */
 public final class KMeansPMMLUtils {
 
   private KMeansPMMLUtils() {}

@@ -84,6 +84,9 @@ import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
+/**
+ * Update function that builds and evaluates random decision forest models in the Batch Layer.
+ */
 public final class RDFUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFUpdate.class);

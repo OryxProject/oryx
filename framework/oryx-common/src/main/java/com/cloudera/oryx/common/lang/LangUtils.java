@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.common.lang;
 
+/**
+ * Utilities that are generic to the Java language.
+ */
 public final class LangUtils {
 
   private LangUtils() {

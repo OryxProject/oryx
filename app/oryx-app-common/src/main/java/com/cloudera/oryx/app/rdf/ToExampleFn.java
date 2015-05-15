@@ -24,6 +24,10 @@ import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 
+/**
+ * Transforms input as a raw list of strings into an {@link Example}
+ * representation.
+ */
 public final class ToExampleFn implements Function<String[],Example> {
 
   private final InputSchema inputSchema;

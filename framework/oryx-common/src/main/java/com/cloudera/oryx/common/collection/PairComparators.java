@@ -17,6 +17,9 @@ package com.cloudera.oryx.common.collection;
 
 import java.util.Comparator;
 
+/**
+ * Provides utility implementations of {@link Comparator} for {@link Pair}s.
+ */
 public final class PairComparators {
 
   private PairComparators() {}

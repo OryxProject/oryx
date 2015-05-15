@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.als;
 
+/**
+ * ALS-related utility methods for the app tier.
+ */
 public final class ALSUtils {
 
   private ALSUtils() {}

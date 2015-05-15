@@ -36,6 +36,10 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
+/**
+ * A {@link ServingModelManager} that manages and provides access to an {@link ALSServingModel}
+ * for the ALS Serving Layer application.
+ */
 public final class ALSServingModelManager implements ServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);

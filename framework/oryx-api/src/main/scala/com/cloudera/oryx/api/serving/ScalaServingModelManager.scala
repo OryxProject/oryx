@@ -17,10 +17,25 @@ package com.cloudera.oryx.api.serving
 
 import com.cloudera.oryx.api.KeyMessage
 
+/**
+ * Scala counterpart to Java ServingModelManager.
+ *
+ * @tparam U type of update message read/written
+ */
 trait ScalaServingModelManager[U] {
 
+  /**
+   * Called by the framework to initiate a continuous process of reading models, and reading
+   * from the input topic and updating model state in memory, and issuing updates to the
+   * update topic. This will be executed asynchronously and may block.
+   *
+   * @param updateIterator iterator to read models from
+   */
   def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
 
+  /**
+   * @return in-memory model representation
+   */
   def getModel: AnyRef
 
   def close(): Unit

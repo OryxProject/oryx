@@ -45,6 +45,9 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
  * Encapsulates commonality between Spark-based layer processes,
  * {@link com.cloudera.oryx.lambda.batch.BatchLayer} and
  * {@link com.cloudera.oryx.lambda.speed.SpeedLayer}
+ *
+ * @param <K> input topic key type
+ * @param <M> input topic message type
  */
 public abstract class AbstractSparkLayer<K,M> implements Closeable {
 

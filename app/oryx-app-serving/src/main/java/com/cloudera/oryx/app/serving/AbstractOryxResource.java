@@ -38,6 +38,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
+/**
+ * Superclass of all Serving Layer application endpoints.
+ */
 public abstract class AbstractOryxResource {
 
   public static final String MODEL_MANAGER_KEY =

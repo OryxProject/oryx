@@ -29,6 +29,9 @@ import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
+/**
+ * Superclass of all Serving Layer random decision forest application endpoints.
+ */
 public abstract class AbstractRDFResource extends AbstractOryxResource {
 
   private RDFServingModel rdfServingModel;

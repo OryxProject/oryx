@@ -21,6 +21,9 @@ import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Interface which generates one datum.
+ *
+ * @param <K> key type
+ * @param <M> message type
  */
 public interface DatumGenerator<K,M> {
 

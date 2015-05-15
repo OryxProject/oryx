@@ -23,6 +23,13 @@ import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
 
+/**
+ * Adapts a {@link ScalaBatchLayerUpdate} to be a Java {@link BatchLayerUpdate}.
+ *
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
+ * @param <U> type of model message written
+ */
 public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpdate<K,M,U> {
 
   private final ScalaBatchLayerUpdate<K,M,U> scalaUpdate;

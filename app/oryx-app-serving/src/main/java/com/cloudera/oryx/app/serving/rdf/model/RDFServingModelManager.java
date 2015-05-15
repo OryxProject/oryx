@@ -39,6 +39,10 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 
+/**
+ * A {@link ServingModelManager} that manages and provides access to an {@link RDFServingModel}
+ * for the random decision forest Serving Layer application.
+ */
 public final class RDFServingModelManager implements ServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFServingModelManager.class);

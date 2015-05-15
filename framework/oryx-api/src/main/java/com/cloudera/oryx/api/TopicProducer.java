@@ -21,11 +21,21 @@ import java.io.Closeable;
  * Wraps access to a message topic {@code Producer}, including logic to instantiate the
  * object. This is a wrapper that can be serialized and re-create the {@code Producer}
  * remotely.
+ *
+ * @param <K> key type to send
+ * @param <M> message type to send
  */
 public interface TopicProducer<K, M> extends Closeable {
 
+  /**
+   * @param key key to send to the topic
+   * @param message message to send with key to the topic
+   */
   void send(K key, M message);
 
+  /**
+   * @param message message to send (with no key) to the topic
+   */
   void send(M message);
 
   @Override

@@ -15,6 +15,10 @@
 
 package com.cloudera.oryx.common.math;
 
+/**
+ * Throws when a system can't be solved because the input matrix is singular or
+ * near-singular. Encapsulates its apparent rank too.
+ */
 public final class SingularMatrixSolverException extends RuntimeException {
   
   private final int apparentRank;

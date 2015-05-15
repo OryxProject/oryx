@@ -43,6 +43,9 @@ import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.text.TextUtils;
 
+/**
+ * General app tier PMML-related utility methods.
+ */
 public final class AppPMMLUtils {
 
   private AppPMMLUtils() {}

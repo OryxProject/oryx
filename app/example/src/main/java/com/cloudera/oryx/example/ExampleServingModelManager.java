@@ -21,6 +21,9 @@ import java.util.Iterator;
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
+/**
+ * Example, empty implementation of {@link ServingModelManager}.
+ */
 public final class ExampleServingModelManager implements ServingModelManager<String> {
 
   @Override

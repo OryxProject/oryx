@@ -24,6 +24,9 @@ import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 
+/**
+ * Superclass of all Serving Layer k-means application endpoints.
+ */
 public abstract class AbstractKMeansResource extends AbstractOryxResource {
 
   private KMeansServingModel kmeansModel;

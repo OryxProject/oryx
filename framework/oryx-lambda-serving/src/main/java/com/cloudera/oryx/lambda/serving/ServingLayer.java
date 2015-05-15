@@ -47,6 +47,9 @@ import java.util.Arrays;
 import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Top-level implementation of the Serving Layer process.
+ */
 public final class ServingLayer implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ServingLayer.class);

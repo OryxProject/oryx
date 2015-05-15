@@ -26,6 +26,10 @@ import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 
+/**
+ * Contains all data structures needed to serve queries for a
+ * k-means clustering application.
+ */
 public final class KMeansServingModel {
 
   private final List<ClusterInfo> clusters;

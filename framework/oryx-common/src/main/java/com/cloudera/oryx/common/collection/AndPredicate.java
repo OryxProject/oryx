@@ -17,6 +17,11 @@ package com.cloudera.oryx.common.collection;
 
 import net.openhft.koloboke.function.Predicate;
 
+/**
+ * Logical AND of two {@link Predicate}s.
+ *
+ * @param <T> operand type
+ */
 public final class AndPredicate<T> implements Predicate<T> {
 
   // Consider supporting arbitrary # later

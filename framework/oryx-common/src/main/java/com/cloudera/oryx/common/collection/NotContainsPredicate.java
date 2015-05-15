@@ -22,6 +22,8 @@ import java.util.Collection;
 
 /**
  * Predicate that is true when a value is not in a given collection.
+ *
+ * @param <T> operand type
  */
 public final class NotContainsPredicate<T> implements Predicate<T> {
 

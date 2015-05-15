@@ -19,12 +19,19 @@ import java.util.Objects;
 
 /**
  * Simple value class encapsulating a key and message in a topic.
+ *
+ * @param <K> key type
+ * @param <M> message type
  */
 public final class KeyMessageImpl<K,M> implements KeyMessage<K,M> {
 
   private final K key;
   private final M message;
 
+  /**
+   * @param key key
+   * @param message message
+   */
   public KeyMessageImpl(K key, M message) {
     this.key = key;
     this.message = message;

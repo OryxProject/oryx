@@ -91,7 +91,7 @@ public final class OryxApplication extends Application {
       Class<? extends Annotation> annotation) {
     Set<Class<?>> classes = reflections.getTypesAnnotatedWith(annotation);
     // Filter classes actually in subpackages
-    for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
+    for (Iterator<Class<?>> it = classes.iterator(); it.hasNext();) {
       String classPackage = it.next().getPackage().getName();
       if (!classPackage.equals(thePackage)) {
         it.remove();

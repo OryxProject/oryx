@@ -23,6 +23,9 @@ import org.apache.spark.api.java.JavaPairRDD;
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
 
+/**
+ * Example, empty implementation of {@link SpeedModelManager}.
+ */
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   @Override

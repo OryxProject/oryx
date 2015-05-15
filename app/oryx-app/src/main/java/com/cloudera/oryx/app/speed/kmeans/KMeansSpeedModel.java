@@ -24,6 +24,10 @@ import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 
+/**
+ * Contains all data structures needed to create near-real-time updates for a
+ * k-means clustering model.
+ */
 public final class KMeansSpeedModel implements Serializable {
 
   private final List<ClusterInfo> clusters;

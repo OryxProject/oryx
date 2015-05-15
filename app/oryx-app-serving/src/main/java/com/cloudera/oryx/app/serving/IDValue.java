@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.serving;
 
+/**
+ * Encapsulates a String ID and a floating-point value.
+ */
 public final class IDValue extends IDEntity {
 
   private final double value;

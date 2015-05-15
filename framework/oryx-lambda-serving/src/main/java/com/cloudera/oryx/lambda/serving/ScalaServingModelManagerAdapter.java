@@ -24,6 +24,11 @@ import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ScalaServingModelManager;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
+/**
+ * Adapts a {@link ScalaServingModelManager} to be a Java {@link ServingModelManager}.
+ *
+ * @param <U> type of update message read/written
+ */
 public final class ScalaServingModelManagerAdapter<U> implements ServingModelManager<U> {
 
   private final ScalaServingModelManager<U> scalaManager;

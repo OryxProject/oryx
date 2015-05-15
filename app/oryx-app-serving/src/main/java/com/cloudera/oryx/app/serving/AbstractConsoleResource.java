@@ -26,6 +26,10 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.common.io.Resources;
 
+/**
+ * Superclass of web resources that contain a small console for a Serving Layer application.
+ * It applies a common header and footer around content from subclasses.
+ */
 public abstract class AbstractConsoleResource {
 
   private String html;

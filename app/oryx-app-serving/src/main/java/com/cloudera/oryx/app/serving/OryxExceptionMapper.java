@@ -19,6 +19,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+/**
+ * Maps {@link OryxServingException} types to an HTTP {@link Response}.
+ */
 @Provider
 public final class OryxExceptionMapper implements ExceptionMapper<OryxServingException> {
 

@@ -62,6 +62,8 @@ import com.cloudera.oryx.ml.param.HyperParams;
  * methods like {@link #buildModel(JavaSparkContext,JavaRDD,List,Path)} to create a PMML model and
  * {@link #evaluate(JavaSparkContext,PMML,Path,JavaRDD,JavaRDD)} to evaluate a model from
  * held-out test data.
+ *
+ * @param <M> type of message to read from the input topic
  */
 public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 

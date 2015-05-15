@@ -50,6 +50,9 @@ import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
+/**
+ * Update function that builds and evaluates k-means models in the Batch Layer.
+ */
 public final class KMeansUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansUpdate.class);

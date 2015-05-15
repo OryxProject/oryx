@@ -23,6 +23,9 @@ import org.apache.spark.api.java.JavaSparkContext;
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 
+/**
+ * Example, empty implementation of {@link BatchLayerUpdate}.
+ */
 public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,String,String> {
 
   @Override

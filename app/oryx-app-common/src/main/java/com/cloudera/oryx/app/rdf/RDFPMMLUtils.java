@@ -56,6 +56,10 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.text.TextUtils;
 
+/**
+ * Utility methods related to PMML serialization of random decision forest classification
+ * and regression models.
+ */
 public final class RDFPMMLUtils {
 
   private RDFPMMLUtils() {}

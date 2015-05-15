@@ -41,6 +41,10 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
+/**
+ * Implementation of {@link SpeedModelManager} that maintains and updates an k-means
+ * clustering model in memory.
+ */
 public final class KMeansSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedModelManager.class);

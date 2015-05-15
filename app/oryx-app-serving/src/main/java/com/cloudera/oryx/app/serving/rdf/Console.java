@@ -19,6 +19,9 @@ import javax.ws.rs.Path;
 
 import com.cloudera.oryx.app.serving.AbstractConsoleResource;
 
+/**
+ * Random decision forest app Serving Layer console.
+ */
 @Path("/index.html")
 public final class Console extends AbstractConsoleResource {
   @Override

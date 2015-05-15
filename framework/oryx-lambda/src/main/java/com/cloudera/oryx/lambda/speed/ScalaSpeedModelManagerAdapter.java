@@ -25,6 +25,13 @@ import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
 
+/**
+ * Adapts a {@link ScalaSpeedModelManager} to be a Java {@link SpeedModelManager}.
+ *
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
+ * @param <U> type of update message read/written
+ */
 public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelManager<K,M,U> {
 
   private final ScalaSpeedModelManager<K,M,U> scalaManager;

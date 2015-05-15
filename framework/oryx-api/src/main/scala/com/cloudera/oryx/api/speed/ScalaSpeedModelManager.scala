@@ -19,10 +19,28 @@ import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.KeyMessage
 
+/**
+ * Scala counterpart to Java SpeedModelManager.
+ *
+ * @tparam K type of key read from input topic
+ * @tparam M type of message read from input topic
+ * @tparam U type of update message read/written
+ */
 trait ScalaSpeedModelManager[K,M,U] {
 
+  /**
+   * Called by the framework to initiate a continuous process of reading models, and reading
+   * from the input topic and updating model state in memory, and issuing updates to the
+   * update topic. This will be executed asynchronously and may block.
+   *
+   * @param updateIterator iterator to read models from
+   */
   def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
 
+  /**
+   * @param newData RDD of raw new data from the topic
+   * @return updates to publish on the update topic
+   */
   def buildUpdates(newData: RDD[(K,M)]): Iterable[U]
 
   def close(): Unit

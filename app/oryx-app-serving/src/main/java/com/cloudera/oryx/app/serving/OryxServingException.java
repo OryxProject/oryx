@@ -18,6 +18,9 @@ package com.cloudera.oryx.app.serving;
 
 import javax.ws.rs.core.Response;
 
+/**
+ * Thrown by Serving Layer endpoints to indicate an error in processing.
+ */
 public final class OryxServingException extends Exception {
 
   private final Response.Status statusCode;

@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.serving;
 
+/**
+ * Encapsulates a String ID and a count.
+ */
 public final class IDCount extends IDEntity {
 
   private final int count;

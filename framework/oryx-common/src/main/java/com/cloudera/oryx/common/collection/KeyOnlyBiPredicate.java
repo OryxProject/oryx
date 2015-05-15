@@ -18,6 +18,12 @@ package com.cloudera.oryx.common.collection;
 import net.openhft.koloboke.function.BiPredicate;
 import net.openhft.koloboke.function.Predicate;
 
+/**
+ * {@link BiPredicate} that only applies a {@link Predicate} to the keys and ignores values.
+ *
+ * @param <K> key type
+ * @param <V> value type (unused)
+ */
 public final class KeyOnlyBiPredicate<K,V> implements BiPredicate<K,V> {
 
   private final Predicate<K> keyPredicate;

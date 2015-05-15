@@ -47,6 +47,9 @@ import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.lambda.Functions;
 
+/**
+ * Implementation of {@link SpeedModelManager} that maintains and updates an ALS model in memory.
+ */
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);

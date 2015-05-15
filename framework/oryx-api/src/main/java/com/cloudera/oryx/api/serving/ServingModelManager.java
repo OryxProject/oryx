@@ -40,6 +40,9 @@ public interface ServingModelManager<U> extends Closeable {
    */
   void consume(Iterator<KeyMessage<String,U>> updateIterator) throws IOException;
 
+  /**
+   * @return in-memory model representation
+   */
   Object getModel();
 
   @Override

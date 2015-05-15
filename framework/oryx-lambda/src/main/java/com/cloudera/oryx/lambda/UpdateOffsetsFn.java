@@ -29,6 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 
+/**
+ * Function that reads offset range from latest RDD in a streaming job, and updates
+ * Zookeeper/Kafka with the latest offset consumed.
+ *
+ * @param <K> RDD element's key type (not used)
+ * @param <M> RDD element's value type (not used)
+ */
 public final class UpdateOffsetsFn<K,M> implements Function<JavaRDD<MessageAndMetadata<K,M>>,Void> {
 
   private static final Logger log = LoggerFactory.getLogger(UpdateOffsetsFn.class);

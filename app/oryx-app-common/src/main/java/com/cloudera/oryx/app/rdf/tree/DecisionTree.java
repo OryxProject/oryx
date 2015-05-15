@@ -20,14 +20,14 @@ import java.util.LinkedList;
 
 import com.google.common.base.Preconditions;
 
-import com.cloudera.oryx.app.rdf.decision.Decision;
 import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * A decision-tree classifier. Given a set of training {@link Example}s, builds a model by randomly choosing
- * subsets of features and the training set, and then finding a binary {@link Decision} over those features and data
+ * subsets of features and the training set, and then finding a binary
+ * {@link com.cloudera.oryx.app.rdf.decision.Decision} over those features and data
  * that produces the largest information gain in the two subsets it implies. This is repeated to build a tree
  * of {@link DecisionNode}s. At the bottom, leaf nodes are formed ({@link TerminalNode}) that contain a
  * {@link Prediction} of the target value.

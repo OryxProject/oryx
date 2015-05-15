@@ -29,6 +29,10 @@ import com.cloudera.oryx.lambda.TopicProducerImpl;
 /**
  * Main Spark Streaming function for the speed layer that collects and publishes update to
  * a Kafka topic.
+ *
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
+ * @param <U> type of update message read/written
  */
 public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
 

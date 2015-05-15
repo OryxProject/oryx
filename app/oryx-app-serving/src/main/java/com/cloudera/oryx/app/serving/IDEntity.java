@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.serving;
 
+/**
+ * Superclass of objects that encapsulate, among other things, a String ID.
+ */
 abstract class IDEntity implements HasCSV {
 
   private final String id;
