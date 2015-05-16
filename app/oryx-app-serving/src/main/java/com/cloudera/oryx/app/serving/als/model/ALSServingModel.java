@@ -41,7 +41,6 @@ import net.openhft.koloboke.collect.map.hash.HashObjIntMaps;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
-import net.openhft.koloboke.function.BiConsumer;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 import net.openhft.koloboke.function.ToDoubleFunction;
@@ -448,78 +447,6 @@ public final class ALSServingModel {
     }
     return "ALSServingModel[features:" + features + ", implicit:" + implicit +
         ", X:(" + X.size() + " users), Y:(" + numItems + " items)]";
-  }
-
-  private static final class TopNConsumer implements BiConsumer<String,float[]> {
-
-    private final Queue<Pair<String,Double>> topN;
-    private final int howMany;
-    private final ToDoubleFunction<float[]> scoreFn;
-    private final ObjDoubleToDoubleFunction<String> rescoreFn;
-    private final Predicate<String> allowedPredicate;
-    /** Local copy of lower bound of min score in the priority queue, to avoid polling */
-    private double topScoreLowerBound;
-    /** Local flag that avoids checking queue size each time */
-    private boolean full;
-
-    TopNConsumer(Queue<Pair<String,Double>> topN,
-                 int howMany,
-                 ToDoubleFunction<float[]> scoreFn,
-                 ObjDoubleToDoubleFunction<String> rescoreFn,
-                 Predicate<String> allowedPredicate) {
-      this.topN = topN;
-      this.howMany = howMany;
-      this.scoreFn = scoreFn;
-      this.rescoreFn = rescoreFn;
-      this.allowedPredicate = allowedPredicate;
-      topScoreLowerBound = Double.NEGATIVE_INFINITY;
-      full = false;
-    }
-
-    @Override
-    public void accept(String key, float[] value) {
-      if (allowedPredicate == null || allowedPredicate.test(key)) {
-        double score = scoreFn.applyAsDouble(value);
-        if (rescoreFn != null) {
-          score = rescoreFn.applyAsDouble(key, score);
-        }
-        // If queue is already of minimum size,
-        if (full) {
-          // ... then go straight to seeing if it should be updated
-          // Only proceed if score exceeds a lower bound on minimum score in the queue.
-          // Might still not be big enough if another thread has put higher values in the
-          // queue.
-          if (score > topScoreLowerBound) {
-            double peek;
-            synchronized (topN) {
-              peek = topN.peek().getSecond();
-              if (score > peek) {
-                // Remove least of the top elements
-                topN.poll();
-                // Add new element
-                topN.add(new Pair<>(key, score));
-              }
-            }
-            if (peek > topScoreLowerBound) {
-              // Update lower bound on what's big enough to go in the queue
-              topScoreLowerBound = peek;
-            }
-          }
-        } else {
-          // Otherwise always add the new element
-          int newSize;
-          synchronized (topN) {
-            topN.add(new Pair<>(key, score));
-            newSize = topN.size();
-          }
-          if (newSize >= howMany) {
-            // Remember the queue is already full enough, to avoid checking the queue again
-            full = true;
-          }
-        }
-      }
-    }
-
   }
 
 }

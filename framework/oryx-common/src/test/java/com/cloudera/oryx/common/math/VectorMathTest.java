@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.common.math;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -96,6 +97,12 @@ public final class VectorMathTest extends OryxTest {
         assertEquals(expected.getEntry(row, col), ata.getEntry(row, col), FLOAT_EPSILON);
       }
     }
+  }
+
+  @Test
+  public void testNullTranspose() {
+    assertNull(VectorMath.transposeTimesSelf(null));
+    assertNull(VectorMath.transposeTimesSelf(Collections.<float[]>emptyList()));
   }
 
 }

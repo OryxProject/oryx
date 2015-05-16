@@ -39,6 +39,8 @@ public final class MultiRescorerProviderTest extends OryxTest {
     assertFalse(provider2 instanceof MultiRescorer);
     assertTrue(provider2.isFiltered("ABC"));
     assertFalse(provider2.isFiltered("AB"));
+    assertTrue(Double.isNaN(provider2.rescore("ABC", 1.0)));
+    assertEquals(1.0, provider2.rescore("AB", 1.0));
 
     Rescorer provider3 = multi.getRecommendRescorer(Collections.singletonList("ABCDEF"), null);
     assertNotNull(provider3);
@@ -46,6 +48,8 @@ public final class MultiRescorerProviderTest extends OryxTest {
     assertTrue(provider3.isFiltered("ABC"));
     assertTrue(provider3.isFiltered("AB"));
     assertFalse(provider3.isFiltered("ABCDEFABCDEF"));
+    assertTrue(Double.isNaN(provider3.rescore("ABC", 1.0)));
+    assertEquals(1.0, provider3.rescore("ABCDEFABCDEF", 1.0));
   }
   
   @Test

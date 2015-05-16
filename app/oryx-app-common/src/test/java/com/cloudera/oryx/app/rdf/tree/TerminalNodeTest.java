@@ -32,4 +32,14 @@ public final class TerminalNodeTest extends OryxTest {
     assertEquals(3, node.getCount());
   }
 
+  @Test
+  public void testEquals() {
+    Prediction a = new NumericPrediction(1.5, 10);
+    Prediction b = new NumericPrediction(1.5, 10);
+    TerminalNode ta = new TerminalNode("a", a);
+    TerminalNode tb = new TerminalNode("b", b);
+    assertEquals(ta.hashCode(), tb.hashCode());
+    assertEquals(ta, tb);
+  }
+
 }

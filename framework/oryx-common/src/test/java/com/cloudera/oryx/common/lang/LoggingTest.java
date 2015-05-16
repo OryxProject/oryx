@@ -23,12 +23,24 @@ import com.cloudera.oryx.common.OryxTest;
 
 public final class LoggingTest extends OryxTest {
 
+  private static final StackTraceElement[] NO_STACK = new StackTraceElement[0];
+
   @Test(expected = IllegalStateException.class)
   public void testLoggingRunnableException() {
     new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
         throw buildIOE();
+      }
+    }.run();
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testLoggingRunnableException2() {
+    new LoggingRunnable() {
+      @Override
+      public void doRun() {
+        throw buildError();
       }
     }.run();
   }
@@ -54,6 +66,17 @@ public final class LoggingTest extends OryxTest {
     }.call();
   }
 
+  @Test(expected = AssertionError.class)
+  public void testLoggingCallableException2() {
+    new LoggingCallable<Void>() {
+      @Override
+      public Void doCall() {
+        throw buildError();
+      }
+    }.call();
+  }
+
+
   @Test(expected = IllegalStateException.class)
   public void testLoggingVoidCallableException() {
     new LoggingVoidCallable() {
@@ -66,8 +89,14 @@ public final class LoggingTest extends OryxTest {
 
   private static IOException buildIOE() {
     IOException ioe = new IOException("It's safe to ignore this exception");
-    ioe.setStackTrace(new StackTraceElement[0]); // to not pollute the logs
+    ioe.setStackTrace(NO_STACK); // to not pollute the logs
     return ioe;
+  }
+
+  private static AssertionError buildError() {
+    AssertionError error = new AssertionError("It's safe to ignore this error");
+    error.setStackTrace(NO_STACK);
+    return error;
   }
 
 }

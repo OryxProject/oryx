@@ -24,6 +24,11 @@ import com.cloudera.oryx.common.OryxTest;
 public final class LinearSystemSolverTest extends OryxTest {
 
   @Test
+  public void testNull() {
+    assertNull(new LinearSystemSolver().getSolver(null));
+  }
+
+  @Test
   public void testSolveFToD() {
     RealMatrix a = new Array2DRowRealMatrix(new double[][] {
         {1.3, -2.0, 3.0},

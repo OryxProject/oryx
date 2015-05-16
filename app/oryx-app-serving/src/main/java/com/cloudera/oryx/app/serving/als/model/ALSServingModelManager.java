@@ -51,11 +51,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   public ALSServingModelManager(Config config) {
     String rescorerProviderClass =
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
-    if (rescorerProviderClass == null) {
-      rescorerProvider = null;
-    } else {
-      rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
-    }
+    rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
   }
 
   @Override

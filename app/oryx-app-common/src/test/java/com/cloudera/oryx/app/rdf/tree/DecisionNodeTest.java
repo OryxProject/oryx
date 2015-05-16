@@ -19,6 +19,8 @@ import org.junit.Test;
 
 import com.cloudera.oryx.app.rdf.decision.Decision;
 import com.cloudera.oryx.app.rdf.decision.NumericDecision;
+import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
+import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.common.OryxTest;
 
 public final class DecisionNodeTest extends OryxTest {
@@ -33,6 +35,19 @@ public final class DecisionNodeTest extends OryxTest {
     assertSame(decision, node.getDecision());
     assertSame(left, node.getLeft());
     assertSame(right, node.getRight());
+  }
+
+  @Test
+  public void testEquals() {
+    Decision a = new NumericDecision(1, 2.0, true);
+    Decision b = new NumericDecision(1, 2.0, true);
+    Prediction p = new NumericPrediction(-1.0, 1);
+    TreeNode left = new TerminalNode("2", p);
+    TreeNode right = new TerminalNode("3", p);
+    DecisionNode da = new DecisionNode("a", a, left, right);
+    DecisionNode db = new DecisionNode("b", b, left, right);
+    assertEquals(da, db);
+    assertEquals(da.hashCode(), db.hashCode());
   }
 
 }

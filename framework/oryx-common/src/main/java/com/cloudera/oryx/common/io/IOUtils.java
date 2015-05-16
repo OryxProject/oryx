@@ -32,8 +32,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -75,7 +73,7 @@ public final class IOUtils {
 
   /**
    * Opens an {@link InputStream} to the file. If it appears to be compressed, because its
-   * file name ends in ".gz" or ".zip", then it will be decompressed accordingly.
+   * file name ends in ".gz", then it will be decompressed accordingly.
    *
    * @param file file, possibly compressed, to open
    * @return {@link InputStream} on uncompressed contents
@@ -86,9 +84,6 @@ public final class IOUtils {
     InputStream in = Files.newInputStream(file);
     if (name.endsWith(".gz")) {
       return new GZIPInputStream(in);
-    }
-    if (name.endsWith(".zip")) {
-      return new ZipInputStream(in);
     }
     return in;
   }
@@ -104,7 +99,7 @@ public final class IOUtils {
 
   /**
    * Opens an {@link OutputStream} to the file. If it should be compressed, because its
-   * file name ends in ".gz" or ".zip", then data written will be compressed accordingly.
+   * file name ends in ".gz", then data written will be compressed accordingly.
    *
    * @param file file, possibly compressed, to write to
    * @param bufferSize suggested output buffer size in bytes
@@ -116,9 +111,6 @@ public final class IOUtils {
     OutputStream out = Files.newOutputStream(file);
     if (name.endsWith(".gz")) {
       return new GZIPOutputStream(out, bufferSize);
-    }
-    if (name.endsWith(".zip")) {
-      return new ZipOutputStream(out);
     }
     return out;
   }

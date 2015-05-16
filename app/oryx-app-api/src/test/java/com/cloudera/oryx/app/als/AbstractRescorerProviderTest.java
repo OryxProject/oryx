@@ -33,6 +33,7 @@ public final class AbstractRescorerProviderTest extends OryxTest {
 
   @Test
   public void testLoad() {
+    assertNull(AbstractRescorerProvider.loadRescorerProviders(null));
     RescorerProvider provider = AbstractRescorerProvider.loadRescorerProviders(
         "com.cloudera.oryx.app.als.NullProvider2");
     assertTrue(provider instanceof NullProvider2);
@@ -44,6 +45,11 @@ public final class AbstractRescorerProviderTest extends OryxTest {
   @Test(expected = IllegalArgumentException.class)
   public void testNoClass() {
     AbstractRescorerProvider.loadRescorerProviders("noSuchClass");
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testBadInstantiation() {
+    AbstractRescorerProvider.loadRescorerProviders("com.cloudera.oryx.app.als.ErrorProvider");
   }
 
   @Test(expected = ClassCastException.class)

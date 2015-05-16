@@ -39,6 +39,16 @@ public final class ClassUtilsTest extends OryxTest {
     assertSame(ArrayList.class, ClassUtils.loadClass(ArrayList.class.getName(), List.class));
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testLoadNonExistentClass() {
+    ClassUtils.loadClass("foobar");
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testLoadNonExistentClass2() {
+    ClassUtils.loadClass("foobar", Number.class);
+  }
+
   @Test
   public void testLoadInstanceOf() {
     assertTrue(ClassUtils.loadInstanceOf(HashSet.class) instanceof HashSet);
