@@ -602,7 +602,7 @@ Oryx 2 contains the same set of end-to-end ML applications as Oryx 1, and expose
 
 #### Configuration
 
-Both implementations use a single configuration file parsed by Typesafe Config. The property namespaces are different but there are some similarities. Compare the [Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) to the [Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/oryx-common/src/main/resources/reference.conf) to understand some of the correspondence and difference.
+Both implementations use a single configuration file parsed by Typesafe Config. The property namespaces are different but there are some similarities. Compare the [Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) to the [Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf) to understand some of the correspondence and difference.
 
 #### Data Storage and Transport
 
