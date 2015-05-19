@@ -22,7 +22,7 @@ import com.cloudera.oryx.app.serving.AbstractConsoleResource;
 /**
  * k-means app Serving Layer console.
  */
-@Path("/index.html")
+@Path("/{file:(index\\.html)?}")
 public final class Console extends AbstractConsoleResource {
   @Override
   protected String getConsoleResource() {
