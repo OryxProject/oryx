@@ -2,11 +2,12 @@
 
 ## Running
 
-_This is a temporary, manual process for distributing and running the binaries._
+*Note: You must have set up and configured your cluster as shown in the Administrator section below.*
 
 Download the [latest release](https://github.com/OryxProject/oryx/releases) of the Oryx Batch, 
 Speed and Serving Layer, both `.jar` files and `.sh` scripts. Alternatively, build them 
-from source.
+from source and obtain the latest scripts from 
+[deploy/bin/](https://github.com/OryxProject/oryx/blob/master/deploy/bin).
 
 Copy binaries and scripts to machines that are part of the Hadoop cluster.
 They may be deployed on different machines, or on one for purposes of testing.
@@ -18,22 +19,26 @@ Create a configuration file for your application. You may start with the example
 host names, ports and directories. In particular, choose data and model directories on HDFS
 that exist and will be accessible to the user running Oryx binaries.
 
-Copy this config file as `example.conf` to the same directory as binaries and script
+Copy this config file as `oryx.conf` to the same directory as binaries and script
 on each machine.
 
 Run the three Layers with:
 
 ```bash
-./run.sh --layer-jar oryx-batch-2.0.0-SNAPSHOT.jar --conf example.conf
+./oryx-run.sh batch --layer-jar oryx-batch-2.0.0.jar
 ...
-./run.sh --layer-jar oryx-speed-2.0.0-SNAPSHOT.jar --conf example.conf
+./oryx-run.sh speed --layer-jar oryx-speed-2.0.0.jar
 ...
-./run.sh --layer-jar oryx-serving-2.0.0-SNAPSHOT.jar --conf example.conf
+./oryx-run.sh serving --layer-jar oryx-serving-2.0.0.jar
 ```
 
 These need not be on the same machine, but may be (if configuration specifies different
 ports for the Batch and Speed Layer Spark web UI, and the Serving Layer API port).
 The Serving Layer may be run on several machines.
+
+You can see, for example, the Batch Layer Spark UI running on port 4040 of the machine
+on which you started it (unless your configuration changed this). A simple web-based
+console for the Serving Layer is likewise available on port 8080 by default.
 
 That's all!
 
@@ -351,7 +356,7 @@ Oryx binary JAR file it will be run with.
 Change your Oryx `.conf` file to refer to your custom Batch, Speed or Serving implementation
 class, as appropriate.
 
-When running the Batch / Speed / Serving Layers, add `--app-jar myapp.jar` to the `run.sh`
+When running the Batch / Speed / Serving Layers, add `--app-jar myapp.jar` to the `oryx-run.sh`
 command line.
 
 
@@ -372,8 +377,6 @@ The following are required:
 5.4.0 and later meet these requirements, although any Hadoop distribution with these
 components should work fine. While the rest of the instructions will refer to a CDH 5.4.0+
 distribution, this is not a requirement.
-
-_Note that the "alpha 1" release requires only Spark 1.2.0, and thus works with CDH 5.3.0+_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
@@ -399,76 +402,95 @@ Where a Kafka broker or Zookeeper server is called for, you can and should speci
 list of `host:port` pairs where there are multiple hosts. Example: `your-zk-1:2181,your-zk-2:2181`.
 
 Also note whether your Zookeeper instance is using a chroot path. This is simply a path suffixed
-to the `host:port`, like `your-zk:2181/your-chroot`.
-For example in CDH, Kafka uses a `/kafka` chroot, and subsequent examples will
-use this chroot. You can omit this if you are not using a chroot.
-
-Note: if you have multiple Zookeeper servers, and a chroot, only add the chroot once, at
-the end: `your-zk-1:2181,your-zk-2:2181/kafka`
-
-### Verifying Kafka (Optional)
-
-To quickly verify that Kafka and ZK are running correctly:
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 1 --partitions 1 --topic test
-kafka-console-consumer --zookeeper your-zk:2181/kafka \
-  --topic test --from-beginning
-```
-
-In another console, take any text file (here `data.csv`) and send it to the topic:
-
-```bash
-cat data.csv | kafka-console-producer \
-  --broker-list your-kafka-broker:9092 --topic test
-```
-
-You should see the contents of the text file echoed onto the other consumer's console soon thereafter.
-
-Delete the test topic when done.
-
-```bash
-kafka-topics --delete --zookeeper your-zk:2181/kafka --topic test
-```
+to the `host:port`, like `your-zk:2181/your-chroot`. It is often `/kafka` if it is set.
+You can omit this if you are not using a chroot. Note: if you have multiple Zookeeper servers, 
+and a chroot, only add the chroot once, at the end: `your-zk-1:2181,your-zk-2:2181/kafka`
 
 ### Configuring Kafka
 
 Oryx will use two Kafka topics for data transport. One carries input data to the batch and
 Speed Layer, and the other carries model updates from there on to the Serving Layer. The default
-names of these topics are "OryxInput" and "OryxUpdate" respectively. They need to be
+names of these topics are `OryxInput` and `OryxUpdate` respectively. They need to be
 created before Oryx is started.
 
 Each can default to have one partition, but more can be configured if much higher read
-throughput is needed.
-The example below shows 1 partition. Replication factor can be any value, but 3 is recommended.
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 3 --partitions 1 --topic OryxInput
-...
-Created topic "OryxInput".
-```
-
-```bash
-kafka-topics --create --zookeeper your-zk:2181/kafka \
-  --replication-factor 3 --partitions 1 --topic OryxUpdate
-...
-Created topic "OryxUpdate".
-```
+throughput is needed. Replication factor can be any value, but at least 2 is recommended.
+Note that the replication factor can't exceed the number of Kafka brokers in the cluster.
 
 You may need to configure the retention time for one or both topics. In particular,
 it's typically important to limit the retention time for the update topic, since the Speed
-and Serving Layer read the entire topic from the start on startup to catch up. Setting it
-to twice the Batch Layer update interval is a good start. For example, to set it to 2 days
-(2 * 24 * 60 * 60 * 1000 = 172800000 ms):
+and Serving Layer read the entire topic from the start on startup to catch up. 
+This is not as important for the input topic, which is not re-read from the beginning.
+
+Setting it
+to twice the Batch Layer update interval is a good start. For example, to set it to 1 day
+(24 * 60 * 60 * 1000 = 86400000 ms), set the topic's `retention.ms` property to 86400000.
+This is done automatically by the provided `oryx-run.sh kafka-setup` script.
+
+### Automated Configuration
+
+The provided `oryx-run.sh` script can be used to print current configuration for Zookeeper,
+list existing topics in Kafka, and optionally create the configured input and update topics
+if needed. 
+
+You will need to create an Oryx configuration file first, which can be cloned from the example at
+[conf/als-example.conf](https://github.com/OryxProject/oryx/blob/master/app/conf/als-example.conf)
+as a start. At least change the Kafka and Zookeeper configuration, as well as topic names, as desired.
+
+With this file as `oryx.conf` and any of the layer JAR files in the same directory, run:
 
 ```bash
-kafka-topics --zookeeper your-zk:2181/kafka --alter --topic OryxUpdate \
-  --config retention.ms=172800000
+./oryx-run.sh kafka-setup
+
+Input  ZK:    your-zk:2181
+Input  Kafka: your-kafka:9092
+Input  topic: OryxInput
+Update ZK:    your-zk:2181
+Update Kafka: your-kafka:9092
+Update topic: OryxUpdate
+
+All available topics:
+
+
+Input topic OryxInput does not exist. Create it? y
+Creating topic OryxInput
+Created topic "OryxInput".
+Status of topic OryxInput:
+Topic:OryxInput	PartitionCount:1	ReplicationFactor:2	Configs:
+	Topic: OryxInput	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
+
+Update topic OryxUpdate does not exist. Create it? y
+Creating topic OryxUpdate
+Created topic "OryxUpdate".
+Updated config for topic "OryxUpdate".
+Status of topic OryxUpdate:
+Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000
+	Topic: OryxUpdate	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
 ```
 
-This is not as important for the input topic, which is not re-read from the beginning.
+To watch messages sent to the input and update topics, to monitor action of the application,
+try:
+
+```bash
+./oryx-run.sh kafka-tail
+Input  ZK:    your-zk:2181
+Input  Kafka: your-kafka:9092
+Input  topic: OryxInput
+Update ZK:    your-zk:2181
+Update Kafka: your-kafka:9092
+Update topic: OryxUpdate
+
+...output...
+```
+
+Then in another window, you can feed input, such as the `data.csv` example from above, 
+into the input queue to verify it's working with:
+
+```bash
+./oryx-run.sh kafka-input --input-file data.csv
+```
+
+If all is well, these processes can be terminated. The cluster is ready to run Oryx.
 
 ## Handling Failure
 
@@ -594,24 +616,53 @@ designs, with batch, speed and serving layers
 
 ### Migration
 
-The bad news is that no direct migration is possible between Oryx 1 and Oryx 2; they have very different implementations. However, differences in the user- and developer-facing aspects are by design similar or identical.
+The bad news is that no direct migration is possible between Oryx 1 and Oryx 2; they have 
+very different implementations. However, differences in the user- and developer-facing aspects 
+are by design similar or identical.
 
 #### REST API
 
-Oryx 2 contains the same set of end-to-end ML applications as Oryx 1, and exposes virtually the same REST API, unchanged. The only significant difference is that there is no longer a `/refresh` endpoint, because it is unnecessary.
+Oryx 2 contains the same set of end-to-end ML applications as Oryx 1, and exposes virtually 
+the same REST API, unchanged. The only significant difference is that there is no longer 
+a `/refresh` endpoint, because it is unnecessary.
 
 #### Configuration
 
-Both implementations use a single configuration file parsed by Typesafe Config. The property namespaces are different but there are some similarities. Compare the [Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) to the [Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf) to understand some of the correspondence and difference.
+Both implementations use a single configuration file parsed by Typesafe Config.
+The property namespaces are different but there are some similarities. Compare the 
+[Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) 
+to the 
+[Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf) 
+to understand some of the correspondence and difference.
 
 #### Data Storage and Transport
 
-In Oryx 1, all data was stored in a series of directories in HDFS. In Oryx 2, data is transported via Kafka (which ultimately stores data in HDFS) and in HDFS as managed by a Spark Streaming process. Although it is still possible to side-load data files via HDFS in Oryx 2, it is not supported and is discouraged, in favor of sending data directly to a Kafka queue.
+In Oryx 1, all data was stored in a series of directories in HDFS. In Oryx 2, data is transported 
+via Kafka (which ultimately stores data in HDFS) and in HDFS as managed by a Spark Streaming 
+process. Although it is still possible to side-load data files via HDFS in Oryx 2, it is not 
+supported and is discouraged, in favor of sending data directly to a Kafka queue.
 
 #### Data Formats
 
-In theory, the framework is agnostic to data types and encodings passed between layers. In practice, the provided applications consume the same CSV-encoded data format as Oryx 1.
+In theory, the framework is agnostic to data types and encodings passed between layers. 
+In practice, the provided applications consume the same CSV-encoded data format as Oryx 1.
 
 #### Deployment
 
-The deployment requirements are the most different. Although all layers are still distributed as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN, Kafka, Spark, and Zookeeper services. Your environment or cluster must be updated to include these services before you can use Oryx 2.
+The deployment requirements are the most different. Although all layers are still distributed 
+as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN, Kafka, Spark, 
+and Zookeeper services. Your environment or cluster must be updated to include these services 
+before you can use Oryx 2.
+
+## Troubleshooting
+
+### Unsupported major.minor version 51.0
+
+This means you are running Java 6 somewhere. Oryx 2 requires Java 7 or later.
+
+### Required executor memory (... MB) is above the max threshold (... MB) of this cluster
+
+This means your YARN configuration limits the maximum container size that can be requested.
+Increase the Container Memory Maximum (`yarn.scheduler.maximum-allocation-mb`)
+to something larger. For Spark, it generally makes sense to allow large containers.
+AddF

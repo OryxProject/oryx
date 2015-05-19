@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+#
+# Cloudera, Inc. licenses this file to you under the Apache License,
+# Version 2.0 (the "License"). You may not use this file except in
+# compliance with the License. You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied. See the License for
+# the specific language governing permissions and limitations under the
+# License.
+
+# The file compute-classpath.sh must be in the same directory as this file.
+
+# TODO: remove the '2>&1 | grep -vE "^mkdir: cannot create directory"' used in several
+# Kafka commands below. This suppresses an ignorable warning from the CDH 5.4 distro.
+
+function usageAndExit {
+  echo "Error: $1"
+  echo "usage: oryx-run.sh command [--option value] ..."
+  echo "  where command is one of:"
+  echo "    batch        Run Batch Layer"
+  echo "    speed        Run Speed Layer"
+  echo "    serving      Run Serving Layer"
+  echo "    kafka-setup  Inspect ZK/Kafka config and configure Kafka topics"
+  echo "    kafka-tail   Follow output from Kafka topics"
+  echo "    kafka-input  Push data to input topic"
+  echo "  and options are one of:"
+  echo "    --layer-jar  Oryx JAR file, like oryx-{serving,speed,batch}-x.y.z.jar"
+  echo "                 Defaults to any oryx-*.jar in working dir"
+  echo "    --conf       Oryx configuration file, like oryx.conf. Defaults to 'oryx.conf'"
+  echo "    --app-jar    User app JAR file"
+  echo "    --jvm-args   Extra args to Oryx JVM process"
+  echo "    --deployment Only for Serving Layer now; can be 'yarn' or 'local', Default: local."
+  echo "    --input-file Only for kafka-input. Input file to send"
+  exit 1
+}
+
+COMMAND=$1
+shift
+
+while (($#)); do
+  if [ "$1" == "--layer-jar" ]; then
+    LAYER_JAR=$2
+  elif [ "$1" == "--conf" ]; then
+    CONFIG_FILE=$2
+  elif [ "$1" == "--app-jar" ]; then
+    APP_JAR=$2
+  elif [ "$1" == "--jvm-args" ]; then
+    JVM_ARGS=$2
+  elif [ "$1" == "--deployment" ]; then
+    DEPLOYMENT=$2
+  elif [ "$1" == "--input-file" ]; then
+    INPUT_FILE=$2
+  fi
+  shift
+done
+
+if [ -z "${LAYER_JAR}" ]; then
+  LAYER_JAR=`ls -1 oryx-*.jar | head -1`
+fi
+if [ -z "${CONFIG_FILE}" ]; then
+  CONFIG_FILE="oryx.conf"
+fi
+if [ ! -f "${LAYER_JAR}" ]; then
+  usageAndExit "Layer JAR ${LAYER_JAR} does not exist"
+fi
+if [ ! -f "${CONFIG_FILE}" ]; then
+  usageAndExit "Config file ${CONFIG_FILE} does not exist"
+fi
+
+CONFIG_PROPS=`java -cp ${LAYER_JAR} -Dconfig.file=${CONFIG_FILE} com.cloudera.oryx.common.settings.ConfigToProperties`
+
+case "${COMMAND}" in
+batch|speed|serving)
+
+  # Main Layer handling script
+
+  CONFIG_FILE_NAME=`basename ${CONFIG_FILE}`
+  if [ -n "${APP_JAR}" ]; then
+    APP_JAR_NAME=`basename ${APP_JAR}`
+  fi
+
+  COMPUTE_CLASSPATH="compute-classpath.sh"
+  if [ ! -x "$COMPUTE_CLASSPATH" ]; then
+    usageAndExit "$COMPUTE_CLASSPATH script does not exist or isn't executable"
+  fi
+  BASE_CLASSPATH=`bash ${COMPUTE_CLASSPATH} | paste -s -d: -`
+  # Need to ship examples JAR with app as it conveniently contains right Kafka, in Spark
+  SPARK_EXAMPLES_JAR=`bash ${COMPUTE_CLASSPATH} | grep spark-examples`
+
+  SPARK_STREAMING_JARS="${LAYER_JAR},${SPARK_EXAMPLES_JAR}"
+  if [ "${APP_JAR}" != "" ]; then
+    SPARK_STREAMING_JARS="${APP_JAR},${SPARK_STREAMING_JARS}"
+  fi
+  SPARK_STREAMING_PROPS="-Dspark.yarn.dist.files=${CONFIG_FILE} \
+   -Dspark.jars=${SPARK_STREAMING_JARS} \
+   -Dsun.io.serialization.extendeddebuginfo=true \
+   -Dspark.executor.extraJavaOptions=\"-Dconfig.file=${CONFIG_FILE_NAME} -Dsun.io.serialization.extendeddebuginfo=true\""
+
+  MAIN_CLASS="com.cloudera.oryx.${COMMAND}.Main"
+  case "${COMMAND}" in
+    batch)
+      EXTRA_PROPS="${SPARK_STREAMING_PROPS}"
+      ;;
+    speed)
+      EXTRA_PROPS="${SPARK_STREAMING_PROPS}"
+      ;;
+    serving)
+      # Only for Serving Layer now
+      if [ "${DEPLOYMENT}" == "yarn" ]; then
+        YARN_MEMORY_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.memory=.+$" | grep -oE "[^=]+$" | grep -oE "[0-9]+"`
+        YARN_CORES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.cores=.+$" | grep -oE "[^=]+$"`
+        YARN_INSTANCES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.instances=.+$" | grep -oE "[^=]+$"`
+        YARN_APP_NAME="OryxServingLayer"
+        JVM_HEAP_MB=`echo "${YARN_MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
+        EXTRA_PROPS="-Xmx${JVM_HEAP_MB}m"
+      fi
+      ;;
+  esac
+
+  if [ -n "${YARN_APP_NAME}" ]; then
+    # Launch layer in YARN
+
+    LAYER_JAR_NAME=`basename ${LAYER_JAR}`
+    FINAL_CLASSPATH="${LAYER_JAR_NAME}:${BASE_CLASSPATH}"
+    if [ -n "${APP_JAR_NAME}" ]; then
+      FINAL_CLASSPATH="${APP_JAR_NAME}:${FINAL_CLASSPATH}"
+    fi
+
+    PRN="$$"
+    LOCAL_SCRIPT_DIR="/tmp/OryxServingLayer/${PRN}"
+    LOCAL_SCRIPT="${LOCAL_SCRIPT_DIR}/run-yarn.sh"
+    YARN_LOG4J="${LOCAL_SCRIPT_DIR}/log4j.properties"
+
+    HDFS_APP_DIR="/tmp/OryxServingLayer/${PRN}"
+
+    mkdir -p ${LOCAL_SCRIPT_DIR}
+    hdfs dfs -mkdir -p ${HDFS_APP_DIR}
+    hdfs dfs -copyFromLocal -f ${LAYER_JAR} ${CONFIG_FILE} ${HDFS_APP_DIR}/
+    if [ -n "${APP_JAR}" ]; then
+      hdfs dfs -copyFromLocal -f ${APP_JAR} ${HDFS_APP_DIR}/
+    fi
+
+    echo "log4j.logger.org.apache.hadoop.yarn.applications.distributedshell=WARN" >> ${YARN_LOG4J}
+    echo "hdfs dfs -copyToLocal ${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
+    echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
+
+    YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
+
+    yarn jar ${YARN_DIST_SHELL_JAR} \
+      -jar ${YARN_DIST_SHELL_JAR} \
+      org.apache.hadoop.yarn.applications.distributedshell.Client \
+      -appname ${YARN_APP_NAME} \
+      -container_memory ${YARN_MEMORY_MB} \
+      -container_vcores ${YARN_CORES} \
+      -num_containers ${YARN_INSTANCES} \
+      -log_properties ${YARN_LOG4J} \
+      -shell_script ${LOCAL_SCRIPT}
+
+  else
+    # Launch Layer as local process
+
+    FINAL_CLASSPATH="${LAYER_JAR}:${BASE_CLASSPATH}"
+    if [ -n "${APP_JAR}" ]; then
+      FINAL_CLASSPATH="${APP_JAR}:${FINAL_CLASSPATH}"
+    fi
+    java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
+
+  fi
+  ;;
+
+kafka-setup|kafka-tail|kafka-input)
+
+  INPUT_ZK=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.input-topic\.lock\.master=.+$" | grep -oE "[^=]+$"`
+  INPUT_KAFKA=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.input-topic\.broker=.+$" | grep -oE "[^=]+$"`
+  INPUT_TOPIC=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.input-topic\.message\.topic=.+$" | grep -oE "[^=]+$"`
+  UPDATE_ZK=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.update-topic\.lock\.master=.+$" | grep -oE "[^=]+$"`
+  UPDATE_KAFKA=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.update-topic\.broker=.+$" | grep -oE "[^=]+$"`
+  UPDATE_TOPIC=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.update-topic\.message\.topic=.+$" | grep -oE "[^=]+$"`
+
+  echo "Input  ZK:    ${INPUT_ZK}"
+  echo "Input  Kafka: ${INPUT_KAFKA}"
+  echo "Input  topic: ${INPUT_TOPIC}"
+  echo "Update ZK:    ${INPUT_ZK}"
+  echo "Update Kafka: ${UPDATE_KAFKA}"
+  echo "Update topic: ${UPDATE_TOPIC}"
+  echo
+
+  case "${COMMAND}" in
+  kafka-setup)
+    ALL_TOPICS=`kafka-topics --list --zookeeper ${INPUT_ZK} 2>&1 | grep -vE "^mkdir: cannot create directory"`
+    echo "All available topics:"
+    echo "${ALL_TOPICS}"
+    echo
+
+    if [ -z `echo "${ALL_TOPICS}" | grep ${INPUT_TOPIC}` ]; then
+      read -p "Input topic ${INPUT_TOPIC} does not exist. Create it? " CREATE
+      case "${CREATE}" in
+        y|Y)
+          echo "Creating topic ${INPUT_TOPIC}"
+          kafka-topics --zookeeper ${INPUT_ZK} --create --replication-factor 2 --partitions 1 --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+          ;;
+      esac
+    fi
+    echo "Status of topic ${INPUT_TOPIC}:"
+    kafka-topics --zookeeper ${INPUT_ZK} --describe --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    echo
+
+    if [ -z `echo "${ALL_TOPICS}" | grep ${UPDATE_TOPIC}` ]; then
+      read -p "Update topic ${UPDATE_TOPIC} does not exist. Create it? " CREATE
+      case "${CREATE}" in
+        y|Y)
+          echo "Creating topic ${UPDATE_TOPIC}"
+          kafka-topics --zookeeper ${UPDATE_ZK} --create --replication-factor 2 --partitions 1 --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+          kafka-topics --zookeeper ${UPDATE_ZK} --alter --topic ${UPDATE_TOPIC} --config retention.ms=86400000 2>&1 | grep -vE "^mkdir: cannot create directory"
+          ;;
+      esac
+    fi
+    echo "Status of topic ${UPDATE_TOPIC}:"
+    kafka-topics --zookeeper ${UPDATE_ZK} --describe --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    echo
+    ;;
+
+  kafka-tail)
+    kafka-console-consumer --zookeeper ${INPUT_ZK} --whitelist ${INPUT_TOPIC},${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ;;
+
+  kafka-input)
+    kafka-console-producer --broker-list ${INPUT_KAFKA} --topic ${INPUT_TOPIC} < ${INPUT_FILE} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ;;
+
+  esac
+  ;;
+
+*)
+  usageAndExit "Invalid command ${COMMAND}"
+  ;;
+
+esac

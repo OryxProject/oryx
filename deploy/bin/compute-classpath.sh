@@ -13,7 +13,7 @@
 # the specific language governing permissions and limitations under the
 # License.
 
-# CDH5.3+ specific classpath config
+# CDH5.4+ specific classpath config
 
 HADOOP_CONF_DIR="/etc/hadoop/conf"
 CDH_JARS_DIR="/opt/cloudera/parcels/CDH/jars"
@@ -34,6 +34,7 @@ ls -1 \
  ${CDH_JARS_DIR}/hadoop-yarn-common-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-server-web-proxy-*.jar \
  ${CDH_JARS_DIR}/hadoop-yarn-applications-distributedshell-*.jar \
+ ${CDH_JARS_DIR}/htrace-core-3.0.4.jar \
  ${CDH_JARS_DIR}/commons-cli-1.2.jar \
  ${CDH_JARS_DIR}/commons-collections-*.jar \
  ${CDH_JARS_DIR}/commons-configuration-1.7.jar \
