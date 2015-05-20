@@ -93,6 +93,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
         case "MODEL":
           // New model
+          log.info("Loading new model");
           PMML pmml;
           try {
             pmml = PMMLUtils.fromString(message);
@@ -102,13 +103,15 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           if (model == null) {
 
-            log.info("No previous model; creating new model");
+            log.info("No previous model; installing new model");
             model = new ALSSpeedModel(features);
+            log.info("New model loaded: {}", model);
 
           } else if (features != model.getFeatures()) {
 
-            log.warn("# features has changed! removing old model and creating new one");
+            log.warn("# features has changed! removing old model and installing new one");
             model = new ALSSpeedModel(features);
+            log.info("New model loaded: {}", model);
 
           } else {
 
@@ -118,6 +121,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
             List<String> YIDs = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
             model.pruneX(XIDs);
             model.pruneY(YIDs);
+            log.info("Model updated: {}", model);
 
           }
           break;

@@ -60,7 +60,14 @@ while (($#)); do
 done
 
 if [ -z "${LAYER_JAR}" ]; then
-  LAYER_JAR=`ls -1 oryx-*.jar | head -1`
+  case "${COMMAND}" in
+  batch|speed|serving)
+    LAYER_JAR=`ls -1 oryx-${COMMAND}-*.jar`
+    ;;
+  *)
+    LAYER_JAR=`ls -1 oryx-*.jar | head -1`
+    ;;
+  esac
 fi
 if [ -z "${CONFIG_FILE}" ]; then
   CONFIG_FILE="oryx.conf"
@@ -146,10 +153,16 @@ batch|speed|serving)
     fi
 
     echo "log4j.logger.org.apache.hadoop.yarn.applications.distributedshell=WARN" >> ${YARN_LOG4J}
+
     echo "hdfs dfs -copyToLocal ${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
     echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
 
     YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
+
+    echo "Running ${YARN_INSTANCES} ${YARN_APP_NAME} (${YARN_CORES} cores / ${YARN_MEMORY_MB}MB)"
+    echo "Note that you will need to find the Application Master in YARN to find the Serving Layer"
+    echo "instances, and kill the application with 'yarn application -kill [app ID]'"
+    echo
 
     yarn jar ${YARN_DIST_SHELL_JAR} \
       -jar ${YARN_DIST_SHELL_JAR} \
@@ -157,9 +170,14 @@ batch|speed|serving)
       -appname ${YARN_APP_NAME} \
       -container_memory ${YARN_MEMORY_MB} \
       -container_vcores ${YARN_CORES} \
+      -master_memory 256 \
+      -master_vcores 1 \
       -num_containers ${YARN_INSTANCES} \
       -log_properties ${YARN_LOG4J} \
       -shell_script ${LOCAL_SCRIPT}
+
+    hdfs dfs -rm -r -skipTrash "${HDFS_APP_DIR}"
+    rm -r "${LOCAL_SCRIPT_DIR}"
 
   else
     # Launch Layer as local process
@@ -230,7 +248,10 @@ kafka-setup|kafka-tail|kafka-input)
     ;;
 
   kafka-input)
-    kafka-console-producer --broker-list ${INPUT_KAFKA} --topic ${INPUT_TOPIC} < ${INPUT_FILE} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    if [ ! -f "${INPUT_FILE}" ]; then
+      usageAndExit "Input file ${INPUT_FILE} does not exist"
+    fi
+    kafka-console-producer --broker-list ${INPUT_KAFKA} --topic ${INPUT_TOPIC} < "${INPUT_FILE}" 2>&1 | grep -vE "^mkdir: cannot create directory"
     ;;
 
   esac

@@ -76,7 +76,6 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     return "BatchLayer";
   }
 
-
   public synchronized void start() {
     String id = getID();
     if (id != null) {
@@ -135,7 +134,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
   @Override
   public synchronized void close() {
     if (streamingContext != null) {
-      log.info("Shutting down");
+      log.info("Shutting down Spark Streaming; this may take some time");
       streamingContext.stop(true, true);
       streamingContext = null;
     }

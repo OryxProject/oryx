@@ -161,7 +161,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
       consumer = null;
     }
     if (streamingContext != null) {
-      log.info("Shutting down streaming context");
+      log.info("Shutting down Spark Streaming; this may take some time");
       streamingContext.stop(true, true);
       streamingContext = null;
     }

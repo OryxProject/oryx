@@ -187,9 +187,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
     sparkConf.setIfMissing("spark.ui.showConsoleProgress", "false");
 
-    sparkConf.setIfMissing("spark.driver.userClassPathFirst", "true");
-    sparkConf.setIfMissing("spark.executor.userClassPathFirst", "true");
-
     long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
 

@@ -77,7 +77,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           }
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
-          log.info("Model with {} clusters", model.getNumClusters());
+          log.info("New model loaded: {}", model);
           break;
         default:
           throw new IllegalStateException("Unexpected key " + key);

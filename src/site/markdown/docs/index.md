@@ -25,12 +25,13 @@ on each machine.
 Run the three Layers with:
 
 ```bash
-./oryx-run.sh batch --layer-jar oryx-batch-2.0.0.jar
-...
-./oryx-run.sh speed --layer-jar oryx-speed-2.0.0.jar
-...
-./oryx-run.sh serving --layer-jar oryx-serving-2.0.0.jar
+./oryx-run.sh batch
+./oryx-run.sh speed
+./oryx-run.sh serving
 ```
+
+(`--layer-jar your-layer.jar` and `--conf your-config.conf` can be used to specify
+an alternative location of the layer `.jar` and/or `.conf` file.)
 
 These need not be on the same machine, but may be (if configuration specifies different
 ports for the Batch and Speed Layer Spark web UI, and the Serving Layer API port).
@@ -57,8 +58,7 @@ tr '\t' ',' < u.data > data.csv
 Push the input to a Serving Layer, with a local command line tool like `curl`:
 
 ```bash
-wget --post-file data.csv \
-  --output-document - \
+wget --quiet --post-file data.csv --output-document - \
   --header "Content-Type: text/csv" \
   http://your-serving-layer:8080/ingest
 ```
@@ -135,8 +135,7 @@ The Serving Layer will pick this up soon thereafter, and the `/ready` endpoint w
 status `200 OK`:
 
 ```bash
-wget --quiet --output-document - \
-  --server-response \
+wget --quiet --output-document - --server-response \
   http://your-serving-layer:8080/ready
 ...
   HTTP/1.1 200 OK
@@ -146,8 +145,7 @@ wget --quiet --output-document - \
 ```
 
 ```bash
-wget --quiet --output-document - \
-  http://your-serving-layer:8080/recommend/17
+wget --quiet --output-document -  http://your-serving-layer:8080/recommend/17
 ...
 50,0.7749542842056966
 275,0.7373013861581563

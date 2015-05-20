@@ -92,6 +92,7 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
               RDFPMMLUtils.read(pmml);
           model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
+          log.info("New model loaded: {}", model);
           break;
         default:
           throw new IllegalStateException("Unexpected key " + key);
