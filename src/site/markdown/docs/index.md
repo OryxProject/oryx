@@ -658,9 +658,27 @@ before you can use Oryx 2.
 
 This means you are running Java 6 somewhere. Oryx 2 requires Java 7 or later.
 
+### Initial job has not accepted any resources
+
+The error usually means that your YARN cluster can't allocate the resources (memory, cores) 
+that your application is requesting. You'll have to check and increase what YARN can allocate, 
+free up room, or decrease the amount that your app asks for.
+
+The relevant YARN settings are:
+
+- Container Memory (`yarn.nodemanager.resource.memory-mb`) - the maximum memory that one YARN node has to allocate to containers
+- Container Virtual CPU Cores (`yarn.nodemanager.resource.cpu-vcores`) - same, for cores
+- Container Memory Maximum (`yarn.scheduler.maximum-allocation-mb`) - maximum memory for one container
+- Container Virtual CPU Cores Maximum (`yarn.scheduler.maximum-allocation-vcores`) - maximum cores for one container
+
+The relevant app settings are:
+
+- `oryx.{batch,speed}.streaming.num-executors` - number of executors (YARN containers) to allocate
+- `oryx.{batch,speed}.streaming.executor-cores` - cores to allocate per executor
+- `oryx.{batch,speed}.streaming.executor-memory` - memory to allocate per executor
+
 ### Required executor memory (... MB) is above the max threshold (... MB) of this cluster
 
 This means your YARN configuration limits the maximum container size that can be requested.
 Increase the Container Memory Maximum (`yarn.scheduler.maximum-allocation-mb`)
 to something larger. For Spark, it generally makes sense to allow large containers.
-AddF

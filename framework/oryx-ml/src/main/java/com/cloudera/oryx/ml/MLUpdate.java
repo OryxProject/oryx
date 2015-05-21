@@ -335,27 +335,27 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
       return new Tuple2<>(candidatePath, eval);
     }
-  }
 
-  private static boolean empty(JavaRDD<?> rdd) {
-    return rdd == null || rdd.isEmpty();
-  }
+    private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
+      Preconditions.checkNotNull(newData);
+      if (testFraction <= 0.0) {
+        return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
+      }
+      if (testFraction >= 1.0) {
+        return new Pair<>(pastData, newData);
+      }
+      if (empty(newData)) {
+        return new Pair<>(pastData, null);
+      }
+      Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);
+      JavaRDD<M> newTrainData = newTrainTest.getFirst();
+      return new Pair<>(pastData == null ? newTrainData : newTrainData.union(pastData),
+                        newTrainTest.getSecond());
+    }
 
-  private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
-    Preconditions.checkNotNull(newData);
-    if (testFraction <= 0.0) {
-      return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
+    private boolean empty(JavaRDD<?> rdd) {
+      return rdd == null || rdd.isEmpty();
     }
-    if (testFraction >= 1.0) {
-      return new Pair<>(pastData, newData);
-    }
-    if (empty(newData)) {
-      return new Pair<>(pastData, null);
-    }
-    Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);
-    JavaRDD<M> newTrainData = newTrainTest.getFirst();
-    return new Pair<>(pastData == null ? newTrainData : newTrainData.union(pastData),
-                      newTrainTest.getSecond());
   }
 
   /**

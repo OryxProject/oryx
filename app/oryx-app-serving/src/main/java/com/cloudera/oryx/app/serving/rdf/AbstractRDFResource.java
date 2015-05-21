@@ -50,9 +50,10 @@ public abstract class AbstractRDFResource extends AbstractOryxResource {
     return rdfServingModel;
   }
 
-  Prediction makePrediction(String[] data) {
+  Prediction makePrediction(String[] data) throws OryxServingException {
     CategoricalValueEncodings valueEncodings = rdfServingModel.getEncodings();
     InputSchema inputSchema = rdfServingModel.getInputSchema();
+    check(data.length == inputSchema.getNumFeatures(), "Wrong number of features");
 
     Feature[] features = new Feature[data.length];
     Feature target = null;

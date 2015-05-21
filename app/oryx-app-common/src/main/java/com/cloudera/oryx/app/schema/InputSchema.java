@@ -84,12 +84,16 @@ public final class InputSchema implements Serializable {
       Preconditions.checkNotNull(givenCategoricalFeatures,
                                  "Neither numeric-features nor categorical-features was set");
       categoricalFeatures = ImmutableSet.copyOf(givenCategoricalFeatures);
-      Preconditions.checkArgument(activeFeatures.containsAll(categoricalFeatures));
+      Preconditions.checkArgument(activeFeatures.containsAll(categoricalFeatures),
+                                  "Active features %s not contained in categorical features %s",
+                                  activeFeatures, categoricalFeatures);
       activeFeatureSet.removeAll(categoricalFeatures);
       numericFeatures = ImmutableSet.copyOf(activeFeatureSet);
     } else {
       numericFeatures = ImmutableSet.copyOf(givenNumericFeatures);
-      Preconditions.checkArgument(activeFeatures.containsAll(numericFeatures));
+      Preconditions.checkArgument(activeFeatures.containsAll(numericFeatures),
+                                  "Active features %s not contained in numeric features %s",
+                                  activeFeatures, numericFeatures);
       activeFeatureSet.removeAll(numericFeatures);
       categoricalFeatures = ImmutableSet.copyOf(activeFeatureSet);
     }

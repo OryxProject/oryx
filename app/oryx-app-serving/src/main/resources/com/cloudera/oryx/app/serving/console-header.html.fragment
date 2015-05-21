@@ -33,7 +33,7 @@ a.arrow {line-height:100%;font-size:200%;margin-left:10px}
 .meter {padding:0;vertical-align:middle}
 .meter > span {display:block;height:100%;background-color:white;position:relative;overflow:hidden}
 </style>
-<script type="text/javascript"><![CDATA[
+<script type="text/javascript">
 function doQuery(endpoint, isGet, paramSuffixes, postBodyElement) {
 
     if (typeof(paramSuffixes) == "undefined") {
@@ -64,14 +64,14 @@ function doQuery(endpoint, isGet, paramSuffixes, postBodyElement) {
     xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState == 4) {
             var httpStatus = xmlHttp.status;
-            if (httpStatus == 200) {
+            if (httpStatus == 200 || httpStatus == 204) {
                 var responseText = xmlHttp.responseText;
                 if (responseText.length == 0) {
                     responseText = "[empty]";
                 }
                 resultElement.innerHTML = responseText;
             } else {
-                resultElement.innerHTML = "[HTTP Error " + httpStatus + " " + xmlHttp.statusText + "]";
+                resultElement.innerHTML = "[HTTP Status " + httpStatus + " " + xmlHttp.statusText + "]";
             }
         }
     };
@@ -104,7 +104,7 @@ function expandOrCollapse(divID, arrowSpanID) {
     theArrowSpan.innerHTML = '&#x25B6;';
   }
 }
-]]></script>
+</script>
 </head>
 <body>
 <div style="width:800px;margin-left:auto;margin-right:auto;padding:10px">

@@ -27,7 +27,7 @@ import com.cloudera.oryx.common.OryxTest;
 
 public final class PredictTest extends AbstractRDFServingTest {
 
-  private static final String PREDICT_DATA = "A,-5\nB,0\n";
+  private static final String PREDICT_DATA = "A,-5,\nB,0,\n";
   private static final String[][] EXPECTED_TOPIC = {
       {"A", "-5"}, {"B", "0"}
   };

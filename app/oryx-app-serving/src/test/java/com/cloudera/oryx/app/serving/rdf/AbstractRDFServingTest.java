@@ -48,11 +48,8 @@ public abstract class AbstractRDFServingTest extends AbstractServingTest {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, getModelManager());
+      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, new MockServingModelManager());
       context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
-    }
-    protected MockServingModelManager getModelManager() {
-      return new MockServingModelManager();
     }
   }
 

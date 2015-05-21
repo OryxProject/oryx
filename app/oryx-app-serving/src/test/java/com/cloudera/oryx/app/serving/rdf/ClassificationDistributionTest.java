@@ -79,11 +79,9 @@ public final class ClassificationDistributionTest extends AbstractRDFServingTest
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, getModelManager());
+      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY,
+                           new MockClassificationServingModelManager());
       context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
-    }
-    protected MockClassificationServingModelManager getModelManager() {
-      return new MockClassificationServingModelManager();
     }
   }
 

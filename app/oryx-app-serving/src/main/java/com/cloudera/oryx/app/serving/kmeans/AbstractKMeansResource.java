@@ -48,6 +48,8 @@ public abstract class AbstractKMeansResource extends AbstractOryxResource {
   Pair<Integer,Double> cluster(String[] data) throws OryxServingException {
     KMeansServingModel model = getKMeansModel();
     InputSchema inputSchema = model.getInputSchema();
+    check(data.length == inputSchema.getNumFeatures(), "Wrong number of features");
+
     double[] features = new double[inputSchema.getNumPredictors()];
     for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
       if (inputSchema.isActive(featureIndex)) {

@@ -18,7 +18,6 @@ package com.cloudera.oryx.lambda.serving;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,9 +34,6 @@ import org.apache.catalina.manager.JspHelper;
  */
 @Path("/error")
 public final class ErrorResource {
-
-  @Context
-  private ServletContext servletContext;
 
   @GET
   @Produces(MediaType.TEXT_HTML)

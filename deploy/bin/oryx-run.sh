@@ -122,7 +122,8 @@ batch|speed|serving)
         YARN_MEMORY_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.memory=.+$" | grep -oE "[^=]+$" | grep -oE "[0-9]+"`
         YARN_CORES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.cores=.+$" | grep -oE "[^=]+$"`
         YARN_INSTANCES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.instances=.+$" | grep -oE "[^=]+$"`
-        YARN_APP_NAME="OryxServingLayer"
+        APP_ID=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.id=.+$" | grep -oE "[^=]+$"`
+        YARN_APP_NAME="OryxServingLayer${APP_ID}"
         JVM_HEAP_MB=`echo "${YARN_MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
         EXTRA_PROPS="-Xmx${JVM_HEAP_MB}m"
       fi
@@ -138,23 +139,34 @@ batch|speed|serving)
       FINAL_CLASSPATH="${APP_JAR_NAME}:${FINAL_CLASSPATH}"
     fi
 
-    PRN="$$"
-    LOCAL_SCRIPT_DIR="/tmp/OryxServingLayer/${PRN}"
+    LOCAL_SCRIPT_DIR="/tmp/${YARN_APP_NAME}"
     LOCAL_SCRIPT="${LOCAL_SCRIPT_DIR}/run-yarn.sh"
     YARN_LOG4J="${LOCAL_SCRIPT_DIR}/log4j.properties"
+    # YARN_APP_NAME will match the base of what distributedshell uses, in the home dir
+    HDFS_APP_DIR="${YARN_APP_NAME}"
 
-    HDFS_APP_DIR="/tmp/OryxServingLayer/${PRN}"
+    # Only one copy of the app can be running anyway, so fail if it already seems
+    # to be running due to presence of directories
+    if [ -d ${LOCAL_SCRIPT_DIR} ]; then
+      usageAndExit "${LOCAL_SCRIPT_DIR} already exists; is ${YARN_APP_NAME} running?"
+    fi
+    if hdfs dfs -test -d ${HDFS_APP_DIR}; then
+      usageAndExit "${HDFS_APP_DIR} already exists; is ${YARN_APP_NAME} running?"
+    fi
 
+    # Make temp directories to stage resources, locally and in HDFS
     mkdir -p ${LOCAL_SCRIPT_DIR}
     hdfs dfs -mkdir -p ${HDFS_APP_DIR}
-    hdfs dfs -copyFromLocal -f ${LAYER_JAR} ${CONFIG_FILE} ${HDFS_APP_DIR}/
+    hdfs dfs -put ${LAYER_JAR} ${CONFIG_FILE} ${HDFS_APP_DIR}/
     if [ -n "${APP_JAR}" ]; then
-      hdfs dfs -copyFromLocal -f ${APP_JAR} ${HDFS_APP_DIR}/
+      hdfs dfs -put ${APP_JAR} ${HDFS_APP_DIR}/
     fi
 
     echo "log4j.logger.org.apache.hadoop.yarn.applications.distributedshell=WARN" >> ${YARN_LOG4J}
 
-    echo "hdfs dfs -copyToLocal ${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
+    # Need absolute path
+    OWNER=`hdfs dfs -stat '%u' ${HDFS_APP_DIR}`
+    echo "hdfs dfs -get /user/${OWNER}/${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
     echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
 
     YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
@@ -176,6 +188,7 @@ batch|speed|serving)
       -log_properties ${YARN_LOG4J} \
       -shell_script ${LOCAL_SCRIPT}
 
+    # Clean up temp dirs; they are only used by this application anyway
     hdfs dfs -rm -r -skipTrash "${HDFS_APP_DIR}"
     rm -r "${LOCAL_SCRIPT_DIR}"
 
@@ -200,12 +213,12 @@ kafka-setup|kafka-tail|kafka-input)
   UPDATE_KAFKA=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.update-topic\.broker=.+$" | grep -oE "[^=]+$"`
   UPDATE_TOPIC=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.update-topic\.message\.topic=.+$" | grep -oE "[^=]+$"`
 
-  echo "Input  ZK:    ${INPUT_ZK}"
-  echo "Input  Kafka: ${INPUT_KAFKA}"
-  echo "Input  topic: ${INPUT_TOPIC}"
-  echo "Update ZK:    ${INPUT_ZK}"
-  echo "Update Kafka: ${UPDATE_KAFKA}"
-  echo "Update topic: ${UPDATE_TOPIC}"
+  echo "Input   ZK      ${INPUT_ZK}"
+  echo "        Kafka   ${INPUT_KAFKA}"
+  echo "        topic   ${INPUT_TOPIC}"
+  echo "Update  ZK      ${INPUT_ZK}"
+  echo "        Kafka   ${UPDATE_KAFKA}"
+  echo "        topic   ${UPDATE_TOPIC}"
   echo
 
   case "${COMMAND}" in
