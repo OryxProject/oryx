@@ -15,7 +15,8 @@
 
 package com.cloudera.oryx.lambda.batch;
 
-import com.google.common.base.Preconditions;
+import java.util.Objects;
+
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
@@ -35,7 +36,7 @@ public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpda
   private final ScalaBatchLayerUpdate<K,M,U> scalaUpdate;
 
   public ScalaBatchLayerUpdateAdapter(ScalaBatchLayerUpdate<K,M,U> scalaUpdate) {
-    Preconditions.checkNotNull(scalaUpdate);
+    Objects.requireNonNull(scalaUpdate);
     this.scalaUpdate = scalaUpdate;
   }
 

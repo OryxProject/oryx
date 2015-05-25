@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -81,8 +82,8 @@ public final class InputSchema implements Serializable {
         ConfigUtils.getOptionalStringList(config, "oryx.input-schema.categorical-features");
 
     if (givenNumericFeatures == null) {
-      Preconditions.checkNotNull(givenCategoricalFeatures,
-                                 "Neither numeric-features nor categorical-features was set");
+      Objects.requireNonNull(givenCategoricalFeatures,
+                             "Neither numeric-features nor categorical-features was set");
       categoricalFeatures = ImmutableSet.copyOf(givenCategoricalFeatures);
       Preconditions.checkArgument(activeFeatures.containsAll(categoricalFeatures),
                                   "Active features %s not contained in categorical features %s",

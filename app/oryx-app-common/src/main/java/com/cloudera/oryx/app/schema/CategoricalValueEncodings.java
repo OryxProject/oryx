@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -93,7 +94,7 @@ public final class CategoricalValueEncodings implements Serializable {
   private BiMap<String,Integer> doGetMap(int index) {
     Preconditions.checkArgument(index >= 0);
     BiMap<String,Integer> map = encodingsForIndex.get(index);
-    Preconditions.checkNotNull(map, "No values for index %s", index);
+    Objects.requireNonNull(map, "No values for index " + index);
     return map;
   }
 

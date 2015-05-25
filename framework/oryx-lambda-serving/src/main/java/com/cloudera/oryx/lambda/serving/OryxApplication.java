@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
@@ -28,7 +29,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
-import com.google.common.base.Preconditions;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public final class OryxApplication extends Application {
     String packages =
         servletContext.getInitParameter(OryxApplication.class.getName() + ".packages");
     log.info("Creating JAX-RS from endpoints in package(s) {}", packages);
-    Preconditions.checkNotNull(packages);
+    Objects.requireNonNull(packages);
     Set<Class<?>> classes = new HashSet<>();
     for (String thePackage : packages.split(",")) {
       Reflections reflections = new Reflections(thePackage);

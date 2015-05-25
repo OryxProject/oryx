@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -154,7 +155,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                         TopicProducer<String,String> modelUpdateTopic)
       throws IOException, InterruptedException {
 
-    Preconditions.checkNotNull(newKeyMessageData);
+    Objects.requireNonNull(newKeyMessageData);
 
     JavaRDD<M> newData = newKeyMessageData.values();
     JavaRDD<M> pastData = pastKeyMessageData == null ? null : pastKeyMessageData.values();
@@ -337,7 +338,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     }
 
     private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
-      Preconditions.checkNotNull(newData);
+      Objects.requireNonNull(newData);
       if (testFraction <= 0.0) {
         return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
       }

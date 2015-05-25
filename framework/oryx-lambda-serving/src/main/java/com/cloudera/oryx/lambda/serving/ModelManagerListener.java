@@ -23,10 +23,10 @@ import javax.servlet.annotation.WebListener;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
@@ -80,7 +80,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   @SuppressWarnings("unchecked")
   public void init(ServletContext context) {
     String serializedConfig = context.getInitParameter(ConfigUtils.class.getName() + ".serialized");
-    Preconditions.checkNotNull(serializedConfig);
+    Objects.requireNonNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");

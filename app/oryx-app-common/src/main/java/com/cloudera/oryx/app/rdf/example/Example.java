@@ -17,8 +17,8 @@ package com.cloudera.oryx.app.rdf.example;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -67,7 +67,7 @@ public final class Example implements Serializable {
       return false;
     }
     Example other = (Example) o;
-    return Arrays.equals(features, other.features) && Objects.equal(target, other.target);
+    return Arrays.equals(features, other.features) && Objects.equals(target, other.target);
   }
 
   @Override

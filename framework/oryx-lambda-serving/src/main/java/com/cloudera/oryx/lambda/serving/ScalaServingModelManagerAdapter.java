@@ -16,8 +16,8 @@
 package com.cloudera.oryx.lambda.serving;
 
 import java.util.Iterator;
+import java.util.Objects;
 
-import com.google.common.base.Preconditions;
 import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -34,7 +34,7 @@ public final class ScalaServingModelManagerAdapter<U> implements ServingModelMan
   private final ScalaServingModelManager<U> scalaManager;
 
   public ScalaServingModelManagerAdapter(ScalaServingModelManager<U> scalaManager) {
-    Preconditions.checkNotNull(scalaManager);
+    Objects.requireNonNull(scalaManager);
     this.scalaManager = scalaManager;
   }
 

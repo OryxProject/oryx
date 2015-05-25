@@ -16,8 +16,8 @@
 package com.cloudera.oryx.lambda.speed;
 
 import java.util.Iterator;
+import java.util.Objects;
 
-import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
 import scala.collection.JavaConversions;
 
@@ -37,7 +37,7 @@ public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelMan
   private final ScalaSpeedModelManager<K,M,U> scalaManager;
 
   public ScalaSpeedModelManagerAdapter(ScalaSpeedModelManager<K,M,U> scalaManager) {
-    Preconditions.checkNotNull(scalaManager);
+    Objects.requireNonNull(scalaManager);
     this.scalaManager = scalaManager;
   }
 

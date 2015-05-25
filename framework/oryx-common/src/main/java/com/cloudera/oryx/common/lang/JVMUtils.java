@@ -18,8 +18,7 @@ package com.cloudera.oryx.common.lang;
 import java.io.Closeable;
 import java.util.Deque;
 import java.util.LinkedList;
-
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 import com.cloudera.oryx.common.io.IOUtils;
 
@@ -40,7 +39,7 @@ public final class JVMUtils {
    * @param closeable thing to close
    */
   public static void closeAtShutdown(Closeable closeable) {
-    Preconditions.checkNotNull(closeable);
+    Objects.requireNonNull(closeable);
     synchronized (closeAtShutdown) {
       if (closeAtShutdown.isEmpty()) {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {

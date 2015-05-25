@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.serving.rdf.model;
 
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
@@ -34,9 +34,9 @@ public final class RDFServingModel {
   RDFServingModel(DecisionForest forest,
                   CategoricalValueEncodings encodings,
                   InputSchema inputSchema) {
-    Preconditions.checkNotNull(forest);
-    Preconditions.checkNotNull(encodings);
-    Preconditions.checkNotNull(inputSchema);
+    Objects.requireNonNull(forest);
+    Objects.requireNonNull(encodings);
+    Objects.requireNonNull(inputSchema);
     this.forest = forest;
     this.encodings = encodings;
     this.inputSchema = inputSchema;

@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.kmeans.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 
@@ -37,8 +38,8 @@ public final class KMeansServingModel {
   private final DistanceFn<double[]> distanceFn;
 
   KMeansServingModel(List<ClusterInfo> clusters, InputSchema inputSchema) {
-    Preconditions.checkNotNull(clusters);
-    Preconditions.checkNotNull(inputSchema);
+    Objects.requireNonNull(clusters);
+    Objects.requireNonNull(inputSchema);
     this.clusters = Collections.synchronizedList(clusters);
     this.inputSchema = inputSchema;
     distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported

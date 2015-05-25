@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
@@ -160,7 +161,7 @@ public final class ALSServingModel {
   }
 
   void setUserVector(String user, float[] vector) {
-    Preconditions.checkNotNull(vector);
+    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
     try (AutoLock al = new AutoLock(xLock.writeLock())) {
       if (X.put(user, vector) == null) {
@@ -171,7 +172,7 @@ public final class ALSServingModel {
   }
 
   void setItemVector(String item, float[] vector) {
-    Preconditions.checkNotNull(vector);
+    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
     int partition = partition(item);
     try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {

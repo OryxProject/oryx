@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda;
 import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
@@ -73,7 +74,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
   @SuppressWarnings("unchecked")
   protected AbstractSparkLayer(Config config) {
-    Preconditions.checkNotNull(config);
+    Objects.requireNonNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
 
     String group = getConfigGroup();

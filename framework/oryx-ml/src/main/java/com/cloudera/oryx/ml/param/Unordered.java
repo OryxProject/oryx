@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 
@@ -27,7 +28,7 @@ final class Unordered<T> implements HyperParamValues<T>, Serializable {
   private final List<T> values;
 
   Unordered(Collection<T> values) {
-    Preconditions.checkNotNull(values);
+    Objects.requireNonNull(values);
     Preconditions.checkArgument(!values.isEmpty());
     this.values = new ArrayList<>(values);
   }

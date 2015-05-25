@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.speed.als;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -87,7 +88,7 @@ public final class ALSSpeedModel {
   }
 
   public void setUserVector(String user, float[] vector) {
-    Preconditions.checkNotNull(vector);
+    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
     try (AutoLock al = new AutoLock(xLock.writeLock())) {
       if (X.put(user, vector) == null) {
@@ -98,7 +99,7 @@ public final class ALSSpeedModel {
   }
 
   public void setItemVector(String item, float[] vector) {
-    Preconditions.checkNotNull(vector);
+    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
     try (AutoLock al = new AutoLock(yLock.writeLock())) {
       if (Y.put(item, vector) == null) {

@@ -16,8 +16,7 @@
 package com.cloudera.oryx.app.rdf.tree;
 
 import java.io.Serializable;
-
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 /**
  * Implementations of this interface represent nodes in a {@link DecisionTree}, whether
@@ -31,7 +30,7 @@ public abstract class TreeNode implements Serializable {
   private final String id;
 
   protected TreeNode(String id) {
-    Preconditions.checkNotNull(id);
+    Objects.requireNonNull(id);
     this.id = id;
   }
 

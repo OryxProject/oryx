@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Objects;
 import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletResponse;
 
@@ -84,7 +85,7 @@ public final class ServingLayer implements Closeable {
    * @param config configuration for the serving layer
    */
   public ServingLayer(Config config) {
-    Preconditions.checkNotNull(config);
+    Objects.requireNonNull(config);
     log.info("Configuration:\n{}", ConfigUtils.prettyPrint(config));
     this.config = config;
     this.id = ConfigUtils.getOptionalString(config, "oryx.id");

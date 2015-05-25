@@ -20,8 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import com.google.common.base.Preconditions;
 import org.apache.hadoop.io.Writable;
 
 /**
@@ -75,8 +75,8 @@ final class ValueWritableConverter<V> {
         throw new IllegalArgumentException(e);
       }
     }
-    Preconditions.checkNotNull(fromWritableMethod,
-                               "%s has no method returning %s", writableClass, valueClass);
+    Objects.requireNonNull(fromWritableMethod,
+                           writableClass + " has no method returning " + valueClass);
     this.fromWritableMethod = fromWritableMethod;
 
     Constructor<W> theNoArgConstructor = null;
@@ -99,9 +99,9 @@ final class ValueWritableConverter<V> {
       }
     }
 
-    Preconditions.checkNotNull(theNoArgConstructor, "%s has no no-arg constructor", writableClass);
-    Preconditions.checkNotNull(theOneArgConstructor,
-                               "%s has no constructor accepting %s", writableClass, valueClass);
+    Objects.requireNonNull(theNoArgConstructor, writableClass + " has no no-arg constructor");
+    Objects.requireNonNull(theOneArgConstructor,
+                           writableClass + " has no constructor accepting " + valueClass);
     writableNoArgConstructor =theNoArgConstructor;
     writableConstructor = theOneArgConstructor;
   }

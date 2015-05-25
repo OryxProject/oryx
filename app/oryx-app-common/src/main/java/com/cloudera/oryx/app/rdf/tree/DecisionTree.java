@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 
@@ -39,7 +40,7 @@ public final class DecisionTree implements TreeBasedClassifier {
   private final TreeNode root;
 
   public DecisionTree(TreeNode root) {
-    Preconditions.checkNotNull(root);
+    Objects.requireNonNull(root);
     this.root = root;
   }
 

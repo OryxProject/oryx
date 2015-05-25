@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.kafka.util;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import com.google.common.base.Preconditions;
@@ -49,10 +50,10 @@ public final class ProduceData {
                      String topic,
                      int howMany,
                      int intervalMsec) {
-    Preconditions.checkNotNull(datumGenerator);
+    Objects.requireNonNull(datumGenerator);
+    Objects.requireNonNull(topic);
     Preconditions.checkArgument(zkPort > 0);
     Preconditions.checkArgument(kafkaPort > 0);
-    Preconditions.checkNotNull(topic);
     Preconditions.checkArgument(howMany > 0);
     Preconditions.checkArgument(intervalMsec >= 0);
     this.datumGenerator = datumGenerator;

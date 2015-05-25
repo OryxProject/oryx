@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
@@ -30,8 +30,8 @@ public final class RDFSpeedModel {
   private final CategoricalValueEncodings encodings;
 
   RDFSpeedModel(DecisionForest forest, CategoricalValueEncodings encodings) {
-    Preconditions.checkNotNull(forest);
-    Preconditions.checkNotNull(encodings);
+    Objects.requireNonNull(forest);
+    Objects.requireNonNull(encodings);
     this.forest = forest;
     this.encodings = encodings;
   }

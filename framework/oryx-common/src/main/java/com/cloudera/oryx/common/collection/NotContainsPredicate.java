@@ -15,10 +15,10 @@
 
 package com.cloudera.oryx.common.collection;
 
-import com.google.common.base.Preconditions;
 import net.openhft.koloboke.function.Predicate;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Predicate that is true when a value is not in a given collection.
@@ -30,7 +30,7 @@ public final class NotContainsPredicate<T> implements Predicate<T> {
   private final Collection<T> values;
 
   public NotContainsPredicate(Collection<T> values) {
-    Preconditions.checkNotNull(values);
+    Objects.requireNonNull(values);
     this.values = values;
   }
 
