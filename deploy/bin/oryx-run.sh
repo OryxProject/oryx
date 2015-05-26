@@ -186,7 +186,10 @@ batch|speed|serving)
       -master_vcores 1 \
       -num_containers ${YARN_INSTANCES} \
       -log_properties ${YARN_LOG4J} \
+      -timeout 2147483647 \
       -shell_script ${LOCAL_SCRIPT}
+
+    # TODO timeout above is the max, is 24 days, and can't be disabled
 
     # Clean up temp dirs; they are only used by this application anyway
     hdfs dfs -rm -r -skipTrash "${HDFS_APP_DIR}"
