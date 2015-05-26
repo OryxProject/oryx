@@ -53,7 +53,7 @@ public abstract class Endpoint {
 
   @Override
   public synchronized String toString() {
-    return path + "\tmean: " +
+    return path + "\tcount:" + meanTimeMS.getN() + "\tmean: " +
         Math.round(meanTimeMS.getResult()) + "ms\tstdev: " +
         Math.round(stdevTimeMS.getResult()) + "ms";
   }

@@ -51,6 +51,7 @@ import com.cloudera.oryx.common.random.RandomManager;
  *   <li>{@code inputFile} local file containing input to base requests on, one per line.</li>
  *   <li>{@code hosts} comma-separated distinct host:port pairs to send HTTP requests to</li>
  *   <li>{@code requestIntervalMS} average delay between requests in MS</li>
+ *   <li>{@code threads} number of concurrent requests</li>
  * </ol>
  */
 public final class TrafficUtil {
@@ -62,8 +63,8 @@ public final class TrafficUtil {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length < 3) {
-      System.err.println("usage: TrafficUtil [inputFile] [hosts] [requestIntervalMS]");
+    if (args.length < 4) {
+      System.err.println("usage: TrafficUtil [inputFile] [hosts] [requestIntervalMS] [threads]");
       return;
     }
 
@@ -73,6 +74,8 @@ public final class TrafficUtil {
     Preconditions.checkArgument(hostStrings.length >= 1);
     int requestIntervalMS = Integer.parseInt(args[2]);
     Preconditions.checkArgument(requestIntervalMS >= 0);
+    int numThreads = Integer.parseInt(args[3]);
+    Preconditions.checkArgument(numThreads >= 1);
 
     final List<URI> hosts = new ArrayList<>(hostStrings.length);
     for (String hostString : hostStrings) {
@@ -81,19 +84,21 @@ public final class TrafficUtil {
 
     final List<String> inputLines = Files.readAllLines(inputFile, StandardCharsets.UTF_8);
 
-    int numThreads = Runtime.getRuntime().availableProcessors();
     final int perClientRequestIntervalMS = numThreads * requestIntervalMS;
 
     final Endpoints alsEndpoints = new Endpoints(ALSEndpoint.buildALSEndpoints());
     final AtomicLong requestCount = new AtomicLong();
-    final AtomicLong errorCount = new AtomicLong();
+    final AtomicLong serverErrorCount = new AtomicLong();
+    final AtomicLong clientErrorCount = new AtomicLong();
+    final AtomicLong exceptionCount = new AtomicLong();
 
+    final long start = System.currentTimeMillis();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     try {
       for (int i = 0; i < numThreads; i++) {
         executor.submit(new LoggingRunnable() {
           @Override
-          public void doRun() throws InterruptedException {
+          public void doRun() {
 
             RandomGenerator random = RandomManager.getRandom();
             ExponentialDistribution msBetweenRequests;
@@ -105,36 +110,50 @@ public final class TrafficUtil {
             Client client = ClientBuilder.newClient();
 
             while (true) {
-              WebTarget target = client.target("http://" + hosts.get(random.nextInt(hosts.size())));
-              String input = inputLines.get(random.nextInt(inputLines.size()));
-              Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
-              Invocation invocation = endpoint.makeInvocation(target, input);
+              try {
+                WebTarget target = client.target("http://" + hosts.get(random.nextInt(hosts.size())));
+                String input = inputLines.get(random.nextInt(inputLines.size()));
+                Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
+                Invocation invocation = endpoint.makeInvocation(target, input);
 
-              long startTime = System.currentTimeMillis();
-              Response response = invocation.invoke();
-              long elapsedMS = System.currentTimeMillis() - startTime;
+                long startTime = System.currentTimeMillis();
+                Response response = invocation.invoke();
+                long elapsedMS = System.currentTimeMillis() - startTime;
 
-              int statusCode = response.getStatusInfo().getStatusCode();
-              if (statusCode != Response.Status.OK.getStatusCode() &&
-                  statusCode != Response.Status.NO_CONTENT.getStatusCode()) {
-                //log.warn("Bad response for {}: {}", invocation, response);
-                errorCount.incrementAndGet();
-              }
-
-              endpoint.recordTiming(elapsedMS);
-
-              if (requestCount.incrementAndGet() % 10000 == 0) {
-                log.info("{} requests ({} errors)", requestCount.get(), errorCount.get());
-                for (Endpoint e : alsEndpoints.getEndpoints()) {
-                  log.info("{}", e);
+                int statusCode = response.getStatusInfo().getStatusCode();
+                if (statusCode >= 400) {
+                  if (statusCode >= 500) {
+                    serverErrorCount.incrementAndGet();
+                  } else {
+                    clientErrorCount.incrementAndGet();
+                  }
+                  //log.warn("{}", response);
                 }
-              }
 
-              if (msBetweenRequests != null) {
-                int desiredElapsedMS = (int) Math.round(msBetweenRequests.sample());
-                if (elapsedMS < desiredElapsedMS) {
-                  Thread.sleep(desiredElapsedMS - elapsedMS);
+                endpoint.recordTiming(elapsedMS);
+
+                if (requestCount.incrementAndGet() % 1000 == 0) {
+                  long elapsed = System.currentTimeMillis() - start;
+                  log.info("{}ms:\t{} requests\t({} client errors\t{} server errors\t{} exceptions)",
+                           elapsed,
+                           requestCount.get(),
+                           clientErrorCount.get(),
+                           serverErrorCount.get(),
+                           exceptionCount.get());
+                  for (Endpoint e : alsEndpoints.getEndpoints()) {
+                    log.info("{}", e);
+                  }
                 }
+
+                if (msBetweenRequests != null) {
+                  int desiredElapsedMS = (int) Math.round(msBetweenRequests.sample());
+                  if (elapsedMS < desiredElapsedMS) {
+                    Thread.sleep(desiredElapsedMS - elapsedMS);
+                  }
+                }
+              } catch (Exception e) {
+                exceptionCount.incrementAndGet();
+                log.warn("Error in request", e);
               }
             }
           }
