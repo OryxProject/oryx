@@ -1,12 +1,21 @@
 ========================================================================
+Common Development and Distribution License 1.0
+========================================================================
+
+The following components are provided under the Common Development and Distribution License 1.0.
+See project link for details.
+
+JAX-RS (https://jax-rs-spec.java.net/)
+Java EE 7 APIs (http://docs.oracle.com/javaee/7/index.html)
+
+========================================================================
 Common Development and Distribution License 1.1
 ========================================================================
 
 The following components are provided under the Common Development and Distribution License 1.1.
 See project link for details.
 
-JAX-RS (https://jax-rs-spec.java.net/)
-Jersey (https://jersey.java.net/jersey-server/)
+Jersey (https://jersey.java.net/)
 
 
 ========================================================================

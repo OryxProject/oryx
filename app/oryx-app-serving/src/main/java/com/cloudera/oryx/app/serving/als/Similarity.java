@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.als;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -56,6 +57,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * an array of similarities, each of which has an "id" and "value" entry, like
  * [{"id":"I2","value":0.141348009071816},...]</p>
  */
+@Singleton
 @Path("/similarity")
 public final class Similarity extends AbstractALSResource {
 

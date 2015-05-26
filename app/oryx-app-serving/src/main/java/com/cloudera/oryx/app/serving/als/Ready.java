@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
@@ -28,6 +29,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  * or {@link Response.Status#SERVICE_UNAVAILABLE} status depending or whether the model is
  * available or not.</p>
  */
+@Singleton
 @Path("/ready")
 public final class Ready extends AbstractALSResource {
 

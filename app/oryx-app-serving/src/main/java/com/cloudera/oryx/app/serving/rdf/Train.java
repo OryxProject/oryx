@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -41,6 +42,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  * "1,foo,3.0". Also, one data point can be supplied by POSTing to {@code /train/[datum]}.
  * The classifier updates to learn in some way from the new data. The response is empty.</p>
  */
+@Singleton
 @Path("/train")
 public final class Train extends AbstractRDFResource {
 

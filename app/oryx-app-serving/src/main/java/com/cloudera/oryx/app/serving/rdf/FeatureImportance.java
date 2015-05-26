@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -40,6 +41,7 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
  * <p>The result contains one importance value per line. If JSON output is selected, the result
  * is a JSON list of importance values.</p>
  */
+@Singleton
 @Path("/feature/importance")
 public final class FeatureImportance extends AbstractRDFResource {
 

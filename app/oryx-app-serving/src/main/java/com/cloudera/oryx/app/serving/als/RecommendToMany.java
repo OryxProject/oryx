@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -54,6 +55,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * <p>{@code howMany}, {@code considerKnownItems} and {@code offset} behavior, and output,
  * are as in {@link Recommend}.</p>
  */
+@Singleton
 @Path("/recommendToMany")
 public final class RecommendToMany extends AbstractALSResource {
 

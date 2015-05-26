@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -61,6 +62,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * <p>In all events the uncompressed data should be text, encoding with UTF-8, and with
  * {@code \n} line separators.</p>
  */
+@Singleton
 @Path("/ingest")
 public final class Ingest extends AbstractALSResource {
 

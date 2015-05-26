@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collection;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -29,6 +30,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  *
  * <p>CSV output consists of one ID per line. JSON output is an array of item IDs.</p>
  */
+@Singleton
 @Path("/item")
 public final class AllItemIDs extends AbstractALSResource {
 

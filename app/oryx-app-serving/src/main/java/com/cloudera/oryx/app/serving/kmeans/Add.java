@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -42,6 +43,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  * POSTing to {@code /add/[datum]}. The clusters update to learn in some way from the new data.
  * The response is empty.</p>
  */
+@Singleton
 @Path("/add")
 public final class Add extends AbstractKMeansResource {
 

@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -48,6 +49,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * <p>The response body contains the result of clustering, one for each input data point, one per
  * line.</p>
  */
+@Singleton
 @Path("/assign")
 public final class Assign extends AbstractKMeansResource {
 

@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -46,6 +47,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * an array of probabilities, each of which has an "id" and "value" entry, like
  * [{"id":"I2","value":0.141348009071816},...]</p>
  */
+@Singleton
 @Path("/classificationDistribution")
 public final class ClassificationDistribution extends AbstractRDFResource {
 

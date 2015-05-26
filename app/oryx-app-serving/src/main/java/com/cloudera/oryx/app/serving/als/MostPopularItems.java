@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
 import java.util.Map;
+import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -51,6 +52,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  *
  * @see MostActiveUsers
  */
+@Singleton
 @Path("/mostPopularItems")
 public final class MostPopularItems extends AbstractALSResource {
 

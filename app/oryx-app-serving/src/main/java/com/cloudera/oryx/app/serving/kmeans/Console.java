@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
+import javax.inject.Singleton;
 import javax.ws.rs.Path;
 
 import com.cloudera.oryx.app.serving.AbstractConsoleResource;
@@ -22,6 +23,7 @@ import com.cloudera.oryx.app.serving.AbstractConsoleResource;
 /**
  * k-means app Serving Layer console.
  */
+@Singleton
 @Path("/{file:(index\\.html)?}")
 public final class Console extends AbstractConsoleResource {
   @Override

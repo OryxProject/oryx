@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -43,6 +44,7 @@ import com.cloudera.oryx.common.math.VectorMath;
  *
  * <p>Outputs the result of the method call as a value on one line.</p>
  */
+@Singleton
 @Path("/estimateForAnonymous")
 public final class EstimateForAnonymous extends AbstractALSResource {
 

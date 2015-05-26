@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.als;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
@@ -37,6 +38,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  * <p>Also responds to a DELETE request to the same path, which will signal the removal
  * of a user-item association.</p>
  */
+@Singleton
 @Path("/pref")
 public final class Preference extends AbstractALSResource {
 

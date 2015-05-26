@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,6 +40,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * <p>The output are similarities, in the same order as the item IDs, with format
  * as in {@link Estimate}</p>
  */
+@Singleton
 @Path("/similarityToItem")
 public final class SimilarityToItem extends AbstractALSResource {
 

@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -50,6 +51,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  *
  * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
+@Singleton
 @Path("/mostSurprising")
 public final class MostSurprising extends AbstractALSResource {
 

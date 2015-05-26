@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -37,6 +38,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  *
  * <p>Output is one item ID per line, or in the case of JSON output, an array of IDs.</p>
  */
+@Singleton
 @Path("/popularRepresentativeItems")
 public final class PopularRepresentativeItems extends AbstractALSResource {
 

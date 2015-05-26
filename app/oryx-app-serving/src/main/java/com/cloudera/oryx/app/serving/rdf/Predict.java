@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -56,6 +57,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * line. The result depends on the classifier or regressor -- could be a number
  * or a category name. If JSON output is selected, the result is a JSON list.</p>
  */
+@Singleton
 @Path("/predict")
 public final class Predict extends AbstractRDFResource {
 

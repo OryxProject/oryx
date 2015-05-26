@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -32,6 +33,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * <p>The response body contains the distance from the point to its nearest cluster center.
  * The distance function depends on the model.</p>
  */
+@Singleton
 @Path("/distanceToNearest")
 public final class DistanceToNearest extends AbstractKMeansResource {
 

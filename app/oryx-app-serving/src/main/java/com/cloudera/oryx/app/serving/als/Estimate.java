@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -46,6 +47,7 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * <p>The output are estimates, in the same order as the item IDs. For default CSV output,
  * each line contains one estimate. For JSON output, the result is an array of estimates.</p>
  */
+@Singleton
 @Path("/estimate")
 public final class Estimate extends AbstractALSResource {
 
