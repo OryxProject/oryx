@@ -31,8 +31,7 @@ import com.cloudera.oryx.common.OryxTest;
 public final class PMMLUtilsTest extends OryxTest {
 
   public static PMML buildDummyModel() {
-    Node node = new Node();
-    node.setRecordCount(123.0);
+    Node node = new Node().setRecordCount(123.0);
     TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.getModels().add(treeModel);

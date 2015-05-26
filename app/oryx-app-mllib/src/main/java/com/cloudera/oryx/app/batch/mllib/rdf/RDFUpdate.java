@@ -441,12 +441,11 @@ public final class RDFUpdate extends MLUpdate<String> {
       for (int treeID = 0; treeID < trees.length; treeID++) {
         TreeModel treeModel =
             toTreeModel(trees[treeID], categoricalValueEncodings, nodeIDCounts.get(treeID));
-        Segment segment = new Segment();
-        segment.setId(Integer.toString(treeID));
-        segment.setPredicate(new True());
-        segment.setModel(treeModel);
-        segment.setWeight(1.0); // No weights in MLlib impl now
-        segments.add(segment);
+        segments.add(new Segment()
+             .setId(Integer.toString(treeID))
+             .setPredicate(new True())
+             .setModel(treeModel)
+             .setWeight(1.0)); // No weights in MLlib impl now
       }
       miningModel.setSegmentation(new Segmentation(multipleModelMethodType, segments));
     }
@@ -527,11 +526,9 @@ public final class RDFUpdate extends MLUpdate<String> {
 
         Split split = treeNode.split().get();
 
-        Node positiveModelNode = new Node();
-        positiveModelNode.setId(modelNode.getId() + '+');
+        Node positiveModelNode = new Node().setId(modelNode.getId() + '+');
         modelNode.getNodes().add(positiveModelNode);
-        Node negativeModelNode = new Node();
-        negativeModelNode.setId(modelNode.getId() + '-');
+        Node negativeModelNode = new Node().setId(modelNode.getId() + '-');
         modelNode.getNodes().add(negativeModelNode);
 
         org.apache.spark.mllib.tree.model.Node rightTreeNode = treeNode.rightNode().get();
@@ -553,11 +550,10 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     }
 
-    TreeModel treeModel = new TreeModel();
-    treeModel.setNode(root);
-    treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
-    treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
-    return treeModel;
+    return new TreeModel()
+        .setNode(root)
+        .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
+        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
   }
 
   private Predicate buildPredicate(Split split,
@@ -597,10 +593,8 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     } else {
       // For MLlib, left means <= threshold, so right means >
-      SimplePredicate numericPredicate =
-          new SimplePredicate(fieldName, SimplePredicate.Operator.GREATER_THAN);
-      numericPredicate.setValue(Double.toString(split.threshold()));
-      return numericPredicate;
+      return new SimplePredicate(fieldName, SimplePredicate.Operator.GREATER_THAN)
+          .setValue(Double.toString(split.threshold()));
     }
   }
 

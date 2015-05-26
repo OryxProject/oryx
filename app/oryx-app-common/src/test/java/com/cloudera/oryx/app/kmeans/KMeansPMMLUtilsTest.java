@@ -77,18 +77,16 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
     List<DataField> dataFields = new ArrayList<>();
     dataFields.add(new DataField(FieldName.create("x"), OpType.CONTINUOUS, DataType.DOUBLE));
     dataFields.add(new DataField(FieldName.create("y"), OpType.CONTINUOUS, DataType.DOUBLE));
-    DataDictionary dataDictionary = new DataDictionary(dataFields);
-    dataDictionary.setNumberOfFields(dataFields.size());
+    DataDictionary dataDictionary =
+        new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
     List<MiningField> miningFields = new ArrayList<>();
-    MiningField xMF = new MiningField(FieldName.create("x"));
-    xMF.setOpType(OpType.CONTINUOUS);
-    xMF.setUsageType(FieldUsageType.ACTIVE);
+    MiningField xMF = new MiningField(FieldName.create("x"))
+        .setOpType(OpType.CONTINUOUS).setUsageType(FieldUsageType.ACTIVE);
     miningFields.add(xMF);
-    MiningField yMF = new MiningField(FieldName.create("y"));
-    yMF.setOpType(OpType.CONTINUOUS);
-    yMF.setUsageType(FieldUsageType.ACTIVE);
+    MiningField yMF = new MiningField(FieldName.create("y"))
+        .setOpType(OpType.CONTINUOUS).setUsageType(FieldUsageType.ACTIVE);
     miningFields.add(yMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 

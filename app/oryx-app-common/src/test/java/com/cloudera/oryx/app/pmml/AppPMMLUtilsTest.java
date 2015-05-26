@@ -49,8 +49,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 public final class AppPMMLUtilsTest extends OryxTest {
 
   private static PMML buildDummyModel() {
-    Node node = new Node();
-    node.setRecordCount(123.0);
+    Node node = new Node().setRecordCount(123.0);
     TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.getModels().add(treeModel);
@@ -188,8 +187,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
     barField.getValues().add(new Value("b"));
     barField.getValues().add(new Value("a"));
     dataFields.add(barField);
-    DataDictionary dictionary = new DataDictionary(dataFields);
-    dictionary.setNumberOfFields(dataFields.size());
+    DataDictionary dictionary = new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
     CategoricalValueEncodings encodings = AppPMMLUtils.buildCategoricalValueEncodings(dictionary);
     assertEquals(2, encodings.getValueCount(1));
     assertEquals(0, encodings.getValueEncodingMap(1).get("b").intValue());

@@ -127,60 +127,51 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     target.getValues().add(new Value("banana"));
     target.getValues().add(new Value("apple"));
     dataFields.add(target);
-    DataDictionary dataDictionary = new DataDictionary(dataFields);
-    dataDictionary.setNumberOfFields(dataFields.size());
+    DataDictionary dataDictionary =
+        new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
     List<MiningField> miningFields = new ArrayList<>();
-    MiningField predictorMF = new MiningField(FieldName.create("color"));
-    predictorMF.setOpType(OpType.CATEGORICAL);
-    predictorMF.setUsageType(FieldUsageType.ACTIVE);
-    predictorMF.setImportance(0.5);
+    MiningField predictorMF = new MiningField(FieldName.create("color"))
+        .setOpType(OpType.CATEGORICAL)
+        .setUsageType(FieldUsageType.ACTIVE)
+        .setImportance(0.5);
     miningFields.add(predictorMF);
-    MiningField targetMF = new MiningField(FieldName.create("fruit"));
-    targetMF.setOpType(OpType.CATEGORICAL);
-    targetMF.setUsageType(FieldUsageType.PREDICTED);
+    MiningField targetMF = new MiningField(FieldName.create("fruit"))
+        .setOpType(OpType.CATEGORICAL)
+        .setUsageType(FieldUsageType.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
-    Node rootNode = new Node();
-    rootNode.setId("r");
     double dummyCount = 2.0;
-    rootNode.setRecordCount(dummyCount);
-    rootNode.setPredicate(new True());
+    Node rootNode = new Node().setId("r").setRecordCount(dummyCount).setPredicate(new True());
 
     double halfCount = dummyCount / 2;
 
-    Node left = new Node();
-    left.setId("r-");
-    left.setRecordCount(halfCount);
-    left.setPredicate(new True());
+    Node left = new Node().setId("r-").setRecordCount(halfCount).setPredicate(new True());
     left.getScoreDistributions().add(new ScoreDistribution("apple", halfCount));
-    Node right = new Node();
-    right.setId("r+");
-    right.setRecordCount(halfCount);
-    right.setPredicate(new SimpleSetPredicate(FieldName.create("color"),
-                                              SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
-                                              new Array(Array.Type.STRING, "red")));
+    Node right = new Node().setId("r+").setRecordCount(halfCount)
+        .setPredicate(new SimpleSetPredicate(FieldName.create("color"),
+                                             SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
+                                             new Array(Array.Type.STRING, "red")));
     right.getScoreDistributions().add(new ScoreDistribution("banana", halfCount));
 
     rootNode.getNodes().add(right);
     rootNode.getNodes().add(left);
 
-    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, miningSchema, rootNode);
-    treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
-    treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
+    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, miningSchema, rootNode)
+        .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
+        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
 
     if (numTrees > 1) {
       MiningModel miningModel = new MiningModel(MiningFunctionType.CLASSIFICATION, miningSchema);
       List<Segment> segments = new ArrayList<>();
       for (int i = 0; i < numTrees; i++) {
-        Segment segment = new Segment();
-        segment.setId(Integer.toString(i));
-        segment.setPredicate(new True());
-        segment.setModel(treeModel);
-        segment.setWeight(1.0);
-        segments.add(segment);
+        segments.add(new Segment()
+            .setId(Integer.toString(i))
+            .setPredicate(new True())
+            .setModel(treeModel)
+            .setWeight(1.0));
       }
       miningModel.setSegmentation(
           new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE, segments));
@@ -198,51 +189,44 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<DataField> dataFields = new ArrayList<>();
     dataFields.add(new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE));
     dataFields.add(new DataField(FieldName.create("bar"), OpType.CONTINUOUS, DataType.DOUBLE));
-    DataDictionary dataDictionary = new DataDictionary(dataFields);
-    dataDictionary.setNumberOfFields(dataFields.size());
+    DataDictionary dataDictionary =
+        new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
     pmml.setDataDictionary(dataDictionary);
 
     List<MiningField> miningFields = new ArrayList<>();
-    MiningField predictorMF = new MiningField(FieldName.create("foo"));
-    predictorMF.setOpType(OpType.CONTINUOUS);
-    predictorMF.setUsageType(FieldUsageType.ACTIVE);
-    predictorMF.setImportance(0.5);
+    MiningField predictorMF = new MiningField(FieldName.create("foo"))
+        .setOpType(OpType.CONTINUOUS)
+        .setUsageType(FieldUsageType.ACTIVE)
+        .setImportance(0.5);
     miningFields.add(predictorMF);
-    MiningField targetMF = new MiningField(FieldName.create("bar"));
-    targetMF.setOpType(OpType.CONTINUOUS);
-    targetMF.setUsageType(FieldUsageType.PREDICTED);
+    MiningField targetMF = new MiningField(FieldName.create("bar"))
+        .setOpType(OpType.CONTINUOUS)
+        .setUsageType(FieldUsageType.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
-    Node rootNode = new Node();
-    rootNode.setId("r");
     double dummyCount = 2.0;
-    rootNode.setRecordCount(dummyCount);
-    rootNode.setPredicate(new True());
+    Node rootNode = new Node().setId("r").setRecordCount(dummyCount).setPredicate(new True());
 
     double halfCount = dummyCount / 2;
 
-    Node left = new Node();
-    left.setId("r-");
-    left.setRecordCount(halfCount);
-    left.setPredicate(new True());
-    left.setScore("-2.0");
-    Node right = new Node();
-    right.setId("r+");
-    right.setRecordCount(halfCount);
-    SimplePredicate predicate =
-        new SimplePredicate(FieldName.create("foo"), SimplePredicate.Operator.GREATER_THAN);
-    predicate.setValue("3.14");
-    right.setPredicate(predicate);
-    right.setScore("2.0");
+    Node left = new Node()
+        .setId("r-")
+        .setRecordCount(halfCount)
+        .setPredicate(new True())
+        .setScore("-2.0");
+    Node right = new Node().setId("r+").setRecordCount(halfCount)
+        .setPredicate(new SimplePredicate(FieldName.create("foo"),
+                                          SimplePredicate.Operator.GREATER_THAN).setValue("3.14"))
+        .setScore("2.0");
 
     rootNode.getNodes().add(right);
     rootNode.getNodes().add(left);
 
-    TreeModel treeModel = new TreeModel(MiningFunctionType.REGRESSION, miningSchema, rootNode);
-    treeModel.setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT);
-    treeModel.setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
-    treeModel.setMiningSchema(miningSchema);
+    TreeModel treeModel = new TreeModel(MiningFunctionType.REGRESSION, miningSchema, rootNode)
+        .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
+        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD)
+        .setMiningSchema(miningSchema);
 
     pmml.getModels().add(treeModel);
 

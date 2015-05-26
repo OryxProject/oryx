@@ -224,9 +224,7 @@ public final class AppPMMLUtils {
       dataFields.add(field);
     }
 
-    DataDictionary dictionary = new DataDictionary(dataFields);
-    dictionary.setNumberOfFields(dataFields.size());
-    return dictionary;
+    return new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
   }
 
 

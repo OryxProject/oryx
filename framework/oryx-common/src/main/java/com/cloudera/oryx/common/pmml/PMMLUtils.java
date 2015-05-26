@@ -51,9 +51,9 @@ public final class PMMLUtils {
   public static PMML buildSkeletonPMML() {
     String formattedDate =
         new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ", Locale.ENGLISH).format(new Date());
-    Header header = new Header();
-    header.setTimestamp(new Timestamp().addContent(formattedDate));
-    header.setApplication(new Application("Oryx"));
+    Header header = new Header()
+        .setTimestamp(new Timestamp().addContent(formattedDate))
+        .setApplication(new Application("Oryx"));
     return new PMML("4.2.1", header, null);
   }
 
