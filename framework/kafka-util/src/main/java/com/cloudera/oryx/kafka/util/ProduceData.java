@@ -16,7 +16,6 @@
 package com.cloudera.oryx.kafka.util;
 
 import java.util.Objects;
-import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 import kafka.javaapi.producer.Producer;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.random.RandomManager;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * A process that will continually send data to a Kafka topic. This is useful for testing
@@ -84,11 +84,11 @@ public final class ProduceData {
     KafkaUtils.maybeCreateTopic("localhost:" + zkPort, topic);
     RandomGenerator random = RandomManager.getRandom();
 
-    Properties producerProps = new Properties();
-    producerProps.setProperty("metadata.broker.list", "localhost:" + kafkaPort);
-    producerProps.setProperty("serializer.class", "kafka.serializer.StringEncoder");
-
-    Producer<String,String> producer = new Producer<>(new ProducerConfig(producerProps));
+    Producer<String,String> producer =
+        new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
+            "metadata.broker.list", "localhost:" + kafkaPort,
+            "serializer.class", "kafka.serializer.StringEncoder"
+        )));
     try {
       for (int i = 0; i < howMany; i++) {
         Pair<String,String> datum = datumGenerator.generate(i, random);

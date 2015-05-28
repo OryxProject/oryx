@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Properties;
 
 import org.apache.zookeeper.server.DatadirCleanupManager;
 import org.apache.zookeeper.server.ServerCnxnFactory;
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.JVMUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * This class contains code copied from Zookeeper's QuorumPeerMain and ZooKeeperServerMain.
@@ -75,14 +75,12 @@ public final class LocalZKServer implements Closeable {
     dataDir = Files.createTempDirectory(LocalZKServer.class.getSimpleName());
     dataDir.toFile().deleteOnExit();
 
-    Properties properties = new Properties();
-    properties.setProperty("dataDir", dataDir.toAbsolutePath().toString());
-    properties.setProperty("clientPort", Integer.toString(port));
-    log.info("ZK config: {}" , properties);
-
     QuorumPeerConfig quorumConfig = new QuorumPeerConfig();
     try {
-      quorumConfig.parseProperties(properties);
+      quorumConfig.parseProperties(ConfigUtils.keyValueToProperties(
+          "dataDir", dataDir.toAbsolutePath(),
+          "clientPort", port
+      ));
     } catch (QuorumPeerConfig.ConfigException e) {
       throw new IllegalArgumentException(e);
     }

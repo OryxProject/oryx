@@ -19,7 +19,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Properties;
 
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.JVMUtils;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * Runs a local instance of the Kafka broker. Useful for testing.
@@ -70,13 +70,12 @@ public final class LocalKafkaBroker implements Closeable {
     logsDir = Files.createTempDirectory(LocalKafkaBroker.class.getSimpleName());
     logsDir.toFile().deleteOnExit();
 
-    Properties properties = new Properties();
-    properties.setProperty("broker.id", Integer.toString(TEST_BROKER_ID));
-    properties.setProperty("log.dirs", logsDir.toAbsolutePath().toString());
-    properties.setProperty("port", Integer.toString(port));
-    properties.setProperty("zookeeper.connect", "localhost:" + zkPort);
-
-    kafkaServer = new KafkaServerStartable(new KafkaConfig(properties));
+    kafkaServer = new KafkaServerStartable(new KafkaConfig(ConfigUtils.keyValueToProperties(
+        "broker.id", TEST_BROKER_ID,
+        "log.dirs", logsDir.toAbsolutePath(),
+        "port", port,
+        "zookeeper.connect", "localhost:" + zkPort
+    )));
     kafkaServer.startup();
   }
 

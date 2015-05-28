@@ -17,33 +17,44 @@ package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.common.text.TextUtils;
+import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 final class EnqueueFeatureVecsAndKnownItemsFn
-    implements VoidFunction<Tuple2<String,Tuple2<double[],Collection<String>>>> {
+    implements VoidFunction<Iterator<Tuple2<String,Tuple2<double[],Collection<String>>>>> {
 
   private final String whichMatrix;
-  private final TopicProducer<String, String> modelUpdateTopic;
+  private final String updateBroker;
+  private final String topic;
 
-  EnqueueFeatureVecsAndKnownItemsFn(String whichMatrix,
-                                    TopicProducer<String,String> modelUpdateTopic) {
+  EnqueueFeatureVecsAndKnownItemsFn(String whichMatrix, String updateBroker, String topic) {
     this.whichMatrix = whichMatrix;
-    this.modelUpdateTopic = modelUpdateTopic;
+    this.updateBroker = updateBroker;
+    this.topic = topic;
   }
 
   @Override
-  public void call(Tuple2<String,Tuple2<double[],Collection<String>>> keyAndVectorAndItems) {
-    String id = keyAndVectorAndItems._1();
-    Tuple2<double[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
-    double[] vector = vectorAndItems._1();
-    Collection<String> knowItemIDs = vectorAndItems._2();
-    modelUpdateTopic.send("UP", TextUtils.joinJSON(
-        Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
+  public void call(Iterator<Tuple2<String,Tuple2<double[],Collection<String>>>> it) {
+    if (it.hasNext()) {
+      try (TopicProducer<String, String> producer =
+               new TopicProducerImpl<>(updateBroker, topic, true)) {
+        while (it.hasNext()) {
+          Tuple2<String,Tuple2<double[],Collection<String>>> keyAndVectorAndItems = it.next();
+          String id = keyAndVectorAndItems._1();
+          Tuple2<double[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
+          double[] vector = vectorAndItems._1();
+          Collection<String> knowItemIDs = vectorAndItems._2();
+          producer.send("UP", TextUtils.joinJSON(
+              Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
+        }
+      }
+    }
   }
 
 }

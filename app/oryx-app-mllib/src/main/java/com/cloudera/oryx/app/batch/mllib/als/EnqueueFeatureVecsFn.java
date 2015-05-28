@@ -16,28 +16,40 @@
 package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.spark.api.java.function.VoidFunction;
 import scala.Tuple2;
 
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.common.text.TextUtils;
+import com.cloudera.oryx.lambda.TopicProducerImpl;
 
-final class EnqueueFeatureVecsFn implements VoidFunction<Tuple2<String,double[]>> {
+final class EnqueueFeatureVecsFn implements VoidFunction<Iterator<Tuple2<String,double[]>>> {
 
   private final String whichMatrix;
-  private final TopicProducer<String, String> modelUpdateTopic;
+  private final String updateBroker;
+  private final String topic;
 
-  EnqueueFeatureVecsFn(String whichMatrix, TopicProducer<String, String> modelUpdateTopic) {
+  EnqueueFeatureVecsFn(String whichMatrix, String updateBroker, String topic) {
     this.whichMatrix = whichMatrix;
-    this.modelUpdateTopic = modelUpdateTopic;
+    this.updateBroker = updateBroker;
+    this.topic = topic;
   }
 
   @Override
-  public void call(Tuple2<String,double[]> keyAndVector) {
-    String id = keyAndVector._1();
-    double[] vector = keyAndVector._2();
-    modelUpdateTopic.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
+  public void call(Iterator<Tuple2<String,double[]>> it) {
+    if (it.hasNext()) {
+      try (TopicProducer<String,String> producer =
+               new TopicProducerImpl<>(updateBroker, topic, true)) {
+        while (it.hasNext()) {
+          Tuple2<String,double[]> keyAndVector = it.next();
+          String id = keyAndVector._1();
+          double[] vector = keyAndVector._2();
+          producer.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
+        }
+      }
+    }
   }
 
 }

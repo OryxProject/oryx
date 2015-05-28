@@ -57,7 +57,8 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
     } else {
       Iterable<U> updates = modelManager.buildUpdates(newData);
       if (updates != null) {
-        try (TopicProducer<String, U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
+        try (TopicProducer<String, U> producer =
+                 new TopicProducerImpl<>(updateBroker, updateTopic, true)) {
           for (U update : updates) {
             producer.send("UP", update);
           }

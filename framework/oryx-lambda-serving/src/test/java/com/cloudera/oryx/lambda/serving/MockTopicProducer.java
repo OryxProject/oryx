@@ -30,6 +30,16 @@ public final class MockTopicProducer implements TopicProducer<String,String> {
   }
 
   @Override
+  public String getUpdateBroker() {
+    return null;
+  }
+
+  @Override
+  public String getTopic() {
+    return null;
+  }
+
+  @Override
   public void send(String key, String message) {
     DATA.add(new Pair<>(key, message));
   }

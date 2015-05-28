@@ -124,7 +124,10 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                                         messageWritableClass));
     }
 
-    try (TopicProducer<String,U> producer = new TopicProducerImpl<>(updateBroker, updateTopic)) {
+    // This TopicProducer should not be async; sends one big model generally and
+    // needs to occur before other updates reliably rather than be buffered
+    try (TopicProducer<String,U> producer =
+             new TopicProducerImpl<>(updateBroker, updateTopic, false)) {
       updateInstance.runUpdate(sparkContext,
                                timestamp.milliseconds(),
                                newData,

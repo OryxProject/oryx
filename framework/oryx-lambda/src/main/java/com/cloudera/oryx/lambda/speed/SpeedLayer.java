@@ -18,7 +18,6 @@ package com.cloudera.oryx.lambda.speed;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Properties;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -45,6 +44,7 @@ import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.AbstractSparkLayer;
 import com.cloudera.oryx.lambda.UpdateOffsetsFn;
 
@@ -103,14 +103,13 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     PairFunction<MessageAndMetadata<K,M>,K,M> kmToPair = kmToPair();
     JavaPairDStream<K,M> pairDStream = dStream.mapToPair(kmToPair);
 
-    Properties consumerProps = new Properties();
-    consumerProps.setProperty("group.id",
-                              "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis());
-    consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
-    // Do start from the beginning of the update queue
-    consumerProps.setProperty("auto.offset.reset", "smallest");
-    ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
-    consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+    consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+        ConfigUtils.keyValueToProperties(
+            "group.id", "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis(),
+            "zookeeper.connect", updateTopicLockMaster,
+            // Do start from the beginning of the update queue
+            "auto.offset.reset", "smallest"
+        )));
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),

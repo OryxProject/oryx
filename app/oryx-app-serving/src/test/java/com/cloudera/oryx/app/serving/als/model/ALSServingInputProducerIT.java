@@ -74,7 +74,8 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
         inputProducer.send("", input);
       }
 
-      sleepSeconds(1);
+      // Allow messages from async producer to send
+      sleepSeconds(3);
 
       keyMessages = consumeInput.getKeyMessages();
     }

@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.util.Properties;
-
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.javaapi.consumer.ConsumerConnector;
@@ -25,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * A iterator that consumes data from a Kafka topic. When run on the command line, logs
@@ -52,10 +51,10 @@ public final class ConsumeData implements Iterable<Pair<String,String>> {
 
   @Override
   public CloseableIterator<Pair<String,String>> iterator() {
-    Properties consumerProps = new Properties();
-    consumerProps.setProperty("group.id", "OryxGroup-ConsumeData");
-    consumerProps.setProperty("zookeeper.connect", "localhost:" + zkPort);
-    ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
+    ConsumerConfig consumerConfig = new ConsumerConfig(ConfigUtils.keyValueToProperties(
+        "group.id", "OryxGroup-ConsumeData",
+        "zookeeper.connect", "localhost:" + zkPort
+    ));
     ConsumerConnector consumer = Consumer.createJavaConsumerConnector(consumerConfig);
     return new ConsumeDataIterator(topic, consumer);
   }

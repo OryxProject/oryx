@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import com.typesafe.config.Config;
 import org.junit.Test;
@@ -97,6 +98,23 @@ public final class ConfigUtilsTest extends OryxTest {
     assertTrue(redacted.contains("PASSWORD = "));
     assertTrue(redacted.contains("the-password= "));
     assertTrue(redacted.contains("The-Password ="));
+  }
+
+  @Test
+  public void tetKeyValuesToProperties() {
+    assertEquals(new Properties(), ConfigUtils.keyValueToProperties());
+    Properties expected = new Properties();
+    expected.setProperty("foo", "1");
+    expected.setProperty("2.0", "bing");
+    assertEquals(expected, ConfigUtils.keyValueToProperties(
+       "foo", 1,
+       2.0, "bing"
+    ));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBadKeyValuesToProperties() {
+    ConfigUtils.keyValueToProperties("key");
   }
 
 }

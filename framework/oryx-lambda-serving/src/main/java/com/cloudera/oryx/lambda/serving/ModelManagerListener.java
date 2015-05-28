@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Properties;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
@@ -100,13 +99,13 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
     context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
 
-    Properties consumerProps = new Properties();
-    consumerProps.setProperty("group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis());
-    consumerProps.setProperty("zookeeper.connect", updateTopicLockMaster);
-    // Do start from the beginning of the update queue
-    consumerProps.setProperty("auto.offset.reset", "smallest");
-    ConsumerConfig consumerConfig = new ConsumerConfig(consumerProps);
-    consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+    consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+        ConfigUtils.keyValueToProperties(
+            "group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis(),
+            "zookeeper.connect", updateTopicLockMaster,
+            // Do start from the beginning of the update queue
+            "auto.offset.reset", "smallest"
+        )));
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),

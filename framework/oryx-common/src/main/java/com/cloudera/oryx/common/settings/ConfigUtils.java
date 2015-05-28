@@ -21,8 +21,10 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
@@ -135,6 +137,20 @@ public final class ConfigUtils {
 
   static String redact(String s) {
     return REDACT_PATTERN.matcher(s).replaceAll("$1*****");
+  }
+
+  /**
+   * @param keyValues a sequence key1, value1, key2, value2, ... where the {@link #toString()}
+   *   of successive pairs are interpreted as key-value pairs
+   * @return a {@link Properties} containing these key-value pairs
+   */
+  public static Properties keyValueToProperties(Object... keyValues) {
+    Preconditions.checkArgument(keyValues.length % 2 == 0);
+    Properties properties = new Properties();
+    for (int i = 0; i < keyValues.length; i += 2) {
+      properties.setProperty(keyValues[i].toString(), keyValues[i+1].toString());
+    }
+    return properties;
   }
 
 }

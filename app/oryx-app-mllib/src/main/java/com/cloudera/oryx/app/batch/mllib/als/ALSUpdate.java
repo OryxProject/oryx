@@ -192,13 +192,15 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaPairRDD<String,double[]> userRDD =
         readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
 
+    String updateBroker = modelUpdateTopic.getUpdateBroker();
+    String topic = modelUpdateTopic.getTopic();
     if (noKnownItems) {
-      userRDD.foreach(new EnqueueFeatureVecsFn("X", modelUpdateTopic));
+      userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
     } else {
       log.info("Sending known item data with model updates");
       JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
-      userRDD.join(knownItems).foreach(
-          new EnqueueFeatureVecsAndKnownItemsFn("X", modelUpdateTopic));
+      userRDD.join(knownItems).foreachPartition(
+          new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
     }
 
     log.info("Sending item / Y data as model updates");
@@ -207,7 +209,7 @@ public final class ALSUpdate extends MLUpdate<String> {
         readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
 
     // For now, there is no use in sending known users for each item
-    productRDD.foreach(new EnqueueFeatureVecsFn("Y", modelUpdateTopic));
+    productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
   }
 
   /**

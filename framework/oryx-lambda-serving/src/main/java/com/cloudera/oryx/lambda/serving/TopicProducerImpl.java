@@ -15,14 +15,13 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import java.util.Properties;
-
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 import kafka.serializer.StringEncoder;
 
 import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * Wraps access to a Kafka message topic {@link Producer}.
@@ -32,30 +31,51 @@ import com.cloudera.oryx.api.TopicProducer;
  */
 public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
 
+  private final String updateBroker;
   private final String topic;
-  private final Producer<K,M> producer;
+  private Producer<K,M> producer;
 
   public TopicProducerImpl(String updateBroker, String topic) {
+    this.updateBroker = updateBroker;
     this.topic = topic;
-    Properties producerProps = new Properties();
-    producerProps.setProperty("metadata.broker.list", updateBroker);
-    producerProps.setProperty("serializer.class", StringEncoder.class.getName());
-    producer = new Producer<>(new ProducerConfig(producerProps));
   }
 
+  @Override
+  public String getUpdateBroker() {
+    return updateBroker;
+  }
+
+  @Override
+  public String getTopic() {
+    return topic;
+  }
+
+  private synchronized Producer<K,M> getProducer() {
+    // Lazy init
+    if (producer == null) {
+      producer = new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
+          "metadata.broker.list", updateBroker,
+          "serializer.class", StringEncoder.class.getName(),
+          "producer.type", "async",
+          "queue.buffering.max.ms", 1000, // Make configurable?
+          "batch.num.messages", 100
+      )));
+    }
+    return producer;
+  }
 
   @Override
   public void send(K key, M message) {
-    producer.send(new KeyedMessage<>(topic, key, message));
+    getProducer().send(new KeyedMessage<>(topic, key, message));
   }
 
   @Override
   public void send(M message) {
-    producer.send(new KeyedMessage<K, M>(topic, message));
+    getProducer().send(new KeyedMessage<K, M>(topic, message));
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
     if (producer != null) {
       producer.close();
     }

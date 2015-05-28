@@ -28,6 +28,16 @@ import java.io.Closeable;
 public interface TopicProducer<K, M> extends Closeable {
 
   /**
+   * @return broker(s) that the producer is sending to
+   */
+  String getUpdateBroker();
+
+  /**
+   * @return topic that the producer is sending to
+   */
+  String getTopic();
+
+  /**
    * @param key key to send to the topic
    * @param message message to send with key to the topic
    */
