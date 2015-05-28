@@ -252,7 +252,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -483,7 +483,7 @@
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <clirr.version>2.6.1</clirr.version>
     <hadoop.version>2.6.0</hadoop.version>
-    <jackson.version>2.5.3</jackson.version>
+    <jackson.version>2.6.0-rc1</jackson.version>
     <jersey.version>2.17</jersey.version>
     <kafka.version>0.8.2.1</kafka.version>
     <koloboke.version>0.6.7</koloboke.version>

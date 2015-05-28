@@ -73,12 +73,11 @@ public abstract class AbstractLambdaIT extends OryxTest {
 
   @After
   public final void tearDownKafkaZK() {
-    if (localZKServer != null) {
+    if (localKafkaBroker != null) {
+      log.info("Deleting topics");
       String zkHostPort = "localhost:" + localZKPort;
       KafkaUtils.deleteTopic(zkHostPort, INPUT_TOPIC);
       KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
-    }
-    if (localKafkaBroker != null) {
       log.info("Stopping Kafka");
       IOUtils.closeQuietly(localKafkaBroker);
       localKafkaBroker = null;

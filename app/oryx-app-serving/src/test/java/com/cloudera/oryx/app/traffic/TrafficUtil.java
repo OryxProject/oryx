@@ -153,7 +153,7 @@ public final class TrafficUtil {
                 }
               } catch (Exception e) {
                 exceptionCount.incrementAndGet();
-                log.warn("Error in request", e);
+                log.warn("{}", e.getMessage());
               }
             }
           }

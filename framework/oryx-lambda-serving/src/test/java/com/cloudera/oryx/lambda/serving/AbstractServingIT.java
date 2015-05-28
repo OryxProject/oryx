@@ -36,7 +36,6 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
   private static final Logger log = LoggerFactory.getLogger(AbstractServingIT.class);
 
   private ServingLayer servingLayer;
-  private ProduceData updateProducer;
   private int httpPort;
   private int httpsPort;
 
@@ -67,15 +66,13 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
     int zkPort = getZKPort();
     int kafkaPort = getKafkaBrokerPort();
 
-    updateProducer = new ProduceData(updateGenerator,
-        zkPort,
-        kafkaPort,
-        UPDATE_TOPIC,
-        howManyUpdate,
-        0);
-
     log.info("Producing updates");
-    updateProducer.start();
+    new ProduceData(updateGenerator,
+                    zkPort,
+                    kafkaPort,
+                    UPDATE_TOPIC,
+                    howManyUpdate,
+                    0).start();
   }
 
   protected ServingLayer getServingLayer() {
