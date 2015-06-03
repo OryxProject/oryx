@@ -17,7 +17,6 @@ package com.cloudera.oryx.app.als;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,11 +78,11 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
     if (classNames.length == 1) {
       return loadInstanceOf(classNames[0]);
     }
-    List<RescorerProvider> providers = new ArrayList<>(classNames.length);
-    for (String className : classNames) {
-      providers.add(loadInstanceOf(className));
+    RescorerProvider[] providers = new RescorerProvider[classNames.length];
+    for (int i = 0; i < classNames.length; i++) {
+      providers[i] = loadInstanceOf(classNames[i]);
     }
-    return new MultiRescorerProvider(providers);
+    return MultiRescorerProvider.of(providers);
   }
 
   private static RescorerProvider loadInstanceOf(String implClassName) {

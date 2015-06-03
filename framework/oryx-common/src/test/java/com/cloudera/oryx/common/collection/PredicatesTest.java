@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,26 +15,22 @@
 
 package com.cloudera.oryx.common.collection;
 
+import java.util.Collections;
+
 import net.openhft.koloboke.function.Predicate;
+import org.junit.Test;
 
-/**
- * Logical AND of two {@link Predicate}s.
- *
- * @param <T> operand type
- */
-final class AndPredicate<T> implements Predicate<T> {
+import com.cloudera.oryx.common.OryxTest;
 
-  // Consider supporting arbitrary # later
-  private final Predicate<T> a;
-  private final Predicate<T> b;
+public final class PredicatesTest extends OryxTest {
 
-  AndPredicate(Predicate<T> a, Predicate<T> b) {
-    this.a = a;
-    this.b = b;
+  @Test
+  public void testAnd() {
+    assertNull(Predicates.and(null, null));
+    Predicate<String> a = new NotContainsPredicate<>(Collections.<String>emptyList());
+    assertSame(a, Predicates.and(a, null));
+    assertSame(a, Predicates.and(null, a));
+    assertTrue(Predicates.and(a, a) instanceof AndPredicate);
   }
 
-  @Override
-  public boolean test(T value) {
-    return a.test(value) && b.test(value);
-  }
 }

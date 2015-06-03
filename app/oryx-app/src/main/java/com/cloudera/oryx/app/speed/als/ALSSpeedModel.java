@@ -26,9 +26,9 @@ import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
+import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
@@ -112,7 +112,7 @@ public final class ALSSpeedModel {
   public void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
     try (AutoLock al = new AutoLock(xLock.writeLock())) {
-      X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+      X.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
     }
@@ -121,7 +121,7 @@ public final class ALSSpeedModel {
   public void pruneY(Collection<String> items) {
     // Keep all items in the new model, or, that have been added since last model
     try (AutoLock al = new AutoLock(yLock.writeLock())) {
-      Y.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+      Y.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems))));
       recentNewItems.clear();
     }

@@ -33,13 +33,13 @@ import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.common.collection.Predicates;
 
 /**
  * <p>Responds to a GET request to
@@ -107,12 +107,7 @@ public final class Recommend extends AbstractALSResource {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
                                                                 rescorerParams);
       if (rescorer != null) {
-        Predicate<String> rescorerFilterFn = buildRescorerPredicate(rescorer);
-        if (allowedFn == null) {
-          allowedFn = rescorerFilterFn;
-        } else {
-          allowedFn = new AndPredicate<>(allowedFn, rescorerFilterFn);
-        }
+        allowedFn = Predicates.and(allowedFn, buildRescorerPredicate(rescorer));
         rescoreFn = buildRescoreFn(rescorer);
       }
     }

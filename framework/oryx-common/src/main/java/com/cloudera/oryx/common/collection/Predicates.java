@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -18,23 +18,28 @@ package com.cloudera.oryx.common.collection;
 import net.openhft.koloboke.function.Predicate;
 
 /**
- * Logical AND of two {@link Predicate}s.
- *
- * @param <T> operand type
+ * {@link Predicate}-related factory methods and utilities.
  */
-final class AndPredicate<T> implements Predicate<T> {
+public final class Predicates {
 
-  // Consider supporting arbitrary # later
-  private final Predicate<T> a;
-  private final Predicate<T> b;
-
-  AndPredicate(Predicate<T> a, Predicate<T> b) {
-    this.a = a;
-    this.b = b;
+  private Predicates() {
   }
 
-  @Override
-  public boolean test(T value) {
-    return a.test(value) && b.test(value);
+  /**
+   * @param a first predicate
+   * @param b second predicate
+   * @param <T> operand
+   * @return {@link Predicate} as logical AND of the two given predicates. If one is null, the other
+   *  is returned
+   */
+  public static <T> Predicate<T> and(Predicate<T> a, Predicate<T> b) {
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return new AndPredicate<>(a, b);
   }
+
 }

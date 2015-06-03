@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.als;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,18 +30,28 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
 
   private final RescorerProvider[] providers;
 
-  public MultiRescorerProvider(RescorerProvider... providers) {
-    if (providers.length < 1) {
-      throw new IllegalArgumentException("providers is empty");
-    }
+  private MultiRescorerProvider(RescorerProvider... providers) {
     this.providers = providers;
   }
 
-  public MultiRescorerProvider(List<RescorerProvider> providers) {
-    if (providers.isEmpty()) {
+  public static RescorerProvider of(RescorerProvider... providers) {
+    if (providers.length == 0) {
       throw new IllegalArgumentException("providers is empty");
     }
-    this.providers = providers.toArray(new RescorerProvider[providers.size()]);
+    List<RescorerProvider> expandedProviders = new ArrayList<>();
+    for (RescorerProvider provider : providers) {
+      // Assuming at most one level of nesting here
+      if (provider instanceof MultiRescorerProvider) {
+        Collections.addAll(expandedProviders, ((MultiRescorerProvider) provider).getProviders());
+      } else {
+        expandedProviders.add(provider);
+      }
+    }
+    return new MultiRescorerProvider(expandedProviders.toArray(new RescorerProvider[expandedProviders.size()]));
+  }
+
+  RescorerProvider[] getProviders() {
+    return providers;
   }
 
   @Override
@@ -99,7 +110,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
     if (numRescorers == 1) {
       return rescorers.get(0);
     }
-    return new MultiRescorer(rescorers);
+    return MultiRescorer.of(rescorers);
   }
 
   @Override
@@ -118,7 +129,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
     if (numRescorers == 1) {
       return rescorers.get(0);
     }
-    return new MultiRescorer(rescorers);
+    return MultiRescorer.of(rescorers);
   }
 
 }

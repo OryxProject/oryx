@@ -48,11 +48,11 @@ import net.openhft.koloboke.function.ToDoubleFunction;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.common.collection.AndPredicate;
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
+import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
@@ -381,7 +381,7 @@ public final class ALSServingModel {
   void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
     try (AutoLock al = new AutoLock(xLock.writeLock())) {
-      X.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+      X.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
     }
@@ -398,7 +398,7 @@ public final class ALSServingModel {
     for (int partition = 0; partition < Y.length; partition++) {
       // Keep all items in the new model, or, that have been added since last model
       try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
-        Y[partition].removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+        Y[partition].removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
             new NotContainsPredicate<>(items),
             new NotContainsPredicate<>(recentNewItems[partition]))));
         recentNewItems[partition].clear();
@@ -413,7 +413,7 @@ public final class ALSServingModel {
   void pruneKnownItems(Collection<String> users, final Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
     try (AutoLock al = new AutoLock(xLock.writeLock())) {
-      knownItems.removeIf(new KeyOnlyBiPredicate<>(new AndPredicate<>(
+      knownItems.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
     }
 

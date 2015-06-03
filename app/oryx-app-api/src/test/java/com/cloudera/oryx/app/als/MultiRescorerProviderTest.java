@@ -28,7 +28,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiRecommendRescorer() {
-    RescorerProvider multi = new MultiRescorerProvider(
+    RescorerProvider multi = MultiRescorerProvider.of(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
     Rescorer provider = multi.getRecommendRescorer(Collections.singletonList("ABCDE"), null);
@@ -54,7 +54,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiRecommendToAnonymousRescorer() {
-    RescorerProvider multi = new MultiRescorerProvider(
+    RescorerProvider multi = MultiRescorerProvider.of(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     
     Rescorer provider = multi.getRecommendToAnonymousRescorer(
@@ -79,7 +79,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiMostPopularItemsRescorer() {
-    RescorerProvider multi = new MultiRescorerProvider(
+    RescorerProvider multi = MultiRescorerProvider.of(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostPopularItemsRescorer(null);
     assertNotNull(provider);
@@ -91,7 +91,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
 
   @Test
   public void testMultiMostActiveUsersRescorer() {
-    RescorerProvider multi = new MultiRescorerProvider(
+    RescorerProvider multi = MultiRescorerProvider.of(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostActiveUsersRescorer(null);
     assertNotNull(provider);
@@ -103,7 +103,7 @@ public final class MultiRescorerProviderTest extends OryxTest {
   
   @Test
   public void testMultiMostSimilarItemsRescorer() {
-    RescorerProvider multi = new MultiRescorerProvider(
+    RescorerProvider multi = MultiRescorerProvider.of(
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostSimilarItemsRescorer(null);
     assertNotNull(provider);

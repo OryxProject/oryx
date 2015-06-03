@@ -15,6 +15,9 @@
 
 package com.cloudera.oryx.app.als;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,14 +31,35 @@ public final class MultiRescorer implements Rescorer {
 
   private final Rescorer[] rescorers;
 
+  private MultiRescorer(Rescorer... rescorers) {
+    this.rescorers = rescorers;
+  }
+
   /**
    * @param rescorers {@link Rescorer} objects to delegate to
    */
-  public MultiRescorer(List<Rescorer> rescorers) {
+  public static Rescorer of(Rescorer... rescorers) {
+    return of(Arrays.asList(rescorers));
+  }
+
+  static Rescorer of(List<Rescorer> rescorers) {
     if (rescorers.isEmpty()) {
       throw new IllegalArgumentException("rescorers is empty");
     }
-    this.rescorers = rescorers.toArray(new Rescorer[rescorers.size()]);
+    List<Rescorer> expandedRescorers = new ArrayList<>();
+    for (Rescorer rescorer : rescorers) {
+      // Assuming at most one level of nesting here
+      if (rescorer instanceof MultiRescorer) {
+        Collections.addAll(expandedRescorers, ((MultiRescorer) rescorer).getRescorers());
+      } else {
+        expandedRescorers.add(rescorer);
+      }
+    }
+    return new MultiRescorer(expandedRescorers.toArray(new Rescorer[expandedRescorers.size()]));
+  }
+
+  Rescorer[] getRescorers() {
+    return rescorers;
   }
 
   @Override
