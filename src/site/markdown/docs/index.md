@@ -321,6 +321,19 @@ In Maven, this would mean adding a dependency like:
 </dependencies>
 ```
 
+The artifacts are currently hosted at the 
+[Cloudera repository](https://repository.cloudera.com/artifactory/cloudera-repos/), so your build will also 
+need a reference to this repo:
+
+```XML
+<repositories>
+  <repository>
+    <id>cloudera</id>
+    <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+  </repository>
+</repositories>
+```
+
 A minimal skeleton project can be found at [example/](https://github.com/OryxProject/oryx/tree/master/app/example).
 
 Compile your code and create a JAR file containing only your implementation, and any supporting
