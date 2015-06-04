@@ -30,8 +30,9 @@ Run the three Layers with:
 ./oryx-run.sh serving
 ```
 
-(`--layer-jar your-layer.jar` and `--conf your-config.conf` can be used to specify
-an alternative location of the layer `.jar` and/or `.conf` file.)
+`--layer-jar your-layer.jar` and `--conf your-config.conf` can be used to specify
+an alternative location of the layer `.jar` and/or `.conf` file. You can use `--jvm-args`
+to pass more arguments directly the Spark driver program, like system properties: `--jvm-args="-Dkey=value"`
 
 These need not be on the same machine, but may be (if configuration specifies different
 ports for the Batch and Speed Layer Spark web UI, and the Serving Layer API port).
