@@ -230,7 +230,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     long minTime = (long) maxMin.min();
     long maxTime = (long) maxMin.max();
     log.info("New data timestamp range: {} - {}", minTime, maxTime);
-    final long approxTestTrainBoundary = minTime + (long) (getTestFraction() * (maxTime - minTime));
+    final long approxTestTrainBoundary = (long) (maxTime - getTestFraction() * (maxTime - minTime));
     log.info("Splitting at timestamp {}", approxTestTrainBoundary);
 
     JavaRDD<String> newTrainData = newData.filter(new Function<String,Boolean>() {
