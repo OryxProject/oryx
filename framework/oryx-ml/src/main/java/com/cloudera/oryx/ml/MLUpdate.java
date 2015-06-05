@@ -260,15 +260,21 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     double bestEval = Double.NEGATIVE_INFINITY;
     for (Map.Entry<Path,Double> pathEval : pathToEval.entrySet()) {
       Path path = pathEval.getKey();
-      Double eval = pathEval.getValue();
-      if ((bestCandidatePath == null || (eval != null && eval > bestEval)) &&
-          fs.exists(path)) {
-        log.info("Best eval / path is now {} / {}", eval ,path);
+      if (path != null && fs.exists(path)) {
+        Double eval = pathEval.getValue();
         if (eval != null) {
-          bestEval = eval;
+          // Valid evaluation; if it's the best so far, keep it
+          if (eval > bestEval) {
+            log.info("Best eval / model path is now {} / {}", eval, path);
+            bestEval = eval;
+            bestCandidatePath = path;
+          }
+        } else if (bestCandidatePath == null && testFraction == 0.0) {
+          log.info("Model path {} could not be evaluated but because test fraction is 0; " +
+                   "using it as candidate for now", path);
+          bestCandidatePath = path;
         }
-        bestCandidatePath = path;
-      }
+      } // else can't do anything; no model at all
     }
     return bestCandidatePath;
   }
