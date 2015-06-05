@@ -19,7 +19,6 @@ import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.io.Writable;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -86,8 +85,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     log.info("Creating message stream from topic");
     JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
 
-    PairFunction<MessageAndMetadata<K,M>,K,M> kmToPair = kmToPair();
-    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(kmToPair);
+    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(new MMDToTuple2Fn<K,M>());
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();

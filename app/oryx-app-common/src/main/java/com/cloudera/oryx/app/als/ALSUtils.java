@@ -30,11 +30,11 @@ public final class ALSUtils {
     // value is already >= 1, there's no effect. Similarly for negative values.
     if (value > 0.0f && currentValue < 1.0) {
       double diff = 1.0 - Math.max(0.0, currentValue);
-      return currentValue + (1.0 - 1.0 / (1.0 + value)) * diff;
+      return currentValue + (value / (1.0 + value)) * diff;
     }
     if (value < 0.0f && currentValue > 0.0) {
       double diff = -Math.min(1.0, currentValue);
-      return currentValue + (1.0 - 1.0 / (1.0 - value)) * diff;
+      return currentValue + (value / (value - 1.0)) * diff;
     }
     // No change
     return Double.NaN;

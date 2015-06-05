@@ -26,4 +26,17 @@ public final class FunctionsTest extends OryxTest {
     assertEquals(3.0, Functions.last().call(7.0, 3.0));
   }
 
+  @Test
+  public void testNoOp() throws Exception {
+    // Shouldn't do anything
+    Functions.noOp().call(null);
+  }
+
+  @Test
+  public void testIdentity() throws Exception {
+    Object o = new Object();
+    assertSame(o, Functions.identity().call(o));
+    assertNull(Functions.identity().call(null));
+  }
+
 }

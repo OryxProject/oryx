@@ -31,7 +31,6 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -100,8 +99,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
 
-    PairFunction<MessageAndMetadata<K,M>,K,M> kmToPair = kmToPair();
-    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(kmToPair);
+    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(new MMDToTuple2Fn<K,M>());
 
     consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(

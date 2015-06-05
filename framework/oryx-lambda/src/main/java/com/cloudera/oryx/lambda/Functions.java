@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda;
 
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.VoidFunction;
 
@@ -43,6 +44,15 @@ public final class Functions {
       @Override
       public void call(T t) {
         // do nothing
+      }
+    };
+  }
+
+  public static <T> Function<T,T> identity() {
+    return new Function<T,T>() {
+      @Override
+      public T call(T t) {
+        return t;
       }
     };
   }

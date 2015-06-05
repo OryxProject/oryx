@@ -28,7 +28,6 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -217,7 +216,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     @SuppressWarnings("unchecked")
     Class<MessageAndMetadata<K,M>> streamClass =
         (Class<MessageAndMetadata<K,M>>) (Class<?>) MessageAndMetadata.class;
-    Function<MessageAndMetadata<K,M>,MessageAndMetadata<K,M>> identity = identity();
 
     return KafkaUtils.createDirectStream(streamingContext,
                                          keyClass,
@@ -227,25 +225,20 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
                                          streamClass,
                                          kafkaParams,
                                          offsets,
-                                         identity);
+                                         Functions.<MessageAndMetadata<K,M>>identity());
   }
 
-  private static <T> Function<T,T> identity() {
-    return new Function<T,T>() {
-      @Override
-      public T call(T t) {
-        return t;
-      }
-    };
-  }
-
-  protected static <T,U> PairFunction<MessageAndMetadata<T,U>,T,U> kmToPair() {
-    return new PairFunction<MessageAndMetadata<T, U>, T, U>() {
-      @Override
-      public Tuple2<T, U> call(MessageAndMetadata<T, U> km) {
-        return new Tuple2<>(km.key(), km.message());
-      }
-    };
+  /**
+   * Translates a {@link MessageAndMetadata} key-message pair to a {@link Tuple2} of the same.
+   *
+   * @param <K> input topic key type
+   * @param <M> input topic message type
+   */
+  public static final class MMDToTuple2Fn<K,M> implements PairFunction<MessageAndMetadata<K,M>,K,M> {
+    @Override
+    public Tuple2<K,M> call(MessageAndMetadata<K,M> km) {
+      return new Tuple2<>(km.key(), km.message());
+    }
   }
 
 }
