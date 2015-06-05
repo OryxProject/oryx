@@ -78,11 +78,18 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 
   protected MLUpdate(Config config) {
     this.testFraction = config.getDouble("oryx.ml.eval.test-fraction");
-    this.candidates = config.getInt("oryx.ml.eval.candidates");
+    int candidates = config.getInt("oryx.ml.eval.candidates");
     this.evalParallelism = config.getInt("oryx.ml.eval.parallelism");
     Preconditions.checkArgument(testFraction >= 0.0 && testFraction <= 1.0);
     Preconditions.checkArgument(candidates > 0);
     Preconditions.checkArgument(evalParallelism > 0);
+    if (testFraction == 0.0) {
+      if (candidates > 1) {
+        log.info("Eval is disabled (test fraction = 0) so candidates is overridden to 1");
+        candidates = 1;
+      }
+    }
+    this.candidates = candidates;
   }
 
   protected final double getTestFraction() {
@@ -225,9 +232,10 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                      List<List<?>> hyperParameterCombos,
                                      Path candidatesPath) throws InterruptedException, IOException {
     Map<Path,Double> pathToEval = new HashMap<>(candidates);
-    if (evalParallelism > 1) {
+    int numWorkers = Math.min(evalParallelism, candidates);
+    if (numWorkers > 1) {
       Collection<Future<Tuple2<Path,Double>>> futures = new ArrayList<>(candidates);
-      ExecutorService executor = Executors.newFixedThreadPool(evalParallelism);
+      ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
       try {
         for (int i = 0; i < candidates; i++) {
           futures.add(executor.submit(new BuildAndEvalWorker(
@@ -270,8 +278,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
             bestCandidatePath = path;
           }
         } else if (bestCandidatePath == null && testFraction == 0.0) {
-          log.info("Model path {} could not be evaluated but because test fraction is 0; " +
-                   "using it as candidate for now", path);
+          // Normal case when eval is disabled; no eval is possible, but keep the one model
+          // that was built
           bestCandidatePath = path;
         }
       } // else can't do anything; no model at all
