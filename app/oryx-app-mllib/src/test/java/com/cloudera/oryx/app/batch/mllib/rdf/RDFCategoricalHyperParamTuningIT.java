@@ -55,7 +55,6 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", 10);
-    overlayConfig.put("oryx.rdf.hyperparams.max-depth", MAX_DEPTH);
     // Low values like 1 are deliberately bad, won't work
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", "[1," + MAX_DEPTH + "]");
     overlayConfig.put("oryx.rdf.hyperparams.max-split-candidates", MAX_SPLIT_CANDIDATES);
@@ -63,7 +62,7 @@ public final class RDFCategoricalHyperParamTuningIT extends AbstractRDFIT {
     overlayConfig.put("oryx.input-schema.categorical-features", "[\"4\"]");
     overlayConfig.put("oryx.input-schema.id-features", "[\"0\"]");
     overlayConfig.put("oryx.input-schema.target-feature", "\"4\"");
-    overlayConfig.put("oryx.ml.eval.candidates", 3);
+    overlayConfig.put("oryx.ml.eval.candidates", 2);
     overlayConfig.put("oryx.ml.eval.parallelism", 2);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
