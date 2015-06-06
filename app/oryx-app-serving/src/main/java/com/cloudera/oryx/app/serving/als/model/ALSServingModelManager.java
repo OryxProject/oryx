@@ -118,6 +118,8 @@ public final class ALSServingModelManager implements ServingModelManager<String>
             model.pruneY(YIDs);
 
           }
+
+          log.info("New model: {}", model);
           break;
 
         default:

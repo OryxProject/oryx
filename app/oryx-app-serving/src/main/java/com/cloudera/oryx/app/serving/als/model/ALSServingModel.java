@@ -440,14 +440,32 @@ public final class ALSServingModel {
     }
   }
 
+  /**
+   * @return number of users in the model
+   */
+  public int getNumUsers() {
+    try (AutoLock al = new AutoLock(xLock.readLock())) {
+      return X.size();
+    }
+  }
+
+  /**
+   * @return number of items in the model
+   */
+  public int getNumItems() {
+    int total = 0;
+    for (int partition = 0; partition < Y.length; partition++) {
+      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
+        total += Y[partition].size();
+      }
+    }
+    return total;
+  }
+
   @Override
   public String toString() {
-    int numItems = 0;
-    for (Map<?,?> partition : Y) {
-      numItems += partition.size();
-    }
     return "ALSServingModel[features:" + features + ", implicit:" + implicit +
-        ", X:(" + X.size() + " users), Y:(" + numItems + " items)]";
+        ", X:(" + getNumUsers() + " users), Y:(" + getNumItems() + " items)]";
   }
 
 }

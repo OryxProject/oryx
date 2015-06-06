@@ -88,6 +88,7 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);
           model = new KMeansServingModel(clusters, inputSchema);
+          log.info("New model: {}", model);
           break;
 
         default:

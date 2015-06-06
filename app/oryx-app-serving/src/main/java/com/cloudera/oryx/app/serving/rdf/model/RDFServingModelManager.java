@@ -116,6 +116,7 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           model = new RDFServingModel(forestAndEncodings.getFirst(),
                                       forestAndEncodings.getSecond(),
                                       inputSchema);
+          log.info("New model: {}", model);
           break;
 
         default:
