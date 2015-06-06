@@ -103,6 +103,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis(),
             "zookeeper.connect", updateTopicLockMaster,
+            // Added to support bigger messages 50MB than default 1MB, i.e. When features are bigger
+            "fetch.message.max.bytes", 52428800,
             // Do start from the beginning of the update queue
             "auto.offset.reset", "smallest"
         )));
