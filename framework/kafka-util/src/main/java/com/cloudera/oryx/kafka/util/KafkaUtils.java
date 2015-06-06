@@ -108,7 +108,7 @@ public final class KafkaUtils {
       for (Object partition : partitions) {
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         Option<String> maybeOffset = ZkUtils.readDataMaybeNull(zkClient, partitionOffsetPath)._1();
-        long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : 0L;
+        Long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : null;
         TopicAndPartition topicAndPartition =
             new TopicAndPartition(topic, Integer.parseInt(partition.toString()));
         offsets.put(topicAndPartition, offset);

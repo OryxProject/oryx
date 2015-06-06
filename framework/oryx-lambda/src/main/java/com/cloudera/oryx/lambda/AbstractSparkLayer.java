@@ -17,9 +17,13 @@ package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -32,10 +36,12 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.kafka.KafkaCluster;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
+import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
@@ -208,8 +214,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     Map<TopicAndPartition,Long> offsets =
         com.cloudera.oryx.kafka.util.KafkaUtils.getOffsets(inputTopicLockMaster,
-                                                           getGroupID(),
+                                                           groupID,
                                                            inputTopic);
+    fillInLatestOffsets(offsets, kafkaParams);
     log.info("Initial offsets: {}", offsets);
 
     // Ugly compiler-pleasing acrobatics:
@@ -239,6 +246,43 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     public Tuple2<K,M> call(MessageAndMetadata<K,M> km) {
       return new Tuple2<>(km.key(), km.message());
     }
+  }
+
+  private static void fillInLatestOffsets(Map<TopicAndPartition,Long> offsets, Map<String,String> kafkaParams) {
+    if (offsets.containsValue(null)) {
+
+      Set<TopicAndPartition> needOffset = new HashSet<>();
+      for (Map.Entry<TopicAndPartition, Long> entry : offsets.entrySet()) {
+        if (entry.getValue() == null) {
+          TopicAndPartition tAndP = entry.getKey();
+          log.info("No initial offset for {}; reading from Kafka", tAndP);
+          needOffset.add(tAndP);
+        }
+      }
+
+      // The high price of calling private Scala stuff:
+      @SuppressWarnings("unchecked")
+      scala.collection.immutable.Map<String,String> kafkaParamsScalaMap =
+          (scala.collection.immutable.Map<String,String>)
+              scala.collection.immutable.Map$.MODULE$.apply(JavaConversions.mapAsScalaMap(kafkaParams).toSeq());
+      @SuppressWarnings("unchecked")
+      scala.collection.immutable.Set<TopicAndPartition> needOffsetScalaSet =
+          (scala.collection.immutable.Set<TopicAndPartition>)
+              scala.collection.immutable.Set$.MODULE$.apply(JavaConversions.asScalaSet(needOffset).toSeq());
+
+      KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
+      Map<TopicAndPartition,?> leaderOffsets =
+          JavaConversions.mapAsJavaMap(kc.getLatestLeaderOffsets(needOffsetScalaSet).right().get());
+      for (Map.Entry<TopicAndPartition,?> entry : leaderOffsets.entrySet()) {
+        TopicAndPartition tAndP = entry.getKey();
+        // Can't reference LeaderOffset class, so, hack away:
+        String leaderOffsetString = entry.getValue().toString();
+        Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetString);
+        Preconditions.checkState(m.matches());
+        offsets.put(tAndP, Long.valueOf(m.group(1)));
+      }
+    }
+
   }
 
 }
