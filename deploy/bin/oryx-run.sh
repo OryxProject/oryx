@@ -117,16 +117,18 @@ batch|speed|serving)
       EXTRA_PROPS="${SPARK_STREAMING_PROPS}"
       ;;
     serving)
+      MEMORY_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.memory=.+$" | grep -oE "[^=]+$" | grep -oE "[0-9]+"`
       # Only for Serving Layer now
       if [ "${DEPLOYMENT}" == "yarn" ]; then
-        YARN_MEMORY_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.memory=.+$" | grep -oE "[^=]+$" | grep -oE "[0-9]+"`
         YARN_CORES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.cores=.+$" | grep -oE "[^=]+$"`
         YARN_INSTANCES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.instances=.+$" | grep -oE "[^=]+$"`
         APP_ID=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.id=.+$" | grep -oE "[^=]+$"`
         YARN_APP_NAME="OryxServingLayer${APP_ID}"
-        JVM_HEAP_MB=`echo "${YARN_MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
-        EXTRA_PROPS="-Xmx${JVM_HEAP_MB}m"
+        JVM_HEAP_MB=`echo "${MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
+      else
+        JVM_HEAP_MB=${MEMORY_MB}
       fi
+      EXTRA_PROPS="-Xmx${JVM_HEAP_MB}m"
       ;;
   esac
 
@@ -167,7 +169,7 @@ batch|speed|serving)
     # Need absolute path
     OWNER=`hdfs dfs -stat '%u' ${HDFS_APP_DIR}`
     echo "hdfs dfs -get /user/${OWNER}/${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
-    echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
+    echo "java ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} ${JVM_ARGS} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
 
     YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
 
@@ -202,7 +204,7 @@ batch|speed|serving)
     if [ -n "${APP_JAR}" ]; then
       FINAL_CLASSPATH="${APP_JAR}:${FINAL_CLASSPATH}"
     fi
-    java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
+    java ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} ${JVM_ARGS} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
 
   fi
   ;;
