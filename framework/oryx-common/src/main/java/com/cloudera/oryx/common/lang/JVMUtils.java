@@ -51,7 +51,7 @@ public final class JVMUtils {
               }
             }
           }
-        }));
+        }, "OryxShutdownHookThread"));
       }
       closeAtShutdown.push(closeable);
     }

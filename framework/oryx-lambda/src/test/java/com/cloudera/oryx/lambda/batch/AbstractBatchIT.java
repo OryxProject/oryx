@@ -79,7 +79,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
       log.info("Starting consumer thread");
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
-      new Thread(consumeInput).start();
+      new Thread(consumeInput, "ConsumeInputThread").start();
 
       // Sleep to let consumer start
       sleepSeconds(3);

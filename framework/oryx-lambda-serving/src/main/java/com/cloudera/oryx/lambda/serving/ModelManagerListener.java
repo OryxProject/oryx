@@ -125,7 +125,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       public void doRun() throws IOException {
         modelManager.consume(transformed);
       }
-    }).start();
+    }, "OryxServingLayerUpdateConsumerThread").start();
 
     // Set the Model Manager in the Application scope
     context.setAttribute(MANAGER_KEY, modelManager);

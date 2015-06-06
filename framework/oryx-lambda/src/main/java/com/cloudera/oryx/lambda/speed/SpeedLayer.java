@@ -127,7 +127,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
       public void doRun() throws IOException {
         modelManager.consume(transformed);
       }
-    }).start();
+    }, "OryxSpeedLayerUpdateConsumerThread").start();
 
     pairDStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
 

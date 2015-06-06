@@ -63,7 +63,7 @@ public final class ProduceConsumeIT extends OryxTest {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data);
-        new Thread(consumeTopic).start();
+        new Thread(consumeTopic, "ConsumeTopicThread").start();
 
         // Sleep to let consumer start
         sleepSeconds(3);
