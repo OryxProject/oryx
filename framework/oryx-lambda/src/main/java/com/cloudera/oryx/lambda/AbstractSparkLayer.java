@@ -73,6 +73,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final int executorCores;
   private final String executorMemoryString;
   //private final String driverMemoryString;
+  private final boolean useDynamicAllocation;
   private final int generationIntervalSec;
   private final int blockIntervalSec;
   private final int uiPort;
@@ -101,6 +102,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.executorCores = config.getInt("oryx." + group + ".streaming.executor-cores");
     this.executorMemoryString = config.getString("oryx." + group + ".streaming.executor-memory");
     //this.driverMemoryString = config.getString("oryx." + group + ".streaming.driver-memory");
+    this.useDynamicAllocation = config.getBoolean("oryx." + group + ".streaming.dynamic-allocation");
     this.generationIntervalSec =
         config.getInt("oryx." + group + ".streaming.generation-interval-sec");
     this.blockIntervalSec = config.getInt("oryx." + group + ".streaming.block-interval-sec");
@@ -165,14 +167,18 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.speculation", "true");
     sparkConf.setIfMissing("spark.shuffle.manager", "sort");
 
-    // Enable dynamic allocation for YARN
-    if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
-      sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
-      sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
-      sparkConf.setIfMissing("spark.dynamicAllocation.minExecutors", "1");
-      sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors",
-                             Integer.toString(numExecutors));
-      sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
+    if (useDynamicAllocation) {
+      if (streamingMaster.startsWith("yarn")) { // yarn-client, yarn-cluster
+        sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
+        sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
+        sparkConf.setIfMissing("spark.dynamicAllocation.minExecutors", "1");
+        sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors",
+                               Integer.toString(numExecutors));
+        sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
+      } else {
+        log.warn("Ignoring dynamic allocation since master is {}", streamingMaster);
+        sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
+      }
     } else {
       sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
     }
