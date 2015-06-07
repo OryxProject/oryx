@@ -73,7 +73,7 @@ public final class LargeMessageIT extends OryxTest {
         produce.start();
 
         // Sleep for a while before shutting down producer to let both finish
-        sleepSeconds(1);
+        sleepSeconds(3);
 
         keyMessages = consumeTopic.getKeyMessages();
       } finally {
