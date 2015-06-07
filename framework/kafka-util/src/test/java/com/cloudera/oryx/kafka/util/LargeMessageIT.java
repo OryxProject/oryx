@@ -33,6 +33,7 @@ public final class LargeMessageIT extends OryxTest {
   private static final Logger log = LoggerFactory.getLogger(LargeMessageIT.class);
 
   private static final String TOPIC = "OryxTest";
+  private static final int NUM_DATA = 1;
   private static final int LARGE_MESSAGE_SIZE = 1 << 25;
 
   @Test
@@ -55,14 +56,14 @@ public final class LargeMessageIT extends OryxTest {
                                             zkPort,
                                             localKafkaBroker.getPort(),
                                             TOPIC,
-                                            1,
+                                            NUM_DATA,
                                             0);
 
       List<Pair<String,String>> keyMessages;
       try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
-        ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data);
+        ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
         new Thread(consumeTopic, "ConsumeTopicThread").start();
 
         consumeTopic.awaitRun();
@@ -70,9 +71,7 @@ public final class LargeMessageIT extends OryxTest {
         log.info("Producing data");
         produce.start();
 
-        // Sleep for a while before shutting down producer to let both finish
-        sleepSeconds(3);
-
+        consumeTopic.awaitMessages();
         keyMessages = consumeTopic.getKeyMessages();
       } finally {
         KafkaUtils.deleteTopic(zkHostPort, TOPIC);

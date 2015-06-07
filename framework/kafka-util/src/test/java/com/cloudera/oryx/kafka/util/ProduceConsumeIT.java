@@ -61,7 +61,7 @@ public final class ProduceConsumeIT extends OryxTest {
       try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
-        ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data);
+        ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
         new Thread(consumeTopic, "ConsumeTopicThread").start();
 
         consumeTopic.awaitRun();
@@ -69,9 +69,7 @@ public final class ProduceConsumeIT extends OryxTest {
         log.info("Producing data");
         produce.start();
 
-        // Sleep for a while before shutting down producer to let both finish
-        sleepSeconds(1);
-
+        consumeTopic.awaitMessages();
         keys = consumeTopic.getKeys();
       } finally {
         KafkaUtils.deleteTopic(zkHostPort, TOPIC);

@@ -64,7 +64,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
              new ConsumeData(INPUT_TOPIC, getZKPort()).iterator()) {
 
       log.info("Starting consumer thread");
-      ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
+      ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data, inputs.length);
       new Thread(consumeInput, "ConsumeInputThread").start();
 
       consumeInput.awaitRun();
@@ -73,9 +73,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
         inputProducer.send("", input);
       }
 
-      // Allow messages from async producer to send
-      sleepSeconds(3);
-
+      consumeInput.awaitMessages();
       keyMessages = consumeInput.getKeyMessages();
     }
 
