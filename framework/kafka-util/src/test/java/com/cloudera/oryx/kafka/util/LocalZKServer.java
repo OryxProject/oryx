@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.zk;
+package com.cloudera.oryx.kafka.util;
 
 import java.io.Closeable;
 import java.io.File;

@@ -25,7 +25,6 @@ import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
-import com.cloudera.oryx.zk.LocalZKServer;
 
 /**
  * Tests {@link ProduceData} and {@link ConsumeData} together.

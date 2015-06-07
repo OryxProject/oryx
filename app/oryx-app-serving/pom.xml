@@ -120,22 +120,12 @@
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>kafka-util</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>kafka-util</artifactId>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka_${scala.minor.version}</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>zk-util</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

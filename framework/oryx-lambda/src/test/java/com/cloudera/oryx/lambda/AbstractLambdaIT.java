@@ -31,7 +31,7 @@ import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 import com.cloudera.oryx.kafka.util.LocalKafkaBroker;
-import com.cloudera.oryx.zk.LocalZKServer;
+import com.cloudera.oryx.kafka.util.LocalZKServer;
 
 /**
  * Superclass of test cases for this module. Takes care of setting up services like

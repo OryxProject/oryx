@@ -40,11 +40,6 @@
       </dependency>
       <dependency>
         <groupId>com.cloudera.oryx</groupId>
-        <artifactId>zk-util</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.cloudera.oryx</groupId>
         <artifactId>oryx-lambda</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -456,7 +451,6 @@
     <module>framework/oryx-api</module>
     <module>framework/oryx-common</module>
     <module>framework/kafka-util</module>
-    <module>framework/zk-util</module>
     <module>framework/oryx-lambda</module>
     <module>framework/oryx-lambda-serving</module>
     <module>framework/oryx-ml</module>
@@ -900,18 +894,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <version>2.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>1.4.0</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>exec</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

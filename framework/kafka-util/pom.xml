@@ -35,6 +35,11 @@
       <artifactId>kafka_${scala.minor.version}</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-common</artifactId>
     </dependency>
@@ -49,23 +54,6 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>zk-util</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <configuration>
-          <mainClass>com.cloudera.oryx.kafka.util.LocalKafkaBroker</mainClass>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>

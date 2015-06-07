@@ -27,7 +27,6 @@ import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
-import com.cloudera.oryx.zk.LocalZKServer;
 
 public final class LargeMessageIT extends OryxTest {
 
