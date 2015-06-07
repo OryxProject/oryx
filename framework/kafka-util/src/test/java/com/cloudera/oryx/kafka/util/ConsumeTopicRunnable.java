@@ -18,6 +18,7 @@ package com.cloudera.oryx.kafka.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -29,17 +30,24 @@ public final class ConsumeTopicRunnable extends LoggingRunnable {
 
   private final Iterator<Pair<String,String>> data;
   private final List<Pair<String,String>> keyMessages;
+  private final CountDownLatch runLatch;
 
   public ConsumeTopicRunnable(Iterator<Pair<String,String>> data) {
     this.data = data;
     this.keyMessages = new ArrayList<>();
+    this.runLatch = new CountDownLatch(1);
   }
 
   @Override
   public void doRun() {
+    runLatch.countDown();
     while (data.hasNext()) {
       keyMessages.add(data.next());
     }
+  }
+
+  public void awaitRun() throws InterruptedException {
+    runLatch.await();
   }
 
   public List<Pair<String,String>> getKeyMessages() {

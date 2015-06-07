@@ -67,8 +67,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
       new Thread(consumeInput, "ConsumeInputThread").start();
 
-      // Sleep to let consumer start
-      sleepSeconds(3);
+      consumeInput.awaitRun();
 
       for (String input : inputs) {
         inputProducer.send("", input);

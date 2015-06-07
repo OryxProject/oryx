@@ -84,8 +84,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       ConsumeTopicRunnable consumeUpdate = new ConsumeTopicRunnable(data);
       new Thread(consumeUpdate, "ConsumeUpdateThread").start();
 
-      // Sleep to let consumer start
-      sleepSeconds(3);
+      consumeUpdate.awaitRun();
 
       // Load all updates first
       log.info("Producing updates");

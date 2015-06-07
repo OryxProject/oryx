@@ -66,8 +66,7 @@ public final class LargeMessageIT extends OryxTest {
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data);
         new Thread(consumeTopic, "ConsumeTopicThread").start();
 
-        // Sleep to let consumer start
-        sleepSeconds(3);
+        consumeTopic.awaitRun();
 
         log.info("Producing data");
         produce.start();
