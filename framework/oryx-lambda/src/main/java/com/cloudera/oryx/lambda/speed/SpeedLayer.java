@@ -105,8 +105,8 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis(),
             "zookeeper.connect", updateTopicLockMaster,
-            // Added to support bigger messages 50MB than default 1MB, i.e. When features are bigger
-            "fetch.message.max.bytes", 52428800,
+            // Support larger message. This must be >= topic's max.message.bytes
+            "fetch.message.max.bytes", 1 << 26, // ~67MB; make configurable?
             // Do start from the beginning of the update queue
             "auto.offset.reset", "smallest"
         )));

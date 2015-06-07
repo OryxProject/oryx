@@ -252,7 +252,7 @@ kafka-setup|kafka-tail|kafka-input)
         y|Y)
           echo "Creating topic ${UPDATE_TOPIC}"
           kafka-topics --zookeeper ${UPDATE_ZK} --create --replication-factor 2 --partitions 1 --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
-          kafka-topics --zookeeper ${UPDATE_ZK} --alter --topic ${UPDATE_TOPIC} --config retention.ms=86400000 2>&1 | grep -vE "^mkdir: cannot create directory"
+          kafka-topics --zookeeper ${UPDATE_ZK} --alter --topic ${UPDATE_TOPIC} --config retention.ms=86400000 --config max.message.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
           ;;
       esac
     fi

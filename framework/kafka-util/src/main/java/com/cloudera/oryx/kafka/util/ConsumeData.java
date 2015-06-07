@@ -51,11 +51,13 @@ public final class ConsumeData implements Iterable<Pair<String,String>> {
 
   @Override
   public CloseableIterator<Pair<String,String>> iterator() {
-    ConsumerConfig consumerConfig = new ConsumerConfig(ConfigUtils.keyValueToProperties(
-        "group.id", "OryxGroup-ConsumeData",
-        "zookeeper.connect", "localhost:" + zkPort
-    ));
-    ConsumerConnector consumer = Consumer.createJavaConsumerConnector(consumerConfig);
+    ConsumerConnector consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+        ConfigUtils.keyValueToProperties(
+          "group.id", "OryxGroup-ConsumeData",
+          "zookeeper.connect", "localhost:" + zkPort,
+          // Support larger message. This must be >= topic's max.message.bytes
+          "fetch.message.max.bytes", 1 << 26 // ~67MB; make configurable?
+        )));
     return new ConsumeDataIterator(topic, consumer);
   }
 

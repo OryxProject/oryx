@@ -439,6 +439,19 @@ to twice the Batch Layer update interval is a good start. For example, to set it
 (24 * 60 * 60 * 1000 = 86400000 ms), set the topic's `retention.ms` property to 86400000.
 This is done automatically by the provided `oryx-run.sh kafka-setup` script.
 
+The two topics above may contain large messages; in particular the update topic includes 
+entire serialized PMML models. It's possible that they exceed Kafka's default max message 
+size of 1 MiB. If large models are expected, then the topic's `max.message.bytes` should
+be configured to allow larger messages. `oryx-run.sh kafka-setup` sets a default of 16 MiB
+for the update topic.
+
+The Kafka broker's `message.max.bytes` (note the different name!) property also controls 
+this, but setting it affects all topics managed by the broker, which may be undesirable.
+See [Performance and Resource Considerations](http://www.cloudera.com/content/cloudera/en/documentation/cloudera-kafka/latest/topics/kafka_performance.html)
+for a more complete discussion. In particular, note that `replica.fetch.max.bytes` would
+have to be set in the broker in order to _replicate_ any very large messages. There is no
+per-topic equivalent to this.
+
 ### Automated Configuration
 
 The provided `oryx-run.sh` script can be used to print current configuration for Zookeeper,
