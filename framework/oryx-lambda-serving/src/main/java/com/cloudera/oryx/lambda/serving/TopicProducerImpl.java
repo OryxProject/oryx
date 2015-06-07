@@ -58,7 +58,9 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
           "serializer.class", StringEncoder.class.getName(),
           "producer.type", "async",
           "queue.buffering.max.ms", 1000, // Make configurable?
-          "batch.num.messages", 100
+          "batch.num.messages", 100,
+          "compression.codec", "snappy",
+          "compressed.topics", topic
       )));
     }
     return producer;

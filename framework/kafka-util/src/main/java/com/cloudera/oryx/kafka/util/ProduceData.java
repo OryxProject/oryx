@@ -87,7 +87,9 @@ public final class ProduceData {
     Producer<String,String> producer =
         new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
             "metadata.broker.list", "localhost:" + kafkaPort,
-            "serializer.class", "kafka.serializer.StringEncoder"
+            "serializer.class", "kafka.serializer.StringEncoder",
+            "compression.codec", "snappy",
+            "compressed.topics", topic
         )));
     try {
       for (int i = 0; i < howMany; i++) {
