@@ -56,7 +56,8 @@ public final class ConsumeData implements Iterable<Pair<String,String>> {
           "group.id", "OryxGroup-ConsumeData",
           "zookeeper.connect", "localhost:" + zkPort,
           // Support larger message. This must be >= topic's max.message.bytes
-          "fetch.message.max.bytes", 1 << 26 // ~67MB; make configurable?
+          "fetch.message.max.bytes", 1 << 26, // ~67MB; make configurable?,
+          "auto.offset.reset", "smallest" // For tests, always start at the beginning
         )));
     return new ConsumeDataIterator(topic, consumer);
   }

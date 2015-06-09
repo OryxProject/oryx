@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import com.cloudera.oryx.common.collection.Pair;
@@ -59,7 +60,7 @@ public final class ConsumeTopicRunnable extends LoggingRunnable {
   }
 
   public void awaitMessages() throws InterruptedException {
-    messagesLatch.await(1, TimeUnit.MINUTES);
+    Preconditions.checkState(messagesLatch.await(1, TimeUnit.MINUTES));
   }
 
   public List<Pair<String,String>> getKeyMessages() {
