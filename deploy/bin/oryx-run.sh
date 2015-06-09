@@ -123,7 +123,7 @@ batch|speed|serving)
         YARN_CORES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.cores=.+$" | grep -oE "[^=]+$"`
         YARN_INSTANCES=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.yarn\.instances=.+$" | grep -oE "[^=]+$"`
         APP_ID=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.id=.+$" | grep -oE "[^=]+$"`
-        YARN_APP_NAME="OryxServingLayer${APP_ID}"
+        YARN_APP_NAME="OryxServingLayer-${APP_ID}"
         JVM_HEAP_MB=`echo "${MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
       else
         JVM_HEAP_MB=${MEMORY_MB}
@@ -173,7 +173,7 @@ batch|speed|serving)
 
     YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
 
-    echo "Running ${YARN_INSTANCES} ${YARN_APP_NAME} (${YARN_CORES} cores / ${YARN_MEMORY_MB}MB)"
+    echo "Running ${YARN_INSTANCES} ${YARN_APP_NAME} (${YARN_CORES} cores / ${MEMORY_MB}MB)"
     echo "Note that you will need to find the Application Master in YARN to find the Serving Layer"
     echo "instances, and kill the application with 'yarn application -kill [app ID]'"
     echo
@@ -182,7 +182,7 @@ batch|speed|serving)
       -jar ${YARN_DIST_SHELL_JAR} \
       org.apache.hadoop.yarn.applications.distributedshell.Client \
       -appname ${YARN_APP_NAME} \
-      -container_memory ${YARN_MEMORY_MB} \
+      -container_memory ${MEMORY_MB} \
       -container_vcores ${YARN_CORES} \
       -master_memory 256 \
       -master_vcores 1 \

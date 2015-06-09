@@ -160,7 +160,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     SparkConf sparkConf = new SparkConf();
 
     sparkConf.setMaster(streamingMaster);
-    sparkConf.setAppName("Oryx" + getLayerName());
+    String appName = "Oryx" + getLayerName();
+    if (id != null) {
+      appName = appName + "-" + id;
+    }
+    sparkConf.setAppName(appName);
 
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
