@@ -855,6 +855,10 @@
           <version>0.11</version>
           <configuration>
             <excludes>
+              <exclude>**/*.settings/</exclude>
+              <exclude>**/*.project</exclude>
+              <exclude>**/*.classpath</exclude>
+              <exclude>**/*.checkstyle</exclude>
               <exclude>**/*.conf</exclude>
               <exclude>**/*.iml</exclude>
               <exclude>**/*.md</exclude>
