@@ -477,7 +477,7 @@
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <clirr.version>2.6.1</clirr.version>
     <hadoop.version>2.6.0</hadoop.version>
-    <jackson.version>2.6.0-rc1</jackson.version>
+    <jackson.version>2.4.6</jackson.version>
     <jersey.version>2.18</jersey.version>
     <kafka.version>0.8.2.1</kafka.version>
     <koloboke.version>0.6.7</koloboke.version>
@@ -860,6 +860,7 @@
               <exclude>**/*.classpath</exclude>
               <exclude>**/*.checkstyle</exclude>
               <exclude>**/*.conf</exclude>
+              <exclude>**/*.csv</exclude>
               <exclude>**/*.iml</exclude>
               <exclude>**/*.md</exclude>
               <exclude>**/*.properties</exclude>

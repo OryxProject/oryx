@@ -47,6 +47,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
+  private static final int NUM_TREES = 2;
 
   @Test
   public void testRDF() throws Exception {
