@@ -44,7 +44,6 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", RDFSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.input-schema.target-feature", "bar");
@@ -129,7 +128,6 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", RDFSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 5);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"color\",\"fruit\"]");
     overlayConfig.put("oryx.input-schema.numeric-features", "[]");
     overlayConfig.put("oryx.input-schema.target-feature", "fruit");

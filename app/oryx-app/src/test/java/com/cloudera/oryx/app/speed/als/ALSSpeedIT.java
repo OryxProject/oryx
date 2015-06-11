@@ -41,7 +41,6 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", ALSSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 5);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.als.hyperparams.features", 2);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 

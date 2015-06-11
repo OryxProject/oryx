@@ -58,7 +58,6 @@ public final class RDFNumericHyperParamTuningIT extends AbstractRDFIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", 15);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", 1);
     // Low values like 1 are deliberately bad, won't work
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", "[1," + MAX_DEPTH + "]");

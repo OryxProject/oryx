@@ -52,7 +52,6 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", NUM_CLUSTERS);
     overlayConfig.put("oryx.kmeans.iterations", 5);
     overlayConfig.put("oryx.input-schema.num-features", NUM_FEATURES);

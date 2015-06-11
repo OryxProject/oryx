@@ -48,7 +48,6 @@ public final class KMeansHyperParamTuningIT extends AbstractKMeansIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", "[2,100]");
     overlayConfig.put("oryx.kmeans.iterations", 20);
     overlayConfig.put("oryx.kmeans.runs", 20);

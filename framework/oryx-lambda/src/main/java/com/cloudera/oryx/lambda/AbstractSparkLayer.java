@@ -75,7 +75,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   //private final String driverMemoryString;
   private final boolean useDynamicAllocation;
   private final int generationIntervalSec;
-  private final int blockIntervalSec;
   private final int uiPort;
 
   @SuppressWarnings("unchecked")
@@ -105,13 +104,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.useDynamicAllocation = config.getBoolean("oryx." + group + ".streaming.dynamic-allocation");
     this.generationIntervalSec =
         config.getInt("oryx." + group + ".streaming.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("oryx." + group + ".streaming.block-interval-sec");
     this.uiPort = config.getInt("oryx." + group + ".ui.port");
 
     Preconditions.checkArgument(numExecutors >= 1);
     Preconditions.checkArgument(executorCores >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
-    Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(uiPort > 0);
   }
 
@@ -191,9 +188,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
     //sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
 
-    sparkConf.setIfMissing(
-        "spark.streaming.blockInterval",
-        Long.toString(TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS)));
     // Turn this down to prevent long blocking at shutdown
     sparkConf.setIfMissing(
         "spark.streaming.gracefulStopTimeout",

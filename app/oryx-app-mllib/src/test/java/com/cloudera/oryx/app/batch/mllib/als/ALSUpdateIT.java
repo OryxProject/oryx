@@ -61,7 +61,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.als.implicit", false);
     overlayConfig.put("oryx.als.hyperparams.lambda", LAMBDA);
     overlayConfig.put("oryx.als.hyperparams.features", FEATURES);

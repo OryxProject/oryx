@@ -60,7 +60,6 @@ public final class RDFUpdateIT extends AbstractRDFIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", NUM_TREES);
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", MAX_DEPTH);
     overlayConfig.put("oryx.rdf.hyperparams.max-split-candidates", MAX_SPLIT_CANDIDATES);
