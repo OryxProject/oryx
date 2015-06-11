@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.fileupload.FileItem;
 
-import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.text.TextUtils;
@@ -84,7 +83,6 @@ public final class Ingest extends AbstractALSResource {
   }
 
   private void doPost(BufferedReader buffered) throws IOException, OryxServingException {
-    TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
       String[] tokens = TextUtils.parseDelimited(line, ',');
@@ -117,7 +115,7 @@ public final class Ingest extends AbstractALSResource {
         strength = "1";
         timestamp = System.currentTimeMillis();
       }
-      inputTopic.send(userID + "," + itemID + "," + strength + "," + timestamp);
+      sendInput(userID + "," + itemID + "," + strength + "," + timestamp);
     }
   }
 }

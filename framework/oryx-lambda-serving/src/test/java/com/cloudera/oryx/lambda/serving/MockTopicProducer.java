@@ -45,11 +45,6 @@ public final class MockTopicProducer implements TopicProducer<String,String> {
   }
 
   @Override
-  public void send(String message) {
-    send(null, message);
-  }
-
-  @Override
   public void close() {
     // do nothing
   }

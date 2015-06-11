@@ -153,7 +153,7 @@ public abstract class AbstractServingTest extends JerseyTest {
     List<Pair<String,String>> data = MockTopicProducer.getData();
     for (int i = 0; i < data.size(); i++) {
       Pair<String,String> actual = data.get(i);
-      Assert.assertNull(actual.getFirst());
+      Assert.assertNotNull(actual.getFirst());
       String[] tokens = actual.getSecond().split(",");
       Assert.assertArrayEquals(expectedTopic[i], tokens);
     }

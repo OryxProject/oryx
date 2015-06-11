@@ -66,8 +66,8 @@ public abstract class AbstractOryxResource {
     return servingModelManager;
   }
 
-  protected final TopicProducer<?,String> getInputProducer() {
-    return inputProducer;
+  protected final void sendInput(String message) {
+    inputProducer.send(Integer.toHexString(message.hashCode()), message);
   }
 
   protected final List<FileItem> parseMultipart(HttpServletRequest request)

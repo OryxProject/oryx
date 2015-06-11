@@ -43,11 +43,6 @@ public interface TopicProducer<K, M> extends Closeable {
    */
   void send(K key, M message);
 
-  /**
-   * @param message message to send (with no key) to the topic
-   */
-  void send(M message);
-
   @Override
   void close();
 

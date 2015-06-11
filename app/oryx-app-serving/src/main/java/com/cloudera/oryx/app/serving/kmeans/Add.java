@@ -32,7 +32,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.fileupload.FileItem;
 
-import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 
@@ -56,7 +55,7 @@ public final class Add extends AbstractKMeansResource {
   @POST
   @Path("{datum}")
   public void post(@PathParam("datum") String datum) {
-    getInputProducer().send(datum);
+    sendInput(datum);
   }
 
   @POST
@@ -71,10 +70,9 @@ public final class Add extends AbstractKMeansResource {
   }
 
   private void doPost(BufferedReader buffered) throws IOException {
-    TopicProducer<?,String> inputTopic = getInputProducer();
     String line;
     while ((line = buffered.readLine()) != null) {
-      inputTopic.send(line);
+      sendInput(line);
     }
   }
 }

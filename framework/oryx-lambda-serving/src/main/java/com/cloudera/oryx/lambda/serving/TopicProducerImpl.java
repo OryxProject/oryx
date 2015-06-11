@@ -72,11 +72,6 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
   }
 
   @Override
-  public void send(M message) {
-    getProducer().send(new KeyedMessage<K, M>(topic, message));
-  }
-
-  @Override
   public synchronized void close() {
     if (producer != null) {
       producer.close();
