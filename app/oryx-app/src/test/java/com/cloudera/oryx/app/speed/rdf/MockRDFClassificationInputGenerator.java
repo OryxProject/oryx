@@ -28,7 +28,7 @@ public final class MockRDFClassificationInputGenerator implements DatumGenerator
     String target = positive ? "banana" : "apple";
     // 10% chance of wrong predictor
     String predictor = (positive ^ (random.nextDouble() < 0.1)) ? "yellow" : "red";
-    return new Pair<>("", predictor + "," + target);
+    return new Pair<>(null, predictor + "," + target);
   }
 
 }

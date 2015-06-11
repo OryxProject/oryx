@@ -48,12 +48,11 @@ public final class LargeMessageIT extends OryxTest {
 
       String zkHostPort = "localhost:" + zkPort;
       KafkaUtils.deleteTopic(zkHostPort, TOPIC);
-      KafkaUtils.maybeCreateTopic(zkHostPort, TOPIC, ConfigUtils.keyValueToProperties(
+      KafkaUtils.maybeCreateTopic(zkHostPort, TOPIC, 1, ConfigUtils.keyValueToProperties(
           "max.message.bytes", LARGE_MESSAGE_SIZE + (1 << 15) // Overhead for Kafka message metadata, key
       ));
 
       ProduceData produce = new ProduceData(new BigDatumGenerator(),
-                                            zkPort,
                                             localKafkaBroker.getPort(),
                                             TOPIC,
                                             NUM_DATA,
@@ -93,7 +92,7 @@ public final class LargeMessageIT extends OryxTest {
         }
         LARGE_MESSAGE = builder.toString();
       }
-      return new Pair<>("", LARGE_MESSAGE);
+      return new Pair<>(null, LARGE_MESSAGE);
     }
   }
 

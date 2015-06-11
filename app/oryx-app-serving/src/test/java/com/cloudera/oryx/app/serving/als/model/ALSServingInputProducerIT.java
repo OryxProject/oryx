@@ -70,7 +70,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
       consumeInput.awaitRun();
 
       for (String input : inputs) {
-        inputProducer.send("", input);
+        inputProducer.send(null, input);
       }
 
       consumeInput.awaitMessages();
@@ -79,7 +79,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
 
     for (int i = 0; i < keyMessages.size(); i++) {
       Pair<String,String> keyMessage = keyMessages.get(i);
-      assertEquals("", keyMessage.getFirst());
+      assertNull(keyMessage.getFirst());
       assertEquals(inputs[i], keyMessage.getSecond());
     }
     assertEquals(inputs.length, keyMessages.size());

@@ -67,8 +67,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
     String zkHostPort = "localhost:" + localZKPort;
     KafkaUtils.deleteTopic(zkHostPort, INPUT_TOPIC);
     KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
-    KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC);
-    KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC);
+    KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC, 4);
+    KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC, 1);
   }
 
   @After

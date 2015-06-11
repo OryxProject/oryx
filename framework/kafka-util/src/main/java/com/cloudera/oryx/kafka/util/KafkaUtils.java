@@ -52,9 +52,10 @@ public final class KafkaUtils {
   /**
    * @param zkServers Zookeeper server string: host1:port1[,host2:port2,...]
    * @param topic topic to create (if not already existing)
+   * @param partitions number of topic partitions
    */
-  public static void maybeCreateTopic(String zkServers, String topic) {
-    maybeCreateTopic(zkServers, topic, new Properties());
+  public static void maybeCreateTopic(String zkServers, String topic, int partitions) {
+    maybeCreateTopic(zkServers, topic, partitions, new Properties());
   }
 
   /**
@@ -62,14 +63,17 @@ public final class KafkaUtils {
    * @param topic topic to create (if not already existing)
    * @param topicProperties optional topic config properties
    */
-  public static void maybeCreateTopic(String zkServers, String topic, Properties topicProperties) {
+  public static void maybeCreateTopic(String zkServers,
+                                      String topic,
+                                      int partitions,
+                                      Properties topicProperties) {
     try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
       if (AdminUtils.topicExists(zkClient, topic)) {
         log.info("No need to create topic {} as it already exists", topic);
       } else {
         log.info("Creating topic {}", topic);
         try {
-          AdminUtils.createTopic(zkClient, topic, 1, 1, topicProperties);
+          AdminUtils.createTopic(zkClient, topic, partitions, 1, topicProperties);
           log.info("Created Zookeeper topic {}", topic);
         } catch (TopicExistsException tee) {
           log.info("Zookeeper topic {} already exists", topic);

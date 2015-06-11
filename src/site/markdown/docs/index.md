@@ -425,8 +425,19 @@ Speed Layer, and the other carries model updates from there on to the Serving La
 names of these topics are `OryxInput` and `OryxUpdate` respectively. They need to be
 created before Oryx is started.
 
-Each can default to have one partition, but more can be configured if much higher read
-throughput is needed. Replication factor can be any value, but at least 2 is recommended.
+The number of partitions for the _input_ topic will affect the number of partitions, and 
+therefore parallelism, of the Spark Streaming jobs that consume them. For example, the
+Batch Layer reads partitions of historical data from HDFS and from Kafka. If the input
+topic has just one partition but a large amount of data arrives per interval, then the
+Kafka-based partition of the input may be relatively very large and take a long time 
+to process. A good rule of thumb may be to choose a number of topic partitions such that the
+amount of data that arrives in one batch interval is expected to be about the same as
+one HDFS block, which is 128MB by default.
+The provided `oryx-run.sh kafka-setup` script configures a default of 4 partitions, but
+this can be changed later. Note that there is no purpose in configuring more than 1
+partition for the _update_ topic.
+
+Replication factor can be any value, but at least 2 is recommended.
 Note that the replication factor can't exceed the number of Kafka brokers in the cluster.
 
 You may need to configure the retention time for one or both topics. In particular,

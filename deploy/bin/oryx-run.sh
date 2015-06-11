@@ -238,7 +238,7 @@ kafka-setup|kafka-tail|kafka-input)
       case "${CREATE}" in
         y|Y)
           echo "Creating topic ${INPUT_TOPIC}"
-          kafka-topics --zookeeper ${INPUT_ZK} --create --replication-factor 2 --partitions 1 --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+          kafka-topics --zookeeper ${INPUT_ZK} --create --replication-factor 2 --partitions 4 --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
           ;;
       esac
     fi

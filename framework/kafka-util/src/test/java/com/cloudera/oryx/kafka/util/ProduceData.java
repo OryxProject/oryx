@@ -38,50 +38,29 @@ public final class ProduceData {
   private static final Logger log = LoggerFactory.getLogger(ProduceData.class);
 
   private final DatumGenerator<String,String> datumGenerator;
-  private final int zkPort;
   private final int kafkaPort;
   private final String topic;
   private final int howMany;
   private final int intervalMsec;
 
   public ProduceData(DatumGenerator<String,String> datumGenerator,
-                     int zkPort,
                      int kafkaPort,
                      String topic,
                      int howMany,
                      int intervalMsec) {
     Objects.requireNonNull(datumGenerator);
     Objects.requireNonNull(topic);
-    Preconditions.checkArgument(zkPort > 0);
     Preconditions.checkArgument(kafkaPort > 0);
     Preconditions.checkArgument(howMany > 0);
     Preconditions.checkArgument(intervalMsec >= 0);
     this.datumGenerator = datumGenerator;
-    this.zkPort = zkPort;
     this.kafkaPort = kafkaPort;
     this.topic = topic;
     this.howMany = howMany;
     this.intervalMsec = intervalMsec;
   }
 
-  public static void main(String[] args) throws Exception {
-    int howMany = Integer.parseInt(args[0]);
-    int intervalMsec = Integer.parseInt(args[1]);
-    String topic = args[2];
-    int zkPort = Integer.parseInt(args[3]);
-    int kafkaPort = Integer.parseInt(args[4]);
-
-    ProduceData producer = new ProduceData(new DefaultCSVDatumGenerator(),
-                                           zkPort,
-                                           kafkaPort,
-                                           topic,
-                                           howMany,
-                                           intervalMsec);
-    producer.start();
-  }
-
   public void start() throws InterruptedException {
-    KafkaUtils.maybeCreateTopic("localhost:" + zkPort, topic);
     RandomGenerator random = RandomManager.getRandom();
 
     Producer<String,String> producer =

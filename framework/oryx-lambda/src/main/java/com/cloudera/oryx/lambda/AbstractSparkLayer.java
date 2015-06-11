@@ -258,11 +258,10 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       Set<TopicAndPartition> needOffset = new HashSet<>();
       for (Map.Entry<TopicAndPartition, Long> entry : offsets.entrySet()) {
         if (entry.getValue() == null) {
-          TopicAndPartition tAndP = entry.getKey();
-          log.info("No initial offset for {}; reading from Kafka", tAndP);
-          needOffset.add(tAndP);
+          needOffset.add(entry.getKey());
         }
       }
+      log.info("No initial offsets for {}; reading from Kafka", needOffset);
 
       // The high price of calling private Scala stuff:
       @SuppressWarnings("unchecked")

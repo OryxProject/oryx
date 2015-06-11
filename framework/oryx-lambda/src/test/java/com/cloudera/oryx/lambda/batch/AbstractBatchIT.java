@@ -60,7 +60,6 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
     int zkPort = getZKPort();
 
     ProduceData produce = new ProduceData(datumGenerator,
-                                          zkPort,
                                           getKafkaBrokerPort(),
                                           INPUT_TOPIC,
                                           howMany,
