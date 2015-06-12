@@ -47,7 +47,6 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
-  private final int storagePartitions;
   private JavaStreamingContext streamingContext;
 
   public BatchLayer(Config config) {
@@ -59,10 +58,8 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     this.updateClassName = config.getString("oryx.batch.update-class");
     this.dataDirString = config.getString("oryx.batch.storage.data-dir");
     this.modelDirString = config.getString("oryx.batch.storage.model-dir");
-    this.storagePartitions = config.getInt("oryx.batch.storage.partitions");
     Preconditions.checkArgument(!dataDirString.isEmpty());
     Preconditions.checkArgument(!modelDirString.isEmpty());
-    Preconditions.checkArgument(storagePartitions > 0);
   }
 
   @Override
@@ -101,12 +98,11 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
                                   streamingContext));
 
     // Save data to HDFS. Write the original message type, not transformed.
-    JavaPairDStream<Writable,Writable> writableDStream =
-        pairDStream.repartition(storagePartitions).mapToPair(
-            new ValueToWritableFunction<>(keyClass,
-                                          messageClass,
-                                          keyWritableClass,
-                                          messageWritableClass));
+    JavaPairDStream<Writable,Writable> writableDStream = pairDStream.mapToPair(
+        new ValueToWritableFunction<>(keyClass,
+                                      messageClass,
+                                      keyWritableClass,
+                                      messageWritableClass));
 
     // "Inline" saveAsNewAPIHadoopFiles to be able to skip saving empty RDDs
     writableDStream.foreachRDD(
