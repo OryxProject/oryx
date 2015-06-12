@@ -61,6 +61,7 @@ public final class KafkaUtils {
   /**
    * @param zkServers Zookeeper server string: host1:port1[,host2:port2,...]
    * @param topic topic to create (if not already existing)
+   * @param partitions number of topic partitions
    * @param topicProperties optional topic config properties
    */
   public static void maybeCreateTopic(String zkServers,

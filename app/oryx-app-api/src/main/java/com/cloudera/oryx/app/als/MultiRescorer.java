@@ -37,6 +37,7 @@ public final class MultiRescorer implements Rescorer {
 
   /**
    * @param rescorers {@link Rescorer} objects to delegate to
+   * @return {@link Rescorer} aggregating their behaviors
    */
   public static Rescorer of(Rescorer... rescorers) {
     return of(Arrays.asList(rescorers));
