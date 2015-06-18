@@ -60,6 +60,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
   private final String updateBroker;
   private final String updateTopic;
+  private final int maxMessageSize;
   private final String updateTopicLockMaster;
   private final String modelManagerClassName;
   private final Class<? extends Decoder<U>> updateDecoderClass;
@@ -72,10 +73,12 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     super(config);
     this.updateBroker = config.getString("oryx.update-topic.broker");
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    Preconditions.checkArgument(maxMessageSize > 0);
   }
 
   @Override
@@ -105,8 +108,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis(),
             "zookeeper.connect", updateTopicLockMaster,
-            // Support larger message. This must be >= topic's max.message.bytes
-            "fetch.message.max.bytes", 1 << 26, // ~67MB; make configurable?
+            "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
             "auto.offset.reset", "smallest"
         )));
@@ -127,7 +129,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
-        modelManager.consume(transformed);
+        modelManager.consume(transformed, streamingContext.sc().hadoopConfiguration());
       }
     }, "OryxSpeedLayerUpdateConsumerThread").start();
 

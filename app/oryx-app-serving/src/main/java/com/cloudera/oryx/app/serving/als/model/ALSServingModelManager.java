@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,6 +23,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,6 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
@@ -55,7 +54,8 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
@@ -88,13 +88,10 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           break;
 
         case "MODEL":
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+        case "MODEL-REF":
+          log.info("Loading new model");
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
           if (model == null) {

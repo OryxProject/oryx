@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda.serving;
 import java.util.Iterator;
 import java.util.Objects;
 
+import org.apache.hadoop.conf.Configuration;
 import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -39,8 +40,8 @@ public final class ScalaServingModelManagerAdapter<U> implements ServingModelMan
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,U>> updateIterator) {
-    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator));
+  public void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) {
+    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator), hadoopConf);
   }
 
   @Override

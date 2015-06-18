@@ -96,7 +96,7 @@ configuration.
 
 Soon the model will complete, and it will be persisted as a combination of PMML and supporting
 data files in a subdirectory of `hdfs:///user/example/Oryx/model/`. For example, the
-`model.pmml.gz` files are compressed PMML files containing elements like:
+`model.pmml` files are PMML files containing elements like:
 
 ```
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -454,7 +454,9 @@ The two topics above may contain large messages; in particular the update topic 
 entire serialized PMML models. It's possible that they exceed Kafka's default max message 
 size of 1 MiB. If large models are expected, then the topic's `max.message.bytes` should
 be configured to allow larger messages. `oryx-run.sh kafka-setup` sets a default of 16 MiB
-for the update topic.
+for the update topic. This is also the default maximum size of a model that Oryx will attempt
+to write to the update topic; larger models will be passed as a reference to the model
+file's location on HDFS instead. See setting `oryx.update-topic.message.max-size`.
 
 The Kafka broker's `message.max.bytes` (note the different name!) property also controls 
 this, but setting it affects all topics managed by the broker, which may be undesirable.

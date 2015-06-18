@@ -15,13 +15,13 @@
 
 package com.cloudera.oryx.app.serving.kmeans.model;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +30,8 @@ import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
  * A {@link ServingModelManager} that manages and provides access to an {@link KMeansServingModel}
@@ -58,7 +58,8 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
    * @throws IOException if an error occurs while reading updates
    */
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
@@ -77,14 +78,10 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           break;
 
         case "MODEL":
+        case "MODEL-REF":
           log.info("Loading new model");
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);
           model = new KMeansServingModel(clusters, inputSchema);

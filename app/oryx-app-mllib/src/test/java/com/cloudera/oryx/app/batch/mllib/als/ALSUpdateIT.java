@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -114,11 +115,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       log.debug("{} = {}", type, value);
 
-      boolean isModel = "MODEL".equals(type);
-      boolean isUpdate = "UP".equals(type);
-      assertTrue(isModel || isUpdate);
-
-      if (isUpdate) {
+      if ("UP".equals(type)) {
 
         assertNotNull(seenUsers);
         assertNotNull(seenProducts);
@@ -154,7 +151,8 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
-        PMML pmml = PMMLUtils.fromString(value);
+        assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, new Configuration());
 
         checkHeader(pmml.getHeader());
 

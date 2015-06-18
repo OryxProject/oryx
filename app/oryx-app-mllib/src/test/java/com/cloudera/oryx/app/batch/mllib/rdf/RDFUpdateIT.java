@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.MiningFunctionType;
 import org.dmg.pmml.MiningModel;
 import org.dmg.pmml.MissingValueStrategyType;
@@ -36,6 +37,7 @@ import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -98,9 +100,8 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertEquals("MODEL", type);
-
-      PMML pmml = PMMLUtils.fromString(value);
+      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, new Configuration());
 
       checkHeader(pmml.getHeader());
 

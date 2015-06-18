@@ -16,6 +16,7 @@
 package com.cloudera.oryx.api.serving
 
 import com.cloudera.oryx.api.KeyMessage
+import org.apache.hadoop.conf.Configuration
 
 /**
  * Scala counterpart to Java ServingModelManager.
@@ -30,8 +31,9 @@ trait ScalaServingModelManager[U] {
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
+   * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    */
-  def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
+  def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit
 
   /**
    * @return in-memory model representation

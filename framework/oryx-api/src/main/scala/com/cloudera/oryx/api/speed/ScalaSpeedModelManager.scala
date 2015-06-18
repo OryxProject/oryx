@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.api.speed
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.KeyMessage
@@ -34,8 +35,9 @@ trait ScalaSpeedModelManager[K,M,U] {
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
+   * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    */
-  def consume(updateIterator: Iterator[KeyMessage[String,U]]): Unit
+  def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit
 
   /**
    * @param newData RDD of raw new data from the topic

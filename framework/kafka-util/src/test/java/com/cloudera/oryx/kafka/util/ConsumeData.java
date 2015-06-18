@@ -18,35 +18,28 @@ package com.cloudera.oryx.kafka.util;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.javaapi.consumer.ConsumerConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
- * A iterator that consumes data from a Kafka topic. When run on the command line, logs
- * the results to the console.
+ * A iterator that consumes data from a Kafka topic.
  */
 public final class ConsumeData implements Iterable<Pair<String,String>> {
 
-  private static final Logger log = LoggerFactory.getLogger(ConsumeData.class);
-
   private final String topic;
+  private final int maxMessageSize;
   private final int zkPort;
 
   public ConsumeData(String topic, int zkPort) {
-    this.topic = topic;
-    this.zkPort = zkPort;
+    this(topic, 1 << 16, zkPort);
   }
 
-  public static void main(String[] args) {
-    String topic = args[0];
-    int zkPort = Integer.parseInt(args[1]);
-    for (Pair<String,String> km : new ConsumeData(topic, zkPort)) {
-      log.info("{} = {}", km.getFirst(), km.getSecond());
-    }
+  public ConsumeData(String topic, int maxMessageSize, int zkPort) {
+    this.topic = topic;
+    this.maxMessageSize = maxMessageSize;
+    this.zkPort = zkPort;
   }
 
   @Override
@@ -55,8 +48,7 @@ public final class ConsumeData implements Iterable<Pair<String,String>> {
         ConfigUtils.keyValueToProperties(
           "group.id", "OryxGroup-ConsumeData",
           "zookeeper.connect", "localhost:" + zkPort,
-          // Support larger message. This must be >= topic's max.message.bytes
-          "fetch.message.max.bytes", 1 << 26, // ~67MB; make configurable?,
+          "fetch.message.max.bytes", maxMessageSize,
           "auto.offset.reset", "smallest" // For tests, always start at the beginning
         )));
     return new ConsumeDataIterator(topic, consumer);

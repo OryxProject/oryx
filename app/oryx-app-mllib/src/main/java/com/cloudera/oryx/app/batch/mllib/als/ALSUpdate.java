@@ -177,6 +177,11 @@ public final class ALSUpdate extends MLUpdate<String> {
   }
 
   @Override
+  public boolean canPublishAdditionalModelData() {
+    return true;
+  }
+
+  @Override
   public void publishAdditionalModelData(JavaSparkContext sparkContext,
                                          PMML pmml,
                                          JavaRDD<String> newData,

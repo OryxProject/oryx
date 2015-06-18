@@ -18,6 +18,7 @@ package com.cloudera.oryx.example;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -29,7 +30,7 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
 
   }
 

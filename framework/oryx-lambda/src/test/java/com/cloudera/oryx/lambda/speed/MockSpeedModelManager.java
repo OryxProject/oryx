@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -34,7 +35,7 @@ public final class MockSpeedModelManager implements SpeedModelManager<String,Str
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> update = updateIterator.next();
       holder.add(new KeyMessageImpl<>(update.getKey(), update.getMessage()));

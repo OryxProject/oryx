@@ -18,6 +18,8 @@ package com.cloudera.oryx.example;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
+
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
@@ -27,7 +29,7 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
 public final class ExampleServingModelManager implements ServingModelManager<String> {
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
 
   }
 
