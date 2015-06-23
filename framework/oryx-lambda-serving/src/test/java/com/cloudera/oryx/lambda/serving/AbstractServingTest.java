@@ -33,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Joiner;
+import org.apache.hadoop.conf.Configuration;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -169,7 +170,7 @@ public abstract class AbstractServingTest extends JerseyTest {
   protected abstract static class AbstractMockServingModelManager
       implements ServingModelManager<String> {
     @Override
-    public final void consume(Iterator<KeyMessage<String, String>> updateIterator) {
+    public final void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf) {
       throw new UnsupportedOperationException();
     }
     @Override

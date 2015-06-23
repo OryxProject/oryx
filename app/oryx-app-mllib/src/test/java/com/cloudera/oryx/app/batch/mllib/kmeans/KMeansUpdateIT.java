@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
@@ -29,6 +30,7 @@ import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -87,9 +89,8 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertEquals("MODEL", type);
-
-      PMML pmml = PMMLUtils.fromString(value);
+      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, new Configuration());
 
       checkHeader(pmml.getHeader());
 

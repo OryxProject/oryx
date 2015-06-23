@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,8 +34,6 @@ import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
 import org.jpmml.model.JAXBUtil;
-
-import com.cloudera.oryx.common.io.IOUtils;
 
 /**
  * PMML-related utility methods.
@@ -63,7 +62,7 @@ public final class PMMLUtils {
    * @throws IOException if an error occurs while writing the model to storage
    */
   public static void write(PMML pmml, Path path) throws IOException {
-    try (OutputStream out = IOUtils.writeMaybeCompressed(path, 1 << 16)) {
+    try (OutputStream out = Files.newOutputStream(path)) {
       write(pmml, out);
     }
   }
@@ -87,7 +86,7 @@ public final class PMMLUtils {
    * @throws IOException if an error occurs while reading the model from storage
    */
   public static PMML read(Path path) throws IOException {
-    try (InputStream in = IOUtils.readMaybeCompressed(path)) {
+    try (InputStream in = Files.newInputStream(path)) {
       return read(in);
     }
   }

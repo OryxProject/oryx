@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -37,8 +37,8 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -57,7 +57,8 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
@@ -67,14 +68,9 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           // do nothing, hearing our own updates
           break;
         case "MODEL":
+        case "MODEL-REF":
           log.info("Loading new model");
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
           log.info("New model loaded: {}", model);

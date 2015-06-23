@@ -37,6 +37,13 @@
         See comments in parent POM. This module itself should be 'provided'. -->
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <!-- Declared compile scope so that it is inherited by modules depending on this.
+        See comments in parent POM. This module itself should be 'provided'. -->
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

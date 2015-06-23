@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.rdf.model;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -23,12 +22,14 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
@@ -37,7 +38,6 @@ import com.cloudera.oryx.app.rdf.tree.TerminalNode;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 
 /**
  * A {@link ServingModelManager} that manages and provides access to an {@link RDFServingModel}
@@ -61,10 +61,12 @@ public final class RDFServingModelManager implements ServingModelManager<String>
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
+   * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    * @throws IOException if an error occurs while reading updates
    */
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
@@ -102,14 +104,10 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           break;
 
         case "MODEL":
+        case "MODEL-REF":
           log.info("Loading new model");
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+
           RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
               RDFPMMLUtils.read(pmml);

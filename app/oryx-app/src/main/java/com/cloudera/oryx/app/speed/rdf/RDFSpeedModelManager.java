@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +27,7 @@ import java.util.Map;
 import com.google.common.util.concurrent.AtomicLongMap;
 import com.typesafe.config.Config;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -40,6 +40,7 @@ import scala.Tuple2;
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.ToExampleFn;
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
@@ -51,7 +52,6 @@ import com.cloudera.oryx.app.rdf.tree.DecisionTree;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -70,7 +70,8 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
@@ -80,14 +81,9 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           // Nothing to do; just hearing our own updates
           break;
         case "MODEL":
+        case "MODEL-REF":
           log.info("Loading new model");
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
           RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
               RDFPMMLUtils.read(pmml);

@@ -17,10 +17,11 @@ package com.cloudera.oryx.example
 
 import com.cloudera.oryx.api.KeyMessage
 import com.cloudera.oryx.api.serving.ScalaServingModelManager
+import org.apache.hadoop.conf.Configuration
 
 class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
 
-  def consume(updateIterator: Iterator[KeyMessage[String,String]]): Unit = {
+  def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration): Unit = {
 
   }
 

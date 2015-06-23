@@ -47,7 +47,7 @@ public final class PMMLUtilsTest extends OryxTest {
 
   @Test
   public void testReadWrite() throws Exception {
-    Path tempModelFile = Files.createTempFile(getTempDir(), "model", ".pmml.gz");
+    Path tempModelFile = Files.createTempFile(getTempDir(), "model", ".pmml");
     PMML model = buildDummyModel();
     PMMLUtils.write(model, tempModelFile);
     assertTrue(Files.exists(tempModelFile));

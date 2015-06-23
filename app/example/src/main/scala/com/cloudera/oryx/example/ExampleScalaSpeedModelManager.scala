@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.example
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.KeyMessage
@@ -22,7 +23,7 @@ import com.cloudera.oryx.api.speed.ScalaSpeedModelManager
 
 class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
 
-  def consume(updateIterator: Iterator[KeyMessage[String,String]]): Unit = {
+  def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration): Unit = {
 
   }
 

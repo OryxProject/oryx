@@ -34,7 +34,6 @@ public final class LargeMessageIT extends OryxTest {
 
   private static final String TOPIC = "OryxTest";
   private static final int NUM_DATA = 1;
-  private static final int LARGE_MESSAGE_SIZE = 1 << 25;
 
   @Test
   public void testProduceConsume() throws Exception {
@@ -46,20 +45,23 @@ public final class LargeMessageIT extends OryxTest {
       localZKServer.start();
       localKafkaBroker.start();
 
+      int maxMessageSize = ConfigUtils.getDefault().getInt("oryx.update-topic.message.max-size");
+      int largeMessageSize = maxMessageSize - (1 << 14); // slack for message metadata
+
       String zkHostPort = "localhost:" + zkPort;
       KafkaUtils.deleteTopic(zkHostPort, TOPIC);
       KafkaUtils.maybeCreateTopic(zkHostPort, TOPIC, 1, ConfigUtils.keyValueToProperties(
-          "max.message.bytes", LARGE_MESSAGE_SIZE + (1 << 15) // Overhead for Kafka message metadata, key
+          "max.message.bytes", maxMessageSize
       ));
 
-      ProduceData produce = new ProduceData(new BigDatumGenerator(),
+      ProduceData produce = new ProduceData(new BigDatumGenerator(largeMessageSize),
                                             localKafkaBroker.getPort(),
                                             TOPIC,
                                             NUM_DATA,
                                             0);
 
       List<Pair<String,String>> keyMessages;
-      try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
+      try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, maxMessageSize, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
@@ -83,11 +85,15 @@ public final class LargeMessageIT extends OryxTest {
 
   private static final class BigDatumGenerator implements DatumGenerator<String,String> {
     private static String LARGE_MESSAGE;
+    private final int largeMessageSize;
+    private BigDatumGenerator(int largeMessageSize) {
+      this.largeMessageSize = largeMessageSize;
+    }
     @Override
     public Pair<String,String> generate(int id, RandomGenerator random) {
       if (LARGE_MESSAGE == null) {
-        StringBuilder builder = new StringBuilder(LARGE_MESSAGE_SIZE);
-        for (int i = 0; i < LARGE_MESSAGE_SIZE; i++) {
+        StringBuilder builder = new StringBuilder(largeMessageSize);
+        for (int i = 0; i < largeMessageSize; i++) {
           builder.append((char) (' ' + random.nextInt('~' - ' ' + 1)));
         }
         LARGE_MESSAGE = builder.toString();

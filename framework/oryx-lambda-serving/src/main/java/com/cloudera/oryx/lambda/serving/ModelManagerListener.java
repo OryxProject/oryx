@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Objects;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
@@ -36,6 +37,7 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +69,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
   private Config config;
   private String updateTopic;
+  private int maxMessageSize;
   private String updateTopicLockMaster;
   private String inputTopic;
   private String inputTopicBroker;
@@ -82,12 +85,14 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     Objects.requireNonNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
     this.inputTopicBroker = config.getString("oryx.input-topic.broker");
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    Preconditions.checkArgument(maxMessageSize > 0);
   }
 
   @Override
@@ -103,8 +108,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis(),
             "zookeeper.connect", updateTopicLockMaster,
-            // Support larger message. This must be >= topic's max.message.bytes
-            "fetch.message.max.bytes", 1 << 26, // ~67MB; make configurable?
+            "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
             "auto.offset.reset", "smallest"
         )));
@@ -125,7 +129,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
-        modelManager.consume(transformed);
+        // Can we do better than a default Hadoop config? Nothing else provides it here
+        modelManager.consume(transformed, new Configuration());
       }
     }, "OryxServingLayerUpdateConsumerThread").start();
 
