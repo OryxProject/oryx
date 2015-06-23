@@ -202,7 +202,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     } else {
       double rmse = Evaluation.rmse(forest, examplesRDD);
       log.info("RMSE: {}", rmse);
-      eval = 1.0 / rmse;
+      eval = -rmse;
     }
     return eval;
   }

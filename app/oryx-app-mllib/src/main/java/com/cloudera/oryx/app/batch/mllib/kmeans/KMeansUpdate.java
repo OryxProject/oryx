@@ -157,8 +157,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
       case DAVIES_BOULDIN :
         DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusterInfoList);
         double dbIndex = daviesBouldinIndex.evaluate(evalData);
-        eval = 1.0 / dbIndex;
-        log.info("Davies-Bouldin index {} / eval {}", dbIndex, eval);
+        eval = -dbIndex;
+        log.info("Davies-Bouldin index {}", dbIndex);
         break;
       case DUNN :
         DunnIndex dunnIndex = new DunnIndex(clusterInfoList);
@@ -172,8 +172,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
         break;
       case SSE :
         double sse = pmmlToKMeansModel(model).computeCost(evalData.rdd());
-        eval = 1.0 / sse;
-        log.info("Sum of squared error {} / eval {}", sse, eval);
+        eval = -sse;
+        log.info("Sum of squared error {}", sse);
         break;
       default:
         throw new IllegalArgumentException("Unknown evaluation strategy " + evaluationStrategy);

@@ -160,7 +160,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     } else {
       double rmse = Evaluation.rmse(mfModel, testRatingData);
       log.info("RMSE: {}", rmse);
-      eval = 1.0 / rmse;
+      eval = -rmse;
     }
     unpersist(mfModel);
     return eval;
