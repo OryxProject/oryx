@@ -28,13 +28,22 @@ import org.apache.commons.math3.random.Well19937c;
  */
 public final class RandomManager {
 
-  private static final long TEST_SEED = 1_234_567_890_123_456_789L;
+  private static final long TEST_SEED = getTestSeed();
 
   private static final Reference<? extends Collection<RandomGenerator>> INSTANCES =
       new SoftReference<>(new ArrayList<RandomGenerator>());
   private static boolean useTestSeed;
 
   private RandomManager() {
+  }
+
+  private static long getTestSeed() {
+    String seedString = System.getProperty("oryx.test.seed", "1234567890123456789");
+    try {
+      return Long.parseLong(seedString);
+    } catch (NumberFormatException nfe) {
+      return Long.parseLong(seedString, 16);
+    }
   }
 
   /**

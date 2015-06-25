@@ -22,18 +22,22 @@ import com.cloudera.oryx.common.math.VectorMath;
 final class CosineAverageFunction implements ToDoubleFunction<float[]> {
 
   private final float[][] itemFeatureVectors;
+  private final double[] itemFeatureVectorNorms;
 
   CosineAverageFunction(float[][] itemFeatureVectors) {
     this.itemFeatureVectors = itemFeatureVectors;
+    this.itemFeatureVectorNorms = new double[itemFeatureVectors.length];
+    for (int i = 0; i < itemFeatureVectors.length; i++) {
+      itemFeatureVectorNorms[i] = VectorMath.norm(itemFeatureVectors[i]);
+    }
   }
 
   @Override
   public double applyAsDouble(float[] itemVector) {
+    double itemVectorNorm = VectorMath.norm(itemVector);
     double total = 0.0;
-    for (float[] itemFeatureVector : itemFeatureVectors) {
-      double cosineSimilarity = VectorMath.dot(itemFeatureVector, itemVector) /
-          (VectorMath.norm(itemFeatureVector) * VectorMath.norm(itemVector));
-      total += cosineSimilarity;
+    for (int i = 0; i < itemFeatureVectors.length; i++) {
+      total += VectorMath.dot(itemFeatureVectors[i], itemVector) / (itemFeatureVectorNorms[i] * itemVectorNorm);
     }
     return total / itemFeatureVectors.length;
   }
