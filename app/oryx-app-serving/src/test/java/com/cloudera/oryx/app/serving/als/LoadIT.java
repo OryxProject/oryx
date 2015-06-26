@@ -15,6 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.NotFoundException;
@@ -38,8 +43,7 @@ import com.cloudera.oryx.app.serving.als.model.LoadTestALSModelFactory;
 public final class LoadIT extends AbstractALSServingTest {
 
   private static final Logger log = LoggerFactory.getLogger(LoadIT.class);
-  private static final int REQS_PER_WORKER = 100;
-  private static final int WORKERS = 1;
+  private static final int REQS_PER_WORKER = 50;
 
   @Override
   protected void configureProperties() {
@@ -76,28 +80,23 @@ public final class LoadIT extends AbstractALSServingTest {
     Mean meanReqTimeMS = new Mean();
     long start = System.currentTimeMillis();
 
-    /*
+    int workers = 4;
     List<Callable<Void>> tasks = new ArrayList<>(workers);
     for (int i = 0; i < workers; i++) {
       tasks.add(new LoadCallable(Integer.toString(i), meanReqTimeMS, count, start));
     }
-
-    ExecutorService executor = Executors.newFixedThreadPool(WORKERS);
+    ExecutorService executor = Executors.newFixedThreadPool(workers);
     try {
       executor.invokeAll(tasks);
     } finally {
       executor.shutdown();
     }
-     */
-    // Since latency is more important, and local machine will also be busy handling requests,
-    // use few concurrent workers, like 1:
-    new LoadCallable("0", meanReqTimeMS, count, start).call();
 
-    int totalRequests = WORKERS * REQS_PER_WORKER;
+    int totalRequests = workers * REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);
 
     int cores = Runtime.getRuntime().availableProcessors();
-    int allowedMS = 150 + 640 / cores; // crude, conservative empirical limit
+    int allowedMS = workers * 1600 / cores; // crude, conservative empirical limit
     Assert.assertTrue(
         "Expected < " + allowedMS + "ms / req with " + cores + " cores",
         meanReqTimeMS.getResult() < allowedMS);
