@@ -129,7 +129,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
-        modelManager.consume(transformed, streamingContext.sc().hadoopConfiguration());
+        modelManager.consume(transformed, streamingContext.sparkContext().hadoopConfiguration());
       }
     }, "OryxSpeedLayerUpdateConsumerThread").start();
 
