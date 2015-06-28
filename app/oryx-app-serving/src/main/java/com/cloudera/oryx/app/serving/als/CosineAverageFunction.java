@@ -21,24 +21,23 @@ import com.cloudera.oryx.common.math.VectorMath;
 
 final class CosineAverageFunction implements ToDoubleFunction<float[]> {
 
-  private final float[][] itemFeatureVectors;
-  private final double[] itemFeatureVectorNorms;
+  private final double[] itemFeaturesVector;
 
   CosineAverageFunction(float[][] itemFeatureVectors) {
-    this.itemFeatureVectors = itemFeatureVectors;
-    this.itemFeatureVectorNorms = new double[itemFeatureVectors.length];
-    for (int i = 0; i < itemFeatureVectors.length; i++) {
-      itemFeatureVectorNorms[i] = VectorMath.norm(itemFeatureVectors[i]);
+    this.itemFeaturesVector = new double[itemFeatureVectors[0].length];
+    for (float[] vec : itemFeatureVectors) {
+      double vecNorm = VectorMath.norm(vec);
+      for (int i = 0; i < vec.length; i++) {
+        itemFeaturesVector[i] += vec[i] / vecNorm;
+      }
+    }
+    for (int i = 0; i < itemFeaturesVector.length; i++) {
+      itemFeaturesVector[i] /= itemFeatureVectors.length;
     }
   }
 
   @Override
   public double applyAsDouble(float[] itemVector) {
-    double itemVectorNorm = VectorMath.norm(itemVector);
-    double total = 0.0;
-    for (int i = 0; i < itemFeatureVectors.length; i++) {
-      total += VectorMath.dot(itemFeatureVectors[i], itemVector) / (itemFeatureVectorNorms[i] * itemVectorNorm);
-    }
-    return total / itemFeatureVectors.length;
+    return VectorMath.dot(itemFeaturesVector, itemVector) / VectorMath.norm(itemVector);
   }
 }

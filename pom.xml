@@ -877,6 +877,7 @@
               <exclude>**/target/**</exclude>
               <exclude>**/dependency-reduced-pom.xml</exclude>
               <exclude>.travis.yml</exclude>
+              <exclude>cov-int/**</exclude>
             </excludes>
           </configuration>
           <executions>
