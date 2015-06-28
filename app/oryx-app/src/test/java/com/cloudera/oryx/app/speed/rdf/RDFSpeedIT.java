@@ -30,6 +30,7 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
@@ -177,7 +178,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
       int count = yellowCount + redCount;
       assertTrue(count > 0);
-      BinomialDistribution dist = new BinomialDistribution(count, 0.9);
+      BinomialDistribution dist = new BinomialDistribution(RandomManager.getRandom(), count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow
         checkProbability(yellowCount, count, dist);
