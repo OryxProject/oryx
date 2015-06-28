@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Utility class with simple vector-related operations.
@@ -159,6 +160,32 @@ public final class VectorMath {
       doubles[i] = Double.parseDouble(values[i]);
     }
     return doubles;
+  }
+
+  /**
+   * @param features dimension of vector
+   * @param random random number generator
+   * @return vector whose direction from the origin is chosen uniformly at random, but which is not normalized
+   */
+  public static float[] randomVectorF(int features, RandomGenerator random) {
+    float[] vector = new float[features];
+    for (int i = 0; i < features; i++) {
+      vector[i] = (float) random.nextGaussian();
+    }
+    return vector;
+  }
+
+  /**
+   * @param features dimension of vector
+   * @param random random number generator
+   * @return vector whose direction from the origin is chosen uniformly at random, but which is not normalized
+   */
+  public static double[] randomVectorD(int features, RandomGenerator random) {
+    double[] vector = new double[features];
+    for (int i = 0; i < features; i++) {
+      vector[i] = random.nextGaussian();
+    }
+    return vector;
   }
 
 }
