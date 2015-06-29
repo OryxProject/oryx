@@ -66,7 +66,7 @@ public final class TestALSModelFactory {
    */
 
   public static ALSServingModel buildTestModel() {
-    ALSServingModel model = new ALSServingModel(2, true, new TestALSRescorerProvider());
+    ALSServingModel model = new ALSServingModel(2, true, 1.0, new TestALSRescorerProvider());
     setVectors(model, true, new double[][] {
         {-0.358375051039897,      0.60391285187422},
         {-0.775712888238815,      0.43271270099921},

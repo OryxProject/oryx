@@ -15,14 +15,17 @@
 
 package com.cloudera.oryx.common.math;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.random.RandomManager;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
 /**
@@ -116,6 +119,26 @@ public final class VectorMathTest extends OryxTest {
   public void testNullTranspose() {
     assertNull(VectorMath.transposeTimesSelf(null));
     assertNull(VectorMath.transposeTimesSelf(Collections.<float[]>emptyList()));
+  }
+
+  @Test
+  public void testRandomF() {
+    RandomGenerator random = RandomManager.getRandom();
+    float[] vec1 = VectorMath.randomVectorF(10, random);
+    float[] vec2 = VectorMath.randomVectorF(10, random);
+    assertEquals(10, vec1.length);
+    assertEquals(10, vec2.length);
+    assertFalse(Arrays.equals(vec1, vec2));
+  }
+
+  @Test
+  public void testRandomD() {
+    RandomGenerator random = RandomManager.getRandom();
+    double[] vec1 = VectorMath.randomVectorD(10, random);
+    double[] vec2 = VectorMath.randomVectorD(10, random);
+    assertEquals(10, vec1.length);
+    assertEquals(10, vec2.length);
+    assertFalse(Arrays.equals(vec1, vec2));
   }
 
 }

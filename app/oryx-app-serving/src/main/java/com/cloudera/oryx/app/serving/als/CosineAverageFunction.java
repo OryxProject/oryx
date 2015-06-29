@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera and Intel, Inc. Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,15 +15,24 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import net.openhft.koloboke.function.ToDoubleFunction;
-
 import com.cloudera.oryx.common.math.VectorMath;
 
-final class CosineAverageFunction implements ToDoubleFunction<float[]> {
+/**
+ * Computes the cosine of the angle between a target vector and other vectors.
+ */
+public final class CosineAverageFunction implements CosineDistanceSensitiveFunction {
 
   private final double[] itemFeaturesVector;
 
-  CosineAverageFunction(float[][] itemFeatureVectors) {
+  public CosineAverageFunction(float[] itemFeatureVector) {
+    this.itemFeaturesVector = new double[itemFeatureVector.length];
+    double vecNorm = VectorMath.norm(itemFeatureVector);
+    for (int i = 0; i < itemFeatureVector.length; i++) {
+      itemFeaturesVector[i] += itemFeatureVector[i] / vecNorm;
+    }
+  }
+
+  public CosineAverageFunction(float[][] itemFeatureVectors) {
     this.itemFeaturesVector = new double[itemFeatureVectors[0].length];
     for (float[] vec : itemFeatureVectors) {
       double vecNorm = VectorMath.norm(vec);
@@ -40,4 +49,10 @@ final class CosineAverageFunction implements ToDoubleFunction<float[]> {
   public double applyAsDouble(float[] itemVector) {
     return VectorMath.dot(itemFeaturesVector, itemVector) / VectorMath.norm(itemVector);
   }
+
+  @Override
+  public double[] getTargetVector() {
+    return itemFeaturesVector;
+  }
+
 }

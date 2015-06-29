@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
@@ -45,12 +46,15 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSServingModel model;
+  private final double sampleRate;
   private final RescorerProvider rescorerProvider;
 
   public ALSServingModelManager(Config config) {
     String rescorerProviderClass =
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
     rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
+    sampleRate = config.getDouble("oryx.als.sample-rate");
+    Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
   }
 
   @Override
@@ -97,12 +101,12 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           if (model == null) {
 
             log.info("No previous model; creating new model");
-            model = new ALSServingModel(features, implicit, rescorerProvider);
+            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
 
           } else if (features != model.getFeatures()) {
 
             log.warn("# features has changed! removing old model and creating new one");
-            model = new ALSServingModel(features, implicit, rescorerProvider);
+            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
 
           } else {
 
