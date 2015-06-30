@@ -17,10 +17,7 @@ package com.cloudera.oryx.app.serving.kmeans;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -62,17 +59,16 @@ public final class Add extends AbstractKMeansResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
     for (FileItem item : parseMultipart(request)) {
-      InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
-      try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+      try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         doPost(reader);
       }
     }
   }
 
   private void doPost(BufferedReader buffered) throws IOException {
-    String line;
-    while ((line = buffered.readLine()) != null) {
+    for (String line; (line = buffered.readLine()) != null;) {
       sendInput(line);
     }
   }
+
 }

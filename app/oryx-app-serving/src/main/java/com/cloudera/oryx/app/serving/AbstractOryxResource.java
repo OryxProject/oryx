@@ -19,7 +19,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
@@ -114,12 +116,17 @@ public abstract class AbstractOryxResource {
     check(condition, Response.Status.NOT_FOUND, entity);
   }
 
+  protected static BufferedReader maybeBuffer(InputStream in) {
+    return maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8));
+  }
+
   protected static BufferedReader maybeBuffer(Reader reader) {
     return reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
   }
 
-  protected static InputStream maybeDecompress(String contentType,
-                                               InputStream in) throws IOException {
+  protected static InputStream maybeDecompress(FileItem item) throws IOException {
+    InputStream in = item.getInputStream();
+    String contentType = item.getContentType();
     if (contentType != null) {
       switch (contentType) {
         case "application/zip":
