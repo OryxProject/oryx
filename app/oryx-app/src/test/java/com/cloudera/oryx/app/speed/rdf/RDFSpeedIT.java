@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,11 +83,9 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int count = (Integer) fields.get(3);
       assertEquals(0, treeID);
       assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
-      if ("r+".equals(nodeID)) {
-        assertEquals(expectedPositiveMean(count), mean, 0.1);
-      } else {
-        assertEquals(expectedNegativeMean(count), mean, 0.1);
-      }
+      double[] minMax = minMaxExpectedMean(count, "r+".equals(nodeID));
+      assertTrue(count + "/" + mean + " not in " + Arrays.toString(minMax),
+                 mean >= minMax[0] - DOUBLE_EPSILON && mean <= minMax[1] + DOUBLE_EPSILON);
     }
 
     for (int i = 1; i < numUpdates; i += 2) {
@@ -108,20 +107,19 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
   }
 
-  private static double expectedPositiveMean(int n) {
-    int total = 0;
+  private static double[] minMaxExpectedMean(int n, boolean positive) {
+    double minTotal = 0.0;
+    double maxTotal = 0.0;
     for (int i = 0; i < n; i++) {
-      total += 1 + 2 * (i % 5);
+      if (positive) {
+        minTotal += 1 + 2 * (i % 5);
+        maxTotal += 1 + 2 * ((i + 4) % 5);
+      } else {
+        minTotal += -2 * ((i + 4) % 5);
+        maxTotal += -2 * (i % 5);
+      }
     }
-    return (double) total / n;
-  }
-
-  private static double expectedNegativeMean(int n) {
-    int total = 0;
-    for (int i = 0; i < n; i++) {
-      total += -2 * (i % 5);
-    }
-    return (double) total / n;
+    return new double[] { minTotal / n, maxTotal / n };
   }
 
   @Test
