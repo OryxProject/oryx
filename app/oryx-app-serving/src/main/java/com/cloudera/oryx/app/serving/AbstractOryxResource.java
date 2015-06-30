@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
@@ -59,6 +60,7 @@ public abstract class AbstractOryxResource {
   private ServingModelManager<?> servingModelManager;
 
   @SuppressWarnings("unchecked")
+  @PostConstruct
   protected void init() {
     servingModelManager = (ServingModelManager<?>) servletContext.getAttribute(MODEL_MANAGER_KEY);
     inputProducer = (TopicProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);

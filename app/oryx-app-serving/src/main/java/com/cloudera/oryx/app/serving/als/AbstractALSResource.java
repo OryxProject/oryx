@@ -17,7 +17,6 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
@@ -37,16 +36,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  */
 public abstract class AbstractALSResource extends AbstractOryxResource {
 
-  private ALSServingModel alsServingModel;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    alsServingModel = (ALSServingModel) getServingModelManager().getModel();
-  }
-
   final ALSServingModel getALSServingModel() throws OryxServingException {
+    ALSServingModel alsServingModel = (ALSServingModel) getServingModelManager().getModel();
     if (alsServingModel == null) {
       throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
     }

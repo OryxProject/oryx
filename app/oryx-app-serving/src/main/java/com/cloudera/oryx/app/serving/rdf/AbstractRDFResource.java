@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
@@ -34,16 +33,8 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
  */
 public abstract class AbstractRDFResource extends AbstractOryxResource {
 
-  private RDFServingModel rdfServingModel;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    rdfServingModel = (RDFServingModel) getServingModelManager().getModel();
-  }
-
   final RDFServingModel getRDFServingModel() throws OryxServingException {
+    RDFServingModel rdfServingModel = (RDFServingModel) getServingModelManager().getModel();
     if (rdfServingModel == null) {
       throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
     }
@@ -51,6 +42,7 @@ public abstract class AbstractRDFResource extends AbstractOryxResource {
   }
 
   Prediction makePrediction(String[] data) throws OryxServingException {
+    RDFServingModel rdfServingModel = getRDFServingModel();
     CategoricalValueEncodings valueEncodings = rdfServingModel.getEncodings();
     InputSchema inputSchema = rdfServingModel.getInputSchema();
     check(data.length == inputSchema.getNumFeatures(), "Wrong number of features");
