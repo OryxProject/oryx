@@ -250,6 +250,12 @@
         <artifactId>jackson-jaxrs-json-provider</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      <!-- These are to manage differing versions from Spark -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.module</groupId>
+        <artifactId>jackson-module-scala_${scala.minor.version}</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.jpmml</groupId>
@@ -484,7 +490,7 @@
     <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
     <clirr.version>2.6.1</clirr.version>
     <hadoop.version>2.6.0</hadoop.version>
-    <jackson.version>2.4.6.1</jackson.version>
+    <jackson.version>2.4.5</jackson.version>
     <jersey.version>2.19</jersey.version>
     <kafka.version>0.8.2.1</kafka.version>
     <koloboke.version>0.6.7</koloboke.version>
