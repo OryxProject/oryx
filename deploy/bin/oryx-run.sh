@@ -65,7 +65,7 @@ if [ -z "${LAYER_JAR}" ]; then
     LAYER_JAR=`ls -1 oryx-${COMMAND}-*.jar`
     ;;
   *)
-    LAYER_JAR=`ls -1 oryx-*.jar | head -1`
+    LAYER_JAR=`ls -1 oryx-batch-*.jar oryx-speed-*.jar oryx-serving-*.jar | head -1`
     ;;
   esac
 fi
@@ -262,7 +262,7 @@ kafka-setup|kafka-tail|kafka-input)
     ;;
 
   kafka-tail)
-    kafka-console-consumer --zookeeper ${INPUT_ZK} --whitelist ${INPUT_TOPIC},${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    kafka-console-consumer --zookeeper ${INPUT_ZK} --whitelist ${INPUT_TOPIC},${UPDATE_TOPIC} --property fetch.message.max.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
     ;;
 
   kafka-input)

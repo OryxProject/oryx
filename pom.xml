@@ -398,6 +398,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.glassfish.jersey.connectors</groupId>
+        <artifactId>jersey-apache-connector</artifactId>
+        <version>${jersey.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>javax.inject</groupId>
         <artifactId>javax.inject</artifactId>
         <version>1</version>
@@ -405,7 +411,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.1.6.RELEASE</version>
+        <version>4.1.7.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>

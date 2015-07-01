@@ -19,6 +19,7 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -49,7 +50,7 @@ public abstract class Endpoint {
     stdevTimeMS.increment(timeMS);
   }
 
-  protected abstract Invocation makeInvocation(WebTarget target, String input);
+  protected abstract Invocation makeInvocation(WebTarget target, String[] otherArgs, RandomGenerator random);
 
   @Override
   public synchronized String toString() {
