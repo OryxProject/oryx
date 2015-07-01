@@ -494,15 +494,18 @@ Input topic OryxInput does not exist. Create it? y
 Creating topic OryxInput
 Created topic "OryxInput".
 Status of topic OryxInput:
-Topic:OryxInput	PartitionCount:1	ReplicationFactor:2	Configs:
+Topic:OryxInput	PartitionCount:4	ReplicationFactor:2	Configs:
 	Topic: OryxInput	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
+	Topic: OryxInput	Partition: 1	Leader: 121	Replicas: 121,120	Isr: 121,120
+	Topic: OryxInput	Partition: 2	Leader: 120	Replicas: 120,121	Isr: 120,121
+	Topic: OryxInput	Partition: 3	Leader: 121	Replicas: 121,120	Isr: 121,120
 
 Update topic OryxUpdate does not exist. Create it? y
 Creating topic OryxUpdate
 Created topic "OryxUpdate".
 Updated config for topic "OryxUpdate".
 Status of topic OryxUpdate:
-Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000
+Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000,max.message.bytes=16777216
 	Topic: OryxUpdate	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
 ```
 
