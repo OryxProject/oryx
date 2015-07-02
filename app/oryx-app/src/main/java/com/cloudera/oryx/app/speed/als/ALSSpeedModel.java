@@ -132,7 +132,7 @@ public final class ALSSpeedModel {
     try (AutoLock al = new AutoLock(xLock.readLock())) {
       XTX = VectorMath.transposeTimesSelf(X.values());
     }
-    return new LinearSystemSolver().getSolver(XTX);
+    return LinearSystemSolver.getSolver(XTX);
   }
 
   public Solver getYTYSolver() {
@@ -140,7 +140,7 @@ public final class ALSSpeedModel {
     try (AutoLock al = new AutoLock(yLock.readLock())) {
       YTY = VectorMath.transposeTimesSelf(Y.values());
     }
-    return new LinearSystemSolver().getSolver(YTY);
+    return LinearSystemSolver.getSolver(YTY);
   }
 
   @Override

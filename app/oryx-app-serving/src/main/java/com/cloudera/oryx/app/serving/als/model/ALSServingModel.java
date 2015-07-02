@@ -399,7 +399,7 @@ public final class ALSServingModel {
         YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
       }
     }
-    return new LinearSystemSolver().getSolver(YTY);
+    return LinearSystemSolver.getSolver(YTY);
   }
 
   /**

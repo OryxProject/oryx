@@ -28,17 +28,17 @@ import org.slf4j.LoggerFactory;
 public final class LinearSystemSolver {
   
   private static final Logger log = LoggerFactory.getLogger(LinearSystemSolver.class);
-  /**
-   * Threshold below which a value is considered 0 for purposes of deciding that a matrix's singular
-   * value is 0 and therefore is singular
-   */
-  private static final double SINGULARITY_THRESHOLD = 1.0e-5;
+  private static final double SINGULARITY_THRESHOLD_RATIO = 1.0e-5;
 
-  public Solver getSolver(RealMatrix M) {
+  private LinearSystemSolver() {}
+
+  public static Solver getSolver(RealMatrix M) {
     if (M == null) {
       return null;
     }
-    RRQRDecomposition decomposition = new RRQRDecomposition(M, SINGULARITY_THRESHOLD);
+    double infNorm = M.getNorm();
+    double singularityThreshold = infNorm * SINGULARITY_THRESHOLD_RATIO;
+    RRQRDecomposition decomposition = new RRQRDecomposition(M, singularityThreshold);
     DecompositionSolver solver = decomposition.getSolver();
     if (solver.isNonSingular()) {
       return new Solver(solver);
@@ -48,14 +48,16 @@ public final class LinearSystemSolver {
     log.warn("{} x {} matrix is near-singular (threshold {}). Add more data or decrease the " +
              "number of features, to <= about {}",
              M.getRowDimension(), 
-             M.getColumnDimension(), 
-             SINGULARITY_THRESHOLD,
+             M.getColumnDimension(),
+             singularityThreshold,
              apparentRank);
     throw new SingularMatrixSolverException(apparentRank, "Apparent rank: " + apparentRank);
   }  
 
-  public boolean isNonSingular(RealMatrix M) {
-    QRDecomposition decomposition = new RRQRDecomposition(M, SINGULARITY_THRESHOLD);
+  public static boolean isNonSingular(RealMatrix M) {
+    double infNorm = M.getNorm();
+    double singularityThreshold = infNorm * SINGULARITY_THRESHOLD_RATIO;
+    QRDecomposition decomposition = new RRQRDecomposition(M, singularityThreshold);
     DecompositionSolver solver = decomposition.getSolver();
     return solver.isNonSingular();
   }  
