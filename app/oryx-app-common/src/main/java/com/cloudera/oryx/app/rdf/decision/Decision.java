@@ -59,4 +59,7 @@ public abstract class Decision implements Serializable {
    */
   public abstract FeatureType getType();
 
+  @Override
+  public abstract String toString();
+
 }

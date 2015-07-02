@@ -46,4 +46,7 @@ public abstract class Prediction implements Serializable {
 
   public abstract void update(Example train);
 
+  @Override
+  public abstract String toString();
+
 }

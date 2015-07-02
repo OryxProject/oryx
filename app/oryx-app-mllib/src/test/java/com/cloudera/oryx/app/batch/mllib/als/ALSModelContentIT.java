@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 public final class ALSModelContentIT extends AbstractALSIT {

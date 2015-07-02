@@ -124,7 +124,11 @@ public final class TrafficUtil {
 
                   long startTime = System.currentTimeMillis();
                   Response response = invocation.invoke();
-                  response.close();
+                  try {
+                    response.readEntity(String.class);
+                  } finally {
+                    response.close();
+                  }
                   long elapsedMS = System.currentTimeMillis() - startTime;
 
                   int statusCode = response.getStatusInfo().getStatusCode();
