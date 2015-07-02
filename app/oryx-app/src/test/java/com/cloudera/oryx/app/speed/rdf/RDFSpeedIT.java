@@ -110,12 +110,13 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
   private static double[] minMaxExpectedMean(int n, boolean positive) {
     double minTotal = 0.0;
     double maxTotal = 0.0;
+    int maxOffset = 5 - n % 5;
     for (int i = 0; i < n; i++) {
       if (positive) {
         minTotal += 1 + 2 * (i % 5);
-        maxTotal += 1 + 2 * ((i + 4) % 5);
+        maxTotal += 1 + 2 * ((i + maxOffset) % 5);
       } else {
-        minTotal += -2 * ((i + 4) % 5);
+        minTotal += -2 * ((i + maxOffset) % 5);
         maxTotal += -2 * (i % 5);
       }
     }
