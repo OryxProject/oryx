@@ -1,3 +1,5 @@
+title: How To Release
+  
 This will only be of interest to the project's maintainers!
 
 # Prerequisites
@@ -26,15 +28,12 @@ It also requires that you have the GPG key that is written into the project POM,
 
 # Releasing Maven Artifacts
 
-1. Clone `master` from the repo:
-`git clone https://github.com/OryxProject/oryx.git`
+1. Clone `master` from the repo: `git clone https://github.com/OryxProject/oryx.git`
 
 1. If this is a fresh checkout, optionally configure your user name and email for use with git commits, if not already set globally:
-`git config user.name "Your Name"`
-`git config user.email "Your Email"`
+`git config user.name "Your Name"` and `git config user.email "Your Email"`
 
-1. Double-check that tests pass and packaging succeeds first:
-`mvn clean package`
+1. Double-check that tests pass and packaging succeeds first: `mvn clean package`
 
 1. Check for problems or errors first with `-DdryRun`. Consider skipping the (lengthy) tests in these steps with `-DskipTests` if they've been run already. To avoid answering the same question many times, the release and new development versions can be supplied on the command line:
 `mvn -Darguments="-DskipTests" -DdryRun -DreleaseVersion=... -DdevelopmentVersion=... release:prepare`
@@ -47,13 +46,13 @@ It also requires that you have the GPG key that is written into the project POM,
 # Releasing Binaries
 
 1. To get the latest changes and tags post-build, `git pull --tags`
-1. Checkout the build tag for this build with `git checkout tags/...`
+1. Checkout the build tag for this build with `git checkout -f tags/...`
 1. `mvn -DskipTests clean package`
 1. Assembled binaries appear at `oryx-serving/target/oryx-serving-....jar` and likewise for `speed` and `batch`
 1. Navigate to the Github release that was just created, at `https://github.com/OryxProject/oryx/releases/tag/...`
 1. Edit the title to something more meaningful like `Oryx x.y.z`
 1. Paste brief release notes into the description, including a link to resolved issues for the associated milestone, usually of the form `https://github.com/OryxProject/oryx/issues?q=milestone%3A...+is%3Aclosed`
-1. Attach the Batch, Speed, and Serving layer binaries and save the updated release.
+1. Attach the Batch, Speed, and Serving layer binaries, and scripts in `deploy/bin/`, and save the updated release.
 
 # Updating the Site
 

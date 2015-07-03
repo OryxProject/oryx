@@ -635,6 +635,10 @@
                 <packages>com.cloudera.oryx.ml*</packages>
               </group>
               <group>
+                <title>App API</title>
+                <packages>com.cloudera.oryx.api*</packages>
+              </group>
+              <group>
                 <title>App Tier: Batch</title>
                 <packages>com.cloudera.oryx.app*</packages>
               </group>
