@@ -32,10 +32,20 @@ public final class LoadTestALSModelFactory {
 
   private static final Logger log = LoggerFactory.getLogger(LoadTestALSModelFactory.class);
 
-  public static final int USERS = 500_000;
-  public static final int ITEMS = 2_000_000;
-  private static final int FEATURES = 100;
-  private static final int AVG_ITEMS_PER_USER = 20;
+  public static final int USERS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.users", "500000"));
+  public static final int ITEMS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.items", "2000000"));
+  public static final int WORKERS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.workers", "4"));
+  public static final int REQS_PER_WORKER =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.reqsPerWorker", "100"));
+  private static final int FEATURES =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.features", "100"));
+  private static final int AVG_ITEMS_PER_USER =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.avgItemsPerUser", "20"));
+  private static final double LSH_SAMPLE_RATE =
+      Double.parseDouble(System.getProperty("oryx.test.als.benchmark.lshSampleRate", "0.3"));
 
   private LoadTestALSModelFactory() {}
 
@@ -52,7 +62,7 @@ public final class LoadTestALSModelFactory {
         AVG_ITEMS_PER_USER,
         PoissonDistribution.DEFAULT_EPSILON,
         PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-    ALSServingModel model = new ALSServingModel(FEATURES, true, 0.3, new TestALSRescorerProvider());
+    ALSServingModel model = new ALSServingModel(FEATURES, true, LSH_SAMPLE_RATE, new TestALSRescorerProvider());
 
     log.info("Adding {} users", USERS);
     long totalEntries = 0;

@@ -22,14 +22,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +37,12 @@ import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.app.serving.als.model.LoadTestALSModelFactory;
 
-public final class LoadIT extends AbstractALSServingTest {
+/**
+ * Note this test isn't run by default by surefire or failsafe. It is activated by a profile.
+ */
+public final class LoadBenchmark extends AbstractALSServingTest {
 
-  private static final Logger log = LoggerFactory.getLogger(LoadIT.class);
-  private static final int REQS_PER_WORKER = 50;
+  private static final Logger log = LoggerFactory.getLogger(LoadBenchmark.class);
 
   @Override
   protected void configureProperties() {
@@ -56,31 +55,13 @@ public final class LoadIT extends AbstractALSServingTest {
     }
   }
 
-  @Ignore("Difficult to assert about time in cross-platform way; run manually")
-  @Test
-  public void testContainerOverhead() {
-    long startNS = System.nanoTime();
-    int requests = 10000;
-    for (int i = 0; i < requests; i++) {
-      try {
-        target("/").request().get(LIST_ID_VALUE_TYPE);
-      } catch (NotFoundException nfe) {
-        // continue
-      }
-    }
-    long usecPerRequest = Math.round((System.nanoTime() - startNS) / (requests * 1000.0));
-    log.info("{} microseconds / request", usecPerRequest);
-    Assert.assertTrue(usecPerRequest < 3000);
-  }
-
-  @Ignore("Difficult to assert about time in cross-platform way; run manually")
   @Test
   public void testRecommendLoad() throws Exception {
     AtomicLong count = new AtomicLong();
     Mean meanReqTimeMS = new Mean();
     long start = System.currentTimeMillis();
 
-    int workers = 4;
+    int workers = LoadTestALSModelFactory.WORKERS;
     List<Callable<Void>> tasks = new ArrayList<>(workers);
     for (int i = 0; i < workers; i++) {
       tasks.add(new LoadCallable(Integer.toString(i), meanReqTimeMS, count, start));
@@ -92,14 +73,8 @@ public final class LoadIT extends AbstractALSServingTest {
       executor.shutdown();
     }
 
-    int totalRequests = workers * REQS_PER_WORKER;
+    int totalRequests = workers * LoadTestALSModelFactory.REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);
-
-    int cores = Runtime.getRuntime().availableProcessors();
-    int allowedMS = workers * 800 / cores; // crude, conservative empirical limit
-    Assert.assertTrue(
-        "Expected < " + allowedMS + "ms / req with " + cores + " cores",
-        meanReqTimeMS.getResult() < allowedMS);
   }
 
   private static void log(long currentCount, Mean meanReqTimeMS, long start) {
@@ -158,7 +133,7 @@ public final class LoadIT extends AbstractALSServingTest {
 
     @Override
     public void doCall() {
-      for (int j = 0; j < REQS_PER_WORKER; j++) {
+      for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
         String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
         long callStart = System.currentTimeMillis();
         target("/recommend/" + userID).request()
