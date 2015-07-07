@@ -15,21 +15,43 @@
 
 package com.cloudera.oryx.example
 
+import scala.collection.JavaConversions
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.TopicProducer
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate
 
+/**
+ * Input keys are ignored. Values are treated as lines of space-separated text. The job
+ * counts, for each word, the number of distinct other words that co-occur in some line
+ * of text in the input. These are written as a "MODEL" update, where the word-count mapping
+ * is written as a JSON string.
+ */
 class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,String] {
 
-  def configureUpdate(sparkContext: SparkContext,
-                      timestamp: Long,
-                      newData: RDD[(String,String)],
-                      pastData: RDD[(String,String)],
-                      modelDirString: String,
-                      modelUpdateTopic: TopicProducer[String,String]): Unit = {
+  override def configureUpdate(sparkContext: SparkContext,
+                               timestamp: Long,
+                               newData: RDD[(String,String)],
+                               pastData: RDD[(String,String)],
+                               modelDirString: String,
+                               modelUpdateTopic: TopicProducer[String,String]) = {
+    val modelString = new ObjectMapper().writeValueAsString(
+      JavaConversions.mapAsJavaMap(ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData.union(pastData))))
+    modelUpdateTopic.send("MODEL", modelString)
+  }
 
+}
+
+object ExampleScalaBatchLayerUpdate {
+
+  def countDistinctOtherWords(data: RDD[(String,String)]) = {
+    data.values.flatMap { line =>
+      val tokens = line.split(" ").distinct
+      for (a <- tokens; b <- tokens if a != b) yield (a, b)
+    }.distinct().groupByKey().mapValues(_.size).collectAsMap()
   }
 
 }

@@ -15,24 +15,57 @@
 
 package com.cloudera.oryx.example
 
+import scala.collection.{JavaConversions, mutable}
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.KeyMessage
 import com.cloudera.oryx.api.speed.ScalaSpeedModelManager
 
+/**
+ * Also counts and emits counts of number of distinct words that occur with words.
+ * Listens for updates from the Batch Layer, which give the current correct count at its
+ * last run. Updates these counts approximately in response to the same data stream
+ * that the Batch Layer sees, but assumes all words seen are new and distinct, which is only
+ * approximately true. Emits updates of the form "word,count".
+ */
 class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
 
-  def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration): Unit = {
+  private val distinctOtherWords = mutable.Map[String,Integer]()
 
+  override def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration) = {
+    updateIterator.foreach(km =>
+      km.getKey match {
+        case "MODEL" =>
+          val model = JavaConversions.mapAsScalaMap(
+            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
+          distinctOtherWords.synchronized(
+            distinctOtherWords.clear()
+          )
+          model.foreach { case (word, count) =>
+            distinctOtherWords.synchronized(
+              distinctOtherWords.put(word, count.toInt)
+            )
+          }
+        case _ => // ignore
+      }
+    )
   }
 
-  def buildUpdates(newData: RDD[(String,String)]): Iterable[String] = {
-    Array[String]()
+  override def buildUpdates(newData: RDD[(String,String)]) = {
+    ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData).map { case (word, count) =>
+      distinctOtherWords.synchronized {
+        val newCount = distinctOtherWords(word) + 1
+        distinctOtherWords(word) = newCount
+        word + "," + newCount
+      }
+    }.toSeq
   }
 
-  def close(): Unit = {
-
+  override def close(): Unit = {
+    // do nothing
   }
 
 }
