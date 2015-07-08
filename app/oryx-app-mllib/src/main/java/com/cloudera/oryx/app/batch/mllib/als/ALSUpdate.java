@@ -329,12 +329,17 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static final class ParseRatingFn implements PairFunction<String[],Long,Rating> {
     @Override
     public Tuple2<Long,Rating> call(String[] tokens) {
-      return new Tuple2<>(
-          Long.valueOf(tokens[3]),
-          new Rating(parseOrHashInt(tokens[0]),
-                     parseOrHashInt(tokens[1]),
-                     // Empty value means 'delete'; propagate as NaN
-                     tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+      try {
+        return new Tuple2<>(
+            Long.valueOf(tokens[3]),
+            new Rating(parseOrHashInt(tokens[0]),
+                       parseOrHashInt(tokens[1]),
+                       // Empty value means 'delete'; propagate as NaN
+                       tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(tokens));
+        throw e;
+      }
     }
   }
 

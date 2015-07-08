@@ -239,11 +239,16 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       new PairFunction<String,Tuple2<String,String>,Double>() {
         @Override
         public Tuple2<Tuple2<String,String>,Double> call(String line) throws Exception {
-          String[] tokens = MLFunctions.PARSE_FN.call(line);
-          String user = tokens[0];
-          String item = tokens[1];
-          Double strength = Double.valueOf(tokens[2]);
-          return new Tuple2<>(new Tuple2<>(user, item), strength);
+          try {
+            String[] tokens = MLFunctions.PARSE_FN.call(line);
+            String user = tokens[0];
+            String item = tokens[1];
+            Double strength = Double.valueOf(tokens[2]);
+            return new Tuple2<>(new Tuple2<>(user, item), strength);
+          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            log.warn("Bad input: {}", line);
+            throw e;
+          }
         }
       };
 
@@ -251,7 +256,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       new Function<Tuple2<Tuple2<String, String>, Double>, UserItemStrength>() {
         @Override
         public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> tuple) {
-          return new UserItemStrength(tuple._1()._1(), tuple._1()._2(), tuple._2().floatValue());
+          Tuple2<String,String> userItem = tuple._1();
+          Double strength = tuple._2();
+          return new UserItemStrength(userItem._1(), userItem._2(), strength.floatValue());
         }
       };
 

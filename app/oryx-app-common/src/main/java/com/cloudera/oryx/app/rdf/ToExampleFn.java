@@ -15,7 +15,11 @@
 
 package com.cloudera.oryx.app.rdf;
 
+import java.util.Arrays;
+
 import org.apache.spark.api.java.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
@@ -30,6 +34,8 @@ import com.cloudera.oryx.app.schema.InputSchema;
  */
 public final class ToExampleFn implements Function<String[],Example> {
 
+  private static final Logger log = LoggerFactory.getLogger(ToExampleFn.class);
+
   private final InputSchema inputSchema;
   private final CategoricalValueEncodings valueEncodings;
 
@@ -40,27 +46,32 @@ public final class ToExampleFn implements Function<String[],Example> {
 
   @Override
   public Example call(String[] data) {
-    Feature[] features = new Feature[data.length];
-    Feature target = null;
-    for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-      Feature feature = null;
-      String dataAtIndex = data[featureIndex];
-      boolean isTarget = inputSchema.isTarget(featureIndex);
-      if (isTarget && dataAtIndex.isEmpty()) {
-        feature = null;
-      } else if (inputSchema.isNumeric(featureIndex)) {
-        feature = NumericFeature.forValue(Double.parseDouble(dataAtIndex));
-      } else if (inputSchema.isCategorical(featureIndex)) {
-        int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
-        feature = CategoricalFeature.forEncoding(encoding);
+    try {
+      Feature[] features = new Feature[data.length];
+      Feature target = null;
+      for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+        Feature feature = null;
+        String dataAtIndex = data[featureIndex];
+        boolean isTarget = inputSchema.isTarget(featureIndex);
+        if (isTarget && dataAtIndex.isEmpty()) {
+          feature = null;
+        } else if (inputSchema.isNumeric(featureIndex)) {
+          feature = NumericFeature.forValue(Double.parseDouble(dataAtIndex));
+        } else if (inputSchema.isCategorical(featureIndex)) {
+          int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
+          feature = CategoricalFeature.forEncoding(encoding);
+        }
+        if (isTarget) {
+          target = feature;
+        } else {
+          features[featureIndex] = feature;
+        }
       }
-      if (isTarget) {
-        target = feature;
-      } else {
-        features[featureIndex] = feature;
-      }
+      return new Example(target, features);
+    } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+      log.warn("Bad input: {}", Arrays.toString(data));
+      throw e;
     }
-    return new Example(target, features);
   }
 
 }

@@ -133,15 +133,20 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
 
     @Override
     public Tuple2<Integer,Tuple2<double[],Long>> call(String[] data) {
-      double[] featureVector = new double[inputSchema.getNumPredictors()];
-      for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-        if (inputSchema.isActive(featureIndex)) {
-          featureVector[inputSchema.featureToPredictorIndex(featureIndex)] =
-              Double.parseDouble(data[featureIndex]);
+      try {
+        double[] featureVector = new double[inputSchema.getNumPredictors()];
+        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+          if (inputSchema.isActive(featureIndex)) {
+            featureVector[inputSchema.featureToPredictorIndex(featureIndex)] =
+                Double.parseDouble(data[featureIndex]);
+          }
         }
+        int closestClusterID = model.closestCluster(featureVector);
+        return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(data));
+        throw e;
       }
-      int closestClusterID = model.closestCluster(featureVector);
-      return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
     }
   }
 

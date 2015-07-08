@@ -256,27 +256,32 @@ public final class RDFUpdate extends MLUpdate<String> {
     return parsedRDD.map(new Function<String[],LabeledPoint>() {
       @Override
       public LabeledPoint call(String[] data) {
-        double[] features = new double[inputSchema.getNumPredictors()];
-        double target = Double.NaN;
-        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-          double encoded;
-          if (inputSchema.isNumeric(featureIndex)) {
-            encoded = Double.parseDouble(data[featureIndex]);
-          } else if (inputSchema.isCategorical(featureIndex)) {
-            Map<String,Integer> valueEncoding =
-                categoricalValueEncodings.getValueEncodingMap(featureIndex);
-            encoded = valueEncoding.get(data[featureIndex]);
-          } else {
-            continue;
+        try {
+          double[] features = new double[inputSchema.getNumPredictors()];
+          double target = Double.NaN;
+          for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+            double encoded;
+            if (inputSchema.isNumeric(featureIndex)) {
+              encoded = Double.parseDouble(data[featureIndex]);
+            } else if (inputSchema.isCategorical(featureIndex)) {
+              Map<String,Integer> valueEncoding =
+                  categoricalValueEncodings.getValueEncodingMap(featureIndex);
+              encoded = valueEncoding.get(data[featureIndex]);
+            } else {
+              continue;
+            }
+            if (inputSchema.isTarget(featureIndex)) {
+              target = encoded;
+            } else {
+              features[inputSchema.featureToPredictorIndex(featureIndex)] = encoded;
+            }
           }
-          if (inputSchema.isTarget(featureIndex)) {
-            target = encoded;
-          } else {
-            features[inputSchema.featureToPredictorIndex(featureIndex)] = encoded;
-          }
+          Preconditions.checkState(!Double.isNaN(target));
+          return new LabeledPoint(target, Vectors.dense(features));
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+          log.warn("Bad input: {}", Arrays.toString(data));
+          throw e;
         }
-        Preconditions.checkState(!Double.isNaN(target));
-        return new LabeledPoint(target, Vectors.dense(features));
       }
     });
   }

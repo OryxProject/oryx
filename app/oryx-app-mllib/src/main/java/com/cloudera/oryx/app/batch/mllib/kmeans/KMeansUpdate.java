@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -242,14 +243,19 @@ public final class KMeansUpdate extends MLUpdate<String> {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override
       public Vector call(String[] data) {
-        double[] features = new double[inputSchema.getNumPredictors()];
-        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-          if (inputSchema.isActive(featureIndex)) {
-            features[inputSchema.featureToPredictorIndex(featureIndex)] =
-                Double.parseDouble(data[featureIndex]);
+        try {
+          double[] features = new double[inputSchema.getNumPredictors()];
+          for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
+            if (inputSchema.isActive(featureIndex)) {
+              features[inputSchema.featureToPredictorIndex(featureIndex)] =
+                  Double.parseDouble(data[featureIndex]);
+            }
           }
+          return Vectors.dense(features);
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+          log.warn("Bad input: {}", Arrays.toString(data));
+          throw e;
         }
-        return Vectors.dense(features);
       }
     });
   }
