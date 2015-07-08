@@ -18,8 +18,6 @@ package com.cloudera.oryx.app.speed.als;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.base.Preconditions;
 import net.openhft.koloboke.collect.map.ObjObjMap;
@@ -30,6 +28,7 @@ import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
+import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
@@ -49,9 +48,9 @@ public final class ALSSpeedModel {
   /** Remembers item IDs added since last model. Partitioned like Y. */
   private final Collection<String> recentNewItems;
   /** Controls access to X, and recentNewUsers. */
-  private final ReadWriteLock xLock;
+  private final AutoReadWriteLock xLock;
   /** Controls access to Y, and recentNewItems. */
-  private final ReadWriteLock yLock;
+  private final AutoReadWriteLock yLock;
   /** Whether model uses implicit feedback. */
   private final int features;
 
@@ -66,8 +65,8 @@ public final class ALSSpeedModel {
     Y = HashObjObjMaps.newMutableMap();
     recentNewUsers = new HashSet<>();
     recentNewItems = new HashSet<>();
-    xLock = new ReentrantReadWriteLock();
-    yLock = new ReentrantReadWriteLock();
+    xLock = new AutoReadWriteLock();
+    yLock = new AutoReadWriteLock();
     this.features = features;
   }
 
@@ -76,13 +75,13 @@ public final class ALSSpeedModel {
   }
 
   public float[] getUserVector(String user) {
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    try (AutoLock al = xLock.autoReadLock()) {
       return X.get(user);
     }
   }
 
   public float[] getItemVector(String item) {
-    try (AutoLock al = new AutoLock(yLock.readLock())) {
+    try (AutoLock al = yLock.autoReadLock()) {
       return Y.get(item);
     }
   }
@@ -90,7 +89,7 @@ public final class ALSSpeedModel {
   public void setUserVector(String user, float[] vector) {
     Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    try (AutoLock al = new AutoLock(xLock.writeLock())) {
+    try (AutoLock al = xLock.autoWriteLock()) {
       if (X.put(user, vector) == null) {
         // User was actually new
         recentNewUsers.add(user);
@@ -101,7 +100,7 @@ public final class ALSSpeedModel {
   public void setItemVector(String item, float[] vector) {
     Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    try (AutoLock al = new AutoLock(yLock.writeLock())) {
+    try (AutoLock al = yLock.autoWriteLock()) {
       if (Y.put(item, vector) == null) {
         // Item was actually new
         recentNewItems.add(item);
@@ -111,7 +110,7 @@ public final class ALSSpeedModel {
 
   public void pruneX(Collection<String> users) {
     // Keep all users in the new model, or, that have been added since last model
-    try (AutoLock al = new AutoLock(xLock.writeLock())) {
+    try (AutoLock al = xLock.autoWriteLock()) {
       X.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
       recentNewUsers.clear();
@@ -120,7 +119,7 @@ public final class ALSSpeedModel {
 
   public void pruneY(Collection<String> items) {
     // Keep all items in the new model, or, that have been added since last model
-    try (AutoLock al = new AutoLock(yLock.writeLock())) {
+    try (AutoLock al = yLock.autoWriteLock()) {
       Y.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems))));
       recentNewItems.clear();
@@ -129,7 +128,7 @@ public final class ALSSpeedModel {
 
   public Solver getXTXSolver() {
     RealMatrix XTX;
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    try (AutoLock al = xLock.autoReadLock()) {
       XTX = VectorMath.transposeTimesSelf(X.values());
     }
     return LinearSystemSolver.getSolver(XTX);
@@ -137,7 +136,7 @@ public final class ALSSpeedModel {
 
   public Solver getYTYSolver() {
     RealMatrix YTY;
-    try (AutoLock al = new AutoLock(yLock.readLock())) {
+    try (AutoLock al = yLock.autoReadLock()) {
       YTY = VectorMath.transposeTimesSelf(Y.values());
     }
     return LinearSystemSolver.getSolver(YTY);
