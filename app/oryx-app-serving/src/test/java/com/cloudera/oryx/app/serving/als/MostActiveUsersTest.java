@@ -29,14 +29,7 @@ public final class MostActiveUsersTest extends AbstractALSServingTest {
   public void testMostPopular() {
     List<IDCount> top = target("/mostActiveUsers").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_COUNT_TYPE);
-    Assert.assertEquals(7, top.size());
-    for (int i = 0; i < top.size(); i++) {
-      int thisCount = top.get(i).getCount();
-      Assert.assertTrue(thisCount >= 1);
-      if (i > 0) {
-        Assert.assertTrue(top.get(i - 1).getCount() >= thisCount);
-      }
-    }
+    testTopCount(7, top);
     Assert.assertEquals(7, top.get(0).getCount());
     Assert.assertEquals(6, top.get(1).getCount());
   }

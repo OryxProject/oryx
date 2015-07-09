@@ -43,8 +43,8 @@ import com.cloudera.oryx.common.text.TextUtils;
  * containing several data points, one on each line. The inputs are data points to cluster,
  * delimited, like "1,foo,3.0".</p>
  *
- * <p>The response body contains the result of clustering, one for each input data point, one per
- * line.</p>
+ * <p>The response body contains the result of clustering -- the IDs of the assigned clusters --
+ * one for each input data point, one per line.</p>
  */
 @Singleton
 @Path("/assign")
@@ -89,7 +89,7 @@ public final class Assign extends AbstractKMeansResource {
   private Integer nearestClusterID(String datum) throws OryxServingException {
     check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
     String[] tokens = TextUtils.parseDelimited(datum, ',');
-    return cluster(tokens).getFirst();
+    return cluster(tokens).getFirst().getID();
   }
 
 }

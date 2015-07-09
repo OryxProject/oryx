@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -244,14 +245,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
       @Override
       public Vector call(String[] data) {
         try {
-          double[] features = new double[inputSchema.getNumPredictors()];
-          for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-            if (inputSchema.isActive(featureIndex)) {
-              features[inputSchema.featureToPredictorIndex(featureIndex)] =
-                  Double.parseDouble(data[featureIndex]);
-            }
-          }
-          return Vectors.dense(features);
+          return Vectors.dense(KMeansUtils.featuresFromTokens(data, inputSchema));
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
           log.warn("Bad input: {}", Arrays.toString(data));
           throw e;

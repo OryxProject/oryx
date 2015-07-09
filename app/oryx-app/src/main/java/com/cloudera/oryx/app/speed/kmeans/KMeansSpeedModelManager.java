@@ -37,6 +37,7 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.text.TextUtils;
@@ -134,14 +135,8 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     @Override
     public Tuple2<Integer,Tuple2<double[],Long>> call(String[] data) {
       try {
-        double[] featureVector = new double[inputSchema.getNumPredictors()];
-        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-          if (inputSchema.isActive(featureIndex)) {
-            featureVector[inputSchema.featureToPredictorIndex(featureIndex)] =
-                Double.parseDouble(data[featureIndex]);
-          }
-        }
-        int closestClusterID = model.closestCluster(featureVector);
+        double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
+        int closestClusterID = model.closestCluster(featureVector).getID();
         return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
       } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
         log.warn("Bad input: {}", Arrays.toString(data));
@@ -160,8 +155,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       for (int i = 0; i < vec1.length; i++) {
         vec1[i] += vec2[i];
       }
-      long totalCount = t1._2() + t2._2();
-      return new Tuple2<>(vec1, totalCount);
+      return new Tuple2<>(vec1, t1._2() + t2._2());
     }
   }
 

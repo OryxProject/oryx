@@ -19,10 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.common.base.Preconditions;
-
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
@@ -40,6 +39,7 @@ public final class KMeansServingModel {
   KMeansServingModel(List<ClusterInfo> clusters, InputSchema inputSchema) {
     Objects.requireNonNull(clusters);
     Objects.requireNonNull(inputSchema);
+    KMeansUtils.checkUniqueIDs(clusters);
     this.clusters = Collections.synchronizedList(clusters);
     this.inputSchema = inputSchema;
     distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported
@@ -57,20 +57,8 @@ public final class KMeansServingModel {
     return inputSchema;
   }
 
-  public Pair<Integer,Double> closestCluster(double[] vector) {
-    double closestDist = Double.POSITIVE_INFINITY;
-    int minCluster = -1;
-    for (int i = 0; i < clusters.size(); i++) {
-      ClusterInfo cluster = clusters.get(i);
-      double distance = distanceFn.distance(cluster.getCenter(), vector);
-      if (distance < closestDist) {
-        closestDist = distance;
-        minCluster = i;
-      }
-    }
-    Preconditions.checkState(minCluster >= 0);
-    Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
-    return new Pair<>(minCluster, closestDist);
+  public Pair<ClusterInfo,Double> closestCluster(double[] vector) {
+    return KMeansUtils.closestCluster(clusters, distanceFn, vector);
   }
 
   public void update(int clusterID, double[] center, long count) {

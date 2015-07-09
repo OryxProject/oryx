@@ -33,9 +33,9 @@ public final class TestKMeansModelFactory {
 
   public static KMeansServingModel buildTestModel() {
     List<ClusterInfo> clusters = new ArrayList<>();
-    clusters.add(new ClusterInfo(0, new double[] { 1.0, 0.0 }, 1));
-    clusters.add(new ClusterInfo(0, new double[] { 2.0, -1.0 }, 1));
-    clusters.add(new ClusterInfo(0, new double[] { -1.0, 0.0 }, 1));
+    clusters.add(new ClusterInfo(2, new double[] { 1.0, 0.0 }, 1));
+    clusters.add(new ClusterInfo(3, new double[] { 2.0, -1.0 }, 1));
+    clusters.add(new ClusterInfo(4, new double[] { -1.0, 0.0 }, 1));
 
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.input-schema.num-features", 2);
