@@ -9,7 +9,7 @@ matrix:
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
    # Covers latest Spark
    - jdk: oraclejdk7
-     env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.0
+     env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.1
    # Covers Java 8, Oracle JDK, CDH5
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh5
