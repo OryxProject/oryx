@@ -59,7 +59,7 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
           "producer.type", "async",
           "queue.buffering.max.ms", 1000, // Make configurable?
           "batch.num.messages", 100,
-          "compression.codec", "snappy",
+          "compression.codec", "gzip",
           "compressed.topics", topic
       )));
     }

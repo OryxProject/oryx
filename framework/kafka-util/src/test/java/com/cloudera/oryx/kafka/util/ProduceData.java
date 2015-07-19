@@ -67,7 +67,7 @@ public final class ProduceData {
         new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
             "metadata.broker.list", "localhost:" + kafkaPort,
             "serializer.class", "kafka.serializer.StringEncoder",
-            "compression.codec", "snappy",
+            "compression.codec", "gzip",
             "compressed.topics", topic
         )));
     try {
