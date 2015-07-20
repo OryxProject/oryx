@@ -219,8 +219,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 
     // Push PMML model onto update topic, if it exists
     Path bestModelPath = new Path(finalPath, MODEL_FILE_NAME);
-    FileStatus bestModelPathFS = fs.getFileStatus(bestModelPath);
-    if (bestModelPathFS != null) { // "exists"
+    if (fs.exists(bestModelPath)) {
+      FileStatus bestModelPathFS = fs.getFileStatus(bestModelPath);
       PMML bestModel = null;
       boolean modelNeededForUpdates = canPublishAdditionalModelData();
       boolean modelNotTooLarge = bestModelPathFS.getLen() <= maxMessageSize;
