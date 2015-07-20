@@ -39,6 +39,8 @@ ls -1 \
  ${CDH_JARS_DIR}/commons-collections-*.jar \
  ${CDH_JARS_DIR}/commons-configuration-1.7.jar \
  ${CDH_JARS_DIR}/commons-lang-2.6.jar \
+ ${CDH_JARS_DIR}/http*-4.2.5.jar \
+ ${CDH_JARS_DIR}/jackson-*-1.9.12.jar \
  ${CDH_JARS_DIR}/protobuf-java-*.jar \
  ${CDH_JARS_DIR}/snappy-java-1.0.5.jar \
  | grep -E "[0-9]\\.jar$"
