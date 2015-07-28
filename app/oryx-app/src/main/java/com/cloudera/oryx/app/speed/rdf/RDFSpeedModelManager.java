@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.common.util.concurrent.AtomicLongMap;
 import com.typesafe.config.Config;
@@ -76,6 +77,7 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           // Nothing to do; just hearing our own updates
@@ -91,7 +93,7 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           log.info("New model loaded: {}", model);
           break;
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }

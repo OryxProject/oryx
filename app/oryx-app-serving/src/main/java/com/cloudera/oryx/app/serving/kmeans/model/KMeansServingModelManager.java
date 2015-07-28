@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.kmeans.model;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -64,6 +65,7 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -89,7 +91,7 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           break;
 
         default:
-          throw new IllegalStateException("Bad model " + message);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }

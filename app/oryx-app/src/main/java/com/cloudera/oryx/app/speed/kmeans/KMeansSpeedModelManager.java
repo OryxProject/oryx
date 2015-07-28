@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -64,6 +65,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           // do nothing, hearing our own updates
@@ -77,7 +79,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
           log.info("New model loaded: {}", model);
           break;
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
 

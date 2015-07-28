@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -64,6 +65,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -87,7 +89,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
               // Right now, no equivalent knownUsers
               break;
             default:
-              throw new IllegalStateException("Bad update " + message);
+              throw new IllegalArgumentException("Bad message: " + km);
           }
           break;
 
@@ -124,7 +126,7 @@ public final class ALSServingModelManager implements ServingModelManager<String>
           break;
 
         default:
-          throw new IllegalStateException("Bad model " + message);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }

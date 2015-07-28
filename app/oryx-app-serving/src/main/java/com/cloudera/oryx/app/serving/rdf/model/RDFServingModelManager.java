@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -71,6 +72,7 @@ public final class RDFServingModelManager implements ServingModelManager<String>
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -118,7 +120,7 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           break;
 
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }

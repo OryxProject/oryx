@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
@@ -69,6 +70,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -86,7 +88,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
               model.setItemVector(id, vector);
               break;
             default:
-              throw new IllegalStateException("Bad update " + message);
+              throw new IllegalArgumentException("Bad message: " + km);
           }
           break;
 
@@ -122,7 +124,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           break;
 
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }
