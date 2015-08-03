@@ -697,7 +697,7 @@ as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN
 and Zookeeper services. Your environment or cluster must be updated to include these services 
 before you can use Oryx 2.
 
-## Troubleshooting
+## Troubleshooting / FAQ
 
 ### Unsupported major.minor version 51.0
 
@@ -727,3 +727,27 @@ The relevant app settings are:
 This means your YARN configuration limits the maximum container size that can be requested.
 Increase the Container Memory Maximum (`yarn.scheduler.maximum-allocation-mb`)
 to something larger. For Spark, it generally makes sense to allow large containers.
+
+### IllegalArgumentException: Wrong FS
+
+```
+java.lang.IllegalArgumentException: Wrong FS: hdfs:..., expected: file:///
+    	at org.apache.hadoop.fs.FileSystem.checkPath(FileSystem.java:645)
+```
+
+This typically means you are using HDFS, but your Hadoop config (e.g. `core-site.xml`, typically in
+`/etc/hadoop/conf` is not on the classpath. If you're building a custom `compute-classpath.sh` script
+make sure to include this directory along with JARs.
+
+### I need to purge all previous data and start again
+
+Input data exists in the input Kafka topic for a time before being copied into HDFS. So,
+input potentially exists as unread message in this topic as well as in the HDFS directory
+defined by `orxy.batch.storage.data-dir`. It's easy to delete the data in HDFS; it's harder
+to ensure older data in the input topic is not read.
+
+The simplest solution is to create a new input topic and change configuration to use it.
+Then, also delete any pre-existing data in HDFS (or use a new directory). Similarly, since the 
+update topic is read from the beginning, it's easiest to make a new update topic instead.
+While it's possible to reuse the existing topics by carefully managing offsets in Kafka or
+chaning the instance `oryx.id` value, these are possibly more complex.
