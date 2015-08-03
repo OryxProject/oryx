@@ -135,7 +135,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
           Segment segment = segments.get(i);
           assertEquals(Integer.toString(i), segment.getId());
           assertTrue(segment.getPredicate() instanceof True);
-          assertEquals(1.0, segment.getWeight());
+          assertEquals(1.0, segment.getWeight().doubleValue());
           assertTrue(segment.getModel() instanceof TreeModel);
           checkTreeModel((TreeModel) segment.getModel());
         }
