@@ -85,6 +85,17 @@ public final class KafkaUtils {
 
   /**
    * @param zkServers Zookeeper server string: host1:port1[,host2:port2,...]
+   * @param topic topic to check for existence
+   * @return {@code true} if and only if the given topic exists
+   */
+  public static boolean topicExists(String zkServers, String topic) {
+    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
+      return AdminUtils.topicExists(zkClient, topic);
+    }
+  }
+
+  /**
+   * @param zkServers Zookeeper server string: host1:port1[,host2:port2,...]
    * @param topic topic to delete, if it exists
    */
   public static void deleteTopic(String zkServers, String topic) {

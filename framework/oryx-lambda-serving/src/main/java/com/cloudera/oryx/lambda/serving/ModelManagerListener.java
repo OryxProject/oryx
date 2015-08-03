@@ -49,6 +49,7 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.KafkaUtils;
 
 /**
  * {@link ServletContextListener} that initializes a {@link ServingModelManager} at web
@@ -72,6 +73,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   private int maxMessageSize;
   private String updateTopicLockMaster;
   private String inputTopic;
+  private String inputTopicLockMaster;
   private String inputTopicBroker;
   private String modelManagerClassName;
   private Class<? extends Decoder<U>> updateDecoderClass;
@@ -88,6 +90,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
+    this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
     this.inputTopicBroker = config.getString("oryx.input-topic.broker");
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
@@ -100,6 +103,11 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     log.info("ModelManagerListener initializing");
     ServletContext context = sce.getServletContext();
     init(context);
+
+    Preconditions.checkArgument(KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
+                                "Topic %s does not exist; did you create it?", inputTopic);
+    Preconditions.checkArgument(KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+                                "Topic %s does not exist; did you create it?", updateTopic);
 
     inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
     context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
