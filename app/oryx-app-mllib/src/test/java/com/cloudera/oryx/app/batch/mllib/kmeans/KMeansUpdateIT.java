@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
@@ -90,7 +89,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       String value = km.getSecond();
 
       assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
-      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, new Configuration());
+      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
       checkHeader(pmml.getHeader());
 

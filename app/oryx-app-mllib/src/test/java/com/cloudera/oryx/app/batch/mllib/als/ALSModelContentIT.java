@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -85,7 +84,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
       } else {
 
         assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
-        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, new Configuration());
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
         modelUsers = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
         modelItems = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
 

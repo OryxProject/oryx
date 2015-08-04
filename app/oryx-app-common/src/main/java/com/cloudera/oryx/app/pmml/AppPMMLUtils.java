@@ -279,6 +279,10 @@ public final class AppPMMLUtils {
         pmmlString = message;
         break;
       case "MODEL-REF":
+        // Allowing null is mostly for integration tests
+        if (hadoopConf == null) {
+          hadoopConf = new Configuration();
+        }
         FileSystem fs = FileSystem.get(hadoopConf);
         try (InputStreamReader in = new InputStreamReader(fs.open(new Path(message)), StandardCharsets.UTF_8)) {
           pmmlString = CharStreams.toString(in);
