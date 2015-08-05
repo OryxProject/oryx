@@ -66,6 +66,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
+    int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
@@ -89,6 +90,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
               break;
             default:
               throw new IllegalArgumentException("Bad message: " + km);
+          }
+          if (--countdownToLogModel <= 0) {
+            log.info("{}", model);
+            countdownToLogModel = 10000;
           }
           break;
 

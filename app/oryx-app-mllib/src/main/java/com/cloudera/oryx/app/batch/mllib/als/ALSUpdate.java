@@ -199,14 +199,9 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     String updateBroker = modelUpdateTopic.getUpdateBroker();
     String topic = modelUpdateTopic.getTopic();
-    if (noKnownItems) {
-      userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
-    } else {
-      log.info("Sending known item data with model updates");
-      JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
-      userRDD.join(knownItems).foreachPartition(
-          new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
-    }
+
+    // Send item updates first, before users. That way, user-based endpoints like /recommend
+    // may take longer to not return 404, but when they do, the result will be more complete.
 
     log.info("Sending item / Y data as model updates");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
@@ -215,6 +210,15 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     // For now, there is no use in sending known users for each item
     productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
+
+    if (noKnownItems) {
+      userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
+    } else {
+      log.info("Sending known item data with model updates");
+      JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
+      userRDD.join(knownItems).foreachPartition(
+          new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
+    }
   }
 
   /**
