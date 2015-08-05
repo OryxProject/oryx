@@ -281,6 +281,10 @@ public final class ALSServingModel {
     }
   }
 
+  /**
+   * @param user user to get known item vectors for
+   * @return {@code null} if the user is not known to the model, or if there are no known items for the user
+   */
   public List<Pair<String,float[]>> getKnownItemVectorsForUser(String user) {
     float[] userVector = getUserVector(user);
     if (userVector == null) {
@@ -298,9 +302,11 @@ public final class ALSServingModel {
       List<Pair<String,float[]>> idVectors = new ArrayList<>(size);
       for (String itemID : knownItems) {
         float[] vector = getItemVector(itemID);
-        idVectors.add(new Pair<>(itemID, vector));
+        if (vector != null) {
+          idVectors.add(new Pair<>(itemID, vector));
+        }
       }
-      return idVectors;
+      return idVectors.isEmpty() ? null : idVectors;
     }
   }
 

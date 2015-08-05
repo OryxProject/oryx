@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.Collections;
 import java.util.List;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
@@ -46,8 +47,9 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  * Outputs contain item and score pairs, where the score is an opaque
  * value where higher values mean more surprising.</p>
  *
- * <p>If the user, item or user's interacted items are not known to the model, a
- * {@link javax.ws.rs.core.Response.Status#NOT_FOUND} response is generated.</p>
+ * <p>If the user is not known to the model, a
+ * {@link javax.ws.rs.core.Response.Status#NOT_FOUND} response is generated.
+ * If the user has no known items associated, the response has no elements.</p>
  *
  * <p>{@code howMany} and {@code offset} behavior, and output, are as in {@link Recommend}.</p>
  */
@@ -70,7 +72,9 @@ public final class MostSurprising extends AbstractALSResource {
     float[] userVector = model.getUserVector(userID);
     checkExists(userVector != null, userID);
     List<Pair<String,float[]>> knownItemVectors = model.getKnownItemVectorsForUser(userID);
-    checkExists(knownItemVectors != null, userID);
+    if (knownItemVectors == null || knownItemVectors.isEmpty()) {
+      return Collections.emptyList();
+    }
 
     Iterable<Pair<String,Double>> idDots =
         Iterables.transform(knownItemVectors, new DotsFunction(userVector));
