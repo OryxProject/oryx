@@ -193,12 +193,14 @@ Oryx bundles several end-to-end applications, including a Serving Layer with RES
 
 * [`/predict`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Predict.html)
 * [`/classificationDistribution`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/ClassificationDistribution.html)
+* [`/ready`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Ready.html)
 * [`/train`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Train.html)
 
 ### Clustering
 
 * [`/assign`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Assign.html)
 * [`/distanceToNearest`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/DistanceToNearest.html)
+* [`/ready`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Ready.html)
 * [`/add`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Add.html)
 
 ## Configuration
