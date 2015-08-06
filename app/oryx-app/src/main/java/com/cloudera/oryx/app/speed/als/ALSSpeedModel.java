@@ -16,22 +16,12 @@
 package com.cloudera.oryx.app.speed.als;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
 
 import com.google.common.base.Preconditions;
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
-import org.apache.commons.math3.linear.RealMatrix;
 
-import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
-import com.cloudera.oryx.common.collection.Predicates;
-import com.cloudera.oryx.common.lang.AutoLock;
-import com.cloudera.oryx.common.lang.AutoReadWriteLock;
+import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
-import com.cloudera.oryx.common.math.VectorMath;
 
 /**
  * Contains all data structures needed to create near-real-time updates for an
@@ -39,18 +29,10 @@ import com.cloudera.oryx.common.math.VectorMath;
  */
 public final class ALSSpeedModel {
 
-  /** User-feature matrix, where row is keyed by user ID string and row is a dense float array. */
-  private final ObjObjMap<String,float[]> X;
-  /** Item-feature matrix, where row is keyed by item ID string and row is a dense float array. */
-  private final ObjObjMap<String,float[]> Y;
-  /** Remembers user IDs added since last model. */
-  private final Collection<String> recentNewUsers;
-  /** Remembers item IDs added since last model. Partitioned like Y. */
-  private final Collection<String> recentNewItems;
-  /** Controls access to X, and recentNewUsers. */
-  private final AutoReadWriteLock xLock;
-  /** Controls access to Y, and recentNewItems. */
-  private final AutoReadWriteLock yLock;
+  /** User-feature matrix. */
+  private final FeatureVectors X;
+  /** Item-feature matrix. */
+  private final FeatureVectors Y;
   /** Whether model uses implicit feedback. */
   private final int features;
 
@@ -61,12 +43,8 @@ public final class ALSSpeedModel {
    */
   ALSSpeedModel(int features) {
     Preconditions.checkArgument(features > 0);
-    X = HashObjObjMaps.newMutableMap();
-    Y = HashObjObjMaps.newMutableMap();
-    recentNewUsers = new HashSet<>();
-    recentNewItems = new HashSet<>();
-    xLock = new AutoReadWriteLock();
-    yLock = new AutoReadWriteLock();
+    X = new FeatureVectors();
+    Y = new FeatureVectors();
     this.features = features;
   }
 
@@ -75,71 +53,37 @@ public final class ALSSpeedModel {
   }
 
   public float[] getUserVector(String user) {
-    try (AutoLock al = xLock.autoReadLock()) {
-      return X.get(user);
-    }
+    return X.getVector(user);
   }
 
   public float[] getItemVector(String item) {
-    try (AutoLock al = yLock.autoReadLock()) {
-      return Y.get(item);
-    }
+    return Y.getVector(item);
   }
 
   public void setUserVector(String user, float[] vector) {
-    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    try (AutoLock al = xLock.autoWriteLock()) {
-      if (X.put(user, vector) == null) {
-        // User was actually new
-        recentNewUsers.add(user);
-      }
-    }
+    X.setVector(user, vector);
   }
 
   public void setItemVector(String item, float[] vector) {
-    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    try (AutoLock al = yLock.autoWriteLock()) {
-      if (Y.put(item, vector) == null) {
-        // Item was actually new
-        recentNewItems.add(item);
-      }
-    }
+    Y.setVector(item, vector);
   }
 
   public void pruneX(Collection<String> users) {
-    // Keep all users in the new model, or, that have been added since last model
-    try (AutoLock al = xLock.autoWriteLock()) {
-      X.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
-      recentNewUsers.clear();
-    }
+    X.prune(users);
   }
 
   public void pruneY(Collection<String> items) {
-    // Keep all items in the new model, or, that have been added since last model
-    try (AutoLock al = yLock.autoWriteLock()) {
-      Y.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(items), new NotContainsPredicate<>(recentNewItems))));
-      recentNewItems.clear();
-    }
+    Y.prune(items);
   }
 
   public Solver getXTXSolver() {
-    RealMatrix XTX;
-    try (AutoLock al = xLock.autoReadLock()) {
-      XTX = VectorMath.transposeTimesSelf(X.values());
-    }
-    return LinearSystemSolver.getSolver(XTX);
+    return LinearSystemSolver.getSolver(X.getVTV());
   }
 
   public Solver getYTYSolver() {
-    RealMatrix YTY;
-    try (AutoLock al = yLock.autoReadLock()) {
-      YTY = VectorMath.transposeTimesSelf(Y.values());
-    }
-    return LinearSystemSolver.getSolver(YTY);
+    return LinearSystemSolver.getSolver(Y.getVTV());
   }
 
   @Override
