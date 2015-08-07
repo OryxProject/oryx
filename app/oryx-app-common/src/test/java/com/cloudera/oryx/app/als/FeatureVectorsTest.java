@@ -30,7 +30,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.common.lang.LoggingCallable;
+import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 
 public final class FeatureVectorsTest extends OryxTest {
 
@@ -75,12 +75,12 @@ public final class FeatureVectorsTest extends OryxTest {
   }
 
   @Test
-  public void testPrune() {
+  public void testRetainRecent() {
     FeatureVectors fv = new FeatureVectors();
     fv.setVector("foo", new float[] { 1.0f });
-    fv.prune(Collections.singleton("foo"));
+    fv.retainRecentAndIDs(Collections.singleton("foo"));
     assertEquals(1, fv.size());
-    fv.prune(Collections.singleton("bar"));
+    fv.retainRecentAndIDs(Collections.singleton("bar"));
     assertEquals(0, fv.size());
   }
 
@@ -91,6 +91,8 @@ public final class FeatureVectorsTest extends OryxTest {
     Collection<String> allIDs = new HashSet<>();
     fv.addAllIDsTo(allIDs);
     assertEquals(Collections.singleton("foo"), allIDs);
+    fv.removeAllIDsFrom(allIDs);
+    assertTrue(allIDs.isEmpty());
   }
 
   @Test
@@ -100,7 +102,7 @@ public final class FeatureVectorsTest extends OryxTest {
     Collection<String> recentIDs = new HashSet<>();
     fv.addAllRecentTo(recentIDs);
     assertEquals(Collections.singleton("foo"), recentIDs);
-    fv.prune(Collections.singleton("foo"));
+    fv.retainRecentAndIDs(Collections.singleton("foo"));
     recentIDs.clear();
     fv.addAllRecentTo(recentIDs);
     assertTrue(recentIDs.isEmpty());
@@ -117,14 +119,13 @@ public final class FeatureVectorsTest extends OryxTest {
       final int numIterations = 1000;
       Collection<Callable<Void>> adds = new ArrayList<>(numThreads);
       for (int i = 0; i < numThreads; i++) {
-        adds.add(new LoggingCallable<Void>() {
+        adds.add(new LoggingVoidCallable() {
           @Override
-          public Void doCall() {
+          public void doCall() {
             for (int j = 0; j < numIterations; j++) {
               int i = counter.getAndIncrement();
               fv.setVector(Integer.toString(i), new float[]{i});
             }
-            return null;
           }
         });
       }
@@ -132,13 +133,12 @@ public final class FeatureVectorsTest extends OryxTest {
 
       Collection<Callable<Void>> removes = new ArrayList<>(numThreads);
       for (int i = 0; i < numThreads; i++) {
-        removes.add(new LoggingCallable<Void>() {
+        removes.add(new LoggingVoidCallable() {
           @Override
-          public Void doCall() {
+          public void doCall() {
             for (int j = 0; j < numIterations; j++) {
               fv.removeVector(Integer.toString(counter.decrementAndGet()));
             }
-            return null;
           }
         });
       }

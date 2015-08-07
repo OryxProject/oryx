@@ -48,16 +48,30 @@ public final class FeatureVectors {
     lock = new AutoReadWriteLock();
   }
 
+  /**
+   * @return number of IDs / feature vectors
+   */
   public int size() {
     return vectors.size();
   }
 
+  /**
+   * @param id ID to get feature vector for
+   * @return feature vector for ID, or {@code null} if doesn't exist
+   */
   public float[] getVector(String id) {
     try (AutoLock al = lock.autoReadLock()) {
       return vectors.get(id);
     }
   }
 
+  /**
+   * Sets the value of a feature vector for an ID. If no feature vector previously existed,
+   * it is considered a "recent" ID until the next {@link #retainRecentAndIDs(Collection)} call.
+   *
+   * @param id ID to set feature vector for
+   * @param vector new feature vector
+   */
   public void setVector(String id, float[] vector) {
     try (AutoLock al = lock.autoWriteLock()) {
       if (vectors.put(id, vector) == null) {
@@ -67,6 +81,9 @@ public final class FeatureVectors {
     }
   }
 
+  /**
+   * @param id ID to remove feature vector for
+   */
   public void removeVector(String id) {
     try (AutoLock al = lock.autoWriteLock()) {
       vectors.remove(id);
@@ -74,20 +91,47 @@ public final class FeatureVectors {
     }
   }
 
+  /**
+   * Adds all IDs that are mapped to a feature vector to a given collection
+   *
+   * @param allIDs collection to add IDs to
+   */
   public void addAllIDsTo(Collection<String> allIDs) {
     try (AutoLock al = lock.autoReadLock()) {
       allIDs.addAll(vectors.keySet());
     }
   }
 
+  /**
+   * Removes all IDs that are mapped to a feature vector from a given collection
+   *
+   * @param allIDs collection to add IDs to
+   */
+  public void removeAllIDsFrom(Collection<String> allIDs) {
+    try (AutoLock al = lock.autoReadLock()) {
+      allIDs.removeAll(vectors.keySet());
+    }
+  }
+
+  /**
+   * Add all recently set IDs to the given collection
+   *
+   * @param allRecent collection to add IDs to
+   */
   public void addAllRecentTo(Collection<String> allRecent) {
     try (AutoLock al = lock.autoReadLock()) {
       allRecent.addAll(recentIDs);
     }
   }
 
-  public void prune(Collection<String> newModelIDs) {
-    // Keep all IDs in the new model, or, that have been added since last model
+  /**
+   * Given IDs that are part of a new model, and whose values are going to be sent later,
+   * retain only IDs that are also in the new model (or have been recently seen -- possibly since
+   * last model was built), and remove the rest.
+   *
+   * @param newModelIDs new model IDs
+   */
+  public void retainRecentAndIDs(Collection<String> newModelIDs) {
     try (AutoLock al = lock.autoWriteLock()) {
       vectors.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
           new NotContainsPredicate<>(newModelIDs), new NotContainsPredicate<>(recentIDs))));
@@ -95,16 +139,27 @@ public final class FeatureVectors {
     }
   }
 
+  /**
+   * @param action function to apply to every ID/vector pair
+   */
   public void forEach(BiConsumer<String,float[]> action) {
     try (AutoLock al = lock.autoReadLock()) {
       vectors.forEach(action);
     }
   }
 
+  /**
+   * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V
+   */
   public RealMatrix getVTV() {
     try (AutoLock al = lock.autoReadLock()) {
       return VectorMath.transposeTimesSelf(vectors.values());
     }
+  }
+
+  @Override
+  public String toString() {
+    return "FeatureVectors[size:" + size() + "]";
   }
 
 }

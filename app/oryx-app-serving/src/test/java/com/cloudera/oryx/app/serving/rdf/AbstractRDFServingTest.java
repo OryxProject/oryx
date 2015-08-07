@@ -22,10 +22,13 @@ import javax.ws.rs.core.GenericType;
 import java.util.Arrays;
 import java.util.List;
 
+import com.typesafe.config.Config;
+
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.app.serving.rdf.model.TestRDFRegressionModelFactory;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
@@ -48,12 +51,16 @@ public abstract class AbstractRDFServingTest extends AbstractServingTest {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, new MockServingModelManager());
+      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY,
+                           new MockServingModelManager(ConfigUtils.getDefault()));
       context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
   }
 
   protected static class MockServingModelManager extends AbstractMockServingModelManager {
+    public MockServingModelManager(Config config) {
+      super(config);
+    }
     @Override
     public RDFServingModel getModel() {
       return TestRDFRegressionModelFactory.buildTestModel();

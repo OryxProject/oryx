@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -42,6 +43,11 @@ public interface ServingModelManager<U> extends Closeable {
    * @throws IOException if an error occurs while reading updates
    */
   void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException;
+
+  /**
+   * @return configuration for the serving layer
+   */
+  Config getConfig();
 
   /**
    * @return in-memory model representation

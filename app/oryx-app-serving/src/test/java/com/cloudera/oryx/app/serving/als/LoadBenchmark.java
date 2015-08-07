@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 
+import com.typesafe.config.Config;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.glassfish.jersey.test.TestProperties;
@@ -36,6 +37,7 @@ import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.app.serving.als.model.LoadTestALSModelFactory;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * Note this test isn't run by default by surefire or failsafe. It is activated by a profile.
@@ -102,13 +104,16 @@ public final class LoadBenchmark extends AbstractALSServingTest {
       extends AbstractALSServingTest.MockManagerInitListener {
     @Override
     protected AbstractALSServingTest.MockServingModelManager getModelManager() {
-      return new MockLoadTestServingModelManager();
+      return new MockLoadTestServingModelManager(ConfigUtils.getDefault());
     }
   }
 
   private static final class MockLoadTestServingModelManager
       extends AbstractALSServingTest.MockServingModelManager {
     private final ALSServingModel model = LoadTestALSModelFactory.buildTestModel();
+    private MockLoadTestServingModelManager(Config config) {
+      super(config);
+    }
     @Override
     public ALSServingModel getModel() {
       return model;

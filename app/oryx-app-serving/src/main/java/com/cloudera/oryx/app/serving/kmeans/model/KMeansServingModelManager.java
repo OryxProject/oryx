@@ -43,10 +43,12 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
   private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private final Config config;
   private final InputSchema inputSchema;
   private KMeansServingModel model;
 
   public KMeansServingModelManager(Config config) {
+    this.config = config;
     inputSchema = new InputSchema(config);
   }
 
@@ -94,6 +96,11 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
           throw new IllegalArgumentException("Bad message: " + km);
       }
     }
+  }
+
+  @Override
+  public Config getConfig() {
+    return config;
   }
 
   @Override

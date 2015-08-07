@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.example
 
+import com.typesafe.config.Config
+
 import scala.collection.{mutable, JavaConversions}
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,7 +31,7 @@ import com.cloudera.oryx.api.serving.ScalaServingModelManager
  * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
  * mapping to the Serving Layer applications.
  */
-class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
+class ExampleScalaServingModelManager(val config: Config) extends ScalaServingModelManager[String] {
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
@@ -55,6 +57,8 @@ class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
       }
     )
   }
+
+  override def getConfig = config
 
   override def getModel = distinctOtherWords
 

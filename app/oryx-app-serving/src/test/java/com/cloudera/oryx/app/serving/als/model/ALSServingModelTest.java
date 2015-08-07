@@ -72,45 +72,45 @@ public final class ALSServingModelTest extends OryxTest {
   }
 
   @Test
-  public void testPruneXY() {
+  public void testRetainUsersItems() {
     ALSServingModel model = new ALSServingModel(2, true, 1.0, null);
 
     model.setUserVector("U0", new float[] { 1.0f, 1.0f });
-    model.pruneX(Collections.<String>emptyList());
+    model.retainRecentAndUserIDs(Collections.<String>emptyList());
     // Protected because of recent user/items
     assertNotNull(model.getUserVector("U0"));
-    model.pruneX(Collections.<String>emptyList());
+    model.retainRecentAndUserIDs(Collections.<String>emptyList());
     assertNull(model.getUserVector("U0"));
 
     model.setUserVector("U0", new float[] { 1.0f, 1.0f });
-    model.pruneX(Arrays.asList("U0"));
+    model.retainRecentAndUserIDs(Arrays.asList("U0"));
     assertNotNull(model.getUserVector("U0"));
-    model.pruneX(Arrays.asList("U0"));
+    model.retainRecentAndUserIDs(Arrays.asList("U0"));
     assertNotNull(model.getUserVector("U0"));
 
     model.setItemVector("I0", new float[]{1.0f, 1.0f});
-    model.pruneY(Collections.<String>emptyList());
+    model.retainRecentAndItemIDs(Collections.<String>emptyList());
     // Protected because of recent user/items
     assertNotNull(model.getItemVector("I0"));
-    model.pruneY(Collections.<String>emptyList());
+    model.retainRecentAndItemIDs(Collections.<String>emptyList());
     assertNull(model.getItemVector("I0"));
 
     model.setItemVector("I0", new float[]{1.0f, 1.0f});
-    model.pruneY(Arrays.asList("I0"));
+    model.retainRecentAndItemIDs(Arrays.asList("I0"));
     assertNotNull(model.getItemVector("I0"));
-    model.pruneY(Arrays.asList("I0"));
+    model.retainRecentAndItemIDs(Arrays.asList("I0"));
     assertNotNull(model.getItemVector("I0"));
   }
 
   @Test
-  public void testPruneKnown() {
+  public void testRetainKnown() {
     ALSServingModel model = new ALSServingModel(2, true, 1.0, null);
     populateKnownItems(model);
     for (int i = 0; i < 10; i++) {
       model.setUserVector("U" + i, new float[] { 0.0f, 0.0f });
       model.setItemVector("I" + i, new float[]{0.0f, 0.0f});
     }
-    model.pruneKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
+    model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
     assertTrue(model.getKnownItems("U3").contains("I4"));
     assertTrue(model.getKnownItems("U4").contains("I4"));
     assertTrue(model.getKnownItems("U6").contains("I6"));
@@ -119,10 +119,10 @@ public final class ALSServingModelTest extends OryxTest {
     assertTrue(model.getKnownItems("U2").contains("I2"));
 
     // Clears recent user/items
-    model.pruneX(Collections.<String>emptyList());
-    model.pruneY(Collections.<String>emptyList());
+    model.retainRecentAndUserIDs(Collections.<String>emptyList());
+    model.retainRecentAndItemIDs(Collections.<String>emptyList());
 
-    model.pruneKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
+    model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
     assertNull(model.getKnownItems("U3"));
     assertTrue(model.getKnownItems("U4").contains("I4"));
     assertTrue(model.getKnownItems("U6").contains("I6"));
@@ -216,6 +216,19 @@ public final class ALSServingModelTest extends OryxTest {
     }
     log.info("Mean matching prefix: {}", meanMatchLength.getResult());
     assertTrue(meanMatchLength.getResult() >= 5.0);
+  }
+
+  @Test
+  public void testFractionLoaded() {
+    assertEquals(1.0f, new ALSServingModel(2, true, 1.0, null).getFractionLoaded());
+    ALSServingModel model = new ALSServingModel(2, true, 1.0, null);
+    model.retainRecentAndUserIDs(Collections.singleton("U1"));
+    model.retainRecentAndItemIDs(Collections.singleton("I0"));
+    assertEquals(0.0f, model.getFractionLoaded());
+    model.setUserVector("U1", new float[] { 1.5f, -2.5f });
+    assertEquals(0.5f, model.getFractionLoaded());
+    model.setItemVector("I0", new float[]{0.5f, 0.0f});
+    assertEquals(1.0f, model.getFractionLoaded());
   }
 
 }

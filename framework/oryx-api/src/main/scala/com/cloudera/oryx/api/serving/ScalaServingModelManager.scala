@@ -16,6 +16,7 @@
 package com.cloudera.oryx.api.serving
 
 import com.cloudera.oryx.api.KeyMessage
+import com.typesafe.config.Config
 import org.apache.hadoop.conf.Configuration
 
 /**
@@ -34,6 +35,11 @@ trait ScalaServingModelManager[U] {
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    */
   def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit
+
+  /**
+   * @return configuration for the serving layer
+   */
+  def getConfig: Config
 
   /**
    * @return in-memory model representation

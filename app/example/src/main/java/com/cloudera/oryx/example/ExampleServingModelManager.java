@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
@@ -34,7 +35,12 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
  */
 public final class ExampleServingModelManager implements ServingModelManager<String> {
 
+  private final Config config;
   private final Map<String,Integer> distinctOtherWords = new HashMap<>();
+
+  public ExampleServingModelManager(Config config) {
+    this.config = config;
+  }
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
@@ -61,6 +67,11 @@ public final class ExampleServingModelManager implements ServingModelManager<Str
           break;
       }
     }
+  }
+
+  @Override
+  public Config getConfig() {
+    return config;
   }
 
   @Override

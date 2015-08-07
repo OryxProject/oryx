@@ -20,11 +20,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -58,10 +60,13 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   private ALSSpeedModel model;
   private final boolean implicit;
   private final boolean noKnownItems;
+  private final double minModelLoadFraction;
 
   public ALSSpeedModelManager(Config config) {
     implicit = config.getBoolean("oryx.als.implicit");
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
+    minModelLoadFraction = config.getDouble("oryx.speed.min-model-load-fraction");
+    Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
   }
 
   @Override
@@ -103,29 +108,19 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
 
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
-          if (model == null) {
 
-            log.info("No previous model; installing new model");
+          if (model == null || features != model.getFeatures()) {
+            log.warn("No previous model, or # features has changed; creating new one");
             model = new ALSSpeedModel(features);
-            log.info("New model loaded: {}", model);
-
-          } else if (features != model.getFeatures()) {
-
-            log.warn("# features has changed! removing old model and installing new one");
-            model = new ALSSpeedModel(features);
-            log.info("New model loaded: {}", model);
-
-          } else {
-
-            log.info("Updating current model");
-            // First, remove users/items no longer in the model
-            List<String> XIDs = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
-            List<String> YIDs = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
-            model.pruneX(XIDs);
-            model.pruneY(YIDs);
-            log.info("Model updated: {}", model);
-
           }
+
+          log.info("Updating model");
+          // Remove users/items no longer in the model
+          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+          model.retainRecentAndUserIDs(XIDs);
+          model.retainRecentAndItemIDs(YIDs);
+          log.info("Model updated: {}", model);
           break;
 
         default:
@@ -136,7 +131,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    if (model == null) {
+    if (model == null || model.getFractionLoaded() < minModelLoadFraction) {
       return Collections.emptyList();
     }
 
