@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.collection.Pair;
@@ -36,12 +37,25 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  */
 public abstract class AbstractALSResource extends AbstractOryxResource {
 
+  private boolean isLoaded;
+
   final ALSServingModel getALSServingModel() throws OryxServingException {
-    ALSServingModel alsServingModel = (ALSServingModel) getServingModelManager().getModel();
-    if (alsServingModel == null) {
+    ServingModelManager<?> modelManager = getServingModelManager();
+    ALSServingModel alsServingModel = (ALSServingModel) modelManager.getModel();
+    if (isLoaded) {
+      return alsServingModel;
+    }
+    if (alsServingModel != null) {
+      double minModelLoadFraction = modelManager.getConfig().getDouble("oryx.serving.min-model-load-fraction");
+      if (alsServingModel.getFractionLoaded() >= minModelLoadFraction) {
+        isLoaded = true;
+      }
+    }
+    if (isLoaded) {
+      return alsServingModel;
+    } else {
       throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
     }
-    return alsServingModel;
   }
 
   static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {

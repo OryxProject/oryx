@@ -49,10 +49,12 @@ public final class RDFServingModelManager implements ServingModelManager<String>
   private static final Logger log = LoggerFactory.getLogger(RDFServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private final Config config;
   private final InputSchema inputSchema;
   private RDFServingModel model;
 
   public RDFServingModelManager(Config config) {
+    this.config = config;
     inputSchema = new InputSchema(config);
   }
 
@@ -123,6 +125,11 @@ public final class RDFServingModelManager implements ServingModelManager<String>
           throw new IllegalArgumentException("Bad message: " + km);
       }
     }
+  }
+
+  @Override
+  public Config getConfig() {
+    return config;
   }
 
   @Override

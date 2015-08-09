@@ -46,11 +46,13 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private final Config config;
   private ALSServingModel model;
   private final double sampleRate;
   private final RescorerProvider rescorerProvider;
 
   public ALSServingModelManager(Config config) {
+    this.config = config;
     String rescorerProviderClass =
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
     rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
@@ -105,35 +107,31 @@ public final class ALSServingModelManager implements ServingModelManager<String>
 
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
-          if (model == null) {
 
-            log.info("No previous model; creating new model");
+          if (model == null || features != model.getFeatures()) {
+            log.warn("No previous model, or # features has changed; creating new one");
             model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
-
-          } else if (features != model.getFeatures()) {
-
-            log.warn("# features has changed! removing old model and creating new one");
-            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
-
-          } else {
-
-            log.info("Updating current model");
-            // Remove users/items no longer in the model
-            Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-            Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.pruneKnownItems(XIDs, YIDs);
-            model.pruneX(XIDs);
-            model.pruneY(YIDs);
-
           }
 
-          log.info("New model: {}", model);
+          log.info("Updating model");
+          // Remove users/items no longer in the model
+          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+          model.retainRecentAndKnownItems(XIDs, YIDs);
+          model.retainRecentAndUserIDs(XIDs);
+          model.retainRecentAndItemIDs(YIDs);
+          log.info("Model updated: {}", model);
           break;
 
         default:
           throw new IllegalArgumentException("Bad message: " + km);
       }
     }
+  }
+
+  @Override
+  public Config getConfig() {
+    return config;
   }
 
   @Override

@@ -78,6 +78,10 @@ public final class ALSServingModel {
   /** Remembers items that each user has interacted with*/
   private final ObjObjMap<String,ObjSet<String>> knownItems; // Right now no corresponding "knownUsers" object
   private final AutoReadWriteLock knownItemsLock;
+  private final ObjSet<String> expectedUserIDs;
+  private final AutoReadWriteLock expectedUserIDsLock;
+  private final ObjSet<String> expectedItemIDs;
+  private final AutoReadWriteLock expectedItemIDsLock;
   /** Number of features used in the model. */
   private final int features;
   /** Whether model uses implicit feedback. */
@@ -109,6 +113,11 @@ public final class ALSServingModel {
 
     knownItems = HashObjObjMaps.newMutableMap();
     knownItemsLock = new AutoReadWriteLock();
+
+    expectedUserIDs = HashObjSets.newMutableSet();
+    expectedUserIDsLock = new AutoReadWriteLock();
+    expectedItemIDs = HashObjSets.newMutableSet();
+    expectedItemIDsLock = new AutoReadWriteLock();
 
     this.features = features;
     this.implicit = implicit;
@@ -145,6 +154,9 @@ public final class ALSServingModel {
   void setUserVector(String user, float[] vector) {
     Preconditions.checkArgument(vector.length == features);
     X.setVector(user, vector);
+    try (AutoLock al = expectedUserIDsLock.autoWriteLock()) {
+      expectedUserIDs.remove(user);
+    }
   }
 
   void setItemVector(String item, float[] vector) {
@@ -162,6 +174,9 @@ public final class ALSServingModel {
       // Then regardless put in new partition
       Y[newPartition].setVector(item, vector);
       yPartitionMap.put(item, newPartition);
+    }
+    try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
+      expectedItemIDs.remove(item);
     }
   }
 
@@ -349,34 +364,49 @@ public final class ALSServingModel {
   }
 
   /**
-   * Prunes the set of users in the model, by retaining only users that are expected to appear
+   * Retains only users that are expected to appear
    * in the upcoming model updates, or, that have arrived recently. This also clears the
    * recent known users data structure.
    *
    * @param users users that should be retained, which are coming in the new model updates
    */
-  void pruneX(Collection<String> users) {
-    X.prune(users);
+  void retainRecentAndUserIDs(Collection<String> users) {
+    X.retainRecentAndIDs(users);
+    try (AutoLock al = expectedUserIDsLock.autoWriteLock()) {
+      expectedUserIDs.clear();
+      expectedUserIDs.addAll(users);
+      X.removeAllIDsFrom(expectedUserIDs);
+    }
   }
 
   /**
-   * Prunes the set of items in the model, by retaining only items that are expected to appear
+   * Retains only items that are expected to appear
    * in the upcoming model updates, or, that have arrived recently. This also clears the
    * recent known items data structure.
    *
    * @param items items that should be retained, which are coming in the new model updates
    */
-  void pruneY(Collection<String> items) {
+  void retainRecentAndItemIDs(Collection<String> items) {
     for (FeatureVectors yPartition : Y) {
-      yPartition.prune(items);
+      yPartition.retainRecentAndIDs(items);
+    }
+    try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
+      expectedItemIDs.clear();
+      expectedItemIDs.addAll(items);
+      for (FeatureVectors yPartition : Y) {
+        yPartition.removeAllIDsFrom(expectedItemIDs);
+      }
     }
   }
 
   /**
-   * Like {@link #pruneX(Collection)} and {@link #pruneY(Collection)} but prunes the
-   * known-items data structure.
+   * Like {@link #retainRecentAndUserIDs(Collection)} and {@link #retainRecentAndItemIDs(Collection)}
+   * but affects the known-items data structure.
+   *
+   * @param users users that should be retained, which are coming in the new model updates
+   * @param items items that should be retained, which are coming in the new model updates
    */
-  void pruneKnownItems(Collection<String> users, final Collection<String> items) {
+  void retainRecentAndKnownItems(Collection<String> users, final Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
     Collection<String> recentUserIDs = HashObjSets.newMutableSet();
     X.addAllRecentTo(recentUserIDs);
@@ -425,6 +455,25 @@ public final class ALSServingModel {
     return total;
   }
 
+  /**
+   * @return fraction of IDs that were expected to be in the model whose value has been
+   *  loaded from an update
+   */
+  public float getFractionLoaded() {
+    int expected = 0;
+    try (AutoLock al = expectedUserIDsLock.autoReadLock()) {
+      expected += expectedUserIDs.size();
+    }
+    try (AutoLock al = expectedItemIDsLock.autoReadLock()) {
+      expected += expectedItemIDs.size();
+    }
+    if (expected == 0) {
+      return 1.0f;
+    }
+    float loaded = (float) getNumUsers() + getNumItems();
+    return loaded / (loaded + expected);
+  }
+
   @Override
   public String toString() {
     int maxSize = 128;
@@ -441,7 +490,7 @@ public final class ALSServingModel {
     }
     return "ALSServingModel[features:" + features + ", implicit:" + implicit +
         ", X:(" + getNumUsers() + " users), Y:(" + getNumItems() + " items, partitions: " +
-        partitionSizes + "...)]";
+        partitionSizes + "...), fractionLoaded:" + getFractionLoaded() + "]";
   }
 
 }

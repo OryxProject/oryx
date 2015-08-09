@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 
 import java.util.List;
 
+import com.typesafe.config.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,6 +31,7 @@ import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.app.serving.rdf.model.TestRDFClassificationModelFactory;
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class ClassificationDistributionTest extends AbstractRDFServingTest {
@@ -80,13 +82,16 @@ public final class ClassificationDistributionTest extends AbstractRDFServingTest
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
       context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY,
-                           new MockClassificationServingModelManager());
+                           new MockClassificationServingModelManager(ConfigUtils.getDefault()));
       context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
   }
 
   protected static class MockClassificationServingModelManager
       extends AbstractMockServingModelManager {
+    public MockClassificationServingModelManager(Config config) {
+      super(config);
+    }
     @Override
     public RDFServingModel getModel() {
       return TestRDFClassificationModelFactory.buildTestModel();
