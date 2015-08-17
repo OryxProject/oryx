@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.4</version>
+        <version>1.2.5</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -499,7 +499,7 @@
     <clirr.version>2.6.1</clirr.version>
     <hadoop.version>2.6.0</hadoop.version>
     <jackson.version>2.4.5</jackson.version>
-    <jersey.version>2.19</jersey.version>
+    <jersey.version>2.21</jersey.version>
     <kafka.version>0.8.2.1</kafka.version>
     <koloboke.version>0.6.7</koloboke.version>
     <slf4j.version>1.7.12</slf4j.version>
@@ -984,7 +984,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>3.0.2</version>
           <configuration>
             <threshold>Normal</threshold>
             <effort>Max</effort>
