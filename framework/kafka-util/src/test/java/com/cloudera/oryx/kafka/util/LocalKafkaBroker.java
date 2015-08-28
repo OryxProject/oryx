@@ -34,7 +34,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
  */
 public final class LocalKafkaBroker implements Closeable {
 
-  public static final int TEST_BROKER_ID = 8675309;
+  public static final int TEST_BROKER_ID = 5;
 
   private static final Logger log = LoggerFactory.getLogger(LocalKafkaBroker.class);
 
