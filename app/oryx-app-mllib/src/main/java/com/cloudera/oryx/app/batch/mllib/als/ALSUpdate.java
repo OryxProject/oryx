@@ -160,7 +160,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     } else {
       double rmse = Evaluation.rmse(mfModel, testRatingData);
       log.info("RMSE: {}", rmse);
-      eval = 1.0 / rmse;
+      eval = -rmse;
     }
     unpersist(mfModel);
     return eval;
@@ -174,6 +174,11 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static void unpersist(MatrixFactorizationModel model) {
     model.userFeatures().unpersist(false);
     model.productFeatures().unpersist(false);
+  }
+
+  @Override
+  public boolean canPublishAdditionalModelData() {
+    return true;
   }
 
   @Override
@@ -194,14 +199,9 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     String updateBroker = modelUpdateTopic.getUpdateBroker();
     String topic = modelUpdateTopic.getTopic();
-    if (noKnownItems) {
-      userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
-    } else {
-      log.info("Sending known item data with model updates");
-      JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
-      userRDD.join(knownItems).foreachPartition(
-          new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
-    }
+
+    // Send item updates first, before users. That way, user-based endpoints like /recommend
+    // may take longer to not return 404, but when they do, the result will be more complete.
 
     log.info("Sending item / Y data as model updates");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
@@ -210,6 +210,15 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     // For now, there is no use in sending known users for each item
     productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
+
+    if (noKnownItems) {
+      userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
+    } else {
+      log.info("Sending known item data with model updates");
+      JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
+      userRDD.join(knownItems).foreachPartition(
+          new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
+    }
   }
 
   /**
@@ -324,12 +333,17 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static final class ParseRatingFn implements PairFunction<String[],Long,Rating> {
     @Override
     public Tuple2<Long,Rating> call(String[] tokens) {
-      return new Tuple2<>(
-          Long.valueOf(tokens[3]),
-          new Rating(parseOrHashInt(tokens[0]),
-                     parseOrHashInt(tokens[1]),
-                     // Empty value means 'delete'; propagate as NaN
-                     tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+      try {
+        return new Tuple2<>(
+            Long.valueOf(tokens[3]),
+            new Rating(parseOrHashInt(tokens[0]),
+                       parseOrHashInt(tokens[1]),
+                       // Empty value means 'delete'; propagate as NaN
+                       tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2])));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(tokens));
+        throw e;
+      }
     }
   }
 

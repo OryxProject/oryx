@@ -37,6 +37,13 @@
         See comments in parent POM. This module itself should be 'provided'. -->
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <!-- Declared compile scope so that it is inherited by modules depending on this.
+        See comments in parent POM. This module itself should be 'provided'. -->
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -45,28 +52,15 @@
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
       </plugin>
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>java7</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <!-- reenable at 2.0.0 release -->
       <!--
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>clirr-maven-plugin</artifactId>
-            <version>${clirr.version}</version>
-          </plugin>
-        </plugins>
-      </build>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${clirr.version}</version>
+      </plugin>
        -->
-    </profile>
-  </profiles>
+    </plugins>
+  </build>
 
 </project>

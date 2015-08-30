@@ -15,33 +15,43 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import net.openhft.koloboke.function.ToDoubleFunction;
-
 import com.cloudera.oryx.common.math.VectorMath;
 
-final class DotsFunction implements ToDoubleFunction<float[]> {
+/**
+ * Computes the dot product of a target vector and other vectors.
+ */
+public final class DotsFunction implements CosineDistanceSensitiveFunction {
 
-  private final double[][] userFeaturesVectors;
+  private final double[] userFeaturesVector;
 
-  DotsFunction(float[] userVector) {
+  public DotsFunction(float[] userVector) {
     this(VectorMath.toDoubles(userVector));
   }
 
-  DotsFunction(double[] userVector) {
-    this.userFeaturesVectors = new double[][] {userVector};
+  public DotsFunction(double[] userVector) {
+    this.userFeaturesVector = userVector;
   }
 
-  DotsFunction(double[][] userFeaturesVectors) {
-    this.userFeaturesVectors = userFeaturesVectors;
+  public DotsFunction(double[][] userFeaturesVectors) {
+    userFeaturesVector = new double[userFeaturesVectors[0].length];
+    for (double[] vec : userFeaturesVectors) {
+      for (int i = 0; i < vec.length; i++) {
+        userFeaturesVector[i] += vec[i];
+      }
+    }
+    for (int i = 0; i < userFeaturesVector.length; i++) {
+      userFeaturesVector[i] /= userFeaturesVectors.length;
+    }
   }
 
   @Override
   public double applyAsDouble(float[] itemVector) {
-    double total = 0.0;
-    for (double[] userFeaturesVector : userFeaturesVectors) {
-      total += VectorMath.dot(userFeaturesVector, itemVector);
-    }
-    return total / userFeaturesVectors.length;
+    return VectorMath.dot(userFeaturesVector, itemVector);
+  }
+
+  @Override
+  public double[] getTargetVector() {
+    return userFeaturesVector;
   }
 
 }

@@ -52,8 +52,6 @@ public final class ALSHyperParamTuningIT extends AbstractALSIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec",
                       AbstractAppMLlibIT.GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec",
-                      AbstractAppMLlibIT.BLOCK_INTERVAL_SEC);
     // Choose pairs of values where the best is predictable
     overlayConfig.put("oryx.als.hyperparams.features", "[1," + TEST_FEATURES + "]");
     overlayConfig.put("oryx.ml.eval.candidates", 2);

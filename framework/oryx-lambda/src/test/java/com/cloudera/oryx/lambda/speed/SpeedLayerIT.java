@@ -39,7 +39,6 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", MockSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 3);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();

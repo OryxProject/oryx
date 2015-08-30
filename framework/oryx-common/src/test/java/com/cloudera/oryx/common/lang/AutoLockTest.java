@@ -28,6 +28,8 @@ public final class AutoLockTest extends OryxTest {
     ReentrantLock lock = new ReentrantLock();
     assertFalse(lock.isHeldByCurrentThread());
     AutoLock al = new AutoLock(lock);
+    assertFalse(lock.isHeldByCurrentThread());
+    al.autoLock();
     assertTrue(lock.isHeldByCurrentThread());
     al.close();
     assertFalse(lock.isHeldByCurrentThread());
@@ -37,7 +39,8 @@ public final class AutoLockTest extends OryxTest {
   public void testAutoClose() {
     ReentrantLock lock = new ReentrantLock();
     assertFalse(lock.isHeldByCurrentThread());
-    try (AutoLock al = new AutoLock(lock)) {
+    AutoLock al = new AutoLock(lock);
+    try (AutoLock al2 = al.autoLock()) {
       assertTrue(lock.isHeldByCurrentThread());
     }
     assertFalse(lock.isHeldByCurrentThread());

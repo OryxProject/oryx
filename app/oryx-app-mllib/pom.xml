@@ -84,17 +84,7 @@
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>kafka-util</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>kafka-util</artifactId>
       <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>zk-util</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

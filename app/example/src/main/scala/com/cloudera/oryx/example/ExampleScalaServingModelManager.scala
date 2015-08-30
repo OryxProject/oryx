@@ -15,21 +15,55 @@
 
 package com.cloudera.oryx.example
 
+import com.typesafe.config.Config
+
+import scala.collection.{mutable, JavaConversions}
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.hadoop.conf.Configuration
+
 import com.cloudera.oryx.api.KeyMessage
 import com.cloudera.oryx.api.serving.ScalaServingModelManager
 
-class ExampleScalaServingModelManager extends ScalaServingModelManager[String] {
+/**
+ * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
+ * strings, mapping words to count of distinct other words that appear with that word in an input line.
+ * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
+ * mapping to the Serving Layer applications.
+ */
+class ExampleScalaServingModelManager(val config: Config) extends ScalaServingModelManager[String] {
 
-  def consume(updateIterator: Iterator[KeyMessage[String,String]]): Unit = {
+  private val distinctOtherWords = mutable.Map[String,Integer]()
 
+  override def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration) = {
+    updateIterator.foreach(km =>
+      km.getKey match {
+        case "MODEL" =>
+          val model = JavaConversions.mapAsScalaMap(
+            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
+          distinctOtherWords.synchronized(
+            distinctOtherWords.clear()
+          )
+          model.foreach { case (word, count) =>
+            distinctOtherWords.synchronized(
+              distinctOtherWords.put(word, count.toInt)
+            )
+          }
+        case "UP" =>
+          val Array(word, count) = km.getMessage.split(",")
+          distinctOtherWords.synchronized(
+            distinctOtherWords.put(word, count.toInt)
+          )
+      }
+    )
   }
 
-  def getModel: AnyRef = {
-    None
-  }
+  override def getConfig = config
 
-  def close(): Unit = {
+  override def getModel = distinctOtherWords
 
+  override def close() = {
+    // do nothing
   }
 
 }

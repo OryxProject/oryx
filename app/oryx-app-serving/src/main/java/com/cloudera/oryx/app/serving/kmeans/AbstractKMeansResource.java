@@ -15,9 +15,9 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -29,23 +29,15 @@ import com.cloudera.oryx.common.collection.Pair;
  */
 public abstract class AbstractKMeansResource extends AbstractOryxResource {
 
-  private KMeansServingModel kmeansModel;
-
-  @Override
-  @PostConstruct
-  public void init() {
-    super.init();
-    kmeansModel = (KMeansServingModel) getServingModelManager().getModel();
-  }
-
   final KMeansServingModel getKMeansModel() throws OryxServingException {
+    KMeansServingModel kmeansModel = (KMeansServingModel) getServingModelManager().getModel();
     if (kmeansModel == null) {
       throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
     }
     return kmeansModel;
   }
 
-  Pair<Integer,Double> cluster(String[] data) throws OryxServingException {
+  Pair<ClusterInfo,Double> cluster(String[] data) throws OryxServingException {
     KMeansServingModel model = getKMeansModel();
     InputSchema inputSchema = model.getInputSchema();
     check(data.length == inputSchema.getNumFeatures(), "Wrong number of features");

@@ -31,7 +31,7 @@ import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 import com.cloudera.oryx.kafka.util.LocalKafkaBroker;
-import com.cloudera.oryx.zk.LocalZKServer;
+import com.cloudera.oryx.kafka.util.LocalZKServer;
 
 /**
  * Superclass of test cases for this module. Takes care of setting up services like
@@ -67,8 +67,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
     String zkHostPort = "localhost:" + localZKPort;
     KafkaUtils.deleteTopic(zkHostPort, INPUT_TOPIC);
     KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
-    KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC);
-    KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC);
+    KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC, 4);
+    KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC, 1);
   }
 
   @After
@@ -97,6 +97,8 @@ public abstract class AbstractLambdaIT extends OryxTest {
     overlay.put("oryx.input-topic.lock.master", topicLockMaster);
     overlay.put("oryx.update-topic.broker", topicBroker);
     overlay.put("oryx.update-topic.lock.master", topicLockMaster);
+    // Make sure to test both MODEL and MODEL-REF messages:
+    overlay.put("oryx.update-topic.message.max-size", Integer.toString(1 << 12));
     String masterLocalAllCores = "\"local[*]\"";
     overlay.put("oryx.batch.streaming.master", masterLocalAllCores);
     overlay.put("oryx.speed.streaming.master", masterLocalAllCores);

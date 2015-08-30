@@ -38,7 +38,6 @@ import com.cloudera.oryx.lambda.batch.AbstractBatchIT;
 public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
 
   protected static final int GEN_INTERVAL_SEC = 10;
-  protected static final int BLOCK_INTERVAL_SEC = 1;
 
   protected static void checkHeader(Header header) {
     assertNotNull(header);

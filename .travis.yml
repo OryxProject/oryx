@@ -1,12 +1,15 @@
 language: java
 sudo: false
-install: mvn -Pjava${JAVA_VERSION} ${CDH} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script: mvn -Pjava${JAVA_VERSION} ${CDH} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
+install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
    # Covers Java 7, Open JDK, and code coverage
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
+   # Covers latest Spark
+   - jdk: oraclejdk7
+     env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.1
    # Covers Java 8, Oracle JDK, CDH5
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh5
@@ -14,8 +17,8 @@ cache:
   directories:
     - $HOME/.m2
 git:
-  depth: 5
-after_success: bash <(curl -s https://codecov.io/bash)
+  depth: 10
+after_success: if [ -n "$JACOCO" ]; then bash <(curl -s https://codecov.io/bash); fi
 env:
   global:
    # COVERITY_SCAN_TOKEN

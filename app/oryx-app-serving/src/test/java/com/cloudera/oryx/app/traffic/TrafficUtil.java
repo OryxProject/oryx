@@ -21,10 +21,6 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +31,10 @@ import java.util.regex.Pattern;
 import com.google.common.base.Preconditions;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,15 +44,15 @@ import com.cloudera.oryx.common.random.RandomManager;
 
 /**
  * Simple utility class for sending traffic to an Oryx cluster for an extended period of time.
- * At the moment, it is oriented towards sending traffic to the built-in ALS-based recommender
- * application.
+ * Required args:
  *
  * <ol>
- *   <li>{@code inputFile} local file containing input to base requests on, one per line.</li>
  *   <li>{@code hosts} comma-separated distinct host:port pairs to send HTTP requests to</li>
  *   <li>{@code requestIntervalMS} average delay between requests in MS</li>
  *   <li>{@code threads} number of concurrent requests</li>
  * </ol>
+ *
+ * These can be followed by more args that are passed to subclasses of {@link Endpoint}.
  */
 public final class TrafficUtil {
 
@@ -63,26 +63,25 @@ public final class TrafficUtil {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length < 4) {
-      System.err.println("usage: TrafficUtil [inputFile] [hosts] [requestIntervalMS] [threads]");
+    if (args.length < 3) {
+      System.err.println("usage: TrafficUtil [hosts] [requestIntervalMS] [threads] [... other args]");
       return;
     }
 
-    Path inputFile = Paths.get(args[0]);
-    Preconditions.checkArgument(Files.exists(inputFile));
-    String[] hostStrings = COMMA.split(args[1]);
+    String[] hostStrings = COMMA.split(args[0]);
     Preconditions.checkArgument(hostStrings.length >= 1);
-    int requestIntervalMS = Integer.parseInt(args[2]);
+    int requestIntervalMS = Integer.parseInt(args[1]);
     Preconditions.checkArgument(requestIntervalMS >= 0);
-    int numThreads = Integer.parseInt(args[3]);
+    final int numThreads = Integer.parseInt(args[2]);
     Preconditions.checkArgument(numThreads >= 1);
+
+    final String[] otherArgs = new String[args.length - 3];
+    System.arraycopy(args, 3, otherArgs, 0, otherArgs.length);
 
     final List<URI> hosts = new ArrayList<>(hostStrings.length);
     for (String hostString : hostStrings) {
       hosts.add(URI.create(hostString));
     }
-
-    final List<String> inputLines = Files.readAllLines(inputFile, StandardCharsets.UTF_8);
 
     final int perClientRequestIntervalMS = numThreads * requestIntervalMS;
 
@@ -107,54 +106,69 @@ public final class TrafficUtil {
             } else {
               msBetweenRequests = null;
             }
-            Client client = ClientBuilder.newClient();
 
-            while (true) {
-              try {
-                WebTarget target = client.target("http://" + hosts.get(random.nextInt(hosts.size())));
-                String input = inputLines.get(random.nextInt(inputLines.size()));
-                Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
-                Invocation invocation = endpoint.makeInvocation(target, input);
+            ClientConfig clientConfig = new ClientConfig();
+            PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+            connectionManager.setMaxTotal(numThreads);
+            connectionManager.setDefaultMaxPerRoute(numThreads);
+            clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER, connectionManager);
+            clientConfig.connectorProvider(new ApacheConnectorProvider());
+            Client client = ClientBuilder.newClient(clientConfig);
 
-                long startTime = System.currentTimeMillis();
-                Response response = invocation.invoke();
-                long elapsedMS = System.currentTimeMillis() - startTime;
+            try {
+              while (true) {
+                try {
+                  WebTarget target = client.target("http://" + hosts.get(random.nextInt(hosts.size())));
+                  Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
+                  Invocation invocation = endpoint.makeInvocation(target, otherArgs, random);
 
-                int statusCode = response.getStatusInfo().getStatusCode();
-                if (statusCode >= 400) {
-                  if (statusCode >= 500) {
-                    serverErrorCount.incrementAndGet();
-                  } else {
-                    clientErrorCount.incrementAndGet();
+                  long startTime = System.currentTimeMillis();
+                  Response response = invocation.invoke();
+                  try {
+                    response.readEntity(String.class);
+                  } finally {
+                    response.close();
                   }
-                  //log.warn("{}", response);
-                }
+                  long elapsedMS = System.currentTimeMillis() - startTime;
 
-                endpoint.recordTiming(elapsedMS);
-
-                if (requestCount.incrementAndGet() % 1000 == 0) {
-                  long elapsed = System.currentTimeMillis() - start;
-                  log.info("{}ms:\t{} requests\t({} client errors\t{} server errors\t{} exceptions)",
-                           elapsed,
-                           requestCount.get(),
-                           clientErrorCount.get(),
-                           serverErrorCount.get(),
-                           exceptionCount.get());
-                  for (Endpoint e : alsEndpoints.getEndpoints()) {
-                    log.info("{}", e);
+                  int statusCode = response.getStatusInfo().getStatusCode();
+                  if (statusCode >= 400) {
+                    if (statusCode >= 500) {
+                      serverErrorCount.incrementAndGet();
+                    } else {
+                      clientErrorCount.incrementAndGet();
+                    }
+                    //log.warn("{}", response);
                   }
-                }
 
-                if (msBetweenRequests != null) {
-                  int desiredElapsedMS = (int) Math.round(msBetweenRequests.sample());
-                  if (elapsedMS < desiredElapsedMS) {
-                    Thread.sleep(desiredElapsedMS - elapsedMS);
+                  endpoint.recordTiming(elapsedMS);
+
+                  if (requestCount.incrementAndGet() % 10000 == 0) {
+                    long elapsed = System.currentTimeMillis() - start;
+                    log.info("{}ms:\t{} requests\t({} client errors\t{} server errors\t{} exceptions)",
+                             elapsed,
+                             requestCount.get(),
+                             clientErrorCount.get(),
+                             serverErrorCount.get(),
+                             exceptionCount.get());
+                    for (Endpoint e : alsEndpoints.getEndpoints()) {
+                      log.info("{}", e);
+                    }
                   }
+
+                  if (msBetweenRequests != null) {
+                    int desiredElapsedMS = (int) Math.round(msBetweenRequests.sample());
+                    if (elapsedMS < desiredElapsedMS) {
+                      Thread.sleep(desiredElapsedMS - elapsedMS);
+                    }
+                  }
+                } catch (Exception e) {
+                  exceptionCount.incrementAndGet();
+                  log.warn("{}", e.getMessage());
                 }
-              } catch (Exception e) {
-                exceptionCount.incrementAndGet();
-                log.warn("{}", e.getMessage());
               }
+            } finally {
+              client.close();
             }
           }
         });

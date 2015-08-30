@@ -60,7 +60,6 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
     int zkPort = getZKPort();
 
     ProduceData produce = new ProduceData(datumGenerator,
-                                          zkPort,
                                           getKafkaBrokerPort(),
                                           INPUT_TOPIC,
                                           howMany,
@@ -81,8 +80,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
       new Thread(consumeInput, "ConsumeInputThread").start();
 
-      // Sleep to let consumer start
-      sleepSeconds(3);
+      consumeInput.awaitRun();
 
       log.info("Producing data");
       produce.start();

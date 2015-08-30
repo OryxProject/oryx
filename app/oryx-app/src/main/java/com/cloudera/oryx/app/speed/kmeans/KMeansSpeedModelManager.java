@@ -15,15 +15,16 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
@@ -37,8 +38,9 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -57,30 +59,27 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           // do nothing, hearing our own updates
           break;
         case "MODEL":
+        case "MODEL-REF":
           log.info("Loading new model");
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
           log.info("New model loaded: {}", model);
           break;
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
 
@@ -137,15 +136,14 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
 
     @Override
     public Tuple2<Integer,Tuple2<double[],Long>> call(String[] data) {
-      double[] featureVector = new double[inputSchema.getNumPredictors()];
-      for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-        if (inputSchema.isActive(featureIndex)) {
-          featureVector[inputSchema.featureToPredictorIndex(featureIndex)] =
-              Double.parseDouble(data[featureIndex]);
-        }
+      try {
+        double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
+        int closestClusterID = model.closestCluster(featureVector).getID();
+        return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(data));
+        throw e;
       }
-      int closestClusterID = model.closestCluster(featureVector);
-      return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
     }
   }
 
@@ -159,8 +157,7 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       for (int i = 0; i < vec1.length; i++) {
         vec1[i] += vec2[i];
       }
-      long totalCount = t1._2() + t2._2();
-      return new Tuple2<>(vec1, totalCount);
+      return new Tuple2<>(vec1, t1._2() + t2._2());
     }
   }
 

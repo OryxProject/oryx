@@ -1,3 +1,5 @@
+title: Documentation
+
 # End Users
 
 ## Running
@@ -96,7 +98,7 @@ configuration.
 
 Soon the model will complete, and it will be persisted as a combination of PMML and supporting
 data files in a subdirectory of `hdfs:///user/example/Oryx/model/`. For example, the
-`model.pmml.gz` files are compressed PMML files containing elements like:
+`model.pmml` files are PMML files containing elements like:
 
 ```
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -168,36 +170,38 @@ Oryx bundles several end-to-end applications, including a Serving Layer with RES
 
 ### Collaborative filtering / Recommendation
 
-* [`/recommend`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Recommend.html)
-* [`/recommendToMany`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/RecommendToMany.html)
-* [`/recommendToAnonymous`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/RecommendToAnonymous.html)
-* [`/similarity`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Similarity.html)
-* [`/similarityToItem`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/SimilarityToItem.html)
-* [`/knownItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/KnownItems.html)
-* [`/estimate`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Estimate.html)
-* [`/estimateForAnonymous`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/EstimateForAnonymous.html)
-* [`/because`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Because.html)
-* [`/mostSurprising`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostSurprising.html)
-* [`/popularRepresentativeItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/PopularRepresentativeItems.html)
-* [`/mostActiveUsers`] (http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
-* [`/mostPopularItems`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostPopularItems.html)
-* [`/mostActiveUsers`] (http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
-* [`/item/allIDs`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/AllItemIDs.html)
-* [`/ready`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Ready.html)
-* [`/pref`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Preference.html)
-* [`/ingest`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/als/Ingest.html)
+* [`/recommend`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Recommend.html)
+* [`/recommendToMany`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/RecommendToMany.html)
+* [`/recommendToAnonymous`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/RecommendToAnonymous.html)
+* [`/similarity`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Similarity.html)
+* [`/similarityToItem`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/SimilarityToItem.html)
+* [`/knownItems`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/KnownItems.html)
+* [`/estimate`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Estimate.html)
+* [`/estimateForAnonymous`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/EstimateForAnonymous.html)
+* [`/because`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Because.html)
+* [`/mostSurprising`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/MostSurprising.html)
+* [`/popularRepresentativeItems`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/PopularRepresentativeItems.html)
+* [`/mostActiveUsers`] (http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
+* [`/mostPopularItems`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/MostPopularItems.html)
+* [`/mostActiveUsers`] (http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/MostActiveUsers.html)
+* [`/item/allIDs`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/AllItemIDs.html)
+* [`/ready`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Ready.html)
+* [`/pref`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Preference.html)
+* [`/ingest`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Ingest.html)
 
 ### Classification / Regression
 
-* [`/predict`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/Predict.html)
-* [`/classificationDistribution`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/ClassificationDistribution.html)
-* [`/train`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/rdf/Train.html)
+* [`/predict`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Predict.html)
+* [`/classificationDistribution`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/ClassificationDistribution.html)
+* [`/ready`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Ready.html)
+* [`/train`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/rdf/Train.html)
 
 ### Clustering
 
-* [`/assign`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/Assign.html)
-* [`/distanceToNearest`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/DistanceToNearest.html)
-* [`/add`](http://oryxproject.github.io/oryx/apidocs/com/cloudera/oryx/app/serving/kmeans/Add.html)
+* [`/assign`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Assign.html)
+* [`/distanceToNearest`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/DistanceToNearest.html)
+* [`/ready`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Ready.html)
+* [`/add`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/kmeans/Add.html)
 
 ## Configuration
 
@@ -425,8 +429,19 @@ Speed Layer, and the other carries model updates from there on to the Serving La
 names of these topics are `OryxInput` and `OryxUpdate` respectively. They need to be
 created before Oryx is started.
 
-Each can default to have one partition, but more can be configured if much higher read
-throughput is needed. Replication factor can be any value, but at least 2 is recommended.
+The number of partitions for the _input_ topic will affect the number of partitions, and 
+therefore parallelism, of the Spark Streaming jobs that consume them. For example, the
+Batch Layer reads partitions of historical data from HDFS and from Kafka. If the input
+topic has just one partition but a large amount of data arrives per interval, then the
+Kafka-based partition of the input may be relatively very large and take a long time 
+to process. A good rule of thumb may be to choose a number of topic partitions such that the
+amount of data that arrives in one batch interval is expected to be about the same as
+one HDFS block, which is 128MB by default.
+The provided `oryx-run.sh kafka-setup` script configures a default of 4 partitions, but
+this can be changed later. Note that there is no purpose in configuring more than 1
+partition for the _update_ topic.
+
+Replication factor can be any value, but at least 2 is recommended.
 Note that the replication factor can't exceed the number of Kafka brokers in the cluster.
 
 You may need to configure the retention time for one or both topics. In particular,
@@ -438,6 +453,21 @@ Setting it
 to twice the Batch Layer update interval is a good start. For example, to set it to 1 day
 (24 * 60 * 60 * 1000 = 86400000 ms), set the topic's `retention.ms` property to 86400000.
 This is done automatically by the provided `oryx-run.sh kafka-setup` script.
+
+The two topics above may contain large messages; in particular the update topic includes 
+entire serialized PMML models. It's possible that they exceed Kafka's default max message 
+size of 1 MiB. If large models are expected, then the topic's `max.message.bytes` should
+be configured to allow larger messages. `oryx-run.sh kafka-setup` sets a default of 16 MiB
+for the update topic. This is also the default maximum size of a model that Oryx will attempt
+to write to the update topic; larger models will be passed as a reference to the model
+file's location on HDFS instead. See setting `oryx.update-topic.message.max-size`.
+
+The Kafka broker's `message.max.bytes` (note the different name!) property also controls 
+this, but setting it affects all topics managed by the broker, which may be undesirable.
+See [Performance and Resource Considerations](http://www.cloudera.com/content/cloudera/en/documentation/cloudera-kafka/latest/topics/kafka_performance.html)
+for a more complete discussion. In particular, note that `replica.fetch.max.bytes` would
+have to be set in the broker in order to _replicate_ any very large messages. There is no
+per-topic equivalent to this.
 
 ### Automated Configuration
 
@@ -468,15 +498,18 @@ Input topic OryxInput does not exist. Create it? y
 Creating topic OryxInput
 Created topic "OryxInput".
 Status of topic OryxInput:
-Topic:OryxInput	PartitionCount:1	ReplicationFactor:2	Configs:
+Topic:OryxInput	PartitionCount:4	ReplicationFactor:2	Configs:
 	Topic: OryxInput	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
+	Topic: OryxInput	Partition: 1	Leader: 121	Replicas: 121,120	Isr: 121,120
+	Topic: OryxInput	Partition: 2	Leader: 120	Replicas: 120,121	Isr: 120,121
+	Topic: OryxInput	Partition: 3	Leader: 121	Replicas: 121,120	Isr: 121,120
 
 Update topic OryxUpdate does not exist. Create it? y
 Creating topic OryxUpdate
 Created topic "OryxUpdate".
 Updated config for topic "OryxUpdate".
 Status of topic OryxUpdate:
-Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000
+Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000,max.message.bytes=16777216
 	Topic: OryxUpdate	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
 ```
 
@@ -666,7 +699,7 @@ as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN
 and Zookeeper services. Your environment or cluster must be updated to include these services 
 before you can use Oryx 2.
 
-## Troubleshooting
+## Troubleshooting / FAQ
 
 ### Unsupported major.minor version 51.0
 
@@ -696,3 +729,27 @@ The relevant app settings are:
 This means your YARN configuration limits the maximum container size that can be requested.
 Increase the Container Memory Maximum (`yarn.scheduler.maximum-allocation-mb`)
 to something larger. For Spark, it generally makes sense to allow large containers.
+
+### IllegalArgumentException: Wrong FS
+
+```
+java.lang.IllegalArgumentException: Wrong FS: hdfs:..., expected: file:///
+    	at org.apache.hadoop.fs.FileSystem.checkPath(FileSystem.java:645)
+```
+
+This typically means you are using HDFS, but your Hadoop config (e.g. `core-site.xml`, typically in
+`/etc/hadoop/conf` is not on the classpath. If you're building a custom `compute-classpath.sh` script
+make sure to include this directory along with JARs.
+
+### I need to purge all previous data and start again
+
+Input data exists in the input Kafka topic for a time before being copied into HDFS. So,
+input potentially exists as unread message in this topic as well as in the HDFS directory
+defined by `orxy.batch.storage.data-dir`. It's easy to delete the data in HDFS; it's harder
+to ensure older data in the input topic is not read.
+
+The simplest solution is to create a new input topic and change configuration to use it.
+Then, also delete any pre-existing data in HDFS (or use a new directory). Similarly, since the 
+update topic is read from the beginning, it's easiest to make a new update topic instead.
+While it's possible to reuse the existing topics by carefully managing offsets in Kafka or
+chaning the instance `oryx.id` value, these are possibly more complex.

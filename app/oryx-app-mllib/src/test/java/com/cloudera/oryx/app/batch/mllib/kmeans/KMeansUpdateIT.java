@@ -29,6 +29,7 @@ import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -52,7 +53,6 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", NUM_CLUSTERS);
     overlayConfig.put("oryx.kmeans.iterations", 5);
     overlayConfig.put("oryx.input-schema.num-features", NUM_FEATURES);
@@ -88,9 +88,8 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertEquals("MODEL", type);
-
-      PMML pmml = PMMLUtils.fromString(value);
+      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
       checkHeader(pmml.getHeader());
 

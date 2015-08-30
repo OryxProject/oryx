@@ -46,4 +46,7 @@ public abstract class TreeNode implements Serializable {
    */
   public abstract boolean isTerminal();
 
+  @Override
+  public abstract String toString();
+
 }

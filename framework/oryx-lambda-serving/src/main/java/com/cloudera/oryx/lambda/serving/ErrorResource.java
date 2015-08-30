@@ -37,7 +37,7 @@ public final class ErrorResource {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response error(@Context HttpServletRequest request) {
+  public Response errorHTML(@Context HttpServletRequest request) {
     StringBuilder html = new StringBuilder(1000);
 
     html.append("<!DOCTYPE html>" +
@@ -81,6 +81,49 @@ public final class ErrorResource {
     Response.Status finalStatus = statusCode == null ?
         Response.Status.OK : Response.Status.fromStatusCode(statusCode.intValue());
     return Response.status(finalStatus).entity(html.toString()).build();
+  }
+
+  @GET
+  @Produces(MediaType.TEXT_PLAIN)
+  public Response errorText(@Context HttpServletRequest request) {
+    StringBuilder text = new StringBuilder(1000);
+
+    text.append("Error");
+    Number statusCode = (Number) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+    if (statusCode != null) {
+      text.append(' ').append(statusCode);
+    }
+    Object requestURI = request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
+    if (requestURI != null) {
+      text.append(" : ");
+      text.append(requestURI);
+    }
+    text.append('\n');
+
+    Object message = request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
+    if (message != null) {
+      text.append(message).append('\n');
+    }
+
+    Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+    if (throwable != null) {
+      StringWriter sw = new StringWriter();
+      throwable.printStackTrace(new PrintWriter(sw));
+      text.append(sw);
+    }
+
+    Response.Status finalStatus = statusCode == null ?
+        Response.Status.OK : Response.Status.fromStatusCode(statusCode.intValue());
+    return Response.status(finalStatus).entity(text.toString()).build();
+  }
+
+  @GET
+  @Produces(MediaType.WILDCARD)
+  public Response errorEmpty(@Context HttpServletRequest request) {
+    Number statusCode = (Number) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+    Response.Status finalStatus = statusCode == null ?
+        Response.Status.OK : Response.Status.fromStatusCode(statusCode.intValue());
+    return Response.status(finalStatus).build();
   }
 
 }

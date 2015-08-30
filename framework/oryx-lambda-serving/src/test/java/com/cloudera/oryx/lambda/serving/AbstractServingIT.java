@@ -62,14 +62,9 @@ public abstract class AbstractServingIT extends AbstractLambdaIT {
 
   protected final void startUpdateTopics(DatumGenerator<String,String> updateGenerator,
                                          int howManyUpdate) throws InterruptedException {
-
-    int zkPort = getZKPort();
-    int kafkaPort = getKafkaBrokerPort();
-
     log.info("Producing updates");
     new ProduceData(updateGenerator,
-                    zkPort,
-                    kafkaPort,
+                    getKafkaBrokerPort(),
                     UPDATE_TOPIC,
                     howManyUpdate,
                     0).start();

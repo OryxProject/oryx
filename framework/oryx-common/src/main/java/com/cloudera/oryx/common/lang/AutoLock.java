@@ -15,28 +15,52 @@
 
 package com.cloudera.oryx.common.lang;
 
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Makes a {@link Lock} into an {@link AutoCloseable} for use with try-with-resources:
  *
  * {@code
- *   try (AutoLock al = new AutoLock(lock)) {
+ *   Lock lock = ...;
+ *   ...
+ *   AutoLock autoLock = new AutoLock(lock);
+ *   // Not locked
+ *   try (AutoLock al = autoLock.autoLock()) { // variable required but unused
+ *     // Locked
  *     ...
  *   }
+ *   // Not locked
  * }
  */
-public final class AutoLock implements AutoCloseable {
+public final class AutoLock implements AutoCloseable, Lock {
 
   private final Lock lock;
 
   /**
-   * Locks the given {@link Lock}.
+   * Manages a new {@link ReentrantLock}.
+   */
+  public AutoLock() {
+    this(new ReentrantLock());
+  }
+
+  /**
    * @param lock lock to manage
    */
   public AutoLock(Lock lock) {
+    Objects.requireNonNull(lock);
     this.lock = lock;
-    lock.lock();
+  }
+
+  /**
+   * @return this, after calling {@link #lock()}
+   */
+  public AutoLock autoLock() {
+    lock();
+    return this;
   }
 
   /**
@@ -44,7 +68,42 @@ public final class AutoLock implements AutoCloseable {
    */
   @Override
   public void close() {
+    unlock();
+  }
+
+  @Override
+  public void lock() {
+    lock.lock();
+  }
+
+  @Override
+  public void lockInterruptibly() throws InterruptedException {
+    lock.lockInterruptibly();
+  }
+
+  @Override
+  public boolean tryLock() {
+    return lock.tryLock();
+  }
+
+  @Override
+  public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+    return lock.tryLock(time, unit);
+  }
+
+  @Override
+  public void unlock() {
     lock.unlock();
+  }
+
+  @Override
+  public Condition newCondition() {
+    return lock.newCondition();
+  }
+
+  @Override
+  public String toString() {
+    return "AutoLock:" + lock;
   }
 
 }

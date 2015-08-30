@@ -25,16 +25,27 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.serving.als.TestALSRescorerProvider;
 import com.cloudera.oryx.common.lang.JVMUtils;
+import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.random.RandomManager;
 
 public final class LoadTestALSModelFactory {
 
   private static final Logger log = LoggerFactory.getLogger(LoadTestALSModelFactory.class);
 
-  public static final int USERS = 100_000;
-  public static final int ITEMS = 2_000_000;
-  private static final int FEATURES = 100;
-  private static final int AVG_ITEMS_PER_USER = 20;
+  public static final int USERS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.users", "500000"));
+  public static final int ITEMS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.items", "2000000"));
+  public static final int WORKERS =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.workers", "4"));
+  public static final int REQS_PER_WORKER =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.reqsPerWorker", "100"));
+  private static final int FEATURES =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.features", "100"));
+  private static final int AVG_ITEMS_PER_USER =
+      Integer.parseInt(System.getProperty("oryx.test.als.benchmark.avgItemsPerUser", "20"));
+  private static final double LSH_SAMPLE_RATE =
+      Double.parseDouble(System.getProperty("oryx.test.als.benchmark.lshSampleRate", "0.3"));
 
   private LoadTestALSModelFactory() {}
 
@@ -51,12 +62,13 @@ public final class LoadTestALSModelFactory {
         AVG_ITEMS_PER_USER,
         PoissonDistribution.DEFAULT_EPSILON,
         PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-    ALSServingModel model = new ALSServingModel(FEATURES, true, new TestALSRescorerProvider());
+    ALSServingModel model = new ALSServingModel(FEATURES, true, LSH_SAMPLE_RATE, new TestALSRescorerProvider());
 
+    log.info("Adding {} users", USERS);
     long totalEntries = 0;
     for (int user = 0; user < USERS; user++) {
       String userID = "U" + user;
-      model.setUserVector(userID, randomVector(random));
+      model.setUserVector(userID, VectorMath.randomVectorF(FEATURES, random));
       int itemsPerUser = itemPerUserDist.sample();
       totalEntries += itemsPerUser;
       Collection<String> knownIDs = new ArrayList<>(itemsPerUser);
@@ -66,8 +78,9 @@ public final class LoadTestALSModelFactory {
       model.addKnownItems(userID, knownIDs);
     }
 
+    log.info("Adding {} items", ITEMS);
     for (int item = 0; item < ITEMS; item++) {
-      model.setItemVector("I" + item, randomVector(random));
+      model.setItemVector("I" + item, VectorMath.randomVectorF(FEATURES, random));
     }
 
     System.gc();
@@ -77,15 +90,8 @@ public final class LoadTestALSModelFactory {
         USERS, ITEMS, FEATURES,
         totalEntries,
         (endMemory - startMemory) / 1_000_000);
+    log.info("Model: {}", model);
     return model;
-  }
-
-  private static float[] randomVector(RandomGenerator random) {
-    float[] vector = new float[FEATURES];
-    for (int i = 0; i < FEATURES; i++) {
-      vector[i] = random.nextFloat();
-    }
-    return vector;
   }
 
 }

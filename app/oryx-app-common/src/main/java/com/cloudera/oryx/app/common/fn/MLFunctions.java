@@ -18,6 +18,8 @@ package com.cloudera.oryx.app.common.fn;
 import java.io.IOException;
 
 import org.apache.spark.api.java.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.common.text.TextUtils;
@@ -28,6 +30,8 @@ import com.cloudera.oryx.common.text.TextUtils;
  */
 public final class MLFunctions {
 
+  private static final Logger log = LoggerFactory.getLogger(MLFunctions.class);
+
   private MLFunctions() {}
 
   /**
@@ -37,13 +41,18 @@ public final class MLFunctions {
       new Function<String,String[]>() {
         @Override
         public String[] call(String line) throws IOException {
-          // Hacky, but effective way of differentiating simple CSV from JSON array
-          if (line.startsWith("[") && line.endsWith("]")) {
-            // JSON
-            return TextUtils.parseJSONArray(line);
-          } else {
-            // CSV
-            return TextUtils.parseDelimited(line, ',');
+          try {
+            // Hacky, but effective way of differentiating simple CSV from JSON array
+            if (line.startsWith("[") && line.endsWith("]")) {
+              // JSON
+              return TextUtils.parseJSONArray(line);
+            } else {
+              // CSV
+              return TextUtils.parseDelimited(line, ',');
+            }
+          } catch (NumberFormatException | ArrayIndexOutOfBoundsException | IOException e) {
+            log.warn("Bad input: {}", line);
+            throw e;
           }
         }
       };
@@ -55,7 +64,12 @@ public final class MLFunctions {
       new Function<String,Long>() {
         @Override
         public Long call(String line) throws Exception {
-          return Long.valueOf(PARSE_FN.call(line)[3]);
+          try {
+            return Long.valueOf(PARSE_FN.call(line)[3]);
+          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            log.warn("Bad input: {}", line);
+            throw e;
+          }
         }
       };
 

@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda.speed;
 import java.util.Iterator;
 import java.util.Objects;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import scala.collection.JavaConversions;
 
@@ -42,8 +43,8 @@ public final class ScalaSpeedModelManagerAdapter<K,M,U> implements SpeedModelMan
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, U>> updateIterator) {
-    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator));
+  public void consume(Iterator<KeyMessage<String, U>> updateIterator, Configuration hadoopConf) {
+    scalaManager.consume(JavaConversions.asScalaIterator(updateIterator), hadoopConf);
   }
 
   @Override

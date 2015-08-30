@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Objects;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
@@ -36,6 +37,7 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,7 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingRunnable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.KafkaUtils;
 
 /**
  * {@link ServletContextListener} that initializes a {@link ServingModelManager} at web
@@ -67,8 +70,10 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
   private Config config;
   private String updateTopic;
+  private int maxMessageSize;
   private String updateTopicLockMaster;
   private String inputTopic;
+  private String inputTopicLockMaster;
   private String inputTopicBroker;
   private String modelManagerClassName;
   private Class<? extends Decoder<U>> updateDecoderClass;
@@ -82,12 +87,15 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     Objects.requireNonNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
+    this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
     this.inputTopicBroker = config.getString("oryx.input-topic.broker");
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    Preconditions.checkArgument(maxMessageSize > 0);
   }
 
   @Override
@@ -96,6 +104,11 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     ServletContext context = sce.getServletContext();
     init(context);
 
+    Preconditions.checkArgument(KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
+                                "Topic %s does not exist; did you create it?", inputTopic);
+    Preconditions.checkArgument(KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+                                "Topic %s does not exist; did you create it?", updateTopic);
+
     inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
     context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
 
@@ -103,8 +116,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis(),
             "zookeeper.connect", updateTopicLockMaster,
-            // Added to support bigger messages 50MB than default 1MB, i.e. When features are bigger
-            "fetch.message.max.bytes", 52428800,
+            "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
             "auto.offset.reset", "smallest"
         )));
@@ -125,7 +137,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() throws IOException {
-        modelManager.consume(transformed);
+        // Can we do better than a default Hadoop config? Nothing else provides it here
+        modelManager.consume(transformed, new Configuration());
       }
     }, "OryxServingLayerUpdateConsumerThread").start();
 

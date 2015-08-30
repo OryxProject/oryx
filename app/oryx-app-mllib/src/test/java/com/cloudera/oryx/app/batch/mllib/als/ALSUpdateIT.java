@@ -61,7 +61,6 @@ public final class ALSUpdateIT extends AbstractALSIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.als.implicit", false);
     overlayConfig.put("oryx.als.hyperparams.lambda", LAMBDA);
     overlayConfig.put("oryx.als.hyperparams.features", FEATURES);
@@ -115,11 +114,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       log.debug("{} = {}", type, value);
 
-      boolean isModel = "MODEL".equals(type);
-      boolean isUpdate = "UP".equals(type);
-      assertTrue(isModel || isUpdate);
-
-      if (isUpdate) {
+      if ("UP".equals(type)) {
 
         assertNotNull(seenUsers);
         assertNotNull(seenProducts);
@@ -155,7 +150,8 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
-        PMML pmml = PMMLUtils.fromString(value);
+        assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
         checkHeader(pmml.getHeader());
 

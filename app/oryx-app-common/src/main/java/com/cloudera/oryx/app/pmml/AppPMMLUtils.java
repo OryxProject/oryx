@@ -15,6 +15,10 @@
 
 package com.cloudera.oryx.app.pmml;
 
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +29,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.CharStreams;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.dmg.pmml.Array;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
@@ -41,6 +49,7 @@ import org.dmg.pmml.Value;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -259,6 +268,34 @@ public final class AppPMMLUtils {
       }
     }
     return new CategoricalValueEncodings(indexToValues);
+  }
+
+  public static PMML readPMMLFromUpdateKeyMessage(String key,
+                                                  String message,
+                                                  Configuration hadoopConf) throws IOException {
+    String pmmlString;
+    switch (key) {
+      case "MODEL":
+        pmmlString = message;
+        break;
+      case "MODEL-REF":
+        // Allowing null is mostly for integration tests
+        if (hadoopConf == null) {
+          hadoopConf = new Configuration();
+        }
+        FileSystem fs = FileSystem.get(hadoopConf);
+        try (InputStreamReader in = new InputStreamReader(fs.open(new Path(message)), StandardCharsets.UTF_8)) {
+          pmmlString = CharStreams.toString(in);
+        }
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown key " + key);
+    }
+    try {
+      return PMMLUtils.fromString(pmmlString);
+    } catch (JAXBException e) {
+      throw new IOException(e);
+    }
   }
 
 }

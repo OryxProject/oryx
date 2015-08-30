@@ -19,6 +19,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
+
 import com.cloudera.oryx.api.KeyMessage;
 
 /**
@@ -36,9 +39,15 @@ public interface ServingModelManager<U> extends Closeable {
    * update topic. This will be executed asynchronously and may block.
    *
    * @param updateIterator iterator to read models from
+   * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    * @throws IOException if an error occurs while reading updates
    */
-  void consume(Iterator<KeyMessage<String,U>> updateIterator) throws IOException;
+  void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException;
+
+  /**
+   * @return configuration for the serving layer
+   */
+  Config getConfig();
 
   /**
    * @return in-memory model representation

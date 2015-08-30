@@ -1,8 +1,12 @@
+*.iml
+.checkstyle
+.classpath
+.project
+.settings/
+.idea/
 target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.next
 release.properties
-*.iml
-.idea/
 dependency-reduced-pom.xml

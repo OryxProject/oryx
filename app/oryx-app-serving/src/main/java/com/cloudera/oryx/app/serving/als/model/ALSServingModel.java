@@ -15,13 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Callable;
@@ -29,8 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -44,20 +40,21 @@ import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
-import net.openhft.koloboke.function.ToDoubleFunction;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.app.serving.als.CosineDistanceSensitiveFunction;
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.PairComparators;
 import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
+import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
-import com.cloudera.oryx.common.math.VectorMath;
 
 /**
  * Contains all data structures needed to serve real-time requests for an ALS-based recommender.
@@ -65,30 +62,26 @@ import com.cloudera.oryx.common.math.VectorMath;
 public final class ALSServingModel {
 
   /** Number of partitions for items data structures. */
-  private static final int PARTITIONS = Runtime.getRuntime().availableProcessors();
-  // PARTITIONS == 1 is supported mostly for testing now
-  private static final ExecutorService executor = PARTITIONS <= 1 ? null :
-      Executors.newFixedThreadPool(PARTITIONS,
-          new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSServingModel-%d").build());
+  private static final ExecutorService executor = Executors.newFixedThreadPool(
+      Runtime.getRuntime().availableProcessors(),
+      new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSServingModel-%d").build());
 
-  /** User-feature matrix, where row is keyed by user ID string and row is a dense float array. */
-  private final ObjObjMap<String,float[]> X;
-  /**
-   * Item-feature matrix, where row is keyed by item ID string and row is a dense float array.
-   * This is partitioned into several maps for parallel access.
-   */
-  private final ObjObjMap<String,float[]>[] Y;
-  /** Remembers user IDs added since last model. */
-  private final Collection<String> recentNewUsers;
-  /** Remembers item IDs added since last model. Partitioned like Y. */
-  private final Collection<String>[] recentNewItems;
+  private final LocalitySensitiveHash lsh;
+  /** User-feature matrix. */
+  private final FeatureVectors X;
+  /** Item-feature matrix. This is partitioned into several maps for parallel access. */
+  private final FeatureVectors[] Y;
+  /** Maps item IDs to their existing partition, if any */
+  private final ObjIntMap<String> yPartitionMap;
+  /** Controls access to yPartitionMap. */
+  private final AutoReadWriteLock yPartitionMapLock;
   /** Remembers items that each user has interacted with*/
-  private final ObjObjMap<String,ObjSet<String>> knownItems;
-  // Right now no corresponding "knownUsers" object
-  /** Controls access to X, knownItems, and recentNewUsers. */
-  private final ReadWriteLock xLock;
-  /** Controls access to partitions of Y, and is also used to control access to recentNewItems. */
-  private final ReadWriteLock[] yLocks;
+  private final ObjObjMap<String,ObjSet<String>> knownItems; // Right now no corresponding "knownUsers" object
+  private final AutoReadWriteLock knownItemsLock;
+  private final ObjSet<String> expectedUserIDs;
+  private final AutoReadWriteLock expectedUserIDsLock;
+  private final ObjSet<String> expectedItemIDs;
+  private final AutoReadWriteLock expectedItemIDsLock;
   /** Number of features used in the model. */
   private final int features;
   /** Whether model uses implicit feedback. */
@@ -100,31 +93,31 @@ public final class ALSServingModel {
    *
    * @param features number of features expected for user/item feature vectors
    * @param implicit whether model implements implicit feedback
+   * @param sampleRate consider only approximately this fraction of all items when making recommendations.
+   *  Candidates are chosen intelligently with locality sensitive hashing.
    * @param rescorerProvider optional instance of a {@link RescorerProvider}
    */
-  @SuppressWarnings("unchecked")
-  ALSServingModel(int features, boolean implicit, RescorerProvider rescorerProvider) {
+  ALSServingModel(int features, boolean implicit, double sampleRate, RescorerProvider rescorerProvider) {
     Preconditions.checkArgument(features > 0);
+    Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
 
-    X = HashObjObjMaps.newMutableMap();
-    Y = (ObjObjMap<String,float[]>[]) Array.newInstance(ObjObjMap.class, PARTITIONS);
+    lsh = new LocalitySensitiveHash(sampleRate, features);
+
+    X = new FeatureVectors();
+    Y = new FeatureVectors[lsh.getNumPartitions()];
     for (int i = 0; i < Y.length; i++) {
-      Y[i] = HashObjObjMaps.newMutableMap();
+      Y[i] = new FeatureVectors();
     }
-
-    recentNewUsers = new HashSet<>();
-    recentNewItems = (Collection<String>[]) Array.newInstance(HashSet.class, PARTITIONS);
-    for (int i = 0; i < recentNewItems.length; i++) {
-      recentNewItems[i] = new HashSet<>();
-    }
+    yPartitionMap = HashObjIntMaps.newMutableMap();
+    yPartitionMapLock = new AutoReadWriteLock();
 
     knownItems = HashObjObjMaps.newMutableMap();
+    knownItemsLock = new AutoReadWriteLock();
 
-    xLock = new ReentrantReadWriteLock();
-    yLocks = new ReentrantReadWriteLock[Y.length];
-    for (int i = 0; i < yLocks.length; i++) {
-      yLocks[i] = new ReentrantReadWriteLock();
-    }
+    expectedUserIDs = HashObjSets.newMutableSet();
+    expectedUserIDsLock = new AutoReadWriteLock();
+    expectedItemIDs = HashObjSets.newMutableSet();
+    expectedItemIDsLock = new AutoReadWriteLock();
 
     this.features = features;
     this.implicit = implicit;
@@ -143,43 +136,47 @@ public final class ALSServingModel {
     return rescorerProvider;
   }
 
-  private static int partition(Object o) {
-    return (o.hashCode() & 0x7FFFFFFF) % PARTITIONS;
-  }
-
   public float[] getUserVector(String user) {
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
-      return X.get(user);
-    }
+    return X.getVector(user);
   }
 
   public float[] getItemVector(String item) {
-    int partition = partition(item);
-    try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
-      return Y[partition].get(item);
+    int partition;
+    try (AutoLock al = yPartitionMapLock.autoReadLock()) {
+      partition = yPartitionMap.getOrDefault(item, Integer.MIN_VALUE);
     }
+    if (partition < 0) {
+      return null;
+    }
+    return Y[partition].getVector(item);
   }
 
   void setUserVector(String user, float[] vector) {
-    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    try (AutoLock al = new AutoLock(xLock.writeLock())) {
-      if (X.put(user, vector) == null) {
-        // User was actually new
-        recentNewUsers.add(user);
-      }
+    X.setVector(user, vector);
+    try (AutoLock al = expectedUserIDsLock.autoWriteLock()) {
+      expectedUserIDs.remove(user);
     }
   }
 
   void setItemVector(String item, float[] vector) {
-    Objects.requireNonNull(vector);
     Preconditions.checkArgument(vector.length == features);
-    int partition = partition(item);
-    try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
-      if (Y[partition].put(item, vector) == null) {
-        // Item was actually new
-        recentNewItems[partition].add(item);
+    int newPartition = lsh.getIndexFor(vector);
+    // Exclusive update to mapping -- careful since other locks are acquired inside here
+    try (AutoLock al = yPartitionMapLock.autoWriteLock()) {
+      int existingPartition = yPartitionMap.getOrDefault(item, Integer.MIN_VALUE);
+      if (existingPartition >= 0 && existingPartition != newPartition) {
+        // Move from one to the other partition, so first remove old entry
+        Y[existingPartition].removeVector(item);
+        // Note that it's conceivable that a recommendation call sees *no* copy of this
+        // item here in this brief window
       }
+      // Then regardless put in new partition
+      Y[newPartition].setVector(item, vector);
+      yPartitionMap.put(item, newPartition);
+    }
+    try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
+      expectedItemIDs.remove(item);
     }
   }
 
@@ -193,7 +190,7 @@ public final class ALSServingModel {
   }
 
   private ObjSet<String> doGetKnownItems(String user) {
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    try (AutoLock al = knownItemsLock.autoReadLock()) {
       return knownItems.get(user);
     }
   }
@@ -203,7 +200,7 @@ public final class ALSServingModel {
    */
   public Map<String,Integer> getUserCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    try (AutoLock al = knownItemsLock.autoReadLock()) {
       for (Map.Entry<String,ObjSet<String>> entry : knownItems.entrySet()) {
         String userID = entry.getKey();
         Collection<?> ids = entry.getValue();
@@ -222,7 +219,7 @@ public final class ALSServingModel {
    */
   public Map<String,Integer> getItemCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    try (AutoLock al = knownItemsLock.autoReadLock()) {
       for (Collection<String> ids : knownItems.values()) {
         synchronized (ids) {
           for (String id : ids) {
@@ -238,7 +235,7 @@ public final class ALSServingModel {
     ObjSet<String> knownItemsForUser = doGetKnownItems(user);
 
     if (knownItemsForUser == null) {
-      try (AutoLock al = new AutoLock(xLock.writeLock())) {
+      try (AutoLock al = knownItemsLock.autoWriteLock()) {
         // Check again
         knownItemsForUser = knownItems.get(user);
         if (knownItemsForUser == null) {
@@ -253,6 +250,10 @@ public final class ALSServingModel {
     }
   }
 
+  /**
+   * @param user user to get known item vectors for
+   * @return {@code null} if the user is not known to the model, or if there are no known items for the user
+   */
   public List<Pair<String,float[]>> getKnownItemVectorsForUser(String user) {
     float[] userVector = getUserVector(user);
     if (userVector == null) {
@@ -269,172 +270,168 @@ public final class ALSServingModel {
       }
       List<Pair<String,float[]>> idVectors = new ArrayList<>(size);
       for (String itemID : knownItems) {
-        int partition = partition(itemID);
-        float[] vector;
-        try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
-          vector = Y[partition].get(itemID);
+        float[] vector = getItemVector(itemID);
+        if (vector != null) {
+          idVectors.add(new Pair<>(itemID, vector));
         }
-        idVectors.add(new Pair<>(itemID, vector));
       }
-      return idVectors;
+      return idVectors.isEmpty() ? null : idVectors;
     }
   }
 
-  public List<Pair<String,Double>> topN(ToDoubleFunction<float[]> scoreFn, int howMany) {
-    return topN(scoreFn, null, howMany, null);
-  }
-
   public List<Pair<String,Double>> topN(
-      final ToDoubleFunction<float[]> scoreFn,
+      final CosineDistanceSensitiveFunction scoreFn,
       final ObjDoubleToDoubleFunction<String> rescoreFn,
       final int howMany,
       final Predicate<String> allowedPredicate) {
 
-    List<Callable<Iterable<Pair<String, Double>>>> tasks = new ArrayList<>(Y.length);
-    for (int partition = 0; partition < Y.length; partition++) {
-      final int thePartition = partition;
-      tasks.add(new LoggingCallable<Iterable<Pair<String,Double>>>() {
-        @Override
-        public Iterable<Pair<String,Double>> doCall() {
-          Queue<Pair<String,Double>> topN =
-              new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
-          TopNConsumer topNProc =
-              new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate);
-
-          try (AutoLock al = new AutoLock(yLocks[thePartition].readLock())) {
-            Y[thePartition].forEach(topNProc);
+    int[] candidateIndices = lsh.getCandidateIndices(scoreFn.getTargetVector());
+    List<Callable<Iterable<Pair<String,Double>>>> tasks = new ArrayList<>(candidateIndices.length);
+    for (int partition : candidateIndices) {
+      final FeatureVectors yPartition = Y[partition];
+      if (yPartition.size() > 0) {
+        tasks.add(new LoggingCallable<Iterable<Pair<String,Double>>>() {
+          @Override
+          public Iterable<Pair<String,Double>> doCall() {
+            Queue<Pair<String,Double>> topN =
+                new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
+            yPartition.forEach(new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate));
+            // Ordering and excess items don't matter; will be merged and finally sorted later
+            return topN;
           }
-          // Ordering and excess items don't matter; will be merged and finally sorted later
-          return topN;
-        }
-      });
+        });
+      }
     }
 
-    List<Iterable<Pair<String, Double>>> iterables = new ArrayList<>();
-    if (Y.length >= 2) {
+    int numTasks = tasks.size();
+    if (numTasks == 0) {
+      return Collections.emptyList();
+    }
+
+    Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
+    if (numTasks == 1) {
+      Iterable<Pair<String,Double>> iterable;
       try {
-        for (Future<Iterable<Pair<String, Double>>> future : executor.invokeAll(tasks)) {
-          iterables.add(future.get());
-        }
-      } catch (InterruptedException e) {
-        throw new IllegalStateException(e);
-      } catch (ExecutionException e) {
-        throw new IllegalStateException(e.getCause());
-      }
-    } else {
-      try {
-        iterables.add(tasks.get(0).call());
+        iterable = tasks.get(0).call();
       } catch (Exception e) {
         throw new IllegalStateException(e);
       }
+      return ordering.greatestOf(iterable, howMany);
     }
 
-    return Ordering.from(PairComparators.<Double>bySecond())
-        .greatestOf(Iterables.concat(iterables), howMany);
+    List<Iterable<Pair<String,Double>>> iterables = new ArrayList<>(numTasks);
+    try {
+      for (Future<Iterable<Pair<String, Double>>> future : executor.invokeAll(tasks)) {
+        iterables.add(future.get());
+      }
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(e);
+    } catch (ExecutionException e) {
+      throw new IllegalStateException(e.getCause());
+    }
+    return ordering.greatestOf(Iterables.concat(iterables), howMany);
   }
 
   /**
    * @return all user IDs in the model
    */
   public Collection<String> getAllUserIDs() {
-    Collection<String> usersList;
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
-      usersList = new ArrayList<>(X.keySet());
-    }
-    return usersList;
+    Collection<String> allUserIDs = HashObjSets.newMutableSet();
+    X.addAllIDsTo(allUserIDs);
+    return allUserIDs;
   }
 
   /**
    * @return all item IDs in the model
    */
   public Collection<String> getAllItemIDs() {
-    Collection<String> itemsList = new ArrayList<>();
-    for (int partition = 0; partition < Y.length; partition++) {
-      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
-        itemsList.addAll(Y[partition].keySet());
-      }
+    Collection<String> allItemIDs = HashObjSets.newMutableSet();
+    for (FeatureVectors yPartition : Y) {
+      yPartition.addAllIDsTo(allItemIDs);
     }
-    return itemsList;
+    return allItemIDs;
   }
 
   public Solver getYTYSolver() {
     RealMatrix YTY = null;
-    for (int partition = 0; partition < Y.length; partition++) {
-      RealMatrix YTYpartial;
-      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
-        YTYpartial = VectorMath.transposeTimesSelf(Y[partition].values());
-      }
+    for (FeatureVectors yPartition : Y) {
+      RealMatrix YTYpartial = yPartition.getVTV();
       if (YTYpartial != null) {
         YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
       }
     }
-    return new LinearSystemSolver().getSolver(YTY);
+    return LinearSystemSolver.getSolver(YTY);
   }
 
   /**
-   * Prunes the set of users in the model, by retaining only users that are expected to appear
+   * Retains only users that are expected to appear
    * in the upcoming model updates, or, that have arrived recently. This also clears the
    * recent known users data structure.
    *
    * @param users users that should be retained, which are coming in the new model updates
    */
-  void pruneX(Collection<String> users) {
-    // Keep all users in the new model, or, that have been added since last model
-    try (AutoLock al = new AutoLock(xLock.writeLock())) {
-      X.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
-      recentNewUsers.clear();
+  void retainRecentAndUserIDs(Collection<String> users) {
+    X.retainRecentAndIDs(users);
+    try (AutoLock al = expectedUserIDsLock.autoWriteLock()) {
+      expectedUserIDs.clear();
+      expectedUserIDs.addAll(users);
+      X.removeAllIDsFrom(expectedUserIDs);
     }
   }
 
   /**
-   * Prunes the set of items in the model, by retaining only items that are expected to appear
+   * Retains only items that are expected to appear
    * in the upcoming model updates, or, that have arrived recently. This also clears the
    * recent known items data structure.
    *
    * @param items items that should be retained, which are coming in the new model updates
    */
-  void pruneY(Collection<String> items) {
-    for (int partition = 0; partition < Y.length; partition++) {
-      // Keep all items in the new model, or, that have been added since last model
-      try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
-        Y[partition].removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-            new NotContainsPredicate<>(items),
-            new NotContainsPredicate<>(recentNewItems[partition]))));
-        recentNewItems[partition].clear();
+  void retainRecentAndItemIDs(Collection<String> items) {
+    for (FeatureVectors yPartition : Y) {
+      yPartition.retainRecentAndIDs(items);
+    }
+    try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
+      expectedItemIDs.clear();
+      expectedItemIDs.addAll(items);
+      for (FeatureVectors yPartition : Y) {
+        yPartition.removeAllIDsFrom(expectedItemIDs);
       }
     }
   }
 
   /**
-   * Like {@link #pruneX(Collection)} and {@link #pruneY(Collection)} but prunes the
-   * known-items data structure.
+   * Like {@link #retainRecentAndUserIDs(Collection)} and {@link #retainRecentAndItemIDs(Collection)}
+   * but affects the known-items data structure.
+   *
+   * @param users users that should be retained, which are coming in the new model updates
+   * @param items items that should be retained, which are coming in the new model updates
    */
-  void pruneKnownItems(Collection<String> users, final Collection<String> items) {
+  void retainRecentAndKnownItems(Collection<String> users, final Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
-    try (AutoLock al = new AutoLock(xLock.writeLock())) {
+    Collection<String> recentUserIDs = HashObjSets.newMutableSet();
+    X.addAllRecentTo(recentUserIDs);
+    try (AutoLock al = knownItemsLock.autoWriteLock()) {
       knownItems.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentNewUsers))));
+          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentUserIDs))));
     }
 
     // This will be easier to quickly copy the whole (smallish) set rather than
     // deal with locks below
-    final Collection<String> allRecentKnownItems = new HashSet<>();
-    for (int partition = 0; partition < Y.length; partition++) {
-      try (AutoLock al = new AutoLock(yLocks[partition].writeLock())) {
-        allRecentKnownItems.addAll(recentNewItems[partition]);
-      }
+    final Collection<String> allRecentKnownItems = HashObjSets.newMutableSet();
+    for (FeatureVectors yPartition : Y) {
+      yPartition.addAllRecentTo(allRecentKnownItems);
     }
 
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
+    Predicate<String> notKeptOrRecent = new Predicate<String>() {
+      @Override
+      public boolean test(String value) {
+        return !items.contains(value) && !allRecentKnownItems.contains(value);
+      }
+    };
+    try (AutoLock al = knownItemsLock.autoReadLock()) {
       for (ObjSet<String> knownItemsForUser : knownItems.values()) {
         synchronized (knownItemsForUser) {
-          knownItemsForUser.removeIf(new Predicate<String>() {
-            @Override
-            public boolean test(String value) {
-              return !items.contains(value) && !allRecentKnownItems.contains(value);
-            }
-          });
+          knownItemsForUser.removeIf(notKeptOrRecent);
         }
       }
     }
@@ -444,9 +441,7 @@ public final class ALSServingModel {
    * @return number of users in the model
    */
   public int getNumUsers() {
-    try (AutoLock al = new AutoLock(xLock.readLock())) {
-      return X.size();
-    }
+    return X.size();
   }
 
   /**
@@ -454,18 +449,48 @@ public final class ALSServingModel {
    */
   public int getNumItems() {
     int total = 0;
-    for (int partition = 0; partition < Y.length; partition++) {
-      try (AutoLock al = new AutoLock(yLocks[partition].readLock())) {
-        total += Y[partition].size();
-      }
+    for (FeatureVectors yPartition : Y) {
+      total += yPartition.size();
     }
     return total;
   }
 
+  /**
+   * @return fraction of IDs that were expected to be in the model whose value has been
+   *  loaded from an update
+   */
+  public float getFractionLoaded() {
+    int expected = 0;
+    try (AutoLock al = expectedUserIDsLock.autoReadLock()) {
+      expected += expectedUserIDs.size();
+    }
+    try (AutoLock al = expectedItemIDsLock.autoReadLock()) {
+      expected += expectedItemIDs.size();
+    }
+    if (expected == 0) {
+      return 1.0f;
+    }
+    float loaded = (float) getNumUsers() + getNumItems();
+    return loaded / (loaded + expected);
+  }
+
   @Override
   public String toString() {
+    int maxSize = 128;
+    List<String> partitionSizes = new ArrayList<>(maxSize);
+    for (int i = 0; i < Y.length; i++) {
+      int size = Y[i].size();
+      if (size > 0) {
+        partitionSizes.add(i + ":" + size);
+        if (partitionSizes.size() == maxSize) {
+          partitionSizes.add("...");
+          break;
+        }
+      }
+    }
     return "ALSServingModel[features:" + features + ", implicit:" + implicit +
-        ", X:(" + getNumUsers() + " users), Y:(" + getNumItems() + " items)]";
+        ", X:(" + getNumUsers() + " users), Y:(" + getNumItems() + " items, partitions: " +
+        partitionSizes + "...), fractionLoaded:" + getFractionLoaded() + "]";
   }
 
 }

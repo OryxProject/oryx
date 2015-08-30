@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
@@ -157,8 +159,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
       case DAVIES_BOULDIN :
         DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusterInfoList);
         double dbIndex = daviesBouldinIndex.evaluate(evalData);
-        eval = 1.0 / dbIndex;
-        log.info("Davies-Bouldin index {} / eval {}", dbIndex, eval);
+        eval = -dbIndex;
+        log.info("Davies-Bouldin index {}", dbIndex);
         break;
       case DUNN :
         DunnIndex dunnIndex = new DunnIndex(clusterInfoList);
@@ -172,8 +174,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
         break;
       case SSE :
         double sse = pmmlToKMeansModel(model).computeCost(evalData.rdd());
-        eval = 1.0 / sse;
-        log.info("Sum of squared error {} / eval {}", sse, eval);
+        eval = -sse;
+        log.info("Sum of squared error {}", sse);
         break;
       default:
         throw new IllegalArgumentException("Unknown evaluation strategy " + evaluationStrategy);
@@ -242,14 +244,12 @@ public final class KMeansUpdate extends MLUpdate<String> {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override
       public Vector call(String[] data) {
-        double[] features = new double[inputSchema.getNumPredictors()];
-        for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-          if (inputSchema.isActive(featureIndex)) {
-            features[inputSchema.featureToPredictorIndex(featureIndex)] =
-                Double.parseDouble(data[featureIndex]);
-          }
+        try {
+          return Vectors.dense(KMeansUtils.featuresFromTokens(data, inputSchema));
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+          log.warn("Bad input: {}", Arrays.toString(data));
+          throw e;
         }
-        return Vectors.dense(features);
       }
     });
   }

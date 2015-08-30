@@ -21,9 +21,12 @@ import javax.servlet.ServletContextListener;
 import java.util.Arrays;
 import java.util.List;
 
+import com.typesafe.config.Config;
+
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 import com.cloudera.oryx.app.serving.kmeans.model.TestKMeansModelFactory;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
@@ -43,12 +46,16 @@ public abstract class AbstractKMeansServingTest extends AbstractServingTest {
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY, new MockServingModelManager());
+      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY,
+                           new MockServingModelManager(ConfigUtils.getDefault()));
       context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
   }
 
   protected static class MockServingModelManager extends AbstractMockServingModelManager {
+    public MockServingModelManager(Config config) {
+      super(config);
+    }
     @Override
     public KMeansServingModel getModel() {
       return TestKMeansModelFactory.buildTestModel();

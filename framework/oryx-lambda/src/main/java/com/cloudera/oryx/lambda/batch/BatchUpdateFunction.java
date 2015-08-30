@@ -94,6 +94,10 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
     log.info("Beginning update at {}", timestamp);
 
     Configuration hadoopConf = sparkContext.hadoopConfiguration();
+    if (hadoopConf.getResource("core-site.xml") == null) {
+      log.warn("Hadoop config like core-site.xml was not found; " +
+               "is the Hadoop config directory on the classpath?");
+    }
 
     JavaPairRDD<K,M> pastData;
     Path inputPathPattern = new Path(dataDirString + "/*/part-*");

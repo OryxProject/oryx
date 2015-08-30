@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
@@ -44,7 +46,6 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", RDFSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 10);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"foo\",\"bar\"]");
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.input-schema.target-feature", "bar");
@@ -82,11 +83,9 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int count = (Integer) fields.get(3);
       assertEquals(0, treeID);
       assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
-      if ("r+".equals(nodeID)) {
-        assertEquals(expectedPositiveMean(count), mean, 0.1);
-      } else {
-        assertEquals(expectedNegativeMean(count), mean, 0.1);
-      }
+      double[] minMax = minMaxExpectedMean(count, "r+".equals(nodeID));
+      assertTrue(count + "/" + mean + " not in " + Arrays.toString(minMax),
+                 mean >= minMax[0] - DOUBLE_EPSILON && mean <= minMax[1] + DOUBLE_EPSILON);
     }
 
     for (int i = 1; i < numUpdates; i += 2) {
@@ -108,20 +107,20 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
   }
 
-  private static double expectedPositiveMean(int n) {
-    int total = 0;
+  private static double[] minMaxExpectedMean(int n, boolean positive) {
+    double minTotal = 0.0;
+    double maxTotal = 0.0;
+    int maxOffset = 5 - n % 5;
     for (int i = 0; i < n; i++) {
-      total += 1 + 2 * (i % 5);
+      if (positive) {
+        minTotal += 1 + 2 * (i % 5);
+        maxTotal += 1 + 2 * ((i + maxOffset) % 5);
+      } else {
+        minTotal += -2 * ((i + maxOffset) % 5);
+        maxTotal += -2 * (i % 5);
+      }
     }
-    return (double) total / n;
-  }
-
-  private static double expectedNegativeMean(int n) {
-    int total = 0;
-    for (int i = 0; i < n; i++) {
-      total += -2 * (i % 5);
-    }
-    return (double) total / n;
+    return new double[] { minTotal / n, maxTotal / n };
   }
 
   @Test
@@ -129,7 +128,6 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.speed.model-manager-class", RDFSpeedModelManager.class.getName());
     overlayConfig.put("oryx.speed.streaming.generation-interval-sec", 5);
-    overlayConfig.put("oryx.speed.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.input-schema.feature-names", "[\"color\",\"fruit\"]");
     overlayConfig.put("oryx.input-schema.numeric-features", "[]");
     overlayConfig.put("oryx.input-schema.target-feature", "fruit");
@@ -179,7 +177,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
       int count = yellowCount + redCount;
       assertTrue(count > 0);
-      BinomialDistribution dist = new BinomialDistribution(count, 0.9);
+      BinomialDistribution dist = new BinomialDistribution(RandomManager.getRandom(), count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow
         checkProbability(yellowCount, count, dist);

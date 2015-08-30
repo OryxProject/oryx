@@ -235,6 +235,11 @@ public final class ServingLayer implements Closeable {
     // Allow long URLs
     connector.setAttribute("maxHttpHeaderSize", 65536);
 
+    // Enable response compression
+    connector.setAttribute("compression", "on");
+    // Defaults are text/html,text/xml,text/plain,text/css
+    connector.setAttribute("compressableMimeType", "text/html,text/xml,text/plain,text/css,text/csv,application/json");
+
     return connector;
   }
 

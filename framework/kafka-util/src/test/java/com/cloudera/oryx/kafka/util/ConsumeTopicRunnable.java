@@ -18,8 +18,11 @@ package com.cloudera.oryx.kafka.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import com.cloudera.oryx.common.collection.Pair;
@@ -29,17 +32,35 @@ public final class ConsumeTopicRunnable extends LoggingRunnable {
 
   private final Iterator<Pair<String,String>> data;
   private final List<Pair<String,String>> keyMessages;
+  private final CountDownLatch runLatch;
+  private final CountDownLatch messagesLatch;
 
   public ConsumeTopicRunnable(Iterator<Pair<String,String>> data) {
+    this(data, 0);
+  }
+
+  public ConsumeTopicRunnable(Iterator<Pair<String,String>> data, int expectedMessages) {
     this.data = data;
     this.keyMessages = new ArrayList<>();
+    this.runLatch = new CountDownLatch(1);
+    this.messagesLatch = new CountDownLatch(expectedMessages);
   }
 
   @Override
   public void doRun() {
+    runLatch.countDown();
     while (data.hasNext()) {
       keyMessages.add(data.next());
+      messagesLatch.countDown();
     }
+  }
+
+  public void awaitRun() throws InterruptedException {
+    runLatch.await();
+  }
+
+  public void awaitMessages() throws InterruptedException {
+    Preconditions.checkState(messagesLatch.await(1, TimeUnit.MINUTES));
   }
 
   public List<Pair<String,String>> getKeyMessages() {

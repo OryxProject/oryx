@@ -15,15 +15,17 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,6 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
@@ -45,21 +46,29 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private final Config config;
   private ALSServingModel model;
+  private final double sampleRate;
   private final RescorerProvider rescorerProvider;
 
   public ALSServingModelManager(Config config) {
+    this.config = config;
     String rescorerProviderClass =
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
     rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
+    sampleRate = config.getDouble("oryx.als.sample-rate");
+    Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf)
+      throws IOException {
+    int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -83,49 +92,46 @@ public final class ALSServingModelManager implements ServingModelManager<String>
               // Right now, no equivalent knownUsers
               break;
             default:
-              throw new IllegalStateException("Bad update " + message);
+              throw new IllegalArgumentException("Bad message: " + km);
+          }
+          if (--countdownToLogModel <= 0) {
+            log.info("{}", model);
+            countdownToLogModel = 10000;
           }
           break;
 
         case "MODEL":
-          // New model
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+        case "MODEL-REF":
+          log.info("Loading new model");
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
-          if (model == null) {
 
-            log.info("No previous model; creating new model");
-            model = new ALSServingModel(features, implicit, rescorerProvider);
-
-          } else if (features != model.getFeatures()) {
-
-            log.warn("# features has changed! removing old model and creating new one");
-            model = new ALSServingModel(features, implicit, rescorerProvider);
-
-          } else {
-
-            log.info("Updating current model");
-            // Remove users/items no longer in the model
-            Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-            Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
-            model.pruneKnownItems(XIDs, YIDs);
-            model.pruneX(XIDs);
-            model.pruneY(YIDs);
-
+          if (model == null || features != model.getFeatures()) {
+            log.warn("No previous model, or # features has changed; creating new one");
+            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
           }
 
-          log.info("New model: {}", model);
+          log.info("Updating model");
+          // Remove users/items no longer in the model
+          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+          model.retainRecentAndKnownItems(XIDs, YIDs);
+          model.retainRecentAndUserIDs(XIDs);
+          model.retainRecentAndItemIDs(YIDs);
+          log.info("Model updated: {}", model);
           break;
 
         default:
-          throw new IllegalStateException("Bad model " + message);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
+  }
+
+  @Override
+  public Config getConfig() {
+    return config;
   }
 
   @Override

@@ -17,10 +17,7 @@ package com.cloudera.oryx.app.serving.rdf;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -32,7 +29,6 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.fileupload.FileItem;
 
-import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 
@@ -55,25 +51,22 @@ public final class Train extends AbstractRDFResource {
   @POST
   @Path("{datum}")
   public void post(@PathParam("datum") String datum) {
-    getInputProducer().send(datum);
+    sendInput(datum);
   }
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
     for (FileItem item : parseMultipart(request)) {
-      InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
-      try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+      try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         doPost(reader);
       }
     }
   }
 
   private void doPost(BufferedReader buffered) throws IOException {
-    TopicProducer<?,String> inputTopic = getInputProducer();
-    String line;
-    while ((line = buffered.readLine()) != null) {
-      inputTopic.send(line);
+    for (String line; (line = buffered.readLine()) != null;) {
+      sendInput(line);
     }
   }
 

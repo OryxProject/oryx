@@ -36,20 +36,20 @@ public final class AssignTest extends AbstractKMeansServingTest {
   public void testAssign() {
     String prediction = target("/assign/1,0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(String.class);
-    Assert.assertEquals(0, Integer.parseInt(prediction));
+    Assert.assertEquals(2, Integer.parseInt(prediction));
   }
 
   @Test
   public void testAssign2() {
     String prediction = target("/assign/10,-1.0").request().get(String.class);
-    Assert.assertEquals(1, Integer.parseInt(prediction));
+    Assert.assertEquals(3, Integer.parseInt(prediction));
   }
 
   @Test
   public void testAssignPost() {
     String prediction = target("/assign").request().post(Entity.text("-1.5,0.5\n-1,0"))
         .readEntity(String.class);
-    Assert.assertEquals("2\n2\n", prediction);
+    Assert.assertEquals("4\n4\n", prediction);
   }
 
   @Test

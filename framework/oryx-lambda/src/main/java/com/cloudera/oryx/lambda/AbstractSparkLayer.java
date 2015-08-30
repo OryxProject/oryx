@@ -65,6 +65,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final String inputTopic;
   private final String inputTopicLockMaster;
   private final String inputBroker;
+  private final String updateTopic;
+  private final String updateTopicLockMaster;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
   private final Class<? extends Decoder<K>> keyDecoderClass;
@@ -75,7 +77,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   //private final String driverMemoryString;
   private final boolean useDynamicAllocation;
   private final int generationIntervalSec;
-  private final int blockIntervalSec;
   private final int uiPort;
 
   @SuppressWarnings("unchecked")
@@ -91,6 +92,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
     this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
     this.inputBroker = config.getString("oryx.input-topic.broker");
+    this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
     this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
@@ -105,13 +108,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.useDynamicAllocation = config.getBoolean("oryx." + group + ".streaming.dynamic-allocation");
     this.generationIntervalSec =
         config.getInt("oryx." + group + ".streaming.generation-interval-sec");
-    this.blockIntervalSec = config.getInt("oryx." + group + ".streaming.block-interval-sec");
     this.uiPort = config.getInt("oryx." + group + ".ui.port");
 
     Preconditions.checkArgument(numExecutors >= 1);
     Preconditions.checkArgument(executorCores >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
-    Preconditions.checkArgument(blockIntervalSec > 0);
     Preconditions.checkArgument(uiPort > 0);
   }
 
@@ -160,7 +161,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     SparkConf sparkConf = new SparkConf();
 
     sparkConf.setMaster(streamingMaster);
-    sparkConf.setAppName("Oryx" + getLayerName());
+    String appName = "Oryx" + getLayerName();
+    if (id != null) {
+      appName = appName + "-" + id;
+    }
+    sparkConf.setAppName(appName);
 
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
@@ -187,9 +192,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
     //sparkConf.setIfMissing("spark.driver.memory", driverMemoryString);
 
-    sparkConf.setIfMissing(
-        "spark.streaming.blockInterval",
-        Long.toString(TimeUnit.MILLISECONDS.convert(blockIntervalSec, TimeUnit.SECONDS)));
     // Turn this down to prevent long blocking at shutdown
     sparkConf.setIfMissing(
         "spark.streaming.gracefulStopTimeout",
@@ -208,6 +210,14 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
   protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(
       JavaStreamingContext streamingContext) {
+
+    Preconditions.checkArgument(
+        com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
+        "Topic %s does not exist; did you create it?", inputTopic);
+    Preconditions.checkArgument(
+        com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+        "Topic %s does not exist; did you create it?", updateTopic);
+
     Map<String,String> kafkaParams = new HashMap<>();
     //kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
     String groupID = getGroupID();
@@ -260,11 +270,10 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       Set<TopicAndPartition> needOffset = new HashSet<>();
       for (Map.Entry<TopicAndPartition, Long> entry : offsets.entrySet()) {
         if (entry.getValue() == null) {
-          TopicAndPartition tAndP = entry.getKey();
-          log.info("No initial offset for {}; reading from Kafka", tAndP);
-          needOffset.add(tAndP);
+          needOffset.add(entry.getKey());
         }
       }
+      log.info("No initial offsets for {}; reading from Kafka", needOffset);
 
       // The high price of calling private Scala stuff:
       @SuppressWarnings("unchecked")

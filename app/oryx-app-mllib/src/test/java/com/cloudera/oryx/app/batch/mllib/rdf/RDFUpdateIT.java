@@ -36,6 +36,7 @@ import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
@@ -47,6 +48,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
   private static final int DATA_TO_WRITE = 2000;
   private static final int WRITE_INTERVAL_MSEC = 10;
+  private static final int NUM_TREES = 2;
 
   @Test
   public void testRDF() throws Exception {
@@ -59,7 +61,6 @@ public final class RDFUpdateIT extends AbstractRDFIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.rdf.num-trees", NUM_TREES);
     overlayConfig.put("oryx.rdf.hyperparams.max-depth", MAX_DEPTH);
     overlayConfig.put("oryx.rdf.hyperparams.max-split-candidates", MAX_SPLIT_CANDIDATES);
@@ -98,9 +99,8 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertEquals("MODEL", type);
-
-      PMML pmml = PMMLUtils.fromString(value);
+      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
       checkHeader(pmml.getHeader());
 
@@ -134,7 +134,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
           Segment segment = segments.get(i);
           assertEquals(Integer.toString(i), segment.getId());
           assertTrue(segment.getPredicate() instanceof True);
-          assertEquals(1.0, segment.getWeight());
+          assertEquals(1.0, segment.getWeight().doubleValue());
           assertTrue(segment.getModel() instanceof TreeModel);
           checkTreeModel((TreeModel) segment.getModel());
         }

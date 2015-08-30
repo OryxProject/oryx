@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Utility class with simple vector-related operations.
@@ -49,6 +50,21 @@ public final class VectorMath {
    * @param y the other array
    * @throws IllegalArgumentException if x and y are empty or of different length
    */
+  public static double dot(double[] x, double[] y) {
+    int length = x.length;
+    double dot = 0.0;
+    for (int i = 0; i < length; i++) {
+      dot += x[i] * y[i];
+    }
+    return dot;
+  }
+
+  /**
+   * @return dot product of the two given arrays
+   * @param x one array
+   * @param y the other array
+   * @throws IllegalArgumentException if x and y are empty or of different length
+   */
   public static double dot(double[] x, float[] y) {
     int length = x.length;
     double dot = 0.0;
@@ -67,6 +83,19 @@ public final class VectorMath {
     double total = 0.0;
     for (float f : x) {
       double d = (double) f;
+      total += d * d;
+    }
+    return Math.sqrt(total);
+  }
+
+  /**
+   * @param x vector for whom norm to be calculated
+   * @return the L2 norm of vector x
+   * @throws IllegalArgumentException if x is of 0 length
+   */
+  public static double norm(double[] x) {
+    double total = 0.0;
+    for (double d : x) {
       total += d * d;
     }
     return Math.sqrt(total);
@@ -131,6 +160,32 @@ public final class VectorMath {
       doubles[i] = Double.parseDouble(values[i]);
     }
     return doubles;
+  }
+
+  /**
+   * @param features dimension of vector
+   * @param random random number generator
+   * @return vector whose direction from the origin is chosen uniformly at random, but which is not normalized
+   */
+  public static float[] randomVectorF(int features, RandomGenerator random) {
+    float[] vector = new float[features];
+    for (int i = 0; i < features; i++) {
+      vector[i] = (float) random.nextGaussian();
+    }
+    return vector;
+  }
+
+  /**
+   * @param features dimension of vector
+   * @param random random number generator
+   * @return vector whose direction from the origin is chosen uniformly at random, but which is not normalized
+   */
+  public static double[] randomVectorD(int features, RandomGenerator random) {
+    double[] vector = new double[features];
+    for (int i = 0; i < features; i++) {
+      vector[i] = random.nextGaussian();
+    }
+    return vector;
   }
 
 }

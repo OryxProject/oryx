@@ -19,7 +19,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 
-import java.util.regex.Pattern;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import com.cloudera.oryx.app.traffic.Endpoint;
 
@@ -28,35 +28,40 @@ import com.cloudera.oryx.app.traffic.Endpoint;
  */
 public abstract class ALSEndpoint extends Endpoint {
 
-  private static final Pattern COMMA = Pattern.compile(",");
-
-  private ALSEndpoint(String path, double relativeProb) {
+  ALSEndpoint(String path, double relativeProb) {
     super(path, relativeProb);
   }
 
   @Override
-  protected final Invocation makeInvocation(WebTarget target, String input) {
-    String[] tokens = COMMA.split(input);
-    return makeInvocation(target, tokens[0], tokens[1], tokens[2]);
+  protected final Invocation makeInvocation(WebTarget target, String[] otherArgs, RandomGenerator random) {
+    String user = Integer.toString(random.nextInt(Integer.parseInt(otherArgs[0])));
+    String item = Integer.toString(random.nextInt(Integer.parseInt(otherArgs[0])));
+    return makeInvocation(target, user, item, "1");
   }
 
   abstract Invocation makeInvocation(WebTarget target, String user, String item, String strength);
 
   public static Endpoint[] buildALSEndpoints() {
     return new Endpoint[] {
-      new ALSEndpoint("/pref", 0.1) {
+      new ALSEndpoint("/pref", 0.5) {
         @Override
         Invocation makeInvocation(WebTarget target, String user, String item, String strength) {
           return target.path("/pref/" + user + "/" + item).request()
               .buildPost(Entity.text(strength));
         }
       },
-      new ALSEndpoint("/recommend", 0.9) {
+      new ALSEndpoint("/recommend", 0.3) {
         @Override
         Invocation makeInvocation(WebTarget target, String user, String item, String strength) {
           return target.path("/recommend/" + user).request().buildGet();
         }
-      }
+      },
+      new ALSEndpoint("/similarity", 0.2) {
+        @Override
+        Invocation makeInvocation(WebTarget target, String user, String item, String strength) {
+          return target.path("/similarity/" + item).request().buildGet();
+        }
+      },
     };
   }
 

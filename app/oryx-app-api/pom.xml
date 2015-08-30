@@ -48,25 +48,17 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>java7</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <!-- reenable at 2.0.0 release -->
-      <!--
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>clirr-maven-plugin</artifactId>
-            <version>${clirr.version}</version>
-          </plugin>
-        </plugins>
-      </build>
-       -->
-    </profile>
-  </profiles>
+  <!-- reenable at 2.0.0 release -->
+  <!--
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${clirr.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+   -->
 
 </project>

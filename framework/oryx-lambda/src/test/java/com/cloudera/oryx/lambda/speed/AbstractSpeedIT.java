@@ -57,13 +57,11 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
     int kafkaPort = getKafkaBrokerPort();
 
     ProduceData inputProducer = new ProduceData(inputGenerator,
-                                                zkPort,
                                                 kafkaPort,
                                                 INPUT_TOPIC,
                                                 howManyInput,
                                                 10);
     ProduceData updateProducer = new ProduceData(updateGenerator,
-                                                 zkPort,
                                                  kafkaPort,
                                                  UPDATE_TOPIC,
                                                  howManyUpdate,
@@ -84,8 +82,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
       ConsumeTopicRunnable consumeUpdate = new ConsumeTopicRunnable(data);
       new Thread(consumeUpdate, "ConsumeUpdateThread").start();
 
-      // Sleep to let consumer start
-      sleepSeconds(3);
+      consumeUpdate.awaitRun();
 
       // Load all updates first
       log.info("Producing updates");

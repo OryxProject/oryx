@@ -28,10 +28,7 @@ import javax.ws.rs.core.MediaType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +79,7 @@ public final class Predict extends AbstractRDFResource {
       throws IOException, OryxServingException {
     List<String> result = new ArrayList<>();
     for (FileItem item : parseMultipart(request)) {
-      InputStream in = maybeDecompress(item.getContentType(), item.getInputStream());
-      try (BufferedReader reader = maybeBuffer(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+      try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         result.addAll(doPost(reader));
       }
     }
@@ -92,8 +88,7 @@ public final class Predict extends AbstractRDFResource {
 
   private List<String> doPost(BufferedReader buffered) throws IOException, OryxServingException {
     List<String> predictions = new ArrayList<>();
-    String line;
-    while ((line = buffered.readLine()) != null) {
+    for (String line; (line = buffered.readLine()) != null;) {
       predictions.add(predict(line));
     }
     return predictions;

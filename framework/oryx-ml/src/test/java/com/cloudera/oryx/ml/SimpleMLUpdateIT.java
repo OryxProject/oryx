@@ -43,7 +43,6 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
   private static final int DATA_TO_WRITE = 2400;
   private static final int WRITE_INTERVAL_MSEC = 25;
   private static final int GEN_INTERVAL_SEC = 20;
-  private static final int BLOCK_INTERVAL_SEC = 1;
   private static final double TEST_FRACTION = 0.2;
 
   @Test
@@ -56,7 +55,6 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
     overlayConfig.put("oryx.ml.eval.test-fraction", TEST_FRACTION);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 

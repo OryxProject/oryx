@@ -33,6 +33,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Joiner;
+import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -153,7 +155,7 @@ public abstract class AbstractServingTest extends JerseyTest {
     List<Pair<String,String>> data = MockTopicProducer.getData();
     for (int i = 0; i < data.size(); i++) {
       Pair<String,String> actual = data.get(i);
-      Assert.assertNull(actual.getFirst());
+      Assert.assertNotNull(actual.getFirst());
       String[] tokens = actual.getSecond().split(",");
       Assert.assertArrayEquals(expectedTopic[i], tokens);
     }
@@ -168,9 +170,17 @@ public abstract class AbstractServingTest extends JerseyTest {
 
   protected abstract static class AbstractMockServingModelManager
       implements ServingModelManager<String> {
+    private final Config config;
+    protected AbstractMockServingModelManager(Config config) {
+      this.config = config;
+    }
     @Override
-    public final void consume(Iterator<KeyMessage<String, String>> updateIterator) {
+    public final void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf) {
       throw new UnsupportedOperationException();
+    }
+    @Override
+    public final Config getConfig() {
+      return config;
     }
     @Override
     public final void close() {

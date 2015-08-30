@@ -77,11 +77,6 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.cloudera.oryx</groupId>
-      <artifactId>zk-util</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
 </project>

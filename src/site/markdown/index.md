@@ -1,3 +1,5 @@
+title: Overview
+
 <img align="right" src="img/OryxLogoMedium.png" />
 
 Oryx 2 is a realization of the lambda architecture built on [Apache Spark](http://spark.apache.org)

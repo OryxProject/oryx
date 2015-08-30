@@ -15,17 +15,20 @@
 
 package com.cloudera.oryx.app.speed.als;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -41,7 +44,6 @@ import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.math.VectorMath;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
@@ -58,18 +60,23 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   private ALSSpeedModel model;
   private final boolean implicit;
   private final boolean noKnownItems;
+  private final double minModelLoadFraction;
 
   public ALSSpeedModelManager(Config config) {
     implicit = config.getBoolean("oryx.als.implicit");
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
+    minModelLoadFraction = config.getDouble("oryx.speed.min-model-load-fraction");
+    Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
+    int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
       String message = km.getMessage();
+      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           if (model == null) {
@@ -87,54 +94,44 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
               model.setItemVector(id, vector);
               break;
             default:
-              throw new IllegalStateException("Bad update " + message);
+              throw new IllegalArgumentException("Bad message: " + km);
+          }
+          if (--countdownToLogModel <= 0) {
+            log.info("{}", model);
+            countdownToLogModel = 10000;
           }
           break;
 
         case "MODEL":
-          // New model
+        case "MODEL-REF":
           log.info("Loading new model");
-          PMML pmml;
-          try {
-            pmml = PMMLUtils.fromString(message);
-          } catch (JAXBException e) {
-            throw new IOException(e);
-          }
+          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
-          if (model == null) {
 
-            log.info("No previous model; installing new model");
+          if (model == null || features != model.getFeatures()) {
+            log.warn("No previous model, or # features has changed; creating new one");
             model = new ALSSpeedModel(features);
-            log.info("New model loaded: {}", model);
-
-          } else if (features != model.getFeatures()) {
-
-            log.warn("# features has changed! removing old model and installing new one");
-            model = new ALSSpeedModel(features);
-            log.info("New model loaded: {}", model);
-
-          } else {
-
-            log.info("Updating current model");
-            // First, remove users/items no longer in the model
-            List<String> XIDs = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
-            List<String> YIDs = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
-            model.pruneX(XIDs);
-            model.pruneY(YIDs);
-            log.info("Model updated: {}", model);
-
           }
+
+          log.info("Updating model");
+          // Remove users/items no longer in the model
+          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+          model.retainRecentAndUserIDs(XIDs);
+          model.retainRecentAndItemIDs(YIDs);
+          log.info("Model updated: {}", model);
           break;
 
         default:
-          throw new IllegalStateException("Unexpected key " + key);
+          throw new IllegalArgumentException("Bad message: " + km);
       }
     }
   }
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    if (model == null) {
+    if (model == null || model.getFractionLoaded() < minModelLoadFraction) {
       return Collections.emptyList();
     }
 
@@ -244,11 +241,16 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       new PairFunction<String,Tuple2<String,String>,Double>() {
         @Override
         public Tuple2<Tuple2<String,String>,Double> call(String line) throws Exception {
-          String[] tokens = MLFunctions.PARSE_FN.call(line);
-          String user = tokens[0];
-          String item = tokens[1];
-          Double strength = Double.valueOf(tokens[2]);
-          return new Tuple2<>(new Tuple2<>(user, item), strength);
+          try {
+            String[] tokens = MLFunctions.PARSE_FN.call(line);
+            String user = tokens[0];
+            String item = tokens[1];
+            Double strength = Double.valueOf(tokens[2]);
+            return new Tuple2<>(new Tuple2<>(user, item), strength);
+          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            log.warn("Bad input: {}", line);
+            throw e;
+          }
         }
       };
 
@@ -256,7 +258,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       new Function<Tuple2<Tuple2<String, String>, Double>, UserItemStrength>() {
         @Override
         public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> tuple) {
-          return new UserItemStrength(tuple._1()._1(), tuple._1()._2(), tuple._2().floatValue());
+          Tuple2<String,String> userItem = tuple._1();
+          Double strength = tuple._2();
+          return new UserItemStrength(userItem._1(), userItem._2(), strength.floatValue());
         }
       };
 

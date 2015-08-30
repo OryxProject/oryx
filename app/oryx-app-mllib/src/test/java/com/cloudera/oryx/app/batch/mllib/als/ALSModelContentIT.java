@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 public final class ALSModelContentIT extends AbstractALSIT {
@@ -48,7 +47,6 @@ public final class ALSModelContentIT extends AbstractALSIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", tempDir.resolve("data"));
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", 10);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", 1);
     overlayConfig.put("oryx.ml.eval.test-fraction", 0);
     overlayConfig.put("oryx.als.implicit", false);
     overlayConfig.put("oryx.als.hyperparams.lambda", 0.0001);
@@ -83,9 +81,10 @@ public final class ALSModelContentIT extends AbstractALSIT {
           knownUsersItems.put(userID, new ArrayList<>(userKnownItems));
         }
 
-      } else { // "MODEL"
+      } else {
 
-        PMML pmml = PMMLUtils.fromString(value);
+        assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
         modelUsers = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
         modelItems = AppPMMLUtils.getExtensionContent(pmml, "YIDs");
 

@@ -37,7 +37,6 @@ public final class BatchLayerIT extends AbstractBatchIT {
   private static final int DATA_TO_WRITE = 600;
   private static final int WRITE_INTERVAL_MSEC = 20;
   private static final int GEN_INTERVAL_SEC = 3;
-  private static final int BLOCK_INTERVAL_SEC = 1;
 
   @Test
   public void testBatchLayer() throws Exception {
@@ -48,8 +47,6 @@ public final class BatchLayerIT extends AbstractBatchIT {
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.streaming.block-interval-sec", BLOCK_INTERVAL_SEC);
-    overlayConfig.put("oryx.batch.storage.partitions", 2);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     List<IntervalData<String,String>> intervalData = MockBatchUpdate.getIntervalDataHolder();

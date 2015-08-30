@@ -29,7 +29,7 @@ public final class MockRDFRegressionInputGenerator implements DatumGenerator<Str
     double predictor = positive ? 3.14 + id : 3.14 - id;
     // Constructed so that means are about (1+3+5+7+9)/5 = 5 and -(0+2+4+6+8)/5 = -4
     double target = positive ? (id % 10) : -(id % 10);
-    return new Pair<>("", predictor + "," + target);
+    return new Pair<>(null, predictor + "," + target);
   }
 
 }
