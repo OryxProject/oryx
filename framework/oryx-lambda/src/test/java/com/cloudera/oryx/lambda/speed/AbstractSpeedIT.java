@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
@@ -80,7 +81,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
       log.info("Starting consumer thread");
       ConsumeTopicRunnable consumeUpdate = new ConsumeTopicRunnable(data);
-      new Thread(consumeUpdate, "ConsumeUpdateThread").start();
+      new Thread(LoggingCallable.log(consumeUpdate).asRunnable(), "ConsumeUpdateThread").start();
 
       consumeUpdate.awaitRun();
 

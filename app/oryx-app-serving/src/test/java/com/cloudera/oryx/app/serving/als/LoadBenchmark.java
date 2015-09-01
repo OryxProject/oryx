@@ -15,12 +15,9 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 
@@ -33,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.app.serving.als.model.LoadTestALSModelFactory;
@@ -73,15 +69,27 @@ public final class LoadBenchmark extends AbstractALSServingTest {
     long start = System.currentTimeMillis();
 
     int workers = LoadTestALSModelFactory.WORKERS;
-    List<Callable<Void>> tasks = new ArrayList<>(workers);
-    for (int i = 0; i < workers; i++) {
-      tasks.add(new LoadCallable(Integer.toString(i), meanReqTimeMS, count, start));
-    }
-    ExecutorService executor = Executors.newFixedThreadPool(workers);
+    ForkJoinPool pool = new ForkJoinPool(workers);
     try {
-      executor.invokeAll(tasks);
+      pool.submit(() -> IntStream.range(0, workers).parallel().forEach(i -> {
+        RandomGenerator random = RandomManager.getRandom(Integer.toString(i).hashCode() ^ System.nanoTime());
+        for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
+          String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
+          long callStart = System.currentTimeMillis();
+          target("/recommend/" + userID).request()
+              .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+          long timeMS = System.currentTimeMillis() - callStart;
+          synchronized (meanReqTimeMS) {
+            meanReqTimeMS.increment(timeMS);
+          }
+          long currentCount = count.incrementAndGet();
+          if (currentCount % 100 == 0) {
+            log(currentCount, meanReqTimeMS, start);
+          }
+        }
+      })).get();
     } finally {
-      executor.shutdown();
+      pool.shutdown();
     }
 
     int totalRequests = workers * LoadTestALSModelFactory.REQS_PER_WORKER;
@@ -126,40 +134,6 @@ public final class LoadBenchmark extends AbstractALSServingTest {
     @Override
     public ALSServingModel getModel() {
       return model;
-    }
-  }
-
-  private final class LoadCallable extends LoggingVoidCallable {
-
-    private final RandomGenerator random;
-    private final Mean meanReqTimeMS;
-    private final AtomicLong count;
-    private final long start;
-
-    private LoadCallable(String id, Mean meanReqTimeMS, AtomicLong count, long start) {
-      this.meanReqTimeMS = meanReqTimeMS;
-      this.count = count;
-      this.start = start;
-      // We do *not* want a deterministic seed here!
-      random = RandomManager.getRandom(id.hashCode() ^ System.nanoTime());
-    }
-
-    @Override
-    public void doCall() {
-      for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
-        String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
-        long callStart = System.currentTimeMillis();
-        target("/recommend/" + userID).request()
-            .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-        long timeMS = System.currentTimeMillis() - callStart;
-        synchronized (meanReqTimeMS) {
-          meanReqTimeMS.increment(timeMS);
-        }
-        long currentCount = count.incrementAndGet();
-        if (currentCount % 100 == 0) {
-          log(currentCount, meanReqTimeMS, start);
-        }
-      }
     }
   }
 

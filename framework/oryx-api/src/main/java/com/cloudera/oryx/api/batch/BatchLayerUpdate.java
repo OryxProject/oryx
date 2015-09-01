@@ -34,6 +34,7 @@ import com.cloudera.oryx.api.TopicProducer;
  * @param <U> type of model message written
  * @since 2.0.0
  */
+@FunctionalInterface
 public interface BatchLayerUpdate<K,M,U> extends Serializable {
 
   /**

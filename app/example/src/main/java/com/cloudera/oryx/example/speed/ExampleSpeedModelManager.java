@@ -16,12 +16,11 @@
 package com.cloudera.oryx.example.speed;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.conf.Configuration;
@@ -40,8 +39,7 @@ import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
  */
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  private final Map<String,Integer> distinctOtherWords =
-      Collections.synchronizedMap(new HashMap<String,Integer>());
+  private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator,
@@ -55,9 +53,7 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
           @SuppressWarnings("unchecked")
           Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
           distinctOtherWords.keySet().retainAll(model.keySet());
-          for (Map.Entry<String,Integer> entry : model.entrySet()) {
-            distinctOtherWords.put(entry.getKey(), entry.getValue());
-          }
+          model.forEach(distinctOtherWords::put);
           break;
         case "UP":
           // ignore
@@ -70,9 +66,7 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    List<String> updates = new ArrayList<>();
-    for (Map.Entry<String,Integer> entry :
-         ExampleBatchLayerUpdate.countDistinctOtherWords(newData).entrySet()) {
+    return ExampleBatchLayerUpdate.countDistinctOtherWords(newData).entrySet().stream().map(entry -> {
       String word = entry.getKey();
       int count = entry.getValue();
       int newCount;
@@ -81,9 +75,8 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
         newCount = oldCount == null ? count : oldCount + count;
         distinctOtherWords.put(word, newCount);
       }
-      updates.add(word + "," + newCount);
-    }
-    return updates;
+      return word + "," + newCount;
+    }).collect(Collectors.toList());
   }
 
   @Override

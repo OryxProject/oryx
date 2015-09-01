@@ -1,15 +1,14 @@
 language: java
 sudo: false
-install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
+jdk: oraclejdk8
+install: mvn ${CDH} ${SPARK} -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+script:  mvn ${CDH} ${SPARK} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
-   # Covers Java 7, Open JDK, and code coverage
-   - jdk: openjdk7
-     env: JAVA_VERSION=7 JACOCO=-Pjacoco
-   # Covers CDH 5.5, Java 8
-   - jdk: oraclejdk8
-     env: JAVA_VERSION=8 CDH=-Pcdh55
+   # Covers code coverage
+   - env: JACOCO=-Pjacoco
+   # Covers CDH 5.5
+   - env: CDH=-Pcdh55
 cache:
   directories:
     - $HOME/.m2
@@ -27,5 +26,5 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: srowen@gmail.com
     build_command_prepend: "mvn clean"
-    build_command: "mvn -Pjava${JAVA_VERSION} -DskipTests=true compile test-compile"
+    build_command: "mvn -DskipTests=true compile test-compile"
     branch_pattern: coverity_scan

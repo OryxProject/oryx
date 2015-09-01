@@ -18,19 +18,14 @@ package com.cloudera.oryx.ml;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -44,14 +39,12 @@ import org.apache.spark.rdd.RDD;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
-import com.cloudera.oryx.lambda.Functions;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
@@ -182,11 +175,11 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       newData.cache();
       // This forces caching of the RDD. This shouldn't be necessary but we see some freezes
       // when many workers try to materialize the RDDs at once. Hence the workaround.
-      newData.foreachPartition(Functions.<Iterator<M>>noOp());
+      newData.foreachPartition(p -> {});
     }
     if (pastData != null) {
       pastData.cache();
-      pastData.foreachPartition(Functions.<Iterator<M>>noOp());
+      pastData.foreachPartition(p -> {});
     }
 
     List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
@@ -261,35 +254,28 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                      JavaRDD<M> pastData,
                                      List<List<?>> hyperParameterCombos,
                                      Path candidatesPath) throws InterruptedException, IOException {
-    Map<Path,Double> pathToEval = new HashMap<>(candidates);
     int numWorkers = Math.min(evalParallelism, candidates);
+    Map<Path,Double> pathToEval = Collections.synchronizedMap(new HashMap<>(candidates));
+    IntStream tasks = IntStream.range(0, candidates);
     if (numWorkers > 1) {
-      Collection<Future<Tuple2<Path,Double>>> futures = new ArrayList<>(candidates);
-      ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
+      ForkJoinPool pool = new ForkJoinPool(numWorkers);
       try {
-        for (int i = 0; i < candidates; i++) {
-          futures.add(executor.submit(new BuildAndEvalWorker(
-              i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath)));
-        }
+        pool.submit(() -> tasks.parallel().forEach(i -> {
+          Pair<Path,Double> eval =
+              buildAndEval(i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath);
+          pathToEval.put(eval.getFirst(), eval.getSecond());
+        })).get();
+      } catch (ExecutionException ee) {
+        throw new IllegalStateException(ee.getCause());
       } finally {
-        executor.shutdown();
-      }
-      for (Future<Tuple2<Path,Double>> future : futures) {
-        Tuple2<Path,Double> pathEval;
-        try {
-          pathEval = future.get();
-        } catch (ExecutionException e) {
-          throw new IllegalStateException(e.getCause());
-        }
-        pathToEval.put(pathEval._1(), pathEval._2());
+        pool.shutdown();
       }
     } else {
-      // Execute serially
-      for (int i = 0; i < candidates; i++) {
-        Tuple2<Path,Double> pathEval = new BuildAndEvalWorker(
-            i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath).call();
-        pathToEval.put(pathEval._1(), pathEval._2());
-      }
+      tasks.forEach(i -> {
+        Pair<Path,Double> eval =
+            buildAndEval(i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath);
+        pathToEval.put(eval.getFirst(), eval.getSecond());
+      });
     }
 
     FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
@@ -318,89 +304,73 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   }
 
 
-  final class BuildAndEvalWorker implements Callable<Tuple2<Path,Double>> {
+  private Pair<Path,Double> buildAndEval(int i,
+                                         List<List<?>> hyperParameterCombos,
+                                         JavaSparkContext sparkContext,
+                                         JavaRDD<M> newData,
+                                         JavaRDD<M> pastData,
+                                         Path candidatesPath) {
+    // % = cycle through combinations if needed
+    List<?> hyperParameters = hyperParameterCombos.get(i % hyperParameterCombos.size());
+    Path candidatePath = new Path(candidatesPath, Integer.toString(i));
+    log.info("Building candidate {} with params {}", i, hyperParameters);
 
-    private final int i;
-    private final List<List<?>> hyperParameterCombos;
-    private final JavaSparkContext sparkContext;
-    private final JavaRDD<M> newData;
-    private final JavaRDD<M> pastData;
-    private final Path candidatesPath;
+    Pair<JavaRDD<M>,JavaRDD<M>> trainTestData = splitTrainTest(newData, pastData);
+    JavaRDD<M> allTrainData = trainTestData.getFirst();
+    JavaRDD<M> testData = trainTestData.getSecond();
 
-    BuildAndEvalWorker(int i,
-                       List<List<?>> hyperParameterCombos,
-                       JavaSparkContext sparkContext,
-                       JavaRDD<M> newData,
-                       JavaRDD<M> pastData,
-                       Path candidatesPath) {
-      this.i = i;
-      this.hyperParameterCombos = hyperParameterCombos;
-      this.sparkContext = sparkContext;
-      this.newData = newData;
-      this.pastData = pastData;
-      this.candidatesPath = candidatesPath;
-    }
-
-    @Override
-    public Tuple2<Path,Double> call() throws IOException {
-      // % = cycle through combinations if needed
-      List<?> hyperParameters = hyperParameterCombos.get(i % hyperParameterCombos.size());
-      Path candidatePath = new Path(candidatesPath, Integer.toString(i));
-      log.info("Building candidate {} with params {}", i, hyperParameters);
-
-      Pair<JavaRDD<M>,JavaRDD<M>> trainTestData = splitTrainTest(newData, pastData);
-      JavaRDD<M> allTrainData = trainTestData.getFirst();
-      JavaRDD<M> testData = trainTestData.getSecond();
-
-      Double eval = null;
-      if (empty(allTrainData)) {
-        log.info("No train data to build a model");
+    Double eval = null;
+    if (empty(allTrainData)) {
+      log.info("No train data to build a model");
+    } else {
+      PMML model = buildModel(sparkContext, allTrainData, hyperParameters, candidatePath);
+      if (model == null) {
+        log.info("Unable to build a model");
       } else {
-        PMML model = buildModel(sparkContext, allTrainData, hyperParameters, candidatePath);
-        if (model == null) {
-          log.info("Unable to build a model");
-        } else {
-          Path modelPath = new Path(candidatePath, MODEL_FILE_NAME);
-          log.info("Writing model to {}", modelPath);
+        Path modelPath = new Path(candidatePath, MODEL_FILE_NAME);
+        log.info("Writing model to {}", modelPath);
+        try {
           FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
           fs.mkdirs(candidatePath);
           try (OutputStream out = fs.create(modelPath)) {
             PMMLUtils.write(model, out);
           }
-          if (empty(testData)) {
-            log.info("No test data available to evaluate model");
-          } else {
-            log.info("Evaluating model");
-            double thisEval = evaluate(sparkContext, model, candidatePath, testData, allTrainData);
-            eval = Double.isNaN(thisEval) ? null : thisEval;
-          }
+        } catch (IOException ioe) {
+          throw new IllegalStateException(ioe);
+        }
+        if (empty(testData)) {
+          log.info("No test data available to evaluate model");
+        } else {
+          log.info("Evaluating model");
+          double thisEval = evaluate(sparkContext, model, candidatePath, testData, allTrainData);
+          eval = Double.isNaN(thisEval) ? null : thisEval;
         }
       }
-
-      log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
-      return new Tuple2<>(candidatePath, eval);
     }
 
-    private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
-      Objects.requireNonNull(newData);
-      if (testFraction <= 0.0) {
-        return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
-      }
-      if (testFraction >= 1.0) {
-        return new Pair<>(pastData, newData);
-      }
-      if (empty(newData)) {
-        return new Pair<>(pastData, null);
-      }
-      Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);
-      JavaRDD<M> newTrainData = newTrainTest.getFirst();
-      return new Pair<>(pastData == null ? newTrainData : newTrainData.union(pastData),
-                        newTrainTest.getSecond());
-    }
+    log.info("Model eval for params {}: {} ({})", hyperParameters, eval, candidatePath);
+    return new Pair<>(candidatePath, eval);
+  }
 
-    private boolean empty(JavaRDD<?> rdd) {
-      return rdd == null || rdd.isEmpty();
+  private Pair<JavaRDD<M>,JavaRDD<M>> splitTrainTest(JavaRDD<M> newData, JavaRDD<M> pastData) {
+    Objects.requireNonNull(newData);
+    if (testFraction <= 0.0) {
+      return new Pair<>(pastData == null ? newData : newData.union(pastData), null);
     }
+    if (testFraction >= 1.0) {
+      return new Pair<>(pastData, newData);
+    }
+    if (empty(newData)) {
+      return new Pair<>(pastData, null);
+    }
+    Pair<JavaRDD<M>,JavaRDD<M>> newTrainTest = splitNewDataToTrainTest(newData);
+    JavaRDD<M> newTrainData = newTrainTest.getFirst();
+    return new Pair<>(pastData == null ? newTrainData : newTrainData.union(pastData),
+                      newTrainTest.getSecond());
+  }
+
+  private static boolean empty(JavaRDD<?> rdd) {
+    return rdd == null || rdd.isEmpty();
   }
 
   /**

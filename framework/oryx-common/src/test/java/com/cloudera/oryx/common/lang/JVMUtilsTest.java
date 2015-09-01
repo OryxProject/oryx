@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.common.lang;
 
-import java.io.Closeable;
-
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -26,12 +24,7 @@ public final class JVMUtilsTest extends OryxTest {
   @Test
   public void testShutdownHook() {
     // Can't really test this except to verify that no exception is thrown now or at shutdown
-    JVMUtils.closeAtShutdown(new Closeable() {
-      @Override
-      public void close() {
-        // do nothing
-      }
-    });
+    JVMUtils.closeAtShutdown(() -> {});
   }
 
   @Test

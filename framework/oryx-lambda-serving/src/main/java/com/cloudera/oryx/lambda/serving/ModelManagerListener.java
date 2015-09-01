@@ -26,7 +26,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Objects;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
@@ -34,7 +33,6 @@ import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
@@ -48,7 +46,7 @@ import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.ScalaServingModelManager;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.lang.ClassUtils;
-import com.cloudera.oryx.common.lang.LoggingRunnable;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 
@@ -131,29 +129,21 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
                                       new StringDecoder(null),
                                       loadDecoderInstance())
             .get(updateTopic).get(0);
-    final Iterator<KeyMessage<String,U>> transformed = Iterators.transform(stream.iterator(),
-        new Function<MessageAndMetadata<String,U>, KeyMessage<String,U>>() {
-          @Override
-          public KeyMessage<String,U> apply(MessageAndMetadata<String,U> input) {
-            return new KeyMessageImpl<>(input.key(), input.message());
-          }
-        });
+    Iterator<KeyMessage<String,U>> transformed = Iterators.transform(stream.iterator(),
+        input -> new KeyMessageImpl<>(input.key(), input.message()));
 
     modelManager = loadManagerInstance();
-    new Thread(new LoggingRunnable() {
-      @Override
-      public void doRun() {
-        // Can we do better than a default Hadoop config? Nothing else provides it here
-        try {
-          modelManager.consume(transformed, new Configuration());
-        } catch (Throwable t) {
-          log.error("Error while consuming updates", t);
-          // Ideally we would shut down ServingLayer, but not clear how to plumb that through
-          // without assuming this has been run from ServingLayer and not a web app deployment
-          close();
-        }
+    new Thread(LoggingCallable.log(() -> {
+      // Can we do better than a default Hadoop config? Nothing else provides it here
+      try {
+        modelManager.consume(transformed, new Configuration());
+      } catch (Throwable t) {
+        log.error("Error while consuming updates", t);
+        // Ideally we would shut down ServingLayer, but not clear how to plumb that through
+        // without assuming this has been run from ServingLayer and not a web app deployment
+        close();
       }
-    }, "OryxServingLayerUpdateConsumerThread").start();
+    }).asRunnable(), "OryxServingLayerUpdateConsumerThread").start();
 
     // Set the Model Manager in the Application scope
     context.setAttribute(MANAGER_KEY, modelManager);

@@ -18,7 +18,6 @@ package com.cloudera.oryx.app.rdf.predict;
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.app.rdf.example.FeatureType;
 import com.cloudera.oryx.app.rdf.example.NumericFeature;
-import com.cloudera.oryx.common.lang.LangUtils;
 
 /**
  * Represents a predicted value of a numeric target.
@@ -69,7 +68,7 @@ public final class NumericPrediction extends Prediction {
 
   @Override
   public int hashCode() {
-    return LangUtils.hashDouble(prediction);
+    return Double.hashCode(prediction);
   }
 
   @Override

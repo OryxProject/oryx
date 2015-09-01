@@ -21,12 +21,10 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-import net.openhft.koloboke.function.ToDoubleFunction;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.collection.PairComparators;
 
 public final class TopNConsumerTest extends OryxTest {
 
@@ -34,14 +32,8 @@ public final class TopNConsumerTest extends OryxTest {
   public void testTopN() {
     int howMany = 5;
     Queue<Pair<String,Double>> topQueue =
-        new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
-    ToDoubleFunction<float[]> doubleFn = new ToDoubleFunction<float[]>() {
-      @Override
-      public double applyAsDouble(float[] value) {
-        return value[0];
-      }
-    };
-    TopNConsumer consumer = new TopNConsumer(topQueue, howMany, doubleFn, null, null);
+        new PriorityQueue<>(howMany + 1, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
+    TopNConsumer consumer = new TopNConsumer(topQueue, howMany, value -> value[0], null, null);
     List<Integer> values = new ArrayList<>();
     int numValues = 100;
     for (int i = 0; i < numValues; i++) {
@@ -53,7 +45,7 @@ public final class TopNConsumerTest extends OryxTest {
     }
     assertEquals(howMany, topQueue.size());
     List<Pair<String,Double>> topList = new ArrayList<>(topQueue);
-    Collections.sort(topList, PairComparators.<Double>bySecond());
+    Collections.sort(topList, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
     Collections.reverse(topList);
     int expected = numValues - 1;
     for (Pair<String,Double> p : topList) {

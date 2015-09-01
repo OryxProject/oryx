@@ -18,7 +18,6 @@ package com.cloudera.oryx.app.common.fn;
 import java.util.Arrays;
 
 import org.junit.Test;
-import scala.Tuple2;
 
 import com.cloudera.oryx.common.OryxTest;
 
@@ -55,12 +54,6 @@ public final class MLFunctionsTest extends OryxTest {
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("a,b,c,123,").longValue());
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("[\"a\",\"b\",\"c\",123]").longValue());
     assertEquals(123L, MLFunctions.TO_TIMESTAMP_FN.call("[\"a\",\"b\",\"c\",123,\"d\"]").longValue());
-  }
-
-  @Test
-  public void testNotNaN() throws Exception {
-    assertTrue(MLFunctions.<String>notNaNValue().call(new Tuple2<>("foo", 0.0)));
-    assertFalse(MLFunctions.<String>notNaNValue().call(new Tuple2<>("foo", Double.NaN)));
   }
 
   @Test

@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.batch.mllib.als;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,10 +35,7 @@ import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFlatMapFunction;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
@@ -58,7 +54,6 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
-import com.cloudera.oryx.lambda.Functions;
 import com.cloudera.oryx.ml.MLUpdate;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
@@ -126,9 +121,22 @@ public final class ALSUpdate extends MLUpdate<String> {
       model = ALS.train(trainRatingData.rdd(), features, iterations, lambda);
     }
 
-    Map<Integer,String> reverseIDLookup = parsedRDD.
-        flatMapToPair(new ToReverseLookupFn()).
-        reduceByKey(Functions.<String>last()).collectAsMap();
+    Map<Integer,String> reverseIDLookup = parsedRDD.flatMapToPair(tokens -> {
+        List<Tuple2<Integer,String>> results = new ArrayList<>(2);
+        for (int i = 0; i < 2; i++) {
+          String s = tokens[i];
+          if (MOST_INTS_PATTERN.matcher(s).matches()) {
+            try {
+              Integer.parseInt(s);
+              continue;
+            } catch (NumberFormatException nfe) {
+              // continue
+            }
+          }
+          results.add(new Tuple2<>(hash(s), s));
+        }
+        return results;
+      }).reduceByKey((current, next) -> next).collectAsMap();
     // Clone, due to some serialization problems with the result of collectAsMap?
     reverseIDLookup = new HashMap<>(reverseIDLookup);
 
@@ -227,31 +235,18 @@ public final class ALSUpdate extends MLUpdate<String> {
   @Override
   protected Pair<JavaRDD<String>,JavaRDD<String>> splitNewDataToTrainTest(JavaRDD<String> newData) {
     // Rough approximation; assumes timestamps are fairly evenly distributed
-    StatCounter maxMin = newData.mapToDouble(new DoubleFunction<String>() {
-      @Override
-      public double call(String line) throws Exception {
-        return MLFunctions.TO_TIMESTAMP_FN.call(line).doubleValue();
-      }
-    }).stats();
+    StatCounter maxMin = newData.mapToDouble(line -> MLFunctions.TO_TIMESTAMP_FN.call(line).doubleValue()).stats();
 
     long minTime = (long) maxMin.min();
     long maxTime = (long) maxMin.max();
     log.info("New data timestamp range: {} - {}", minTime, maxTime);
-    final long approxTestTrainBoundary = (long) (maxTime - getTestFraction() * (maxTime - minTime));
+    long approxTestTrainBoundary = (long) (maxTime - getTestFraction() * (maxTime - minTime));
     log.info("Splitting at timestamp {}", approxTestTrainBoundary);
 
-    JavaRDD<String> newTrainData = newData.filter(new Function<String,Boolean>() {
-      @Override
-      public Boolean call(String line) throws Exception {
-        return MLFunctions.TO_TIMESTAMP_FN.call(line) < approxTestTrainBoundary;
-      }
-    });
-    JavaRDD<String> testData = newData.filter(new Function<String,Boolean>() {
-      @Override
-      public Boolean call(String line) throws Exception {
-        return MLFunctions.TO_TIMESTAMP_FN.call(line) >= approxTestTrainBoundary;
-      }
-    });
+    JavaRDD<String> newTrainData = newData.filter(
+        line -> MLFunctions.TO_TIMESTAMP_FN.call(line) < approxTestTrainBoundary);
+    JavaRDD<String> testData = newData.filter(
+        line -> MLFunctions.TO_TIMESTAMP_FN.call(line) >= approxTestTrainBoundary);
 
     return new Pair<>(newTrainData, testData);
   }
@@ -261,76 +256,7 @@ public final class ALSUpdate extends MLUpdate<String> {
    * @return {@link Rating}s ordered by timestamp
    */
   private JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD) {
-    JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(new ParseRatingFn());
-
-    if (decayFactor < 1.0) {
-      final double factor = decayFactor;
-      final long now = System.currentTimeMillis();
-      timestampRatingRDD = timestampRatingRDD.mapToPair(
-          new PairFunction<Tuple2<Long,Rating>,Long,Rating>() {
-            @Override
-            public Tuple2<Long,Rating> call(Tuple2<Long,Rating> timestampRating) {
-              long timestamp = timestampRating._1();
-              Rating rating = timestampRating._2();
-              double newRating;
-              if (timestamp >= now) {
-                newRating = rating.rating();
-              } else {
-                double days = (now - timestamp) / 86400000.0;
-                newRating = rating.rating() * Math.pow(factor, days);
-              }
-              return new Tuple2<>(timestamp,
-                                  new Rating(rating.user(), rating.product(), newRating));
-            }
-          });
-    }
-
-    if (decayZeroThreshold > 0.0) {
-      final double theThreshold = decayZeroThreshold;
-      timestampRatingRDD = timestampRatingRDD.filter(new Function<Tuple2<Long,Rating>,Boolean>() {
-        @Override
-        public Boolean call(Tuple2<Long,Rating> timestampRating) {
-          return timestampRating._2().rating() > theThreshold;
-        }
-      });
-    }
-
-    return timestampRatingRDD.sortByKey().values();
-  }
-
-  private static final class ToReverseLookupFn
-      implements PairFlatMapFunction<String[],Integer,String> {
-    @Override
-    public Iterable<Tuple2<Integer,String>> call(String[] tokens) {
-      List<Tuple2<Integer,String>> results = new ArrayList<>(2);
-      for (int i = 0; i < 2; i++) {
-        String s = tokens[i];
-        if (MOST_INTS_PATTERN.matcher(s).matches()) {
-          try {
-            Integer.parseInt(s);
-            continue;
-          } catch (NumberFormatException nfe) {
-            // continue
-          }
-        }
-        results.add(new Tuple2<>(hash(s), s));
-      }
-      return results;
-    }
-  }
-
-  /**
-   * @param s string to hash
-   * @return top 32 bits of MD5 hash of UTF-8 encoding of the string,
-   *  with 0 top bit (so result is nonnegative)
-   */
-  private static int hash(String s) {
-    return HASH.hashString(s, StandardCharsets.UTF_8).asInt() & 0x7FFFFFFF;
-  }
-
-  private static final class ParseRatingFn implements PairFunction<String[],Long,Rating> {
-    @Override
-    public Tuple2<Long,Rating> call(String[] tokens) {
+    JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(tokens -> {
       try {
         return new Tuple2<>(
             Long.valueOf(tokens[3]),
@@ -342,7 +268,41 @@ public final class ALSUpdate extends MLUpdate<String> {
         log.warn("Bad input: {}", Arrays.toString(tokens));
         throw e;
       }
+    });
+
+    if (decayFactor < 1.0) {
+      double factor = decayFactor;
+      long now = System.currentTimeMillis();
+      timestampRatingRDD = timestampRatingRDD.mapToPair(timestampRating -> {
+          long timestamp = timestampRating._1();
+          Rating rating = timestampRating._2();
+          double newRating;
+          if (timestamp >= now) {
+            newRating = rating.rating();
+          } else {
+            double days = (now - timestamp) / 86400000.0;
+            newRating = rating.rating() * Math.pow(factor, days);
+          }
+          return new Tuple2<>(timestamp,
+                              new Rating(rating.user(), rating.product(), newRating));
+        });
     }
+
+    if (decayZeroThreshold > 0.0) {
+      double theThreshold = decayZeroThreshold;
+      timestampRatingRDD = timestampRatingRDD.filter(timestampRating -> timestampRating._2().rating() > theThreshold);
+    }
+
+    return timestampRatingRDD.sortByKey().values();
+  }
+
+  /**
+   * @param s string to hash
+   * @return top 32 bits of MD5 hash of UTF-8 encoding of the string,
+   *  with 0 top bit (so result is nonnegative)
+   */
+  private static int hash(String s) {
+    return HASH.hashString(s, StandardCharsets.UTF_8).asInt() & 0x7FFFFFFF;
   }
 
   /**
@@ -370,7 +330,7 @@ public final class ALSUpdate extends MLUpdate<String> {
    */
   private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original) {
     JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples =
-        original.mapToPair(new RatingToTupleDouble());
+        original.mapToPair(rating -> new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating()));
 
     JavaPairRDD<Tuple2<Integer,Integer>,Double> aggregated;
     if (implicit) {
@@ -379,18 +339,15 @@ public final class ALSUpdate extends MLUpdate<String> {
       aggregated = tuples.groupByKey().mapValues(MLFunctions.SUM_WITH_NAN);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
+      aggregated = tuples.foldByKey(Double.NaN, (current, next) -> next);
     }
 
     return aggregated
-        .filter(MLFunctions.<Tuple2<Integer,Integer>>notNaNValue())
-        .map(new Function<Tuple2<Tuple2<Integer,Integer>,Double>,Rating>() {
-               @Override
-               public Rating call(Tuple2<Tuple2<Integer,Integer>,Double> userProductScore) {
-                 Tuple2<Integer,Integer> userProduct = userProductScore._1();
-                 return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
-               }
-             });
+        .filter(kv -> !Double.isNaN(kv._2()))
+        .map(userProductScore -> {
+          Tuple2<Integer,Integer> userProduct = userProductScore._1();
+          return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
+        });
       }
 
   /**
@@ -406,15 +363,12 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     Path candidatePath,
                                     Map<Integer,String> reverseIDMapping) {
 
-    Function<double[],float[]> doubleArrayToFloats = new Function<double[],float[]>() {
-      @Override
-      public float[] call(double[] d) {
-        float[] f = new float[d.length];
-        for (int i = 0; i < f.length; i++) {
-          f[i] = (float) d[i];
-        }
-        return f;
+    Function<double[],float[]> doubleArrayToFloats = d -> {
+      float[] f = new float[d.length];
+      for (int i = 0; i < f.length; i++) {
+        f[i] = (float) d[i];
       }
+      return f;
     };
 
     JavaPairRDD<Integer,float[]> userFeaturesRDD =
@@ -461,17 +415,14 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static void saveFeaturesRDD(JavaPairRDD<Integer,float[]> features,
                                       Path path,
-                                      final Map<Integer,String> reverseIDMapping) {
+                                      Map<Integer,String> reverseIDMapping) {
     log.info("Saving features RDD to {}", path);
-    features.map(new Function<Tuple2<Integer,float[]>,String>() {
-      @Override
-      public String call(Tuple2<Integer,float[]> keyAndVector) {
-        Integer id = keyAndVector._1();
-        String originalKey = reverseIDMapping.get(id);
-        Object key = originalKey == null ? id : originalKey;
-        float[] vector = keyAndVector._2();
-        return TextUtils.joinJSON(Arrays.asList(key, vector));
-      }
+    features.map(keyAndVector -> {
+      Integer id = keyAndVector._1();
+      String originalKey = reverseIDMapping.get(id);
+      Object key = originalKey == null ? id : originalKey;
+      float[] vector = keyAndVector._2();
+      return TextUtils.joinJSON(Arrays.asList(key, vector));
     }).saveAsTextFile(path.toString(), GzipCodec.class);
   }
 
@@ -489,22 +440,16 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static RDD<Tuple2<Object,double[]>> readAndConvertFeatureRDD(JavaPairRDD<String,float[]> javaRDD) {
 
-    RDD<Tuple2<Integer,double[]>> scalaRDD = javaRDD.mapToPair(
-        new PairFunction<Tuple2<String,float[]>,Integer,float[]>() {
-          @Override
-          public Tuple2<Integer,float[]> call(Tuple2<String, float[]> t) {
-            return new Tuple2<>(parseOrHashInt(t._1()), t._2());
-          }
-        }).mapValues(new Function<float[],double[]>() {
-          @Override
-          public double[] call(float[] f) {
-            double[] d = new double[f.length];
-            for (int i = 0; i < d.length; i++) {
-              d[i] = f[i];
-            }
-            return d;
-          }
-        }).rdd();
+    RDD<Tuple2<Integer,double[]>> scalaRDD = javaRDD.mapToPair(t ->
+        new Tuple2<>(parseOrHashInt(t._1()), t._2())
+    ).mapValues(f -> {
+        double[] d = new double[f.length];
+        for (int i = 0; i < d.length; i++) {
+          d[i] = f[i];
+        }
+        return d;
+      }
+    ).rdd();
 
     // This mimics the persistence level establish by ALS training methods
     scalaRDD.persist(StorageLevel.MEMORY_AND_DISK());
@@ -517,57 +462,40 @@ public final class ALSUpdate extends MLUpdate<String> {
   private static JavaPairRDD<String,float[]> readFeaturesRDD(JavaSparkContext sparkContext, Path path) {
     log.info("Loading features RDD from {}", path);
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
-    return featureLines.mapToPair(new PairFunction<String,String,float[]>() {
-      @Override
-      public Tuple2<String, float[]> call(String line) throws IOException {
-        List<?> update = MAPPER.readValue(line, List.class);
-        String key = update.get(0).toString();
-        float[] vector = MAPPER.convertValue(update.get(1), float[].class);
-        return new Tuple2<>(key, vector);
-      }
+    return featureLines.mapToPair(line -> {
+      List<?> update = MAPPER.readValue(line, List.class);
+      String key = update.get(0).toString();
+      float[] vector = MAPPER.convertValue(update.get(1), float[].class);
+      return new Tuple2<>(key, vector);
     });
   }
 
   private static JavaPairRDD<String,Collection<String>> knownsRDD(JavaRDD<String[]> allData,
-                                                                  final boolean knownItems) {
-    JavaRDD<String[]> sorted = allData.sortBy(
-        new Function<String[], Long>() {
-          @Override
-          public Long call(String[] datum) {
-            return Long.valueOf(datum[3]);
-          }
-        }, true, allData.partitions().size());
+                                                                  boolean knownItems) {
+    JavaRDD<String[]> sorted = allData.sortBy(datum -> Long.valueOf(datum[3]), true, allData.partitions().size());
 
-    JavaPairRDD<String,Tuple2<String,Boolean>> tuples = sorted.mapToPair(
-        new PairFunction<String[],String,Tuple2<String,Boolean>>() {
-          @Override
-          public Tuple2<String,Tuple2<String,Boolean>> call(String[] datum) {
-            String user = datum[0];
-            String item = datum[1];
-            Boolean delete = datum[2].isEmpty();
-            return knownItems ?
-                new Tuple2<>(user, new Tuple2<>(item, delete)) :
-                new Tuple2<>(item, new Tuple2<>(user, delete));
-          }
-        });
+    JavaPairRDD<String,Tuple2<String,Boolean>> tuples = sorted.mapToPair(datum -> {
+        String user = datum[0];
+        String item = datum[1];
+        Boolean delete = datum[2].isEmpty();
+        return knownItems ?
+            new Tuple2<>(user, new Tuple2<>(item, delete)) :
+            new Tuple2<>(item, new Tuple2<>(user, delete));
+      });
 
     // TODO likely need to figure out a way to avoid groupByKey but collectByKey
     // won't work here -- doesn't guarantee enough about ordering
-    return tuples.groupByKey().mapValues(
-        new Function<Iterable<Tuple2<String,Boolean>>,Collection<String>>() {
-          @Override
-          public Collection<String> call(Iterable<Tuple2<String,Boolean>> idDeletes) {
-            Collection<String> ids = new HashSet<>();
-            for (Tuple2<String,Boolean> idDelete : idDeletes) {
-              if (idDelete._2()) {
-                ids.remove(idDelete._1());
-              } else {
-                ids.add(idDelete._1());
-              }
-            }
-            return ids;
+    return tuples.groupByKey().mapValues(idDeletes -> {
+        Collection<String> ids = new HashSet<>();
+        for (Tuple2<String,Boolean> idDelete : idDeletes) {
+          if (idDelete._2()) {
+            ids.remove(idDelete._1());
+          } else {
+            ids.add(idDelete._1());
           }
-        });
+        }
+        return ids;
+      });
   }
 
   private static <K,V> JavaPairRDD<K,V> fromRDD(RDD<Tuple2<K,V>> rdd) {

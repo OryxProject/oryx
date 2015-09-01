@@ -38,9 +38,7 @@ public final class OryxShutdownHook implements Runnable {
   public void run() {
     triggered = true;
     synchronized (closeAtShutdown) {
-      for (Closeable c : closeAtShutdown) {
-        IOUtils.closeQuietly(c);
-      }
+      closeAtShutdown.forEach(IOUtils::closeQuietly);
     }
   }
 

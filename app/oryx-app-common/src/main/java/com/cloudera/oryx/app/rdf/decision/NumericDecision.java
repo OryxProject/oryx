@@ -18,7 +18,6 @@ package com.cloudera.oryx.app.rdf.decision;
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.app.rdf.example.FeatureType;
 import com.cloudera.oryx.app.rdf.example.NumericFeature;
-import com.cloudera.oryx.common.lang.LangUtils;
 
 /**
  * Represents a decision over a numeric feature. Decisions are defined simply by a threshold
@@ -72,7 +71,7 @@ public final class NumericDecision extends Decision {
 
   @Override
   public int hashCode() {
-    return getFeatureNumber() ^ LangUtils.hashDouble(threshold);
+    return getFeatureNumber() ^ Double.hashCode(threshold);
   }
 
   @Override

@@ -17,11 +17,10 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -50,31 +49,15 @@ public abstract class AbstractALSResource extends AbstractOryxResource {
                                          int howMany,
                                          int offset) {
     List<Pair<String,Double>> sublist = selectedSublist(pairs, howMany, offset);
-    return Lists.transform(sublist,
-        new Function<Pair<String,Double>,IDValue>() {
-          @Override
-          public IDValue apply(Pair<String,Double> idDot) {
-            return new IDValue(idDot.getFirst(), idDot.getSecond());
-          }
-        });
+    return Lists.transform(sublist, idDot -> new IDValue(idDot.getFirst(), idDot.getSecond()));
   }
 
-  static ObjDoubleToDoubleFunction<String> buildRescoreFn(final Rescorer rescorer) {
-    return new ObjDoubleToDoubleFunction<String>() {
-      @Override
-      public double applyAsDouble(String ID, double score) {
-        return rescorer.rescore(ID, score);
-      }
-    };
+  static ObjDoubleToDoubleFunction<String> buildRescoreFn(Rescorer rescorer) {
+    return rescorer::rescore;
   }
 
-  static Predicate<String> buildRescorerPredicate(final Rescorer rescorer) {
-    return new Predicate<String>() {
-      @Override
-      public boolean test(String ID) {
-        return !rescorer.isFiltered(ID);
-      }
-    };
+  static Predicate<String> buildRescorerPredicate(Rescorer rescorer) {
+    return id -> !rescorer.isFiltered(id);
   }
 
 }

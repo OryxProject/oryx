@@ -17,13 +17,13 @@ package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -34,7 +34,6 @@ import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -42,7 +41,6 @@ import org.apache.spark.streaming.kafka.KafkaCluster;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.common.lang.ClassUtils;
@@ -165,9 +163,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       log.info("Overriding app name to {} for tests", appName);
       sparkConf.setAppName(appName);
     }
-    for (Map.Entry<String,?> e : extraSparkConfig.entrySet()) {
-      sparkConf.setIfMissing(e.getKey(), e.getValue().toString());
-    }
+    extraSparkConfig.forEach((key, value) -> sparkConf.setIfMissing(key, value.toString()));
 
     // Turn this down to prevent long blocking at shutdown
     sparkConf.setIfMissing(
@@ -223,31 +219,14 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
                                          streamClass,
                                          kafkaParams,
                                          offsets,
-                                         Functions.<MessageAndMetadata<K,M>>identity());
-  }
-
-  /**
-   * Translates a {@link MessageAndMetadata} key-message pair to a {@link Tuple2} of the same.
-   *
-   * @param <K> input topic key type
-   * @param <M> input topic message type
-   */
-  public static final class MMDToTuple2Fn<K,M> implements PairFunction<MessageAndMetadata<K,M>,K,M> {
-    @Override
-    public Tuple2<K,M> call(MessageAndMetadata<K,M> km) {
-      return new Tuple2<>(km.key(), km.message());
-    }
+                                         message -> message);
   }
 
   private static void fillInLatestOffsets(Map<TopicAndPartition,Long> offsets, Map<String,String> kafkaParams) {
     if (offsets.containsValue(null)) {
 
-      Set<TopicAndPartition> needOffset = new HashSet<>();
-      for (Map.Entry<TopicAndPartition, Long> entry : offsets.entrySet()) {
-        if (entry.getValue() == null) {
-          needOffset.add(entry.getKey());
-        }
-      }
+      Set<TopicAndPartition> needOffset = offsets.entrySet().stream().filter(entry -> entry.getValue() == null)
+          .map(Map.Entry::getKey).collect(Collectors.toSet());
       log.info("No initial offsets for {}; reading from Kafka", needOffset);
 
       // The high price of calling private Scala stuff:

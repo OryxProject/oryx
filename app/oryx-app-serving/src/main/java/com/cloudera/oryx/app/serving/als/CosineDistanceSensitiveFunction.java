@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import net.openhft.koloboke.function.ToDoubleFunction;
+import java.util.function.ToDoubleFunction;
 
 /**
  * Implementations of this type of function return a value that depends on

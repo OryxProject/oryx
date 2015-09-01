@@ -46,7 +46,6 @@ public final class ModelManagerListenerIT extends AbstractLambdaIT {
     listener.init(mockContext);
     try {
       listener.contextInitialized(new ServletContextEvent(mockContext));
-      @SuppressWarnings("unchecked")
       ServingModelManager<?> manager =
           (ServingModelManager<?>) mockContext.getAttribute(ModelManagerListener.MANAGER_KEY);
       assertNotNull(manager);

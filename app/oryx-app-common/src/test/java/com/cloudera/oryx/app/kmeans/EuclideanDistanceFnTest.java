@@ -24,12 +24,12 @@ public final class EuclideanDistanceFnTest extends OryxTest {
   @Test
   public void testDistance() {
     assertEquals(Math.sqrt(14.0),
-                 new EuclideanDistanceFn().distance(new double[] { 1.0, 2.0, 3.0 },
-                                                    new double[] { 0.0, 4.0, 6.0 }));
+                 new EuclideanDistanceFn().applyAsDouble(new double[] { 1.0, 2.0, 3.0 },
+                                                         new double[] { 0.0, 4.0, 6.0 }));
     assertEquals(Math.sqrt(2.0),
-                 new EuclideanDistanceFn().distance(new double[] { 0.0, 1.0 },
-                                                    new double[] { -1.0, 0.0 }));
-    assertEquals(0.0, new EuclideanDistanceFn().distance(new double[] { 1.0 }, new double[] { 1.0 }));
+                 new EuclideanDistanceFn().applyAsDouble(new double[] { 0.0, 1.0 },
+                                                         new double[] { -1.0, 0.0 }));
+    assertEquals(0.0, new EuclideanDistanceFn().applyAsDouble(new double[] { 1.0 }, new double[] { 1.0 }));
   }
 
 }

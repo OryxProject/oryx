@@ -17,8 +17,6 @@ package com.cloudera.oryx.common.io;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
@@ -30,8 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -69,50 +65,6 @@ public final class IOUtils {
         return FileVisitResult.CONTINUE;
       }
     });
-  }
-
-  /**
-   * Opens an {@link InputStream} to the file. If it appears to be compressed, because its
-   * file name ends in ".gz", then it will be decompressed accordingly.
-   *
-   * @param file file, possibly compressed, to open
-   * @return {@link InputStream} on uncompressed contents
-   * @throws IOException if the stream can't be opened or is invalid or can't be read
-   */
-  public static InputStream readMaybeCompressed(Path file) throws IOException {
-    String name = file.getFileName().toString();
-    InputStream in = Files.newInputStream(file);
-    if (name.endsWith(".gz")) {
-      return new GZIPInputStream(in);
-    }
-    return in;
-  }
-
-  /**
-   * @param file file to read lines of, which may be compressed. It will be read using
-   *  UTF-8 encoding and assumes line separators consistent with {@link java.io.BufferedReader}
-   * @return an {@link Iterable} over the lines of the file
-   */
-  public static Iterable<String> readLines(Path file) {
-    return new LineIterable(file);
-  }
-
-  /**
-   * Opens an {@link OutputStream} to the file. If it should be compressed, because its
-   * file name ends in ".gz", then data written will be compressed accordingly.
-   *
-   * @param file file, possibly compressed, to write to
-   * @param bufferSize suggested output buffer size in bytes
-   * @return {@link OutputStream} receiving uncompressed contents
-   * @throws IOException if the stream can't be opened or is invalid or can't be written
-   */
-  public static OutputStream writeMaybeCompressed(Path file, int bufferSize) throws IOException {
-    String name = file.getFileName().toString();
-    OutputStream out = Files.newOutputStream(file);
-    if (name.endsWith(".gz")) {
-      return new GZIPOutputStream(out, bufferSize);
-    }
-    return out;
   }
 
   /**

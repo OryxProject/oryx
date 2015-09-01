@@ -16,17 +16,14 @@
 package com.cloudera.oryx.app.als;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
 import net.openhft.koloboke.collect.map.ObjObjMap;
 import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
-import net.openhft.koloboke.function.BiConsumer;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
-import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.math.VectorMath;
@@ -133,8 +130,7 @@ public final class FeatureVectors {
    */
   public void retainRecentAndIDs(Collection<String> newModelIDs) {
     try (AutoLock al = lock.autoWriteLock()) {
-      vectors.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(newModelIDs), new NotContainsPredicate<>(recentIDs))));
+      vectors.removeIf((key, value) -> !newModelIDs.contains(key) && !recentIDs.contains(key));
       recentIDs.clear();
     }
   }

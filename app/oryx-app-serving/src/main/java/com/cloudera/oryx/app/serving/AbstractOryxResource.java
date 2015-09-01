@@ -22,10 +22,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.servlet.ServletContext;
@@ -36,7 +36,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
@@ -123,15 +122,12 @@ public abstract class AbstractOryxResource extends OryxResource {
       sharedFileItemFactory.compareAndSet(null, fileItemFactory);
     }
 
-    Collection<Part> parts = new ArrayList<>();
     try {
-      for (FileItem item : new ServletFileUpload(sharedFileItemFactory.get()).parseRequest(request)) {
-        parts.add(new FileItemPart(item));
-      }
+      return new ServletFileUpload(sharedFileItemFactory.get()).parseRequest(request)
+          .stream().map(FileItemPart::new).collect(Collectors.toList());
     } catch (FileUploadException e) {
       throw new IOException(e.getMessage());
     }
-    return parts;
   }
 
   protected static void check(boolean condition,

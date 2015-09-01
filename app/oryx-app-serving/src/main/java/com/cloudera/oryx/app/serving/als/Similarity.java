@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.als;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -29,17 +30,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.common.collection.Predicates;
 
 /**
  * <p>Responds to a GET request to
@@ -86,13 +84,13 @@ public final class Similarity extends AbstractALSResource {
       knownItems.add(itemID);
     }
 
-    Predicate<String> allowedFn = new NotContainsPredicate<>(knownItems);
+    Predicate<String> allowedFn = v -> !knownItems.contains(v);
     ObjDoubleToDoubleFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getMostSimilarItemsRescorer(rescorerParams);
       if (rescorer != null) {
-        allowedFn = Predicates.and(allowedFn, buildRescorerPredicate(rescorer));
+        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
         rescoreFn = buildRescoreFn(rescorer);
       }
     }

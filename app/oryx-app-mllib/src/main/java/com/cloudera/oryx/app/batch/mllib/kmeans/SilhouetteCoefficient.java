@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.linalg.Vector;
 import scala.Tuple2;
 
@@ -87,24 +86,21 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
   }
 
   private JavaPairRDD<Integer, Iterable<double[]>> fetchClusteredPoints(JavaRDD<Vector> evalData) {
-    return evalData.mapToPair(new PairFunction<Vector, Integer, double[]>() {
-      @Override
-      public Tuple2<Integer, double[]> call(Vector vector) {
-        double closestDist = Double.POSITIVE_INFINITY;
-        int minClusterID = Integer.MIN_VALUE;
-        double[] vec = vector.toArray();
-        DistanceFn<double[]> distanceFn = getDistanceFn();
-        Map<Integer,ClusterInfo> clusters = getClustersByID();
-        for (ClusterInfo cluster : clusters.values()) {
-          double distance = distanceFn.distance(cluster.getCenter(), vec);
-          if (distance < closestDist) {
-            closestDist = distance;
-            minClusterID = cluster.getID();
-          }
+    return evalData.mapToPair(vector -> {
+      double closestDist = Double.POSITIVE_INFINITY;
+      int minClusterID = Integer.MIN_VALUE;
+      double[] vec = vector.toArray();
+      DistanceFn<double[]> distanceFn = getDistanceFn();
+      Map<Integer,ClusterInfo> clusters = getClustersByID();
+      for (ClusterInfo cluster : clusters.values()) {
+        double distance = distanceFn.applyAsDouble(cluster.getCenter(), vec);
+        if (distance < closestDist) {
+          closestDist = distance;
+          minClusterID = cluster.getID();
         }
-        Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
-        return new Tuple2<>(minClusterID, vec);
       }
+      Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
+      return new Tuple2<>(minClusterID, vec);
     }).groupByKey();
   }
 
@@ -114,7 +110,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
     DistanceFn<double[]> distanceFn = getDistanceFn();
     double totalDissimilarity = 0.0;
     for (double[] clusterPoint : clusterPoints) {
-      totalDissimilarity += distanceFn.distance(point, clusterPoint);
+      totalDissimilarity += distanceFn.applyAsDouble(point, clusterPoint);
     }
 
     if (ownCluster) {
@@ -153,7 +149,6 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
     return 0.0;
   }
 
-  @SuppressWarnings("unchecked")
   private static <T> List<T> iterableToList(Iterable<T> it) {
     return it instanceof List ? (List<T>) it : Lists.newArrayList(it);
   }

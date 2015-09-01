@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,9 +24,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 
 import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
@@ -90,19 +88,13 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   }
 
   static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {
-    return Lists.transform(pathSegments, PARSE_PATH_FN);
+    return pathSegments.stream().map(segment -> {
+      String s = segment.getPath();
+      int offset = s.indexOf('=');
+      return offset < 0 ?
+          new Pair<>(s, 1.0) :
+          new Pair<>(s.substring(0, offset), Double.parseDouble(s.substring(offset + 1)));
+    }).collect(Collectors.toList());
   }
-
-  private static final Function<PathSegment,Pair<String,Double>> PARSE_PATH_FN =
-      new Function<PathSegment,Pair<String,Double>>() {
-        @Override
-        public Pair<String,Double> apply(PathSegment segment) {
-          String s = segment.getPath();
-          int offset = s.indexOf('=');
-          return offset < 0 ?
-              new Pair<>(s, 1.0) :
-              new Pair<>(s.substring(0, offset), Double.parseDouble(s.substring(offset + 1)));
-        }
-      };
 
 }

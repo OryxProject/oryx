@@ -23,8 +23,6 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.linalg.Vector;
 import scala.Tuple2;
 
@@ -61,28 +59,20 @@ abstract class AbstractKMeansEvaluation implements Serializable {
    *  and sum of squared distances
    */
   JavaPairRDD<Integer,ClusterMetric> fetchClusterMetrics(JavaRDD<Vector> evalData) {
-    return evalData.mapToPair(new PairFunction<Vector,Integer,ClusterMetric>() {
-      @Override
-      public Tuple2<Integer,ClusterMetric> call(Vector vector) {
-        double closestDist = Double.POSITIVE_INFINITY;
-        int minClusterID = Integer.MIN_VALUE;
-        double[] vec = vector.toArray();
-        for (ClusterInfo cluster : clusters.values()) {
-          double distance = distanceFn.distance(cluster.getCenter(), vec);
-          if (distance < closestDist) {
-            closestDist = distance;
-            minClusterID = cluster.getID();
-          }
+    return evalData.mapToPair(vector -> {
+      double closestDist = Double.POSITIVE_INFINITY;
+      int minClusterID = Integer.MIN_VALUE;
+      double[] vec = vector.toArray();
+      for (ClusterInfo cluster : clusters.values()) {
+        double distance = distanceFn.applyAsDouble(cluster.getCenter(), vec);
+        if (distance < closestDist) {
+          closestDist = distance;
+          minClusterID = cluster.getID();
         }
-        Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
-        return new Tuple2<>(minClusterID, new ClusterMetric(1L, closestDist, closestDist * closestDist));
       }
-    }).reduceByKey(new Function2<ClusterMetric,ClusterMetric,ClusterMetric>() {
-      @Override
-      public ClusterMetric call(ClusterMetric a, ClusterMetric b) {
-        return a.add(b);
-      }
-    });
+      Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
+      return new Tuple2<>(minClusterID, new ClusterMetric(1L, closestDist, closestDist * closestDist));
+    }).reduceByKey(ClusterMetric::add);
   }
 
 }

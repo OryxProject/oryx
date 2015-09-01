@@ -24,10 +24,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.DoubleFunction;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
@@ -51,21 +48,17 @@ final class Evaluation {
    */
   static double rmse(MatrixFactorizationModel mfModel, JavaRDD<Rating> testData) {
     JavaPairRDD<Tuple2<Integer,Integer>,Double> testUserProductValues =
-        testData.mapToPair(new RatingToTupleDouble());
+        testData.mapToPair(rating -> new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating()));
     @SuppressWarnings("unchecked")
     RDD<Tuple2<Object,Object>> testUserProducts =
         (RDD<Tuple2<Object,Object>>) (RDD<?>) testUserProductValues.keys().rdd();
     JavaRDD<Rating> predictions = testData.wrapRDD(mfModel.predict(testUserProducts));
     double mse = predictions.mapToPair(
-        new RatingToTupleDouble()
-    ).join(testUserProductValues).values().mapToDouble(
-        new DoubleFunction<Tuple2<Double,Double>>() {
-          @Override
-          public double call(Tuple2<Double,Double> valuePrediction) {
-            double diff = valuePrediction._1() - valuePrediction._2();
-            return diff * diff;
-          }
-        }).mean();
+        rating -> new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating())
+    ).join(testUserProductValues).values().mapToDouble(valuePrediction -> {
+      double diff = valuePrediction._1() - valuePrediction._2();
+      return diff * diff;
+    }).mean();
     return Math.sqrt(mse);
   }
 
@@ -85,19 +78,13 @@ final class Evaluation {
 
     // Extract all positive (user,product) pairs
     JavaPairRDD<Integer,Integer> positiveUserProducts =
-        positiveData.mapToPair(new PairFunction<Rating,Integer,Integer>() {
-          @Override
-          public Tuple2<Integer,Integer> call(Rating rating) {
-            return new Tuple2<>(rating.user(), rating.product());
-          }
-        });
+        positiveData.mapToPair(rating -> new Tuple2<>(rating.user(), rating.product()));
 
     JavaPairRDD<Integer,Iterable<Rating>> positivePredictions =
         predictAll(mfModel, positiveData, positiveUserProducts);
 
     // All distinct item IDs, to be broadcast
-    final Broadcast<List<Integer>> allItemIDsBC =
-        sparkContext.broadcast(positiveUserProducts.values().distinct().collect());
+    Broadcast<List<Integer>> allItemIDsBC = sparkContext.broadcast(positiveUserProducts.values().distinct().collect());
 
     JavaPairRDD<Integer,Integer> negativeUserProducts =
       positiveUserProducts.groupByKey().flatMapToPair(
@@ -126,30 +113,26 @@ final class Evaluation {
     JavaPairRDD<Integer,Iterable<Rating>> negativePredictions =
         predictAll(mfModel, positiveData, negativeUserProducts);
 
-    return positivePredictions.join(negativePredictions).values().mapToDouble(
-        new DoubleFunction<Tuple2<Iterable<Rating>, Iterable<Rating>>>() {
-          @Override
-          public double call(Tuple2<Iterable<Rating>, Iterable<Rating>> t) {
-            // AUC is also the probability that random positive examples
-            // rank higher than random examples at large. Here we compare all random negative
-            // examples to all positive examples and report the totals as an alternative
-            // computation for AUC
-            long correct = 0;
-            long total = 0;
-            for (Rating positive : t._1()) {
-              for (Rating negative : t._2()) {
-                if (positive.rating() > negative.rating()) {
-                  correct++;
-                }
-                total++;
-              }
+    return positivePredictions.join(negativePredictions).values().mapToDouble(t -> {
+        // AUC is also the probability that random positive examples
+        // rank higher than random examples at large. Here we compare all random negative
+        // examples to all positive examples and report the totals as an alternative
+        // computation for AUC
+        long correct = 0;
+        long total = 0;
+        for (Rating positive : t._1()) {
+          for (Rating negative : t._2()) {
+            if (positive.rating() > negative.rating()) {
+              correct++;
             }
-            if (total == 0) {
-              return 0.0;
-            }
-            return (double) correct / total;
+            total++;
           }
-        }).mean();
+        }
+        if (total == 0) {
+          return 0.0;
+        }
+        return (double) correct / total;
+      }).mean();
   }
 
   private static JavaPairRDD<Integer,Iterable<Rating>> predictAll(
@@ -159,12 +142,7 @@ final class Evaluation {
     @SuppressWarnings("unchecked")
     RDD<Tuple2<Object,Object>> userProductsRDD =
         (RDD<Tuple2<Object,Object>>) (RDD<?>) userProducts.rdd();
-    return data.wrapRDD(mfModel.predict(userProductsRDD)).groupBy(new Function<Rating,Integer>() {
-      @Override
-      public Integer call(Rating r) {
-        return r.user();
-      }
-    });
+    return data.wrapRDD(mfModel.predict(userProductsRDD)).groupBy(Rating::user);
   }
 
 }

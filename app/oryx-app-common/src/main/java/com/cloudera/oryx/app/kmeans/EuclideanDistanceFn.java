@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 public final class EuclideanDistanceFn implements DistanceFn<double[]> {
 
   @Override
-  public double distance(double[] t1, double[] t2) {
+  public double applyAsDouble(double[] t1, double[] t2) {
     int length = t1.length;
     Preconditions.checkArgument(length == t2.length);
     double sumSq = 0.0;

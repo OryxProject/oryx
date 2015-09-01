@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.util.concurrent.AtomicLongMap;
@@ -31,8 +30,6 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,15 +106,31 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
 
     DecisionForest forest = model.getForest();
     JavaPairRDD<Pair<Integer,String>,Iterable<Feature>> targetsByTreeAndID =
-        examplesRDD.flatMapToPair(new ToTreeNodeFeatureFn(forest)).groupByKey();
+        examplesRDD.flatMapToPair(example -> {
+          Feature target = example.getTarget();
+          DecisionTree[] trees = forest.getTrees();
+          List<Tuple2<Pair<Integer,String>,Feature>> results = new ArrayList<>(trees.length);
+          for (int treeID = 0; treeID < trees.length; treeID++) {
+            String id = trees[treeID].findTerminal(example).getID();
+            results.add(new Tuple2<>(new Pair<>(treeID, id), target));
+          }
+          return results;
+        }).groupByKey();
 
     List<String> updates = new ArrayList<>();
 
     if (inputSchema.isClassification()) {
 
-      List<Tuple2<Pair<Integer,String>,Map<Integer,Long>>> countsByTreeAndID =
-          targetsByTreeAndID.mapValues(new TargetCategoryCountFn()).collect();
-      for (Tuple2<Pair<Integer,String>,Map<Integer,Long>> p : countsByTreeAndID) {
+      List<Tuple2<Pair<Integer,String>,HashMap<Integer,Long>>> countsByTreeAndID =
+          targetsByTreeAndID.mapValues(categoricalTargets -> {
+            AtomicLongMap<Integer> categoryCounts = AtomicLongMap.create();
+            for (Feature f : categoricalTargets) {
+              categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
+            }
+            // Have to clone it as Kryo won't serialize the unmodifiable map
+            return new HashMap<>(categoryCounts.asMap());
+          }).collect();
+      for (Tuple2<Pair<Integer,String>,HashMap<Integer,Long>> p : countsByTreeAndID) {
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
         updates.add(TextUtils.joinJSON(Arrays.asList(treeID, nodeID, p._2())));
@@ -125,8 +138,13 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
 
     } else {
 
-      List<Tuple2<Pair<Integer,String>,Mean>> meanTargetsByTreeAndID =
-          targetsByTreeAndID.mapValues(new MeanNewTargetFn()).collect();
+      List<Tuple2<Pair<Integer,String>,Mean>> meanTargetsByTreeAndID = targetsByTreeAndID.mapValues(numericTargets -> {
+          Mean mean = new Mean();
+          for (Feature f : numericTargets) {
+            mean.increment(((NumericFeature) f).getValue());
+          }
+          return mean;
+        }).collect();
       for (Tuple2<Pair<Integer,String>,Mean> p : meanTargetsByTreeAndID) {
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
@@ -143,49 +161,6 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
   @Override
   public void close() {
     // do nothing
-  }
-
-  private static final class ToTreeNodeFeatureFn
-      implements PairFlatMapFunction<Example,Pair<Integer,String>,Feature> {
-    private final DecisionForest forest;
-    ToTreeNodeFeatureFn(DecisionForest forest) {
-      this.forest = forest;
-    }
-    @Override
-    public Iterable<Tuple2<Pair<Integer,String>,Feature>> call(Example example) {
-      Feature target = example.getTarget();
-      DecisionTree[] trees = forest.getTrees();
-      List<Tuple2<Pair<Integer,String>,Feature>> results = new ArrayList<>(trees.length);
-      for (int treeID = 0; treeID < trees.length; treeID++) {
-        String id = trees[treeID].findTerminal(example).getID();
-        results.add(new Tuple2<>(new Pair<>(treeID, id), target));
-      }
-      return results;
-    }
-  }
-
-  private static final class MeanNewTargetFn implements Function<Iterable<Feature>,Mean> {
-    @Override
-    public Mean call(Iterable<Feature> numericTargets) {
-      Mean mean = new Mean();
-      for (Feature f : numericTargets) {
-        mean.increment(((NumericFeature) f).getValue());
-      }
-      return mean;
-    }
-  }
-
-  private static final class TargetCategoryCountFn
-      implements Function<Iterable<Feature>,Map<Integer,Long>> {
-    @Override
-    public Map<Integer,Long> call(Iterable<Feature> categoricalTargets) {
-      AtomicLongMap<Integer> categoryCounts = AtomicLongMap.create();
-      for (Feature f : categoricalTargets) {
-        categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
-      }
-      // Have to clone it as Kryo won't serialize the unmodifiable map
-      return new HashMap<>(categoryCounts.asMap());
-    }
   }
 
 }

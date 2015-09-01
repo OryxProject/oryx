@@ -24,13 +24,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
@@ -38,9 +38,7 @@ import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.collection.Predicates;
 
 /**
  * <p>Responds to a GET request to
@@ -81,22 +79,19 @@ public final class RecommendWithContext extends AbstractALSResource {
 
     float[] tempUserVector = EstimateForAnonymous.buildTemporaryUserVector(model, parsedPathSegments, userVector);
 
-    List<String> knownItems = new ArrayList<>();
-    for (Pair<String,?> itemValue : parsedPathSegments) {
-      knownItems.add(itemValue.getFirst());
-    }
+    Set<String> knownItems = parsedPathSegments.stream().map(Pair::getFirst).collect(Collectors.toSet());
     if (!considerKnownItems) {
       knownItems.addAll(model.getKnownItems(userID));
     }
 
-    Predicate<String> allowedFn = new NotContainsPredicate<>(new HashSet<>(knownItems));
+    Predicate<String> allowedFn = v -> !knownItems.contains(v);
     ObjDoubleToDoubleFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
                                                                 rescorerParams);
       if (rescorer != null) {
-        allowedFn = Predicates.and(allowedFn, buildRescorerPredicate(rescorer));
+        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
         rescoreFn = buildRescoreFn(rescorer);
       }
     }

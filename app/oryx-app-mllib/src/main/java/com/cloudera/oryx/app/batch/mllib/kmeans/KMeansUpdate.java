@@ -25,7 +25,6 @@ import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
@@ -126,13 +125,8 @@ public final class KMeansUpdate extends MLUpdate<String> {
    * @return map of ClusterId, count of points associated with the clusterId
    */
   private static Map<Integer,Long> fetchClusterCountsFromModel(JavaRDD<Vector> trainPointData,
-                                                               final KMeansModel model) {
-     return trainPointData.map(new Function<Vector, Integer>() {
-       @Override
-       public Integer call(Vector vector) {
-         return model.predict(vector);
-       }
-     }).countByValue();
+                                                               KMeansModel model) {
+     return trainPointData.map(model::predict).countByValue();
   }
 
   /**
@@ -227,15 +221,12 @@ public final class KMeansUpdate extends MLUpdate<String> {
   }
 
   private JavaRDD<Vector> parsedToVectorRDD(JavaRDD<String[]> parsedRDD) {
-    return parsedRDD.map(new Function<String[], Vector>() {
-      @Override
-      public Vector call(String[] data) {
-        try {
-          return Vectors.dense(KMeansUtils.featuresFromTokens(data, inputSchema));
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-          log.warn("Bad input: {}", Arrays.toString(data));
-          throw e;
-        }
+    return parsedRDD.map(data -> {
+      try {
+        return Vectors.dense(KMeansUtils.featuresFromTokens(data, inputSchema));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(data));
+        throw e;
       }
     });
   }

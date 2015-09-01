@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.app.rdf.example;
 
-import com.cloudera.oryx.common.lang.LangUtils;
-
 /**
  * Represents the value of a numeric feature -- one that takes on a real value, whether conceptually discrete or
  * continuous. For example both integer values like "number of children" and continuous values like "average age"
@@ -65,7 +63,7 @@ public final class NumericFeature implements Feature {
   
   @Override
   public int hashCode() {
-    return LangUtils.hashDouble(value);
+    return Double.hashCode(value);
   }
   
   @Override

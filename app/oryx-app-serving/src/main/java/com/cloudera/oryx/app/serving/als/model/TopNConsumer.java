@@ -16,11 +16,11 @@
 package com.cloudera.oryx.app.serving.als.model;
 
 import java.util.Queue;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 
-import net.openhft.koloboke.function.BiConsumer;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
-import net.openhft.koloboke.function.ToDoubleFunction;
 
 import com.cloudera.oryx.common.collection.Pair;
 

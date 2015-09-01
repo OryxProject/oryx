@@ -24,6 +24,7 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
@@ -82,7 +83,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     log.info("Creating message stream from topic");
     JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
 
-    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(new MMDToTuple2Fn<K,M>());
+    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(km -> new Tuple2<>(km.key(), km.message()));
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();
@@ -107,7 +108,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         messageWritableClass,
         streamingContext.sparkContext().hadoopConfiguration()));
 
-    dStream.foreachRDD(new UpdateOffsetsFn<K,M>(getGroupID(), getInputTopicLockMaster()));
+    dStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
 
     log.info("Starting Spark Streaming");
 

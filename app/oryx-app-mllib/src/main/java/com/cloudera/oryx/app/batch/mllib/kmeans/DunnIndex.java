@@ -52,7 +52,7 @@ final class DunnIndex extends AbstractKMeansEvaluation {
       // Distances are symmetric, hence d(i,j) == d(j,i)
       for (int j = i + 1; j < clusters.size(); j++) {
         double[] centerJ = clusters.get(j).getCenter();
-        minInterClusterDistance = Math.min(minInterClusterDistance, distanceFn.distance(centerI, centerJ));
+        minInterClusterDistance = Math.min(minInterClusterDistance, distanceFn.applyAsDouble(centerI, centerJ));
       }
     }
 

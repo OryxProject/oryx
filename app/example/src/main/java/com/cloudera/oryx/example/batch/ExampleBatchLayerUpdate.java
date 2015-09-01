@@ -16,19 +16,16 @@
 package com.cloudera.oryx.example.batch;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFlatMapFunction;
 import scala.Tuple2;
 
 import com.cloudera.oryx.api.TopicProducer;
@@ -60,29 +57,17 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
   }
 
   public static Map<String,Integer> countDistinctOtherWords(JavaPairRDD<String,String> data) {
-    return data.values().flatMapToPair(new PairFlatMapFunction<String, String, String>() {
-      @Override
-      public Iterable<Tuple2<String, String>> call(String line) {
-        List<Tuple2<String, String>> result = new ArrayList<>();
-        Set<String> distinctTokens = new HashSet<>(Arrays.asList(line.split(" ")));
-        for (String a : distinctTokens) {
-          for (String b : distinctTokens) {
-            if (!a.equals(b)) {
-              result.add(new Tuple2<>(a, b));
-            }
-          }
-        }
-        return result;
+    return data.values().flatMapToPair(line -> {
+      Set<String> distinctTokens = new HashSet<>(Arrays.asList(line.split(" ")));
+      return distinctTokens.stream().flatMap(a ->
+        distinctTokens.stream().filter(b -> !a.equals(b)).map(b -> new Tuple2<>(a, b))
+      ).collect(Collectors.toList());
+    }).distinct().groupByKey().mapValues(values -> {
+      int count = 0;
+      for (String v : values) {
+        count++;
       }
-    }).distinct().groupByKey().mapValues(new Function<Iterable<String>,Integer>() {
-      @Override
-      public Integer call(Iterable<String> values) {
-        int count = 0;
-        for (String v : values) {
-          count++;
-        }
-        return count;
-      }
+      return count;
     }).collectAsMap();
   }
 

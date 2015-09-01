@@ -26,8 +26,6 @@ import java.util.Objects;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,10 +89,28 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       return Collections.emptyList();
     }
 
-    List<Tuple2<Integer,Tuple2<double[],Long>>> updatedPoints =
-        newData.values().map(MLFunctions.PARSE_FN)
-            .mapToPair(new ToClusteredSums(inputSchema, model))
-            .reduceByKey(new ReduceFeatureAndCountFn()).collect();
+    // Use locals to avoid capturing a reference to the Manager class
+    KMeansSpeedModel model = this.model;
+    InputSchema inputSchema = this.inputSchema;
+    List<Tuple2<Integer,Tuple2<double[],Long>>> updatedPoints = newData.values().map(MLFunctions.PARSE_FN)
+        .mapToPair(data -> {
+          try {
+            double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
+            int closestClusterID = model.closestCluster(featureVector).getID();
+            return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
+          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            log.warn("Bad input: {}", Arrays.toString(data));
+            throw e;
+          }
+        }).reduceByKey((t1, t2) -> {
+          double[] vec1 = t1._1();
+          double[] vec2 = t2._1();
+          // going to modify 1 in place
+          for (int i = 0; i < vec1.length; i++) {
+            vec1[i] += vec2[i];
+          }
+          return new Tuple2<>(vec1, t1._2() + t2._2());
+        }).collect();
 
     List<String> updates = new ArrayList<>(updatedPoints.size());
     for (Tuple2<Integer,Tuple2<double[],Long>> pair : updatedPoints) {
@@ -120,45 +136,6 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
   @Override
   public void close() {
     // do nothing
-  }
-
-  private static final class ToClusteredSums
-      implements PairFunction<String[],Integer,Tuple2<double[],Long>> {
-
-    private final InputSchema inputSchema;
-    private final KMeansSpeedModel model;
-
-    ToClusteredSums(InputSchema inputSchema, KMeansSpeedModel model) {
-      this.inputSchema = inputSchema;
-      // This assumes KMeansSpeedModel is smallish and trivial to serialize
-      this.model = model;
-    }
-
-    @Override
-    public Tuple2<Integer,Tuple2<double[],Long>> call(String[] data) {
-      try {
-        double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
-        int closestClusterID = model.closestCluster(featureVector).getID();
-        return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
-      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-        log.warn("Bad input: {}", Arrays.toString(data));
-        throw e;
-      }
-    }
-  }
-
-  private static final class ReduceFeatureAndCountFn
-      implements Function2<Tuple2<double[],Long>,Tuple2<double[],Long>,Tuple2<double[],Long>> {
-    @Override
-    public Tuple2<double[], Long> call(Tuple2<double[], Long> t1, Tuple2<double[], Long> t2) {
-      double[] vec1 = t1._1();
-      double[] vec2 = t2._1();
-      // going to modify 1 in place
-      for (int i = 0; i < vec1.length; i++) {
-        vec1[i] += vec2[i];
-      }
-      return new Tuple2<>(vec1, t1._2() + t2._2());
-    }
   }
 
 }

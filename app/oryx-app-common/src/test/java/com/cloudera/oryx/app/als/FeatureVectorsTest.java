@@ -19,18 +19,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
-import net.openhft.koloboke.function.BiConsumer;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
-import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 
 public final class FeatureVectorsTest extends OryxTest {
 
@@ -62,13 +58,8 @@ public final class FeatureVectorsTest extends OryxTest {
     FeatureVectors fv = new FeatureVectors();
     fv.setVector("foo", new float[] { 1.0f, 2.0f, 4.0f });
     fv.setVector("bar", new float[] { 1.5f, -1.0f, 0.0f });
-    final Collection<String> out = new ArrayList<>();
-    fv.forEach(new BiConsumer<String, float[]>() {
-      @Override
-      public void accept(String id, float[] vector) {
-        out.add(id + vector[0]);
-      }
-    });
+    Collection<String> out = new ArrayList<>();
+    fv.forEach((id, vector) -> out.add(id + vector[0]));
     assertEquals(fv.size(), out.size());
     assertContains(out, "foo1.0");
     assertContains(out, "bar1.5");
@@ -110,46 +101,23 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testConcurrent() throws Exception {
-    final FeatureVectors fv = new FeatureVectors();
-    final AtomicInteger counter = new AtomicInteger();
+    FeatureVectors fv = new FeatureVectors();
+    AtomicInteger counter = new AtomicInteger();
     int numWorkers = 16;
-    final int numIterations = 10000;
-
-    ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
-    try {
-      Collection<Callable<Void>> adds = new ArrayList<>(numWorkers);
-      for (int i = 0; i < numWorkers; i++) {
-        adds.add(new LoggingVoidCallable() {
-          @Override
-          public void doCall() {
-            for (int j = 0; j < numIterations; j++) {
-              int i = counter.getAndIncrement();
-              fv.setVector(Integer.toString(i), new float[]{i});
-            }
-          }
-        });
+    int numIterations = 10000;
+    IntStream.range(0, numWorkers).parallel().forEach(i -> {
+      for (int j = 0; j < numIterations; j++) {
+        int c = counter.getAndIncrement();
+        fv.setVector(Integer.toString(c), new float[] { c });
       }
-      executor.invokeAll(adds);
-
-      assertEquals((long) numIterations * numWorkers, fv.size());
-      assertEquals((long) numIterations * numWorkers, counter.get());
-
-      Collection<Callable<Void>> removes = new ArrayList<>(numWorkers);
-      for (int i = 0; i < numWorkers; i++) {
-        removes.add(new LoggingVoidCallable() {
-          @Override
-          public void doCall() {
-            for (int j = 0; j < numIterations; j++) {
-              fv.removeVector(Integer.toString(counter.decrementAndGet()));
-            }
-          }
-        });
+    });
+    assertEquals((long) numIterations * numWorkers, fv.size());
+    assertEquals((long) numIterations * numWorkers, counter.get());
+    IntStream.range(0, numWorkers).parallel().forEach(i -> {
+      for (int j = 0; j < numIterations; j++) {
+        fv.removeVector(Integer.toString(counter.decrementAndGet()));
       }
-      executor.invokeAll(removes);
-    } finally {
-      executor.shutdown();
-    }
-
+    });
     assertEquals(0, fv.size());
   }
 

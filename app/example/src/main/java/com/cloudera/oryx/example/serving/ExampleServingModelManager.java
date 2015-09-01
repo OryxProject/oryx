@@ -37,8 +37,7 @@ import com.cloudera.oryx.api.serving.ServingModel;
  */
 public final class ExampleServingModelManager extends AbstractServingModelManager<String> {
 
-  private final Map<String,Integer> distinctOtherWords =
-      Collections.synchronizedMap(new HashMap<String,Integer>());
+  private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
 
   public ExampleServingModelManager(Config config) {
     super(config);
@@ -55,9 +54,7 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
           @SuppressWarnings("unchecked")
           Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
           distinctOtherWords.keySet().retainAll(model.keySet());
-          for (Map.Entry<String,Integer> entry : model.entrySet()) {
-            distinctOtherWords.put(entry.getKey(), entry.getValue());
-          }
+          model.forEach(distinctOtherWords::put);
           break;
         case "UP":
           String[] wordCount = message.split(",");

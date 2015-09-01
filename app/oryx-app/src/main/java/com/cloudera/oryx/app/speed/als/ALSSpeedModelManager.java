@@ -24,9 +24,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -34,8 +32,6 @@ import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFunction;
 import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +42,9 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
-import com.cloudera.oryx.lambda.Functions;
 
 /**
  * Implementation of {@link SpeedModelManager} that maintains and updates an ALS model in memory.
@@ -149,7 +143,18 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
         newData.values().sortBy(MLFunctions.TO_TIMESTAMP_FN, true, newData.partitions().size());
-    JavaPairRDD<Tuple2<String,String>,Double> tuples = sortedValues.mapToPair(TO_TUPLE_FN);
+    JavaPairRDD<Tuple2<String,String>,Double> tuples = sortedValues.mapToPair(line -> {
+      try {
+        String[] tokens = MLFunctions.PARSE_FN.call(line);
+        String user = tokens[0];
+        String item = tokens[1];
+        Double strength = Double.valueOf(tokens[2]);
+        return new Tuple2<>(new Tuple2<>(user, item), strength);
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", line);
+        throw e;
+      }
+    });
 
     JavaPairRDD<Tuple2<String,String>,Double> aggregated;
     if (model.isImplicit()) {
@@ -157,15 +162,19 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       aggregated = tuples.groupByKey().mapValues(MLFunctions.SUM_WITH_NAN);
     } else {
       // For non-implicit, last wins.
-      aggregated = tuples.foldByKey(Double.NaN, Functions.<Double>last());
+      aggregated = tuples.foldByKey(Double.NaN, (current, next) -> next);
     }
 
     Collection<UserItemStrength> input = aggregated
-        .filter(MLFunctions.<Tuple2<String,String>>notNaNValue())
-        .map(TO_UIS_FN).collect();
+        .filter(kv -> !Double.isNaN(kv._2()))
+        .map(tuple -> {
+          Tuple2<String,String> userItem = tuple._1();
+          Double strength = tuple._2();
+          return new UserItemStrength(userItem._1(), userItem._2(), strength.floatValue());
+        }).collect();
 
-    final Solver XTXsolver;
-    final Solver YTYsolver;
+    Solver XTXsolver;
+    Solver YTYsolver;
     try {
       XTXsolver = model.getXTXSolver();
       YTYsolver = model.getYTYSolver();
@@ -173,62 +182,29 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    final Collection<String> result = new ArrayList<>();
-    int numThreads = Runtime.getRuntime().availableProcessors();
-    Collection<Callable<Void>> tasks = new ArrayList<>(numThreads);
-    final Iterator<UserItemStrength> inputIterator = input.iterator();
-    for (int i = 0; i < numThreads; i++) {
-      tasks.add(new LoggingVoidCallable() {
-        @Override
-        public void doCall() {
-          while (true) {
-            UserItemStrength uis;
-            synchronized (inputIterator) {
-              if (inputIterator.hasNext()) {
-                uis = inputIterator.next();
-              } else {
-                break;
-              }
-            }
-            String user = uis.getUser();
-            String item = uis.getItem();
-            double value = uis.getStrength();
+    return input.parallelStream().flatMap(uis -> {
+      String user = uis.getUser();
+      String item = uis.getItem();
+      double value = uis.getStrength();
 
-            // Xu is the current row u in the X user-feature matrix
-            float[] Xu = model.getUserVector(user);
-            // Yi is the current row i in the Y item-feature matrix
-            float[] Yi = model.getItemVector(item);
+      // Xu is the current row u in the X user-feature matrix
+      float[] Xu = model.getUserVector(user);
+      // Yi is the current row i in the Y item-feature matrix
+      float[] Yi = model.getItemVector(item);
 
-            float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, model.isImplicit());
-            // Similarly for Y vs X
-            float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, model.isImplicit());
+      float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, model.isImplicit());
+      // Similarly for Y vs X
+      float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, model.isImplicit());
 
-            if (newXu != null) {
-              String update = toUpdateJSON("X", user, newXu, item);
-              synchronized (result) {
-                result.add(update);
-              }
-            }
-            if (newYi != null) {
-              String update = toUpdateJSON("Y", item, newYi, user);
-              synchronized (result) {
-                result.add(update);
-              }
-            }
-          }
-        }
-      });
-    }
-
-    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    try {
-      executor.invokeAll(tasks);
-    } catch (InterruptedException ie) {
-      throw new IllegalStateException(ie);
-    } finally {
-      executor.shutdown();
-    }
-    return result;
+      Collection<String> result = new ArrayList<>(2);
+      if (newXu != null) {
+        result.add(toUpdateJSON("X", user, newXu, item));
+      }
+      if (newYi != null) {
+        result.add(toUpdateJSON("Y", item, newYi, user));
+      }
+      return result.stream();
+    }).collect(Collectors.toList());
   }
 
   private String toUpdateJSON(String matrix, String ID, float[] vector, String otherID) {
@@ -245,32 +221,5 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   public void close() {
     // do nothing
   }
-
-  private static final PairFunction<String,Tuple2<String,String>,Double> TO_TUPLE_FN =
-      new PairFunction<String,Tuple2<String,String>,Double>() {
-        @Override
-        public Tuple2<Tuple2<String,String>,Double> call(String line) throws Exception {
-          try {
-            String[] tokens = MLFunctions.PARSE_FN.call(line);
-            String user = tokens[0];
-            String item = tokens[1];
-            Double strength = Double.valueOf(tokens[2]);
-            return new Tuple2<>(new Tuple2<>(user, item), strength);
-          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            log.warn("Bad input: {}", line);
-            throw e;
-          }
-        }
-      };
-
-  private static final Function<Tuple2<Tuple2<String,String>,Double>,UserItemStrength> TO_UIS_FN =
-      new Function<Tuple2<Tuple2<String, String>, Double>, UserItemStrength>() {
-        @Override
-        public UserItemStrength call(Tuple2<Tuple2<String,String>,Double> tuple) {
-          Tuple2<String,String> userItem = tuple._1();
-          Double strength = tuple._2();
-          return new UserItemStrength(userItem._1(), userItem._2(), strength.floatValue());
-        }
-      };
 
 }

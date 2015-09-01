@@ -16,8 +16,6 @@
 package com.cloudera.oryx.app.batch.mllib.rdf;
 
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.DoubleFunction;
-import org.apache.spark.api.java.function.Function;
 
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
@@ -31,34 +29,26 @@ final class Evaluation {
   private Evaluation() {
   }
 
-  static double rmse(final DecisionForest forest, JavaRDD<Example> examples) {
-    double mse = examples.mapToDouble(
-        new DoubleFunction<Example>() {
-          @Override
-          public double call(Example example) {
-            NumericPrediction prediction = (NumericPrediction) forest.predict(example);
-            NumericFeature target = (NumericFeature) example.getTarget();
-            double diff = prediction.getPrediction() - target.getValue();
-            return diff * diff;
-          }
-        }).mean();
+  static double rmse(DecisionForest forest, JavaRDD<Example> examples) {
+    double mse = examples.mapToDouble(example -> {
+        NumericPrediction prediction = (NumericPrediction) forest.predict(example);
+        NumericFeature target = (NumericFeature) example.getTarget();
+        double diff = prediction.getPrediction() - target.getValue();
+        return diff * diff;
+      }).mean();
     return Math.sqrt(mse);
   }
 
-  static double accuracy(final DecisionForest forest, JavaRDD<Example> examples) {
+  static double accuracy(DecisionForest forest, JavaRDD<Example> examples) {
     long total = examples.count();
     if (total == 0) {
       return 0.0;
     }
-    long correct = examples.filter(
-        new Function<Example, Boolean>() {
-          @Override
-          public Boolean call(Example example) {
-            CategoricalPrediction prediction = (CategoricalPrediction) forest.predict(example);
-            CategoricalFeature target = (CategoricalFeature) example.getTarget();
-            return prediction.getMostProbableCategoryEncoding() == target.getEncoding();
-          }
-        }).count();
+    long correct = examples.filter(example -> {
+        CategoricalPrediction prediction = (CategoricalPrediction) forest.predict(example);
+        CategoricalFeature target = (CategoricalFeature) example.getTarget();
+        return prediction.getMostProbableCategoryEncoding() == target.getEncoding();
+      }).count();
     return (double) correct / total;
   }
 

@@ -23,6 +23,7 @@ import java.io.Serializable;
  * @see NumericFeature
  * @see CategoricalFeature
  */
+@FunctionalInterface
 public interface Feature extends Serializable {
 
   /**

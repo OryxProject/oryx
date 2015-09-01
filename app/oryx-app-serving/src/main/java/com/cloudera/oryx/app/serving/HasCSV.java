@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving;
 /**
  * Implementations of this interface can produce a CSV representation.
  */
+@FunctionalInterface
 public interface HasCSV {
 
   /**

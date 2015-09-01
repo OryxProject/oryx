@@ -17,12 +17,11 @@ package com.cloudera.oryx.app.serving.als.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.serving.als.TestALSRescorerProvider;
 import com.cloudera.oryx.common.lang.JVMUtils;
-import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.random.RandomManager;
 
@@ -63,64 +61,49 @@ public final class LoadTestALSModelFactory {
     System.gc();
     long startMemory = JVMUtils.getUsedMemory();
 
-    final ALSServingModel model = new ALSServingModel(FEATURES, true, LSH_SAMPLE_RATE, new TestALSRescorerProvider());
-    final AtomicLong totalEntries = new AtomicLong();
+    ALSServingModel model = new ALSServingModel(FEATURES, true, LSH_SAMPLE_RATE, new TestALSRescorerProvider());
+    AtomicLong totalEntries = new AtomicLong();
 
     int numCores = Runtime.getRuntime().availableProcessors();
-    ExecutorService executor = Executors.newFixedThreadPool(numCores);
+    ForkJoinPool pool = new ForkJoinPool(numCores);
     try {
-
       log.info("Adding {} users", USERS);
-      final AtomicInteger userCount = new AtomicInteger();
-      List<Callable<Void>> addUserCallables = new ArrayList<>(numCores);
-      for (int i = 0; i < numCores; i++) {
-        final long seed = i;
-        addUserCallables.add(new LoggingVoidCallable() {
-          private final RandomGenerator random = RandomManager.getRandom((seed << 32) ^ System.nanoTime());
-          private final PoissonDistribution itemPerUserDist = new PoissonDistribution(
-              random,
-              AVG_ITEMS_PER_USER,
-              PoissonDistribution.DEFAULT_EPSILON,
-              PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-          @Override
-          public void doCall() {
-            for (int user = userCount.getAndIncrement(); user < USERS; user = userCount.getAndIncrement()) {
-              String userID = "U" + user;
-              model.setUserVector(userID, VectorMath.randomVectorF(FEATURES, random));
-              int itemsPerUser = itemPerUserDist.sample();
-              totalEntries.addAndGet(itemsPerUser);
-              Collection<String> knownIDs = new ArrayList<>(itemsPerUser);
-              for (int i = 0; i < itemsPerUser; i++) {
-                knownIDs.add("I" + random.nextInt(ITEMS));
-              }
-              model.addKnownItems(userID, knownIDs);
-            }
+      AtomicInteger userCount = new AtomicInteger();
+      pool.submit(() -> IntStream.range(0, numCores).parallel().forEach(i -> {
+        RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
+        PoissonDistribution itemPerUserDist = new PoissonDistribution(
+            random,
+            AVG_ITEMS_PER_USER,
+            PoissonDistribution.DEFAULT_EPSILON,
+            PoissonDistribution.DEFAULT_MAX_ITERATIONS);
+        for (int user = userCount.getAndIncrement(); user < USERS; user = userCount.getAndIncrement()) {
+          String userID = "U" + user;
+          model.setUserVector(userID, VectorMath.randomVectorF(FEATURES, random));
+          int itemsPerUser = itemPerUserDist.sample();
+          totalEntries.addAndGet(itemsPerUser);
+          Collection<String> knownIDs = new ArrayList<>(itemsPerUser);
+          for (int item = 0; item < itemsPerUser; item++) {
+            knownIDs.add("I" + random.nextInt(ITEMS));
           }
-        });
-      }
-      executor.invokeAll(addUserCallables);
+          model.addKnownItems(userID, knownIDs);
+        }
+      })).get();
 
       log.info("Adding {} items", ITEMS);
-      final AtomicInteger itemCount = new AtomicInteger();
-      List<Callable<Void>> addItemCallables = new ArrayList<>(numCores);
-      for (int i = 0; i < numCores; i++) {
-        final long seed = i;
-        addItemCallables.add(new LoggingVoidCallable() {
-          private final RandomGenerator random = RandomManager.getRandom((seed << 32) ^ System.nanoTime());
-          @Override
-          public void doCall() {
-            for (int item = itemCount.getAndIncrement(); item < ITEMS; item = itemCount.getAndIncrement()) {
-              model.setItemVector("I" + item, VectorMath.randomVectorF(FEATURES, random));
-            }
-          }
-        });
-      }
-      executor.invokeAll(addItemCallables);
+      AtomicInteger itemCount = new AtomicInteger();
+      pool.submit(() -> IntStream.range(0, numCores).parallel().forEach(i -> {
+        RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
+        for (int item = itemCount.getAndIncrement(); item < ITEMS; item = itemCount.getAndIncrement()) {
+          model.setItemVector("I" + item, VectorMath.randomVectorF(FEATURES, random));
+        }
+      })).get();
 
     } catch (InterruptedException ie) {
       throw new IllegalStateException(ie);
+    } catch (ExecutionException ee) {
+      throw new IllegalStateException(ee.getCause());
     } finally {
-      executor.shutdown();
+      pool.shutdown();
     }
 
     System.gc();

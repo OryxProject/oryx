@@ -16,8 +16,10 @@
 package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
@@ -187,15 +190,31 @@ public final class ALSUpdateIT extends AbstractALSIT {
       throws IOException {
     Collection<String> seenIDs = new HashSet<>();
     for (Path file : IOUtils.listFiles(path, "part-*")) {
-      for (String line : IOUtils.readLines(file)) {
-        List<?> update = MAPPER.readValue(line, List.class);
+      Path uncompressedFile = copyAndUncompress(file);
+      Files.lines(uncompressedFile).forEach(line -> {
+        List<?> update = null;
+        try {
+          update = MAPPER.readValue(line, List.class);
+        } catch (IOException e) {
+          fail("Unexpected exception: " + e);
+        }
         seenIDs.add(update.get(0).toString());
         assertEquals(FEATURES, MAPPER.convertValue(update.get(1), float[].class).length);
-      }
+      });
+      Files.delete(uncompressedFile);
     }
     assertFalse(seenIDs.isEmpty());
     assertTrue(seenIDs.containsAll(previousIDs));
     return seenIDs;
+  }
+
+  private static Path copyAndUncompress(Path compressed) throws IOException {
+    Path tempFile = Files.createTempFile("part", ".csv");
+    tempFile.toFile().deleteOnExit();
+    try (InputStream in = new GZIPInputStream(Files.newInputStream(compressed))) {
+      Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+    return tempFile;
   }
 
 }

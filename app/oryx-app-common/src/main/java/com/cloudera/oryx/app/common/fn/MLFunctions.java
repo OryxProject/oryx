@@ -20,7 +20,6 @@ import java.io.IOException;
 import org.apache.spark.api.java.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.common.text.TextUtils;
 
@@ -37,66 +36,45 @@ public final class MLFunctions {
   /**
    * Parses a CSV or JSON array to String[]
    */
-  public static final Function<String,String[]> PARSE_FN =
-      new Function<String,String[]>() {
-        @Override
-        public String[] call(String line) throws IOException {
-          try {
-            // Hacky, but effective way of differentiating simple CSV from JSON array
-            if (line.startsWith("[") && line.endsWith("]")) {
-              // JSON
-              return TextUtils.parseJSONArray(line);
-            } else {
-              // CSV
-              return TextUtils.parseDelimited(line, ',');
-            }
-          } catch (NumberFormatException | ArrayIndexOutOfBoundsException | IOException e) {
-            log.warn("Bad input: {}", line);
-            throw e;
-          }
+  public static final Function<String,String[]> PARSE_FN = line -> {
+      try {
+        // Hacky, but effective way of differentiating simple CSV from JSON array
+        if (line.startsWith("[") && line.endsWith("]")) {
+          // JSON
+          return TextUtils.parseJSONArray(line);
+        } else {
+          // CSV
+          return TextUtils.parseDelimited(line, ',');
         }
-      };
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException | IOException e) {
+        log.warn("Bad input: {}", line);
+        throw e;
+      }
+    };
 
   /**
    * Parses as if with PARSE_FN and returns fourth field as timestamp
    */
-  public static final Function<String,Long> TO_TIMESTAMP_FN =
-      new Function<String,Long>() {
-        @Override
-        public Long call(String line) throws Exception {
-          try {
-            return Long.valueOf(PARSE_FN.call(line)[3]);
-          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            log.warn("Bad input: {}", line);
-            throw e;
-          }
-        }
-      };
+  public static final Function<String,Long> TO_TIMESTAMP_FN = line -> {
+      try {
+        return Long.valueOf(PARSE_FN.call(line)[3]);
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", line);
+        throw e;
+      }
+    };
 
-  public static <K> Function<Tuple2<K,Double>,Boolean> notNaNValue() {
-    return new Function<Tuple2<K,Double>,Boolean>() {
-                  @Override
-                  public Boolean call(Tuple2<K,Double> kv) {
-                    return !Double.isNaN(kv._2());
-                  }
-                };
-  }
-
-  public static final Function<Iterable<Double>,Double> SUM_WITH_NAN =
-      new Function<Iterable<Double>, Double>() {
-        @Override
-        public Double call(Iterable<Double> orderedStrengths) {
-          double finalStrength = Double.NaN;
-          for (double strength : orderedStrengths) {
-            if (Double.isNaN(finalStrength)) {
-              finalStrength = strength;
-            } else {
-              // If strength is NaN, this will make the tally NaN
-              finalStrength += strength;
-            }
-          }
-          return finalStrength;
+  public static final Function<Iterable<Double>,Double> SUM_WITH_NAN = orderedStrengths -> {
+      double finalStrength = Double.NaN;
+      for (double strength : orderedStrengths) {
+        if (Double.isNaN(finalStrength)) {
+          finalStrength = strength;
+        } else {
+          // If strength is NaN, this will make the tally NaN
+          finalStrength += strength;
         }
-      };
+      }
+      return finalStrength;
+    };
 
 }

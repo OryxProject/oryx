@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.common.lang;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
@@ -22,27 +23,64 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A {@link Callable} that logs errors thrown from {@link #call()}. Useful in cases where
- * it would otherwise silently disappear into an executor.
+ * it would otherwise silently disappear into an executor. Static factory methods can create
+ * a {@link Callable} from most any lambda expression.
  *
  * @param <V> result type
  */
-public abstract class LoggingCallable<V> implements Callable<V> {
+public final class LoggingCallable<V> implements Callable<V> {
 
   private static final Logger log = LoggerFactory.getLogger(LoggingCallable.class);
 
+  private final Callable<V> delegate;
+
+  private LoggingCallable(Callable<V> delegate) {
+    Objects.requireNonNull(delegate);
+    this.delegate = delegate;
+  }
+
+  public static <V> LoggingCallable<V> log(Callable<V> delegate) {
+    return new LoggingCallable<>(delegate);
+  }
+
+  public static LoggingCallable<Void> log(AllowExceptionSupplier delegate) {
+    return log(() -> {
+      delegate.get();
+      return null;
+    });
+  }
+
   @Override
-  public final V call() {
+  public V call() throws Exception {
     try {
-      return doCall();
-    } catch (Exception e) {
-      log.warn("Unexpected error in {}", this, e);
-      throw new IllegalStateException(e);
+      return delegate.call();
     } catch (Throwable t) {
-      log.warn("Unexpected error in {}", this, t);
+      log.warn("Unexpected error in {}", delegate, t);
       throw t;
     }
   }
 
-  public abstract V doCall() throws Exception;
+  public Runnable asRunnable() {
+    return () -> {
+      try {
+        delegate.call();
+      } catch (Exception e) {
+        log.warn("Unexpected error in {}", delegate, e);
+        throw new IllegalStateException(e);
+      } catch (Throwable t) {
+        log.warn("Unexpected error in {}", delegate, t);
+        throw t;
+      }
+    };
+  }
+
+  /**
+   * Like {@link java.util.function.Supplier} but allows {@link Exception} from
+   * {@link java.util.function.Supplier#get()}.
+   */
+  @FunctionalInterface
+  public interface AllowExceptionSupplier {
+    void get() throws Exception;
+  }
 
 }

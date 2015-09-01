@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
@@ -180,11 +181,8 @@ public final class AppPMMLUtils {
    * @return names of features in order
    */
   public static List<String> getFeatureNames(MiningSchema miningSchema) {
-    List<String> names = new ArrayList<>();
-    for (MiningField field : miningSchema.getMiningFields()) {
-      names.add(field.getName().getValue());
-    }
-    return names;
+    return miningSchema.getMiningFields().stream().map(field -> field.getName().getValue())
+        .collect(Collectors.toList());
   }
 
   /**
@@ -245,11 +243,7 @@ public final class AppPMMLUtils {
     List<DataField> dataFields = dictionary.getDataFields();
     Preconditions.checkArgument(dataFields != null && !dataFields.isEmpty(),
                                 "No fields in DataDictionary");
-    List<String> names = new ArrayList<>(dataFields.size());
-    for (TypeDefinitionField field : dataFields) {
-      names.add(field.getName().getValue());
-    }
-    return names;
+    return dataFields.stream().map(field -> field.getName().getValue()).collect(Collectors.toList());
   }
 
   public static CategoricalValueEncodings buildCategoricalValueEncodings(
@@ -260,10 +254,7 @@ public final class AppPMMLUtils {
       TypeDefinitionField field = dataFields.get(featureIndex);
       Collection<Value> values = field.getValues();
       if (values != null && !values.isEmpty()) {
-        Collection<String> categoricalValues = new ArrayList<>();
-        for (Value value : values) {
-          categoricalValues.add(value.getValue());
-        }
+        Collection<String> categoricalValues = values.stream().map(Value::getValue).collect(Collectors.toList());
         indexToValues.put(featureIndex, categoricalValues);
       }
     }

@@ -23,6 +23,7 @@ import java.util.List;
  *
  * @param <T> hyperparameter value type (e.g. {@link Integer})
  */
+@FunctionalInterface
 public interface HyperParamValues<T> {
 
   /**

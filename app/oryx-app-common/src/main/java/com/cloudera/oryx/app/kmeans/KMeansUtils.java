@@ -46,7 +46,7 @@ public final class KMeansUtils {
     double closestDist = Double.POSITIVE_INFINITY;
     ClusterInfo minCluster = null;
     for (ClusterInfo cluster : clusters) {
-      double distance = distanceFn.distance(cluster.getCenter(), vector);
+      double distance = distanceFn.applyAsDouble(cluster.getCenter(), vector);
       if (distance < closestDist) {
         closestDist = distance;
         minCluster = cluster;

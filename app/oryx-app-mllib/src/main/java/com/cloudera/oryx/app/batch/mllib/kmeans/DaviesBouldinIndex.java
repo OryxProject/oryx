@@ -57,7 +57,7 @@ final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
         if (!idI.equals(idJ)) {
           double[] centerJ = entryJ.getValue().getCenter();
           double clusterScatter2 = clusterMetricsByID.get(idJ).getMeanDist();
-          double dbIndex = (clusterScatter1 + clusterScatter2) / distanceFn.distance(centerI, centerJ);
+          double dbIndex = (clusterScatter1 + clusterScatter2) / distanceFn.applyAsDouble(centerI, centerJ);
           maxDBIndex = Math.max(maxDBIndex, dbIndex);
         }
       }

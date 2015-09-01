@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
 import com.cloudera.oryx.kafka.util.DefaultCSVDatumGenerator;
@@ -78,7 +79,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
       log.info("Starting consumer thread");
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data);
-      new Thread(consumeInput, "ConsumeInputThread").start();
+      new Thread(LoggingCallable.log(consumeInput).asRunnable(), "ConsumeInputThread").start();
 
       consumeInput.awaitRun();
 

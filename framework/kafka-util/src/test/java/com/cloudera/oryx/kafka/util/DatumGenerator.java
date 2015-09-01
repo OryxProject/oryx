@@ -25,6 +25,7 @@ import com.cloudera.oryx.common.collection.Pair;
  * @param <K> key type
  * @param <M> message type
  */
+@FunctionalInterface
 public interface DatumGenerator<K,M> {
 
   /**

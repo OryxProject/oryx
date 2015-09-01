@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -41,18 +42,13 @@ import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.als.CosineDistanceSensitiveFunction;
-import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.collection.PairComparators;
-import com.cloudera.oryx.common.collection.Predicates;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
@@ -299,26 +295,22 @@ public final class ALSServingModel implements ServingModel {
   }
 
   public List<Pair<String,Double>> topN(
-      final CosineDistanceSensitiveFunction scoreFn,
-      final ObjDoubleToDoubleFunction<String> rescoreFn,
-      final int howMany,
-      final Predicate<String> allowedPredicate) {
+      CosineDistanceSensitiveFunction scoreFn,
+      ObjDoubleToDoubleFunction<String> rescoreFn,
+      int howMany,
+      Predicate<String> allowedPredicate) {
 
     int[] candidateIndices = lsh.getCandidateIndices(scoreFn.getTargetVector());
     List<Callable<Iterable<Pair<String,Double>>>> tasks = new ArrayList<>(candidateIndices.length);
     for (int partition : candidateIndices) {
-      final FeatureVectors yPartition = Y[partition];
-      if (yPartition.size() > 0) {
-        tasks.add(new LoggingCallable<Iterable<Pair<String,Double>>>() {
-          @Override
-          public Iterable<Pair<String,Double>> doCall() {
-            Queue<Pair<String,Double>> topN =
-                new PriorityQueue<>(howMany + 1, PairComparators.<Double>bySecond());
-            yPartition.forEach(new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate));
-            // Ordering and excess items don't matter; will be merged and finally sorted later
-            return topN;
-          }
-        });
+      if (Y[partition].size() > 0) {
+        tasks.add(LoggingCallable.log(() -> {
+          Queue<Pair<String,Double>> topN =
+              new PriorityQueue<>(howMany + 1, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
+          Y[partition].forEach(new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate));
+          // Ordering and excess items don't matter; will be merged and finally sorted later
+          return topN;
+        }));
       }
     }
 
@@ -327,7 +319,7 @@ public final class ALSServingModel implements ServingModel {
       return Collections.emptyList();
     }
 
-    Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
+    Ordering<Pair<?,Double>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
     if (numTasks == 1) {
       Iterable<Pair<String,Double>> iterable;
       try {
@@ -432,28 +424,22 @@ public final class ALSServingModel implements ServingModel {
    * @param users users that should be retained, which are coming in the new model updates
    * @param items items that should be retained, which are coming in the new model updates
    */
-  void retainRecentAndKnownItems(Collection<String> users, final Collection<String> items) {
+  void retainRecentAndKnownItems(Collection<String> users, Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
     Collection<String> recentUserIDs = HashObjSets.newMutableSet();
     X.addAllRecentTo(recentUserIDs);
     try (AutoLock al = knownItemsLock.autoWriteLock()) {
-      knownItems.removeIf(new KeyOnlyBiPredicate<>(Predicates.and(
-          new NotContainsPredicate<>(users), new NotContainsPredicate<>(recentUserIDs))));
+      knownItems.removeIf((key, value) -> !users.contains(key) && !recentUserIDs.contains(key));
     }
 
     // This will be easier to quickly copy the whole (smallish) set rather than
     // deal with locks below
-    final Collection<String> allRecentKnownItems = HashObjSets.newMutableSet();
+    Collection<String> allRecentKnownItems = HashObjSets.newMutableSet();
     for (FeatureVectors yPartition : Y) {
       yPartition.addAllRecentTo(allRecentKnownItems);
     }
 
-    Predicate<String> notKeptOrRecent = new Predicate<String>() {
-      @Override
-      public boolean test(String value) {
-        return !items.contains(value) && !allRecentKnownItems.contains(value);
-      }
-    };
+    Predicate<String> notKeptOrRecent = value -> !items.contains(value) && !allRecentKnownItems.contains(value);
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       for (ObjSet<String> knownItemsForUser : knownItems.values()) {
         synchronized (knownItemsForUser) {

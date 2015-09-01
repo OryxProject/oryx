@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
@@ -26,12 +27,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.collection.PairComparators;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
@@ -76,25 +74,10 @@ public final class MostSurprising extends AbstractALSResource {
       return Collections.emptyList();
     }
 
-    Iterable<Pair<String,Double>> idDots =
-        Iterables.transform(knownItemVectors, new DotsFunction(userVector));
-
-    Ordering<Pair<?,Double>> ordering = Ordering.from(PairComparators.<Double>bySecond());
+    Iterator<Pair<String,Double>> idDots = knownItemVectors.stream().map(itemIDVector ->
+        new Pair<>(itemIDVector.getFirst(), VectorMath.dot(userVector, itemIDVector.getSecond()))).iterator();
+    Ordering<Pair<?,Double>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
     return toIDValueResponse(ordering.leastOf(idDots, howMany + offset), howMany, offset);
-  }
-
-  private static final class DotsFunction
-      implements Function<Pair<String,float[]>,Pair<String,Double>> {
-    private final float[] userVector;
-    DotsFunction(float[] userVector) {
-      this.userVector = userVector;
-    }
-    @Override
-    public Pair<String,Double> apply(Pair<String,float[]> itemIDVector) {
-      return new Pair<>(
-          itemIDVector.getFirst(),
-          VectorMath.dot(userVector, itemIDVector.getSecond()));
-    }
   }
 
 }

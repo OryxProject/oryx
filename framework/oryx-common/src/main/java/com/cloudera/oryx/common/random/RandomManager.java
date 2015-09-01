@@ -31,7 +31,7 @@ public final class RandomManager {
   private static final long TEST_SEED = getTestSeed();
 
   private static final Reference<? extends Collection<RandomGenerator>> INSTANCES =
-      new SoftReference<>(new ArrayList<RandomGenerator>());
+      new SoftReference<>(new ArrayList<>());
   private static boolean useTestSeed;
 
   private RandomManager() {

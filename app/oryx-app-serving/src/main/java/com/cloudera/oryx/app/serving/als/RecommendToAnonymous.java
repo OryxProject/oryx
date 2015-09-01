@@ -15,9 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -29,17 +31,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
-import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
-import com.cloudera.oryx.common.collection.Predicates;
 
 /**
  * <p>Responds to a GET request to
@@ -77,19 +76,17 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     float[] anonymousUserFeatures = EstimateForAnonymous.buildTemporaryUserVector(model, parsedPathSegments, null);
     check(anonymousUserFeatures != null, pathSegments.toString());
 
-    List<String> knownItems = new ArrayList<>();
-    for (Pair<String,?> itemValue : parsedPathSegments) {
-      knownItems.add(itemValue.getFirst());
-    }
+    List<String> knownItems = parsedPathSegments.stream().map(Pair::getFirst).collect(Collectors.toList());
 
-    Predicate<String> allowedFn = new NotContainsPredicate<>(new HashSet<>(knownItems));
+    Collection<String> knownItemsSet = new HashSet<>(knownItems);
+    Predicate<String> allowedFn = v -> !knownItemsSet.contains(v);
     ObjDoubleToDoubleFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getRecommendToAnonymousRescorer(knownItems,
                                                                            rescorerParams);
       if (rescorer != null) {
-        allowedFn = Predicates.and(allowedFn, buildRescorerPredicate(rescorer));
+        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
         rescoreFn = buildRescoreFn(rescorer);
       }
     }

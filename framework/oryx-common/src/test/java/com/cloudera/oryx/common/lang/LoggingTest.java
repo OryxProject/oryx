@@ -25,78 +25,28 @@ public final class LoggingTest extends OryxTest {
 
   private static final StackTraceElement[] NO_STACK = new StackTraceElement[0];
 
-  @Test(expected = IllegalStateException.class)
-  public void testLoggingRunnableException() {
-    new LoggingRunnable() {
-      @Override
-      public void doRun() throws IOException {
-        throw buildIOE();
-      }
-    }.run();
-  }
-
-  @Test(expected = AssertionError.class)
-  public void testLoggingRunnableException2() {
-    new LoggingRunnable() {
-      @Override
-      public void doRun() {
-        throw buildError();
-      }
-    }.run();
-  }
-
   @Test
-  public void testLoggingCallable() {
-    Integer result = new LoggingCallable<Integer>() {
-      @Override
-      public Integer doCall() {
-        return 3;
-      }
-    }.call();
+  public void testLoggingCallable() throws Exception {
+    Integer result = LoggingCallable.log(() -> 3).call();
     assertEquals(3, result.intValue());
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testLoggingCallableException() {
-    new LoggingCallable<Void>() {
-      @Override
-      public Void doCall() throws IOException {
-        throw buildIOE();
-      }
-    }.call();
+  @Test(expected = IOException.class)
+  public void testLoggingCallableException() throws Exception {
+    LoggingCallable.log(() -> {
+      IOException ioe = new IOException("It's safe to ignore this exception");
+      ioe.setStackTrace(NO_STACK); // to not pollute the logs
+      throw ioe;
+    }).call();
   }
 
   @Test(expected = AssertionError.class)
-  public void testLoggingCallableException2() {
-    new LoggingCallable<Void>() {
-      @Override
-      public Void doCall() {
-        throw buildError();
-      }
-    }.call();
-  }
-
-
-  @Test(expected = IllegalStateException.class)
-  public void testLoggingVoidCallableException() {
-    new LoggingVoidCallable() {
-      @Override
-      public void doCall() throws IOException {
-        throw buildIOE();
-      }
-    }.call();
-  }
-
-  private static IOException buildIOE() {
-    IOException ioe = new IOException("It's safe to ignore this exception");
-    ioe.setStackTrace(NO_STACK); // to not pollute the logs
-    return ioe;
-  }
-
-  private static AssertionError buildError() {
-    AssertionError error = new AssertionError("It's safe to ignore this error");
-    error.setStackTrace(NO_STACK);
-    return error;
+  public void testLoggingCallableException2() throws Exception {
+    LoggingCallable.log(() -> {
+      AssertionError error = new AssertionError("It's safe to ignore this error");
+      error.setStackTrace(NO_STACK);
+      throw error;
+    }).call();
   }
 
 }

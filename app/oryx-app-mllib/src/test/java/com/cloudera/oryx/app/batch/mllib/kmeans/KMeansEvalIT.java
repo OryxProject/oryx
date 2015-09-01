@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.junit.Test;
@@ -39,14 +38,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
     List<double[]> points = Arrays.asList(new double[][] {
         {1.0, 0.0}, {2.0, -2.0}, {2.0, 0.0}, {-2.0, 0.0}, {-0.5, -1.0}, {-0.5, 1.0}
     });
-    return getJavaSparkContext().parallelize(points).map(new ToVectorFn());
-  }
-
-  private static final class ToVectorFn implements Function<double[], Vector> {
-    @Override
-    public Vector call(double[] v) {
-      return Vectors.dense(v);
-    }
+    return getJavaSparkContext().parallelize(points).map(Vectors::dense);
   }
 
   private static List<ClusterInfo> getClusters() {

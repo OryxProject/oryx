@@ -25,6 +25,7 @@ import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 
 /**
  * Tests {@link ProduceData} and {@link ConsumeData} together.
@@ -61,7 +62,7 @@ public final class ProduceConsumeIT extends OryxTest {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
-        new Thread(consumeTopic, "ConsumeTopicThread").start();
+        new Thread(LoggingCallable.log(consumeTopic).asRunnable(), "ConsumeTopicThread").start();
 
         consumeTopic.awaitRun();
 

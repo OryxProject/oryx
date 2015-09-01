@@ -255,9 +255,7 @@ public final class RDFPMMLUtils {
         }
       } else {
         // "not in"
-        for (int encoding : valueEncodingMap.values()) {
-          activeCategories.set(encoding);
-        }
+        valueEncodingMap.values().forEach(activeCategories::set);
         for (String category : categories) {
           activeCategories.clear(valueEncodingMap.get(category));
         }

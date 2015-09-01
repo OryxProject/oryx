@@ -16,17 +16,14 @@
 package com.cloudera.oryx.app.kmeans;
 
 import java.io.Serializable;
+import java.util.function.ToDoubleBiFunction;
 
 /**
+ * A function that returns a distance between things.
+ *
  * @param <T> type of things to compare
  */
-public interface DistanceFn<T> extends Serializable {
-
-  /**
-   * @param t1 object t1
-   * @param t2 object t2
-   * @return some notion of distance between t1 and t2
-   */
-  double distance(T t1, T t2);
-
+@FunctionalInterface
+public interface DistanceFn<T> extends Serializable, ToDoubleBiFunction<T,T> {
+  // Adds no methods, just Serializable and specialization of bifunction
 }

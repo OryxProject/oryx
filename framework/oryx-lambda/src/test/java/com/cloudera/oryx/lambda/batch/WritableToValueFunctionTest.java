@@ -28,7 +28,7 @@ public final class WritableToValueFunctionTest extends OryxTest {
   public void testFunction() {
     WritableToValueFunction<String,String> function =
         new WritableToValueFunction<>(String.class, String.class, Text.class, Text.class);
-    Tuple2<Writable,Writable> in = new Tuple2<Writable,Writable>(new Text("bizz"), new Text("buzz"));
+    Tuple2<Writable,Writable> in = new Tuple2<>(new Text("bizz"), new Text("buzz"));
     Tuple2<String,String> out = function.call(in);
     assertEquals("bizz", out._1());
     assertEquals("buzz", out._2());
