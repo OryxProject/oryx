@@ -24,15 +24,12 @@
     <version>1.1.1</version>
   </skin>
 
-  <bannerLeft>
-    <name>Oryx 2</name>
-    <href>http://oryx.io/</href>
-  </bannerLeft>
+  <version position="none"/>
+  <publishDate position="none"/>
 
   <custom>
     <reflowSkin>
       <toc offsetTop="800">side</toc>
-      <tocTopMax>6</tocTopMax>
       <brand>
         <name>Oryx 2</name>
         <href>index.html</href>
@@ -48,8 +45,8 @@
       <item name="Docs: End Users" href="docs/endusers.html"/>
       <item name="Docs: Dev" href="docs/developer.html"/>
       <item name="Docs: Admin" href="docs/admin.html"/>
-      <item name="Javadoc" href="apidocs/index.html"/>
       <item name="Performance" href="docs/performance.html"/>
+      <item name="Javadoc" href="apidocs/index.html"/>
       <item name="Download" href="https://github.com/OryxProject/oryx/releases"/>
     </links>
   </body>
