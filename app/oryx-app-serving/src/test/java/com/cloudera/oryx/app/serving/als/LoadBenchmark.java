@@ -40,7 +40,16 @@ import com.cloudera.oryx.app.serving.als.model.LoadTestALSModelFactory;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
- * Note this test isn't run by default by surefire or failsafe. It is activated by a profile.
+ * <p>This can be run from the top level of the project with
+ * {@code mvn -Dtest=com.cloudera.oryx.app.serving.als.LoadBenchmark \
+ *  -DargLine="-Xmx... " \
+ *  surefire:test -pl app/oryx-app-serving}</p>
+ *
+ * <p>Additional parameters defined in {@link LoadTestALSModelFactory} like
+ * {@link LoadTestALSModelFactory#USERS} can be set by adding args like
+ * {@code -Doryx.test.als.benchmark.users=1000000}.</p>
+ *
+ * <p>Note this test isn't run by default by surefire or failsafe. It is activated by a profile.</p>
  */
 public final class LoadBenchmark extends AbstractALSServingTest {
 

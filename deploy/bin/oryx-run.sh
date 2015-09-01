@@ -19,7 +19,7 @@
 # Kafka commands below. This suppresses an ignorable warning from the CDH 5.4 distro.
 
 function usageAndExit {
-  echo "Error: $1"
+  echo "$1"
   echo "usage: oryx-run.sh command [--option value] ..."
   echo "  where command is one of:"
   echo "    batch        Run Batch Layer"
@@ -33,29 +33,37 @@ function usageAndExit {
   echo "                 Defaults to any oryx-*.jar in working dir"
   echo "    --conf       Oryx configuration file, like oryx.conf. Defaults to 'oryx.conf'"
   echo "    --app-jar    User app JAR file"
-  echo "    --jvm-args   Extra args to Oryx JVM process"
+  echo "    --jvm-args   Extra args to Oryx JVM processes (including drivers and executors)"
   echo "    --deployment Only for Serving Layer now; can be 'yarn' or 'local', Default: local."
   echo "    --input-file Only for kafka-input. Input file to send"
+  echo "    --help       Display this message"
   exit 1
 }
+
+if [ "$1" == "--help" ]; then
+  usageAndExit
+fi
 
 COMMAND=$1
 shift
 
 while (($#)); do
   if [ "$1" == "--layer-jar" ]; then
-    LAYER_JAR=$2
+    LAYER_JAR="$2"
   elif [ "$1" == "--conf" ]; then
-    CONFIG_FILE=$2
+    CONFIG_FILE="$2"
   elif [ "$1" == "--app-jar" ]; then
-    APP_JAR=$2
+    APP_JAR="$2"
   elif [ "$1" == "--jvm-args" ]; then
-    JVM_ARGS=$2
+    JVM_ARGS="$2"
   elif [ "$1" == "--deployment" ]; then
-    DEPLOYMENT=$2
+    DEPLOYMENT="$2"
   elif [ "$1" == "--input-file" ]; then
-    INPUT_FILE=$2
+    INPUT_FILE="$2"
+  else
+    usageAndExit "Unrecognized option $1"
   fi
+  shift
   shift
 done
 
@@ -103,18 +111,24 @@ batch|speed|serving)
   if [ "${APP_JAR}" != "" ]; then
     SPARK_STREAMING_JARS="${APP_JAR},${SPARK_STREAMING_JARS}"
   fi
+  SPARK_EXECUTOR_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE_NAME} -Dsun.io.serialization.extendeddebuginfo=true"
+  if [ -n "${JVM_ARGS}" ]; then
+    SPARK_EXECUTOR_JAVA_OPTS="${JVM_ARGS} ${SPARK_EXECUTOR_JAVA_OPTS}"
+  fi
   SPARK_STREAMING_PROPS="-Dspark.yarn.dist.files=${CONFIG_FILE} \
    -Dspark.jars=${SPARK_STREAMING_JARS} \
    -Dsun.io.serialization.extendeddebuginfo=true \
-   -Dspark.executor.extraJavaOptions=\"-Dconfig.file=${CONFIG_FILE_NAME} -Dsun.io.serialization.extendeddebuginfo=true\""
+   -Dspark.executor.extraJavaOptions=\"${SPARK_EXECUTOR_JAVA_OPTS}\""
 
   MAIN_CLASS="com.cloudera.oryx.${COMMAND}.Main"
   case "${COMMAND}" in
     batch)
-      EXTRA_PROPS="${SPARK_STREAMING_PROPS}"
+      JVM_HEAP_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.batch\.streaming\.driver-memory=.+$" | grep -oE "[^=]+$"`
+      EXTRA_PROPS="-Xmx${JVM_HEAP_MB} ${SPARK_STREAMING_PROPS}"
       ;;
     speed)
-      EXTRA_PROPS="${SPARK_STREAMING_PROPS}"
+      JVM_HEAP_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.speed\.streaming\.driver-memory=.+$" | grep -oE "[^=]+$"`
+      EXTRA_PROPS="-Xmx${JVM_HEAP_MB} ${SPARK_STREAMING_PROPS}"
       ;;
     serving)
       MEMORY_MB=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.serving\.memory=.+$" | grep -oE "[^=]+$" | grep -oE "[0-9]+"`
@@ -169,7 +183,7 @@ batch|speed|serving)
     # Need absolute path
     OWNER=`hdfs dfs -stat '%u' ${HDFS_APP_DIR}`
     echo "hdfs dfs -get /user/${OWNER}/${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
-    echo "java ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} ${JVM_ARGS} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
+    echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
 
     YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
 
@@ -204,7 +218,7 @@ batch|speed|serving)
     if [ -n "${APP_JAR}" ]; then
       FINAL_CLASSPATH="${APP_JAR}:${FINAL_CLASSPATH}"
     fi
-    java ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} ${JVM_ARGS} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
+    java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}
 
   fi
   ;;

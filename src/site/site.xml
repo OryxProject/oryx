@@ -45,8 +45,11 @@
   <body>
     <links>
       <item name="Overview" href="index.html"/>
-      <item name="Documentation" href="docs/index.html"/>
+      <item name="Docs: End Users" href="docs/endusers.html"/>
+      <item name="Docs: Dev" href="docs/developer.html"/>
+      <item name="Docs: Admin" href="docs/admin.html"/>
       <item name="Javadoc" href="apidocs/index.html"/>
+      <item name="Performance" href="docs/performance.html"/>
       <item name="Download" href="https://github.com/OryxProject/oryx/releases"/>
     </links>
   </body>
