@@ -43,4 +43,5 @@ ls -1 \
  ${CDH_JARS_DIR}/jackson-*-1.9.12.jar \
  ${CDH_JARS_DIR}/protobuf-java-*.jar \
  ${CDH_JARS_DIR}/snappy-java-1.0.5.jar \
+ ${CDH_JARS_DIR}/avro-1.7.6-*.jar \
  | grep -E "[0-9]\\.jar$"
