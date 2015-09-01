@@ -23,6 +23,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.Rescorer;
@@ -37,6 +39,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  */
 public abstract class AbstractALSResource extends AbstractOryxResource {
 
+  private static final Logger log = LoggerFactory.getLogger(AbstractALSResource.class);
+
   private boolean isLoaded;
 
   final ALSServingModel getALSServingModel() throws OryxServingException {
@@ -46,6 +50,7 @@ public abstract class AbstractALSResource extends AbstractOryxResource {
       return alsServingModel;
     }
     if (alsServingModel != null) {
+      log.info("{}", alsServingModel);
       double minModelLoadFraction = modelManager.getConfig().getDouble("oryx.serving.min-model-load-fraction");
       if (alsServingModel.getFractionLoaded() >= minModelLoadFraction) {
         isLoaded = true;

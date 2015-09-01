@@ -21,11 +21,7 @@ import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.cloudera.oryx.app.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready}
@@ -37,8 +33,6 @@ import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 @Path("/ready")
 public final class Ready extends AbstractKMeansResource {
 
-  private static final Logger log = LoggerFactory.getLogger(Ready.class);
-
   @HEAD
   public Response head() throws OryxServingException {
     return get();
@@ -46,8 +40,7 @@ public final class Ready extends AbstractKMeansResource {
 
   @GET
   public Response get() throws OryxServingException {
-    KMeansServingModel model = getKMeansModel(); // Make sure it doesn't error
-    log.info("{}", model);
+    getKMeansModel(); // Make sure it doesn't error
     return Response.ok().build();
   }
 }

@@ -476,7 +476,7 @@ public final class ALSServingModel {
 
   @Override
   public String toString() {
-    int maxSize = 128;
+    int maxSize = 16;
     List<String> partitionSizes = new ArrayList<>(maxSize);
     for (int i = 0; i < Y.length; i++) {
       int size = Y[i].size();
