@@ -72,6 +72,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   private String updateTopic;
   private int maxMessageSize;
   private String updateTopicLockMaster;
+  private boolean readOnly;
   private String inputTopic;
   private String inputTopicLockMaster;
   private String inputTopicBroker;
@@ -89,9 +90,12 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
-    this.inputTopic = config.getString("oryx.input-topic.message.topic");
-    this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
-    this.inputTopicBroker = config.getString("oryx.input-topic.broker");
+    this.readOnly = config.getBoolean("oryx.serving.api.read-only");
+    if (!readOnly) {
+      this.inputTopic = config.getString("oryx.input-topic.message.topic");
+      this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
+      this.inputTopicBroker = config.getString("oryx.input-topic.broker");
+    }
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
     this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
@@ -104,13 +108,14 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     ServletContext context = sce.getServletContext();
     init(context);
 
-    Preconditions.checkArgument(KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
+    if (!readOnly) {
+      Preconditions.checkArgument(KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
                                 "Topic %s does not exist; did you create it?", inputTopic);
-    Preconditions.checkArgument(KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+      Preconditions.checkArgument(KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
                                 "Topic %s does not exist; did you create it?", updateTopic);
-
-    inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
-    context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
+      inputProducer = new TopicProducerImpl<>(inputTopicBroker, inputTopic);
+      context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
+    }
 
     consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(
