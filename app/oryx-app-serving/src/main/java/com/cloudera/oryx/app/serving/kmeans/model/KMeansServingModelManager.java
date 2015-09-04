@@ -28,27 +28,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 
 /**
- * A {@link ServingModelManager} that manages and provides access to an {@link KMeansServingModel}
- * for the k-means Serving Layer application.
+ * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
+ * {@link KMeansServingModel} for the k-means Serving Layer application.
  */
-public final class KMeansServingModelManager implements ServingModelManager<String> {
+public final class KMeansServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  private final Config config;
   private final InputSchema inputSchema;
   private KMeansServingModel model;
 
   public KMeansServingModelManager(Config config) {
-    this.config = config;
+    super(config);
     inputSchema = new InputSchema(config);
   }
 
@@ -99,18 +98,8 @@ public final class KMeansServingModelManager implements ServingModelManager<Stri
   }
 
   @Override
-  public Config getConfig() {
-    return config;
-  }
-
-  @Override
   public KMeansServingModel getModel() {
     return model;
-  }
-
-  @Override
-  public void close() {
-   // do nothing
   }
 
 }

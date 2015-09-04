@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
@@ -41,20 +41,19 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 
 /**
- * A {@link ServingModelManager} that manages and provides access to an {@link RDFServingModel}
- * for the random decision forest Serving Layer application.
+ * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
+ * {@link RDFServingModel} for the random decision forest Serving Layer application.
  */
-public final class RDFServingModelManager implements ServingModelManager<String> {
+public final class RDFServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  private final Config config;
   private final InputSchema inputSchema;
   private RDFServingModel model;
 
   public RDFServingModelManager(Config config) {
-    this.config = config;
+    super(config);
     inputSchema = new InputSchema(config);
   }
 
@@ -128,18 +127,8 @@ public final class RDFServingModelManager implements ServingModelManager<String>
   }
 
   @Override
-  public Config getConfig() {
-    return config;
-  }
-
-  @Override
   public RDFServingModel getModel() {
     return model;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

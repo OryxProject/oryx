@@ -74,6 +74,10 @@ public abstract class AbstractOryxResource {
     inputProducer.send(Integer.toHexString(message.hashCode()), message);
   }
 
+  protected final boolean isReadOnly() {
+    return servingModelManager.isReadOnly();
+  }
+
   protected final List<FileItem> parseMultipart(HttpServletRequest request)
       throws OryxServingException {
 
@@ -116,6 +120,10 @@ public abstract class AbstractOryxResource {
   protected static void checkExists(boolean condition,
                                     String entity) throws OryxServingException {
     check(condition, Response.Status.NOT_FOUND, entity);
+  }
+
+  protected void checkNotReadOnly() throws OryxServingException {
+    check(!isReadOnly(), Response.Status.FORBIDDEN, "Serving Layer is read-only");
   }
 
   protected static BufferedReader maybeBuffer(InputStream in) {

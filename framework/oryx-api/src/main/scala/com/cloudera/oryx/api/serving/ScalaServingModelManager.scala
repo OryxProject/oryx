@@ -46,6 +46,11 @@ trait ScalaServingModelManager[U] {
    */
   def getModel: AnyRef
 
+  /**
+   * @return true iff the model is considered read-only and not updateable
+   */
+  def isReadOnly: Boolean
+
   def close(): Unit
 
 }

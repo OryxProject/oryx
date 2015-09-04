@@ -54,6 +54,11 @@ public interface ServingModelManager<U> extends Closeable {
    */
   Object getModel();
 
+  /**
+   * @return true iff the model is considered read-only and not updateable
+   */
+  boolean isReadOnly();
+
   @Override
   void close();
 

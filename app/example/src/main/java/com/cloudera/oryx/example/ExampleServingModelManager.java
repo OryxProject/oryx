@@ -25,7 +25,7 @@ import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 
 /**
  * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
@@ -33,13 +33,12 @@ import com.cloudera.oryx.api.serving.ServingModelManager;
  * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
  * mapping to the Serving Layer applications.
  */
-public final class ExampleServingModelManager implements ServingModelManager<String> {
+public final class ExampleServingModelManager extends AbstractServingModelManager<String> {
 
-  private final Config config;
   private final Map<String,Integer> distinctOtherWords = new HashMap<>();
 
   public ExampleServingModelManager(Config config) {
-    this.config = config;
+    super(config);
   }
 
   @Override
@@ -70,18 +69,8 @@ public final class ExampleServingModelManager implements ServingModelManager<Str
   }
 
   @Override
-  public Config getConfig() {
-    return config;
-  }
-
-  @Override
   public Map<String,Integer> getModel() {
     return distinctOtherWords;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

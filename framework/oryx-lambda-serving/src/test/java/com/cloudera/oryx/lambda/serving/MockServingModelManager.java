@@ -21,9 +21,13 @@ import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 
-public final class MockServingModelManager implements ServingModelManager<String> {
+public final class MockServingModelManager extends AbstractServingModelManager<String> {
+
+  public MockServingModelManager(Config config) {
+    super(config);
+  }
 
   @Override
   public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf) {
@@ -31,18 +35,8 @@ public final class MockServingModelManager implements ServingModelManager<String
   }
 
   @Override
-  public Config getConfig() {
-    return null;
-  }
-
-  @Override
   public Object getModel() {
     return null;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

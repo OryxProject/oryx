@@ -45,19 +45,22 @@ public final class Add extends AbstractKMeansResource {
 
   @POST
   @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  public void post(Reader reader) throws IOException {
+  public void post(Reader reader) throws IOException, OryxServingException {
+    checkNotReadOnly();
     doPost(maybeBuffer(reader));
   }
 
   @POST
   @Path("{datum}")
-  public void post(@PathParam("datum") String datum) {
+  public void post(@PathParam("datum") String datum) throws OryxServingException {
+    checkNotReadOnly();
     sendInput(datum);
   }
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
+    checkNotReadOnly();
     for (FileItem item : parseMultipart(request)) {
       try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         doPost(reader);

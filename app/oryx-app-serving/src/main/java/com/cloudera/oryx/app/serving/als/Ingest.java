@@ -65,12 +65,14 @@ public final class Ingest extends AbstractALSResource {
   @POST
   @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException, OryxServingException {
+    checkNotReadOnly();
     doPost(maybeBuffer(reader));
   }
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
+    checkNotReadOnly();
     for (FileItem item : parseMultipart(request)) {
       try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         doPost(reader);

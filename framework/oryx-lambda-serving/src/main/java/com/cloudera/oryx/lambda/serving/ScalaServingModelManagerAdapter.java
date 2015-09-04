@@ -56,6 +56,11 @@ public final class ScalaServingModelManagerAdapter<U> implements ServingModelMan
   }
 
   @Override
+  public boolean isReadOnly() {
+    return scalaManager.isReadOnly();
+  }
+
+  @Override
   public void close() {
     scalaManager.close();
   }

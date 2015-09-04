@@ -31,28 +31,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
- * A {@link ServingModelManager} that manages and provides access to an {@link ALSServingModel}
- * for the ALS Serving Layer application.
+ * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
+ * {@link ALSServingModel} for the ALS Serving Layer application.
  */
-public final class ALSServingModelManager implements ServingModelManager<String> {
+public final class ALSServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  private final Config config;
   private ALSServingModel model;
   private final double sampleRate;
   private final RescorerProvider rescorerProvider;
 
   public ALSServingModelManager(Config config) {
-    this.config = config;
+    super(config);
     String rescorerProviderClass =
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
     rescorerProvider = AbstractRescorerProvider.loadRescorerProviders(rescorerProviderClass);
@@ -130,18 +129,8 @@ public final class ALSServingModelManager implements ServingModelManager<String>
   }
 
   @Override
-  public Config getConfig() {
-    return config;
-  }
-
-  @Override
   public ALSServingModel getModel() {
     return model;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

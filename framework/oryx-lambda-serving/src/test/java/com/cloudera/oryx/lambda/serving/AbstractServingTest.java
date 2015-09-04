@@ -48,7 +48,7 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
@@ -169,22 +169,13 @@ public abstract class AbstractServingTest extends JerseyTest {
   }
 
   protected abstract static class AbstractMockServingModelManager
-      implements ServingModelManager<String> {
-    private final Config config;
+      extends AbstractServingModelManager<String> {
     protected AbstractMockServingModelManager(Config config) {
-      this.config = config;
+      super(config);
     }
     @Override
     public final void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf) {
       throw new UnsupportedOperationException();
-    }
-    @Override
-    public final Config getConfig() {
-      return config;
-    }
-    @Override
-    public final void close() {
-      // do nothing
     }
   }
 

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 
 import com.cloudera.oryx.api.KeyMessage
-import com.cloudera.oryx.api.serving.ScalaServingModelManager
+import com.cloudera.oryx.api.serving.AbstractScalaServingModelManager
 
 /**
  * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
@@ -31,7 +31,7 @@ import com.cloudera.oryx.api.serving.ScalaServingModelManager
  * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
  * mapping to the Serving Layer applications.
  */
-class ExampleScalaServingModelManager(val config: Config) extends ScalaServingModelManager[String] {
+class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaServingModelManager[String](config) {
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
@@ -58,12 +58,6 @@ class ExampleScalaServingModelManager(val config: Config) extends ScalaServingMo
     )
   }
 
-  override def getConfig = config
-
   override def getModel = distinctOtherWords
-
-  override def close() = {
-    // do nothing
-  }
 
 }

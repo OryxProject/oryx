@@ -49,6 +49,7 @@ public final class Preference extends AbstractALSResource {
       @PathParam("userID") String userID,
       @PathParam("itemID") String itemID,
       Reader reader) throws IOException, OryxServingException {
+    checkNotReadOnly();
     BufferedReader bufferedReader = maybeBuffer(reader);
     String line = bufferedReader.readLine();
     String value = validateAndStandardizeStrength(line);
@@ -59,7 +60,8 @@ public final class Preference extends AbstractALSResource {
   @Path("{userID}/{itemID}")
   public void delete(
       @PathParam("userID") String userID,
-      @PathParam("itemID") String itemID) {
+      @PathParam("itemID") String itemID) throws OryxServingException {
+    checkNotReadOnly();
     sendToTopic(userID, itemID, "");
   }
 
