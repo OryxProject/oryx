@@ -22,6 +22,8 @@ import javax.ws.rs.core.MediaType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cloudera.oryx.common.OryxTest;
+
 public final class KnownItemsTest extends AbstractALSServingTest {
 
   @Test
@@ -30,7 +32,7 @@ public final class KnownItemsTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
     Assert.assertEquals(5, items.size());
     for (int i : new int[] {1, 4, 5, 7, 8}) {
-      Assert.assertTrue(items.contains("I" + i));
+      OryxTest.assertContains(items, "I" + i);
     }
   }
 
@@ -40,7 +42,7 @@ public final class KnownItemsTest extends AbstractALSServingTest {
     List<String> items = Arrays.asList(response.split("\n"));
     Assert.assertEquals(5, items.size());
     for (int i : new int[] {1, 4, 5, 7, 8}) {
-      Assert.assertTrue(items.contains("I" + i));
+      OryxTest.assertContains(items, "I" + i);
     }
   }
 

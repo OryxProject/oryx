@@ -154,11 +154,11 @@ public final class LocalitySensitiveHashTest extends OryxTest {
       sum += count;
       max = Math.max(max, count);
       min = Math.min(min, count);
-      assertTrue(count > 0);
+      assertGreater(count, 0);
     }
     log.info("Total {} / Max {} / Min {}", sum, max, min);
     assertEquals(trials, sum);
-    assertTrue(max <= 2 * min);
+    assertLessOrEqual(max, 2 * min);
   }
 
   private static void doTestHashesBits(double sampleRate, int numCores, int numHashes, int maxBitsDiffering) {
@@ -174,7 +174,7 @@ public final class LocalitySensitiveHashTest extends OryxTest {
       partitionsToTry += CombinatoricsUtils.binomialCoefficient(numHashes, i);
     }
     if (numHashes < LocalitySensitiveHash.MAX_HASHES) {
-      assertTrue((double) partitionsToTry / (1 << numHashes) <= sampleRate);
+      assertLessOrEqual((double) partitionsToTry / (1 << numHashes), sampleRate);
     }
   }
 

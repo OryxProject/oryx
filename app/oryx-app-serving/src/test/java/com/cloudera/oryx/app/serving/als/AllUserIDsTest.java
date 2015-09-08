@@ -21,6 +21,8 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cloudera.oryx.common.OryxTest;
+
 public final class AllUserIDsTest extends AbstractALSServingTest {
 
   @Test
@@ -29,7 +31,7 @@ public final class AllUserIDsTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
     Assert.assertEquals(7, users.size());
     for (int user = 0; user < 7; user++) {
-      Assert.assertTrue(users.contains("U" + user));
+      OryxTest.assertContains(users, "U" + user);
     }
   }
 

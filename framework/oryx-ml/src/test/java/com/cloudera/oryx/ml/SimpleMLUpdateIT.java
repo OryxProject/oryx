@@ -104,7 +104,7 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
       }
       log.info("Probability of observing {} as {} sample of {}: {}",
                testCount, TEST_FRACTION, totalNew, probability);
-      assertTrue(probability >= 0.001);
+      assertGreaterOrEqual(probability, 0.001);
     }
 
   }

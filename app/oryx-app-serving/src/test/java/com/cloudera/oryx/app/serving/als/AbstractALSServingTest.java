@@ -31,6 +31,7 @@ import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.app.serving.als.model.TestALSModelFactory;
+import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
@@ -105,9 +106,9 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       if (i > 0) {
         double lastScore = values.get(i-1).getValue();
         if (reverse) {
-          Assert.assertTrue(lastScore <= thisScore);
+          OryxTest.assertLessOrEqual(lastScore, thisScore);
         } else {
-          Assert.assertTrue(lastScore >= thisScore);
+          OryxTest.assertGreaterOrEqual(lastScore, thisScore);
         }
       }
     }
@@ -117,9 +118,9 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     Assert.assertEquals(expectedSize, top.size());
     for (int i = 0; i < top.size(); i++) {
       int thisCount = top.get(i).getCount();
-      Assert.assertTrue(thisCount >= 1);
+      OryxTest.assertGreaterOrEqual(thisCount, 1);
       if (i > 0) {
-        Assert.assertTrue(top.get(i - 1).getCount() >= thisCount);
+        OryxTest.assertGreaterOrEqual(top.get(i - 1).getCount(), thisCount);
       }
     }
   }
@@ -147,7 +148,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       String[] tokens = row.split(",");
       if (counts) {
         int count = Integer.parseInt(tokens[1]);
-        Assert.assertTrue(count > 0);
+        OryxTest.assertGreater(count, 0);
       }
       double thisScore = Double.parseDouble(tokens[1]);
       Assert.assertFalse(Double.isNaN(thisScore));
@@ -155,9 +156,9 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       if (i > 0) {
         double lastScore = Double.parseDouble(rows[i-1].split(",")[1]);
         if (reverse) {
-          Assert.assertTrue(lastScore <= thisScore);
+          OryxTest.assertLessOrEqual(lastScore, thisScore);
         } else {
-          Assert.assertTrue(lastScore >= thisScore);
+          OryxTest.assertGreaterOrEqual(lastScore, thisScore);
         }
       }
     }

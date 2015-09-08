@@ -76,9 +76,9 @@ public final class IOUtilsTest extends OryxTest {
     Path testDir = createTestDirs();
     List<Path> files = IOUtils.listFiles(testDir, "*");
     assertEquals(2, files.size());
-    assertTrue(files.contains(testDir.resolve("subFile1")));
-    assertFalse(files.contains(testDir.resolve(".hidden")));
-    assertTrue(files.contains(testDir.resolve("subDir1")));
+    assertContains(files, testDir.resolve("subFile1"));
+    assertNotContains(files, testDir.resolve(".hidden"));
+    assertContains(files, testDir.resolve("subDir1"));
   }
 
   @Test
@@ -86,9 +86,9 @@ public final class IOUtilsTest extends OryxTest {
     Path testDir = createTestDirs();
     List<Path> files = IOUtils.listFiles(testDir, "");
     assertEquals(2, files.size());
-    assertTrue(files.contains(testDir.resolve("subFile1")));
-    assertFalse(files.contains(testDir.resolve(".hidden")));
-    assertTrue(files.contains(testDir.resolve("subDir1")));
+    assertContains(files, testDir.resolve("subFile1"));
+    assertNotContains(files, testDir.resolve(".hidden"));
+    assertContains(files, testDir.resolve("subDir1"));
   }
 
   @Test
@@ -96,8 +96,8 @@ public final class IOUtilsTest extends OryxTest {
     Path testDir = createTestDirs();
     List<Path> files = IOUtils.listFiles(testDir, "*/*");
     assertEquals(2, files.size());
-    assertTrue(files.contains(testDir.resolve("subDir1").resolve("subFile2")));
-    assertTrue(files.contains(testDir.resolve("subDir1").resolve("subDir2")));
+    assertContains(files, testDir.resolve("subDir1").resolve("subFile2"));
+    assertContains(files, testDir.resolve("subDir1").resolve("subDir2"));
   }
 
   @Test
@@ -105,7 +105,7 @@ public final class IOUtilsTest extends OryxTest {
     Path testDir = createTestDirs();
     List<Path> files = IOUtils.listFiles(testDir, "*/subFile*");
     assertEquals(1, files.size());
-    assertTrue(files.contains(testDir.resolve("subDir1").resolve("subFile2")));
+    assertContains(files, testDir.resolve("subDir1").resolve("subFile2"));
   }
 
   @Test

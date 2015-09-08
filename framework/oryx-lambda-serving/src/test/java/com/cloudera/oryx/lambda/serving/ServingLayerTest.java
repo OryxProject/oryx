@@ -71,7 +71,7 @@ public final class ServingLayerTest extends OryxTest {
       assertEquals(0, context.getApplicationLifecycleListeners().length);
       assertNotNull(context.findParameter(ConfigUtils.class.getName() + ".serialized"));
       assertNotNull(context.getName());
-      assertTrue(Double.parseDouble(context.getWebappVersion()) >= 3.1);
+      assertGreaterOrEqual(Double.parseDouble(context.getWebappVersion()), 3.1);
     }
   }
 

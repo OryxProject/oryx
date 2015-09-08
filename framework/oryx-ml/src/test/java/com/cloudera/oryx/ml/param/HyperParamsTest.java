@@ -125,10 +125,10 @@ public final class HyperParamsTest extends OryxTest {
     hyperParams.add(HyperParams.around(5.0, 0.5));
     List<List<?>> combos = HyperParams.chooseHyperParameterCombos(hyperParams, 50, 2);
     assertEquals(4, combos.size());
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 2, 4.75)));
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 10, 4.75)));
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 2, 5.25)));
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 10, 5.25)));
+    assertContains(combos, Arrays.<Number>asList(1.0, 2, 4.75));
+    assertContains(combos, Arrays.<Number>asList(1.0, 10, 4.75));
+    assertContains(combos, Arrays.<Number>asList(1.0, 2, 5.25));
+    assertContains(combos, Arrays.<Number>asList(1.0, 10, 5.25));
   }
 
   @Test
@@ -139,8 +139,8 @@ public final class HyperParamsTest extends OryxTest {
     hyperParams.add(HyperParams.around(5.0, 0.5));
     List<List<?>> combos = HyperParams.chooseHyperParameterCombos(hyperParams, 2, 2);
     assertEquals(2, combos.size());
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 10, 4.75)));
-    assertTrue(combos.contains(Arrays.<Number>asList(1.0, 2, 4.75)));
+    assertContains(combos, Arrays.<Number>asList(1.0, 10, 4.75));
+    assertContains(combos, Arrays.<Number>asList(1.0, 2, 4.75));
   }
 
   @Test

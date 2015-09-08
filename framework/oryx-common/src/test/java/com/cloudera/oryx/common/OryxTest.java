@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,8 +73,36 @@ public abstract class OryxTest extends Assert {
    * @param expected test's expected value
    * @param actual actual value
    */
-  protected static void assertEquals(float expected, float actual) {
+  public static void assertEquals(float expected, float actual) {
     assertEquals(expected, actual, FLOAT_EPSILON);
+  }
+
+  public static void assertGreater(double a, double b) {
+    Assert.assertTrue(a + " should be > " + b, a > b);
+  }
+
+  public static void assertGreaterOrEqual(double a, double b) {
+    Assert.assertTrue(a + " should be >= " + b, a >= b);
+  }
+
+  public static void assertLess(double a, double b) {
+    Assert.assertTrue(a + " should be < " + b, a < b);
+  }
+
+  public static void assertLessOrEqual(double a, double b) {
+    Assert.assertTrue(a + " should be <= " + b, a <= b);
+  }
+
+  public static <T> void assertContains(Collection<T> collection, T value) {
+    assertTrue(abbreviatedToString(collection) + " should contain " + value, collection.contains(value));
+  }
+
+  public static <T> void assertNotContains(Collection<T> collection, T value) {
+    assertFalse(abbreviatedToString(collection) + " should not contain " + value, collection.contains(value));
+  }
+
+  private static String abbreviatedToString(Collection<?> c) {
+    return c.size() <= 16 ? c.toString() : Iterables.limit(c, 16) + "...";
   }
 
   /**

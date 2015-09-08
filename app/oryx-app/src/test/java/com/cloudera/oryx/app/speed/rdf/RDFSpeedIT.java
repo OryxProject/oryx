@@ -69,7 +69,8 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     int numUpdates = updates.size();
 
     // Model, and then pairs of positive / negative
-    assertTrue(numUpdates >= 3 && numUpdates % 2 != 0);
+    assertGreaterOrEqual(numUpdates, 3);
+    assertTrue(numUpdates % 2 != 0);
     // Not testing the model much here:
     assertEquals("MODEL", updates.get(0).getFirst());
 
@@ -95,7 +96,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       List<?> fields2 = MAPPER.readValue(update2.getSecond(), List.class);
       int count1 = (Integer) fields1.get(3);
       int count2 = (Integer) fields2.get(3);
-      assertTrue(Math.abs(count1 - count2) <= 1);
+      assertLessOrEqual(Math.abs(count1 - count2), 1);
       String nodeID1 = fields1.get(1).toString();
       String nodeID2 = fields2.get(1).toString();
       if ("r-".equals(nodeID1)) {
@@ -151,7 +152,8 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     int numUpdates = updates.size();
 
     // Model, and then pairs of positive / negative
-    assertTrue(numUpdates >= 3 && numUpdates % 2 != 0);
+    assertGreaterOrEqual(numUpdates, 3);
+    assertTrue(numUpdates % 2 != 0);
     // Not testing the model much here:
     assertEquals("MODEL", updates.get(0).getFirst());
 
@@ -176,7 +178,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       int yellowCount = countMap.containsKey(yellow) ? countMap.get(yellow) : 0;
       int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
       int count = yellowCount + redCount;
-      assertTrue(count > 0);
+      assertGreater(count, 0);
       BinomialDistribution dist = new BinomialDistribution(RandomManager.getRandom(), count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow

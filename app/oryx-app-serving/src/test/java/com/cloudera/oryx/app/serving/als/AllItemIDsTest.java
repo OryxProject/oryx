@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cloudera.oryx.common.OryxTest;
+
 public final class AllItemIDsTest extends AbstractALSServingTest {
 
   @Test
@@ -29,7 +31,7 @@ public final class AllItemIDsTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
     Assert.assertEquals(9, items.size());
     for (int item = 0; item < 9; item++) {
-      Assert.assertTrue(items.contains("I" + item));
+      OryxTest.assertContains(items, "I" + item);
     }
   }
 

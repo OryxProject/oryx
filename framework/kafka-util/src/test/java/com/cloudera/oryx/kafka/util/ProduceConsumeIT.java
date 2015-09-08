@@ -79,7 +79,7 @@ public final class ProduceConsumeIT extends OryxTest {
         assertEquals(NUM_DATA, keys.size());
       }
       for (int i = 0; i < NUM_DATA; i++) {
-        assertTrue(keys.contains(Integer.toString(i)));
+        assertContains(keys, Integer.toString(i));
       }
     }
   }

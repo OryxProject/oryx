@@ -70,8 +70,8 @@ public final class FeatureVectorsTest extends OryxTest {
       }
     });
     assertEquals(fv.size(), out.size());
-    assertTrue(out.contains("foo1.0"));
-    assertTrue(out.contains("bar1.5"));
+    assertContains(out, "foo1.0");
+    assertContains(out, "bar1.5");
   }
 
   @Test

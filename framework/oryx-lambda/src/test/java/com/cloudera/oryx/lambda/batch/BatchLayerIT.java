@@ -67,8 +67,8 @@ public final class BatchLayerIT extends AbstractBatchIT {
     for (int i = 1; i < numIntervals; i++) {
       IntervalData<String,String> current = intervalData.get(i);
       log.info("Interval {}: {}", i, current);
-      assertTrue(current.getTimestamp() > last.getTimestamp());
-      assertTrue(current.getPastData().size() >= last.getPastData().size());
+      assertGreater(current.getTimestamp(), last.getTimestamp());
+      assertGreaterOrEqual(current.getPastData().size(), last.getPastData().size());
       assertEquals(last.getPastData().size() + last.getCurrentData().size(),
                    current.getPastData().size());
       last = current;

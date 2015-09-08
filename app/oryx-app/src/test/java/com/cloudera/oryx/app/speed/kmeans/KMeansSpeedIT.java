@@ -68,7 +68,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     int numUpdates = updates.size();
 
     // Model plus at least 3 updates, 1 per cluster
-    assertTrue(updates.size() >= NUM_CLUSTERS + 1);
+    assertGreaterOrEqual(updates.size(), NUM_CLUSTERS + 1);
     assertEquals("MODEL", updates.get(0).getFirst());
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
@@ -106,7 +106,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
       assertArrayEquals(updatedCenter, MockKMeansInputGenerator.UPDATE_POINTS[id], 0.1);
 
       long updatedClusterSize = clusterInfo.getCount();
-      assertTrue(updatedClusterSize > cluster.getSize());
+      assertGreater(updatedClusterSize, cluster.getSize());
       assertEquals(100 + cluster.getSize(), updatedClusterSize);
     }
   }

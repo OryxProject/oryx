@@ -111,12 +111,12 @@ public final class ALSServingModelTest extends OryxTest {
       model.setItemVector("I" + i, new float[]{0.0f, 0.0f});
     }
     model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
-    assertTrue(model.getKnownItems("U3").contains("I4"));
-    assertTrue(model.getKnownItems("U4").contains("I4"));
-    assertTrue(model.getKnownItems("U6").contains("I6"));
-    assertTrue(model.getKnownItems("U6").contains("I7"));
+    assertContains(model.getKnownItems("U3"), "I4");
+    assertContains(model.getKnownItems("U4"), "I4");
+    assertContains(model.getKnownItems("U6"), "I6");
+    assertContains(model.getKnownItems("U6"), "I7");
     // Protected because of recent user/items
-    assertTrue(model.getKnownItems("U2").contains("I2"));
+    assertContains(model.getKnownItems("U2"), "I2");
 
     // Clears recent user/items
     model.retainRecentAndUserIDs(Collections.<String>emptyList());
@@ -124,9 +124,9 @@ public final class ALSServingModelTest extends OryxTest {
 
     model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
     assertNull(model.getKnownItems("U3"));
-    assertTrue(model.getKnownItems("U4").contains("I4"));
-    assertTrue(model.getKnownItems("U6").contains("I6"));
-    assertFalse(model.getKnownItems("U6").contains("I7"));
+    assertContains(model.getKnownItems("U4"), "I4");
+    assertContains(model.getKnownItems("U6"), "I6");
+    assertNotContains(model.getKnownItems("U6"), "I7");
     assertNull(model.getKnownItems("U2"));
   }
 
@@ -199,7 +199,7 @@ public final class ALSServingModelTest extends OryxTest {
       meanMatchLength.increment(i);
     }
     log.info("Mean matching prefix: {}", meanMatchLength.getResult());
-    assertTrue(meanMatchLength.getResult() >= 4.0);
+    assertGreaterOrEqual(meanMatchLength.getResult(), 4.0);
 
     meanMatchLength.clear();
     for (int item = 0; item < userItemCount; item++) {
@@ -215,7 +215,7 @@ public final class ALSServingModelTest extends OryxTest {
       meanMatchLength.increment(i);
     }
     log.info("Mean matching prefix: {}", meanMatchLength.getResult());
-    assertTrue(meanMatchLength.getResult() >= 5.0);
+    assertGreaterOrEqual(meanMatchLength.getResult(), 5.0);
   }
 
   @Test
