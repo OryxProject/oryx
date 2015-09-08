@@ -28,7 +28,7 @@ import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class TrainTest extends AbstractRDFServingTest {
 
-  private static final String TRAIN_DATA = "B,0,20\nB,-4,30\nA,0,40\nA,-4,50";
+  static final String TRAIN_DATA = "B,0,20\nB,-4,30\nA,0,40\nA,-4,50";
   private static final String[][] EXPECTED_TOPIC = {
       {"B", "0", "20"},
       {"B", "-4", "30"},

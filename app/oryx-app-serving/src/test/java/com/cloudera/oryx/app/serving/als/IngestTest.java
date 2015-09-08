@@ -32,7 +32,7 @@ import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class IngestTest extends AbstractALSServingTest {
 
-  private static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\nc,D,\na,C,2,123456789";
+  static final String INGEST_DATA = "a,B,1\nc,B\nc,D,5.5\nc,D,\na,C,2,123456789";
   private static final String[][] EXPECTED_TOPIC = {
       {"a", "B", "1.0"},
       {"c", "B", "1"},

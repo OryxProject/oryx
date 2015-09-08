@@ -22,6 +22,7 @@ import javax.servlet.annotation.WebListener;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -155,8 +156,11 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   public void contextDestroyed(ServletContextEvent sce) {
     log.info("ModelManagerListener destroying");
 
-    // Remove the Model Manager from Application scope
-    sce.getServletContext().removeAttribute(MANAGER_KEY);
+    // Slightly paranoid; remove objects from app scope manually
+    ServletContext context = sce.getServletContext();
+    for (Enumeration<String> names = context.getAttributeNames(); names.hasMoreElements();) {
+      context.removeAttribute(names.nextElement());
+    }
 
     if (modelManager != null) {
       log.info("Shutting down model manager");

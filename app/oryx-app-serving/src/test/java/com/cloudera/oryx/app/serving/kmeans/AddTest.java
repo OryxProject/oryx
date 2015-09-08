@@ -27,7 +27,7 @@ import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public final class AddTest extends AbstractKMeansServingTest {
 
-  private static final String ADD_DATA = "1.0,0.0,20.0\n1.0,-4.0,30.0\n0.0,0.0,40.0\n0.0,-4.0,50.0";
+  static final String ADD_DATA = "1.0,0.0,20.0\n1.0,-4.0,30.0\n0.0,0.0,40.0\n0.0,-4.0,50.0";
   private static final String[][] EXPECTED_TOPIC = {
       {"1.0", "0.0", "20.0"},
       {"1.0", "-4.0", "30.0"},

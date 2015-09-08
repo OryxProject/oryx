@@ -24,6 +24,7 @@ import com.typesafe.config.Config;
 import org.junit.Test;
 import org.springframework.mock.web.MockServletContext;
 
+import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.AbstractLambdaIT;
 
@@ -45,6 +46,12 @@ public final class ModelManagerListenerIT extends AbstractLambdaIT {
     listener.init(mockContext);
     try {
       listener.contextInitialized(new ServletContextEvent(mockContext));
+      @SuppressWarnings("unchecked")
+      ServingModelManager<?> manager =
+          (ServingModelManager<?>) mockContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+      assertNotNull(manager);
+      assertFalse(manager.isReadOnly());
+      assertNotNull(manager.getConfig());
     } finally {
       listener.contextDestroyed(new ServletContextEvent(mockContext));
     }
