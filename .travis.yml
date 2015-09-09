@@ -7,12 +7,15 @@ matrix:
    # Covers Java 7, Open JDK, and code coverage
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
-   # Covers latest Spark
+   # Covers Spark 1.4
    - jdk: oraclejdk7
      env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.1
    # Covers Java 8, Oracle JDK, CDH5
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh5
+   # Covers Spark 1.5
+   - jdk: oraclejdk8
+     env: JAVA_VERSION=8 SPARK=-Dspark.version=1.5.0 
 cache:
   directories:
     - $HOME/.m2
