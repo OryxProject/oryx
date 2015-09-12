@@ -31,31 +31,4 @@ public final class AbstractRescorerProviderTest extends OryxTest {
     assertNull(noop.getRecommendToAnonymousRescorer(null, null));
   }
 
-  @Test
-  public void testLoad() {
-    assertNull(AbstractRescorerProvider.loadRescorerProviders(null));
-    RescorerProvider provider = AbstractRescorerProvider.loadRescorerProviders(
-        "com.cloudera.oryx.app.als.NullProvider2");
-    assertTrue(provider instanceof NullProvider2);
-    RescorerProvider multiProvider = AbstractRescorerProvider.loadRescorerProviders(
-        "com.cloudera.oryx.app.als.NullProvider1,com.cloudera.oryx.app.als.NullProvider2");
-    assertTrue(multiProvider instanceof MultiRescorerProvider);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testNoClass() {
-    AbstractRescorerProvider.loadRescorerProviders("noSuchClass");
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testBadInstantiation() {
-    AbstractRescorerProvider.loadRescorerProviders("com.cloudera.oryx.app.als.ErrorProvider");
-  }
-
-  @Test(expected = ClassCastException.class)
-  public void testWrongClass() {
-    AbstractRescorerProvider.loadRescorerProviders(
-        "com.cloudera.oryx.app.als.AbstractRescorerProviderTest");
-  }
-
 }

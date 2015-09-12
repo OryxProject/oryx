@@ -13,7 +13,9 @@
  * License.
  */
 
-package com.cloudera.oryx.app.als;
+package com.cloudera.oryx.app.serving.als.model;
+
+import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 
 public final class NullProvider2 extends AbstractRescorerProvider {
 }

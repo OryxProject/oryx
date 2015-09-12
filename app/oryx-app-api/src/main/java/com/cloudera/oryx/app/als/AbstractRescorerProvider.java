@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.app.als;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -63,46 +61,6 @@ public abstract class AbstractRescorerProvider implements RescorerProvider {
   @Override
   public Rescorer getMostSimilarItemsRescorer(List<String> args) {
     return null;
-  }
-
-  /**
-   * @param classNamesString a comma-delimited list of class names, where classes implement
-   *  {@link RescorerProvider}
-   * @return a {@link RescorerProvider} which rescores using all of them
-   */
-  public static RescorerProvider loadRescorerProviders(String classNamesString) {
-    if (classNamesString == null || classNamesString.isEmpty()) {
-      return null;
-    }
-    String[] classNames = classNamesString.split(",");
-    if (classNames.length == 1) {
-      return loadInstanceOf(classNames[0]);
-    }
-    RescorerProvider[] providers = new RescorerProvider[classNames.length];
-    for (int i = 0; i < classNames.length; i++) {
-      providers[i] = loadInstanceOf(classNames[i]);
-    }
-    return MultiRescorerProvider.of(providers);
-  }
-
-  private static RescorerProvider loadInstanceOf(String implClassName) {
-    try {
-      // ClassUtils is not available here
-      Class<? extends RescorerProvider> configClass =
-          Class.forName(implClassName, true, AbstractRescorerProvider.class.getClassLoader())
-              .asSubclass(RescorerProvider.class);
-      Constructor<? extends RescorerProvider> constructor = configClass.getConstructor();
-      return constructor.newInstance();
-    } catch (ClassNotFoundException e) {
-      throw new IllegalArgumentException(
-          "Could not load " + implClassName + " due to exception", e);
-    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException e) {
-      throw new IllegalArgumentException(
-          "Could not instantiate " + implClassName + " due to exception", e);
-    } catch (InvocationTargetException ite) {
-      throw new IllegalStateException(
-          "Could not instantiate " + implClassName + " due to exception", ite.getCause());
-    }
   }
 
 }
