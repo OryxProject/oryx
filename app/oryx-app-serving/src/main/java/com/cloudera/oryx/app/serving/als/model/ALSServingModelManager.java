@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
-import com.cloudera.oryx.app.als.AbstractRescorerProvider;
 import com.cloudera.oryx.app.als.MultiRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
@@ -160,7 +159,7 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
     try {
       // ClassUtils is not available here
       Class<? extends RescorerProvider> configClass =
-          Class.forName(implClassName, true, AbstractRescorerProvider.class.getClassLoader())
+          Class.forName(implClassName, true, RescorerProvider.class.getClassLoader())
               .asSubclass(RescorerProvider.class);
       Constructor<? extends RescorerProvider> constructor = configClass.getConstructor();
       return constructor.newInstance();
