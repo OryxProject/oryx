@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
+import com.cloudera.oryx.api.serving.ServingModel;
 
 public final class MockServingModelManager extends AbstractServingModelManager<String> {
 
@@ -35,7 +36,7 @@ public final class MockServingModelManager extends AbstractServingModelManager<S
   }
 
   @Override
-  public Object getModel() {
+  public ServingModel getModel() {
     return null;
   }
 
