@@ -24,6 +24,7 @@ import scala.collection.JavaConversions;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.ScalaServingModelManager;
+import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
 /**
@@ -51,7 +52,7 @@ public final class ScalaServingModelManagerAdapter<U> implements ServingModelMan
   }
 
   @Override
-  public Object getModel() {
+  public ServingModel getModel() {
     return scalaManager.getModel();
   }
 

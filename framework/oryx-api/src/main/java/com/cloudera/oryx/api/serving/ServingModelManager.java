@@ -52,7 +52,7 @@ public interface ServingModelManager<U> extends Closeable {
   /**
    * @return in-memory model representation
    */
-  Object getModel();
+  ServingModel getModel();
 
   /**
    * @return true iff the model is considered read-only and not updateable

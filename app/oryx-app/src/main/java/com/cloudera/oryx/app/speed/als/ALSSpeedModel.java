@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 
+import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -31,7 +32,7 @@ import com.cloudera.oryx.common.math.Solver;
  * Contains all data structures needed to create near-real-time updates for an
  * ALS-based recommender.
  */
-public final class ALSSpeedModel {
+public final class ALSSpeedModel implements SpeedModel {
 
   /** User-feature matrix. */
   private final FeatureVectors X;
@@ -114,10 +115,7 @@ public final class ALSSpeedModel {
     return LinearSystemSolver.getSolver(Y.getVTV());
   }
 
-  /**
-   * @return fraction of IDs that were expected to be in the model whose value has been
-   *  loaded from an update
-   */
+  @Override
   public float getFractionLoaded() {
     int expected = 0;
     try (AutoLock al = expectedUserIDsLock.autoReadLock()) {

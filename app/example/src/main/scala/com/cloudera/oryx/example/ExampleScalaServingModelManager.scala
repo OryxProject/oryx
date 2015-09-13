@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 
 import com.cloudera.oryx.api.KeyMessage
-import com.cloudera.oryx.api.serving.AbstractScalaServingModelManager
+import com.cloudera.oryx.api.serving.{ServingModel, AbstractScalaServingModelManager}
 
 /**
  * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
@@ -58,6 +58,9 @@ class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaS
     )
   }
 
-  override def getModel = distinctOtherWords
+  override def getModel = new ServingModel() {
+    override def getFractionLoaded = 1.0f
+    def getWords: Map[String,Integer] = distinctOtherWords.toMap
+  }
 
 }

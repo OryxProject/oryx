@@ -26,6 +26,7 @@ import org.apache.hadoop.conf.Configuration;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
+import com.cloudera.oryx.api.serving.ServingModel;
 
 /**
  * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
@@ -69,8 +70,16 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
   }
 
   @Override
-  public Map<String,Integer> getModel() {
-    return distinctOtherWords;
+  public ServingModel getModel() {
+    return new ServingModel() {
+      @Override
+      public float getFractionLoaded() {
+        return 1.0f;
+      }
+      public Map<String,Integer> getWords() {
+        return distinctOtherWords;
+      }
+    };
   }
 
 }

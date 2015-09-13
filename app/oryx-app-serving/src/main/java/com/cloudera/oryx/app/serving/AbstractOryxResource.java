@@ -32,19 +32,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.FileCleanerCleanup;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.api.serving.ServingModelManager;
 
 /**
  * Superclass of all Serving Layer application endpoints.
  */
 public abstract class AbstractOryxResource {
+
+  private static final Logger log = LoggerFactory.getLogger(AbstractOryxResource.class);
 
   public static final String MODEL_MANAGER_KEY =
       "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
@@ -58,6 +64,7 @@ public abstract class AbstractOryxResource {
   private ServletContext servletContext;
   private TopicProducer<String,String> inputProducer;
   private ServingModelManager<?> servingModelManager;
+  private boolean hasLoadedEnough;
 
   @SuppressWarnings("unchecked")
   @PostConstruct
@@ -66,16 +73,34 @@ public abstract class AbstractOryxResource {
     inputProducer = (TopicProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
   }
 
-  protected ServingModelManager<?> getServingModelManager() {
-    return servingModelManager;
-  }
-
   protected final void sendInput(String message) {
     inputProducer.send(Integer.toHexString(message.hashCode()), message);
   }
 
   protected final boolean isReadOnly() {
     return servingModelManager.isReadOnly();
+  }
+
+  protected final ServingModel getServingModel() throws OryxServingException {
+    ServingModel servingModel = servingModelManager.getModel();
+    if (hasLoadedEnough) {
+      return servingModel;
+    }
+    if (servingModel != null) {
+      double minModelLoadFraction =
+          servingModelManager.getConfig().getDouble("oryx.serving.min-model-load-fraction");
+      Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
+      float fractionLoaded = servingModel.getFractionLoaded();
+      log.info("Model loaded fraction: {}", fractionLoaded);
+      if (fractionLoaded >= minModelLoadFraction) {
+        hasLoadedEnough = true;
+      }
+    }
+    if (hasLoadedEnough) {
+      return servingModel;
+    } else {
+      throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
+    }
   }
 
   protected final List<FileItem> parseMultipart(HttpServletRequest request)

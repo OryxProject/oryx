@@ -15,8 +15,6 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
-import javax.ws.rs.core.Response;
-
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.app.rdf.example.Feature;
@@ -34,11 +32,7 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 public abstract class AbstractRDFResource extends AbstractOryxResource {
 
   final RDFServingModel getRDFServingModel() throws OryxServingException {
-    RDFServingModel rdfServingModel = (RDFServingModel) getServingModelManager().getModel();
-    if (rdfServingModel == null) {
-      throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
-    }
-    return rdfServingModel;
+    return (RDFServingModel) getServingModel();
   }
 
   Prediction makePrediction(String[] data) throws OryxServingException {

@@ -42,6 +42,7 @@ import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 import org.apache.commons.math3.linear.RealMatrix;
 
+import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.als.CosineDistanceSensitiveFunction;
@@ -59,7 +60,7 @@ import com.cloudera.oryx.common.math.Solver;
 /**
  * Contains all data structures needed to serve real-time requests for an ALS-based recommender.
  */
-public final class ALSServingModel {
+public final class ALSServingModel implements ServingModel {
 
   /** Number of partitions for items data structures. */
   private static final ExecutorService executor = Executors.newFixedThreadPool(
@@ -455,10 +456,7 @@ public final class ALSServingModel {
     return total;
   }
 
-  /**
-   * @return fraction of IDs that were expected to be in the model whose value has been
-   *  loaded from an update
-   */
+  @Override
   public float getFractionLoaded() {
     int expected = 0;
     try (AutoLock al = expectedUserIDsLock.autoReadLock()) {

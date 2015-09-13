@@ -17,16 +17,12 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collections;
 import java.util.List;
-import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.api.serving.ServingModelManager;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.collection.Pair;
@@ -39,28 +35,8 @@ import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
  */
 public abstract class AbstractALSResource extends AbstractOryxResource {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractALSResource.class);
-
-  private boolean isLoaded;
-
   final ALSServingModel getALSServingModel() throws OryxServingException {
-    ServingModelManager<?> modelManager = getServingModelManager();
-    ALSServingModel alsServingModel = (ALSServingModel) modelManager.getModel();
-    if (isLoaded) {
-      return alsServingModel;
-    }
-    if (alsServingModel != null) {
-      log.info("{}", alsServingModel);
-      double minModelLoadFraction = modelManager.getConfig().getDouble("oryx.serving.min-model-load-fraction");
-      if (alsServingModel.getFractionLoaded() >= minModelLoadFraction) {
-        isLoaded = true;
-      }
-    }
-    if (isLoaded) {
-      return alsServingModel;
-    } else {
-      throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
-    }
+    return (ALSServingModel) getServingModel();
   }
 
   static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {

@@ -44,7 +44,7 @@ trait ScalaServingModelManager[U] {
   /**
    * @return in-memory model representation
    */
-  def getModel: AnyRef
+  def getModel: ServingModel
 
   /**
    * @return true iff the model is considered read-only and not updateable

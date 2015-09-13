@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.speed.rdf;
 
 import java.util.Objects;
 
+import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 
@@ -24,7 +25,7 @@ import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
  * Contains all data structures needed to create near-real-time updates for a
  * random decision forest-based classifier or regressor.
  */
-public final class RDFSpeedModel {
+public final class RDFSpeedModel implements SpeedModel {
 
   private final DecisionForest forest;
   private final CategoricalValueEncodings encodings;
@@ -42,6 +43,11 @@ public final class RDFSpeedModel {
 
   public CategoricalValueEncodings getEncodings() {
     return encodings;
+  }
+
+  @Override
+  public float getFractionLoaded() {
+    return 1.0f;
   }
 
   @Override

@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansUtils;
@@ -30,7 +31,7 @@ import com.cloudera.oryx.common.collection.Pair;
  * Contains all data structures needed to serve queries for a
  * k-means clustering application.
  */
-public final class KMeansServingModel {
+public final class KMeansServingModel implements ServingModel {
 
   private final List<ClusterInfo> clusters;
   private final InputSchema inputSchema;
@@ -63,6 +64,11 @@ public final class KMeansServingModel {
 
   public void update(int clusterID, double[] center, long count) {
     clusters.set(clusterID, new ClusterInfo(clusterID, center, count));
+  }
+
+  @Override
+  public float getFractionLoaded() {
+    return 1.0f;
   }
 
   @Override

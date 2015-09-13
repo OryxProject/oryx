@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.rdf.model;
 
 import java.util.Objects;
 
+import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -25,7 +26,7 @@ import com.cloudera.oryx.app.schema.InputSchema;
  * Contains all data structures needed to serve queries for a
  * random decision forest-based classifier or regressor.
  */
-public final class RDFServingModel {
+public final class RDFServingModel implements ServingModel {
 
   private final DecisionForest forest;
   private final CategoricalValueEncodings encodings;
@@ -52,6 +53,11 @@ public final class RDFServingModel {
 
   public InputSchema getInputSchema() {
     return inputSchema;
+  }
+
+  @Override
+  public float getFractionLoaded() {
+    return 1.0f;
   }
 
   @Override

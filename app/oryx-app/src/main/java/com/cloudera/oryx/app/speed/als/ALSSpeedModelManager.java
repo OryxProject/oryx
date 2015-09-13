@@ -70,7 +70,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator,
+                      Configuration hadoopConf) throws IOException {
     int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
@@ -131,6 +132,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
+    // TODO if this is ever needed by other apps, this logic could be refactored for
+    // other SpeedModelManager implementations, like in AbstractOryxResource
     if (model == null || model.getFractionLoaded() < minModelLoadFraction) {
       return Collections.emptyList();
     }
