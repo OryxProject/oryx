@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +25,10 @@ public final class ConsoleTest extends AbstractALSServingTest {
 
   @Test
   public void testConsole() {
-    String html = target("/index.html").request().accept(MediaType.TEXT_HTML).get(String.class);
+    Response response = target("/index.html").request().accept(MediaType.TEXT_HTML).get();
+    Assert.assertEquals("public", response.getHeaderString("Cache-Control"));
+    Assert.assertEquals("SAMEORIGIN", response.getHeaderString("X-Frame-Options"));
+    String html = response.readEntity(String.class);
     String[] substrings = {
         "DOCTYPE",
         "Oryx Serving Layer",

@@ -16,8 +16,10 @@
 package com.cloudera.oryx.app.serving;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import java.io.IOException;
@@ -50,7 +52,9 @@ public abstract class AbstractConsoleResource {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public final String getHTML() {
+  public final String getHTML(@Context HttpServletResponse response) {
+    response.setHeader("X-Frame-Options", "SAMEORIGIN");
+    response.setHeader("Cache-Control", "public");
     return html;
   }
 
