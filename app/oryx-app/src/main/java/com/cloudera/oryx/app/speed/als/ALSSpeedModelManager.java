@@ -176,9 +176,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Yi is the current row i in the Y item-feature matrix
       float[] Yi = model.getItemVector(item);
 
-      double[] newXu = newVector(YTYsolver, value, Xu, Yi);
+      float[] newXu = newVector(YTYsolver, value, Xu, Yi);
       // Similarly for Y vs X
-      double[] newYi = newVector(XTXsolver, value, Yi, Xu);
+      float[] newYi = newVector(XTXsolver, value, Yi, Xu);
 
       if (newXu != null) {
         result.add(toUpdateJSON("X", user, newXu, item));
@@ -190,31 +190,35 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return result;
   }
 
-  private double[] newVector(Solver solver, double value, float[] Xu, float[] Yi) {
-    double[] newXu = null;
+  private float[] newVector(Solver solver, double value, float[] Xu, float[] Yi) {
+    float[] newXu = null;
     if (Yi != null) {
-      // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction
-      // in Q = X * Y^t
-      // 0.5 reflects a "don't know" state
-      double currentValue = Xu == null ? 0.5 : VectorMath.dot(Xu, Yi);
-      double targetQui = computeTargetQui(value, currentValue);
-      // The entire vector Qu' is just 0, with Qui' in position i
-      // More generally we are looking for Qu' = Xu' * Y^t
+      // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction in Q = X * Y^t
+      double Qui = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
+      // Qui' is the target, new value of Qui
+      double targetQui = computeTargetQui(value, Xu == null ? 0.5 : Qui); // 0.5 reflects a "don't know" state
       if (!Double.isNaN(targetQui)) {
-        // Solving Qu' = Xu' * Y^t for Xu', now that we have Qui', as:
-        // Qu' * Y * (Y^t * Yi)^-1 = Xu'
-        // Qu' is 0 except for one value at position i, so it's really (Qui')*Yi
-        float[] QuiYi = Yi.clone();
-        for (int i = 0; i < QuiYi.length; i++) {
-          QuiYi[i] *= targetQui;
+        // In Qu = Xu * Y^T, Xu is going to change to Xu' such that Qu' = Xu' * Y^T. Qu' will change
+        // from Qu by the vector dQu = [0, 0, ..., dQui, ...] where the nonzero value
+        // dQui = (Qui' - Qui) is in position i. The change dXu from Xu to Xu' should satisfy
+        // dQu = dXu * Y^T. We solve for dXu and then add it to Xu. dQu * Y = dXu * (Y^t * Y).
+        // dQu is 0 except for one value at position i, so dQu * Y is really dQui*Yi
+        double dQui = targetQui - Qui;
+        float[] dQuiYi = Yi.clone();
+        for (int i = 0; i < dQuiYi.length; i++) {
+          dQuiYi[i] *= dQui;
         }
-        newXu = solver.solveFToD(QuiYi);
+        double[] dXu = solver.solveFToD(dQuiYi);
+        newXu = Xu == null ? new float[model.getFeatures()] : Xu.clone();
+        for (int i = 0; i < newXu.length; i++) {
+          newXu[i] += dXu[i];
+        }
       }
     }
     return newXu;
   }
 
-  private String toUpdateJSON(String matrix, String ID, double[] vector, String otherID) {
+  private String toUpdateJSON(String matrix, String ID, float[] vector, String otherID) {
     List<?> args;
     if (noKnownItems) {
       args = Arrays.asList(matrix, ID, vector);
@@ -231,7 +235,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   private double computeTargetQui(double value, double currentValue) {
     // We want Qui to change based on value. What's the target value, Qui'?
-    // Then we find a new vector Xu' such that Qui' = Xu' * (Yi)^t
     if (implicit) {
       return ALSUtils.implicitTargetQui(value, currentValue);
     } else {

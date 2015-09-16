@@ -108,10 +108,12 @@ public final class ALSSpeedModel implements SpeedModel {
   }
 
   public Solver getXTXSolver() {
+    // Not cached now, since the way it is used now, it is accessed once per batch of input anyway
     return LinearSystemSolver.getSolver(X.getVTV());
   }
 
   public Solver getYTYSolver() {
+    // Not cached now, since the way it is used now, it is accessed once per batch of input anyway
     return LinearSystemSolver.getSolver(Y.getVTV());
   }
 

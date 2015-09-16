@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -84,6 +85,7 @@ public final class ALSServingModel implements ServingModel {
   private final AutoReadWriteLock expectedUserIDsLock;
   private final ObjSet<String> expectedItemIDs;
   private final AutoReadWriteLock expectedItemIDsLock;
+  private final AtomicReference<Solver> cachedYTYSolver;
   /** Number of features used in the model. */
   private final int features;
   /** Whether model uses implicit feedback. */
@@ -120,6 +122,8 @@ public final class ALSServingModel implements ServingModel {
     expectedUserIDsLock = new AutoReadWriteLock();
     expectedItemIDs = HashObjSets.newMutableSet();
     expectedItemIDsLock = new AutoReadWriteLock();
+
+    cachedYTYSolver = new AtomicReference<>();
 
     this.features = features;
     this.implicit = implicit;
@@ -180,6 +184,9 @@ public final class ALSServingModel implements ServingModel {
     try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
       expectedItemIDs.remove(item);
     }
+    // Not clear if it's too inefficient to clear and recompute YtY solver every time any bit
+    // of Y changes, but it's the most correct
+    cachedYTYSolver.set(null);
   }
 
   /**
@@ -365,6 +372,10 @@ public final class ALSServingModel implements ServingModel {
   }
 
   public Solver getYTYSolver() {
+    Solver cached = cachedYTYSolver.get();
+    if (cached != null) {
+      return cached;
+    }
     RealMatrix YTY = null;
     for (FeatureVectors yPartition : Y) {
       RealMatrix YTYpartial = yPartition.getVTV();
@@ -372,7 +383,10 @@ public final class ALSServingModel implements ServingModel {
         YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
       }
     }
-    return LinearSystemSolver.getSolver(YTY);
+    // Possible to compute this twice, but not a big deal
+    Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
+    cachedYTYSolver.set(newYTYSolver);
+    return newYTYSolver;
   }
 
   /**

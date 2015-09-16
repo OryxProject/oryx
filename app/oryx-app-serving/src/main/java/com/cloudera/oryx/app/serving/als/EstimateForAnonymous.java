@@ -66,19 +66,27 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   static double[] buildAnonymousUserFeatures(ALSServingModel model,
                                              List<PathSegment> pathSegments) {
     List<Pair<String,Double>> itemValuePairs = parsePathSegments(pathSegments);
+    boolean implicit = model.isImplicit();
     int features = model.getFeatures();
-    double[] userItemRowTimesY = new double[features];
+
+    double[] QuiYi = new double[features];
     for (Pair<String,Double> itemValue : itemValuePairs) {
       float[] itemVector = model.getItemVector(itemValue.getFirst());
       if (itemVector != null) {
-        // 0.5 reflects a "don't know" state
-        double weight = computeTargetQui(model, itemValue.getSecond(), 0.5);
+        // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T
+        double Qui = itemValue.getSecond();
+        // Qui' is the target, new value of Qui
+        double targetQui = computeTargetQui(implicit, Qui, 0.5); // 0.5 reflects a "don't know" state
+        // We're constructing a row Xu for a fictional user u such that Qu = Xu * Y^T
+        // This is solved as Qu * Y = Xu * (Y^T * Y) for Xu.
+        // Qu is all zeroes except that it has values Qui in position i for several i.
+        // Qu * Y is really just Qui * Yi, summed up over i.
         for (int i = 0; i < features; i++) {
-          userItemRowTimesY[i] += weight * itemVector[i];
+          QuiYi[i] += targetQui * itemVector[i];
         }
       }
     }
-    return model.getYTYSolver().solveDToD(userItemRowTimesY);
+    return model.getYTYSolver().solveDToD(QuiYi);
   }
 
   static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {
@@ -99,10 +107,9 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   /**
    * See also ALSServingModelManager
    */
-  private static double computeTargetQui(ALSServingModel model, double value, double currentValue) {
+  private static double computeTargetQui(boolean implicit, double value, double currentValue) {
     // We want Qui to change based on value. What's the target value, Qui'?
-    // Then we find a new vector Xu' such that Qui' = Xu' * (Yi)^t
-    if (model.isImplicit()) {
+    if (implicit) {
       return ALSUtils.implicitTargetQui(value, currentValue);
     } else {
       // Non-implicit -- value is supposed to be the new value

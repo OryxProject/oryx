@@ -37,18 +37,19 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
   /*
    A = [ 1 0 0 1 0 ; 0 1 0 1 1 ; 1 1 1 1 0 ; 0 0 1 0 0 ]
    */
+
   public static final Map<String,Collection<String>> A = new HashMap<>();
   static {
     A.put(ALSUtilsTest.idToStringID(6), Arrays.asList("1", "4"));
     A.put(ALSUtilsTest.idToStringID(7), Arrays.asList("2", "4", "5"));
     A.put(ALSUtilsTest.idToStringID(8), Arrays.asList("1", "2", "3", "4"));
-    A.put(ALSUtilsTest.idToStringID(9), Arrays.asList("2"));
+    A.put(ALSUtilsTest.idToStringID(9), Arrays.asList("3"));
   }
   public static final Map<String,Collection<String>> At = new HashMap<>();
   static {
     At.put(ALSUtilsTest.idToStringID(1), Arrays.asList("6", "8"));
-    At.put(ALSUtilsTest.idToStringID(2), Arrays.asList("7", "8", "9"));
-    At.put(ALSUtilsTest.idToStringID(3), Arrays.asList("8"));
+    At.put(ALSUtilsTest.idToStringID(2), Arrays.asList("7", "8"));
+    At.put(ALSUtilsTest.idToStringID(3), Arrays.asList("8", "9"));
     At.put(ALSUtilsTest.idToStringID(4), Arrays.asList("6", "7", "8"));
     At.put(ALSUtilsTest.idToStringID(5), Arrays.asList("7"));
   }
@@ -63,6 +64,7 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
    X = U*sqrt(S)
    Y = V*sqrt(S)
    */
+
   public static final Map<String,float[]> X = buildMatrix(6, new double[][] {
       {-0.679001918401210,  0.173232408449017},
       {-0.823244234718400, -0.920085196137775},
