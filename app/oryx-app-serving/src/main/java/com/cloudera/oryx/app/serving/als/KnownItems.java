@@ -15,9 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -41,15 +39,7 @@ public final class KnownItems extends AbstractALSResource {
   @Path("{userID}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public Collection<String> get(@PathParam("userID") String userID) throws OryxServingException {
-    Collection<String> knownItems = getALSServingModel().getKnownItems(userID);
-    if (knownItems == null) {
-      return Collections.emptyList();
-    } else {
-      synchronized (knownItems) {
-        // Must copy since the original object is synchronized
-        return new ArrayList<>(knownItems);
-      }
-    }
+    return getALSServingModel().getKnownItems(userID);
   }
 
 }

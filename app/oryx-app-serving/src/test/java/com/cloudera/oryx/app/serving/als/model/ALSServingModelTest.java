@@ -123,11 +123,11 @@ public final class ALSServingModelTest extends OryxTest {
     model.retainRecentAndItemIDs(Collections.<String>emptyList());
 
     model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
-    assertNull(model.getKnownItems("U3"));
+    assertTrue(model.getKnownItems("U3").isEmpty());
     assertContains(model.getKnownItems("U4"), "I4");
     assertContains(model.getKnownItems("U6"), "I6");
     assertNotContains(model.getKnownItems("U6"), "I7");
-    assertNull(model.getKnownItems("U2"));
+    assertTrue(model.getKnownItems("U2").isEmpty());
   }
 
   @Test

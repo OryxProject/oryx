@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -183,11 +184,21 @@ public final class ALSServingModel implements ServingModel {
 
   /**
    * @param user user to get known items for
-   * @return set of known items for the user. Note that this object is not thread-safe and
-   *  access must be {@code synchronized}
+   * @return set of known items for the user (immutable, but thread-safe)
    */
-  public Collection<String> getKnownItems(String user) {
-    return doGetKnownItems(user);
+  public Set<String> getKnownItems(String user) {
+    ObjSet<String> knownItems = doGetKnownItems(user);
+    if (knownItems == null) {
+      return Collections.emptySet();
+    } else {
+      synchronized (knownItems) {
+        if (knownItems.isEmpty()) {
+          return Collections.emptySet();
+        }
+        // Must copy since the original object is synchronized
+        return HashObjSets.newImmutableSet(knownItems);
+      }
+    }
   }
 
   private ObjSet<String> doGetKnownItems(String user) {
@@ -260,7 +271,7 @@ public final class ALSServingModel implements ServingModel {
     if (userVector == null) {
       return null;
     }
-    Collection<String> knownItems = getKnownItems(user);
+    Collection<String> knownItems = doGetKnownItems(user);
     if (knownItems == null) {
       return null;
     }

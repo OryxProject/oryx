@@ -17,7 +17,6 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
@@ -91,13 +90,8 @@ public final class Recommend extends AbstractALSResource {
     Predicate<String> allowedFn = null;
     if (!considerKnownItems) {
       Collection<String> knownItems = model.getKnownItems(userID);
-      if (knownItems != null) {
-        synchronized (knownItems) {
-          if (!knownItems.isEmpty()) {
-            // Must copy since knownItems is synchronized
-            allowedFn = new NotContainsPredicate<>(new HashSet<>(knownItems));
-          }
-        }
+      if (!knownItems.isEmpty()) {
+        allowedFn = new NotContainsPredicate<>(knownItems);
       }
     }
 
