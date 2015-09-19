@@ -42,15 +42,18 @@ public final class ALSSpeedModel implements SpeedModel {
   private final AutoReadWriteLock expectedUserIDsLock;
   private final ObjSet<String> expectedItemIDs;
   private final AutoReadWriteLock expectedItemIDsLock;
-  /** Whether model uses implicit feedback. */
+  /** Number of features used in the model. */
   private final int features;
+  /** Whether model uses implicit feedback. */
+  private final boolean implicit;
 
   /**
    * Creates an empty model.
    *
    * @param features number of features expected for user/item feature vectors
+   * @param implicit whether model implements implicit feedback
    */
-  ALSSpeedModel(int features) {
+  ALSSpeedModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
     X = new FeatureVectors();
     Y = new FeatureVectors();
@@ -59,10 +62,15 @@ public final class ALSSpeedModel implements SpeedModel {
     expectedItemIDs = HashObjSets.newMutableSet();
     expectedItemIDsLock = new AutoReadWriteLock();
     this.features = features;
+    this.implicit = implicit;
   }
 
   public int getFeatures() {
     return features;
+  }
+
+  public boolean isImplicit() {
+    return implicit;
   }
 
   public float[] getUserVector(String user) {
@@ -135,7 +143,7 @@ public final class ALSSpeedModel implements SpeedModel {
 
   @Override
   public String toString() {
-    return "ALSSpeedModel[features:" + features +
+    return "ALSSpeedModel[features:" + features + ", implicit:" + implicit +
         ", X:(" + X.size() + " users), Y:(" + Y.size() + " items), fractionLoaded:" +
         getFractionLoaded() + "]";
   }

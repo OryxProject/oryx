@@ -37,4 +37,9 @@ public final class Solver {
     return solver.solve(new ArrayRealVector(b, false)).toArray();
   }
 
+  @Override
+  public String toString() {
+    return "Solver[" + solver + "]";
+  }
+
 }

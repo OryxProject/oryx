@@ -15,22 +15,31 @@
 
 package com.cloudera.oryx.app.als;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import com.google.common.math.IntMath;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.math.LinearSystemSolver;
+import com.cloudera.oryx.common.math.Solver;
+import com.cloudera.oryx.common.math.VectorMath;
 
 public final class ALSUtilsTest extends OryxTest {
 
   @Test
   public void testImplicitQui() {
-    assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(0.0, 1.0)));
-    assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(0.0, 0.0)));
-    assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(0.0, -1.0)));
-    assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(0.5, 1.0)));
-    assertTrue(Double.isNaN(ALSUtils.implicitTargetQui(-0.5, 0.0)));
-    assertEquals(0.75, ALSUtils.implicitTargetQui(1.0, 0.5));
-    assertEquals(0.25, ALSUtils.implicitTargetQui(-1.0, 0.5));
+    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, 1.0)));
+    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, 0.0)));
+    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, -1.0)));
+    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.5, 1.0)));
+    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, -0.5, 0.0)));
+    assertEquals(0.75, ALSUtils.computeTargetQui(true, 1.0, 0.5));
+    assertEquals(0.25, ALSUtils.computeTargetQui(true, -1.0, 0.5));
+    for (double d : new double[] { -1.0 , 0.0, 0.5, 1.0, 2.0 }) {
+      assertEquals(d, ALSUtils.computeTargetQui(false, d, 0.0));
+    }
   }
 
   // Utilities used in ALS-related tests
@@ -49,6 +58,30 @@ public final class ALSUtilsTest extends OryxTest {
    */
   public static int stringIDtoID(String stringID) {
     return Integer.parseInt(stringID.substring(1));
+  }
+
+  @Test
+  public void testComputeUpdatedXu() {
+    Collection<float[]> rows = Arrays.asList(new float[][]{
+        {1.0f, 2.0f},
+        {3.0f, 0.0f},
+        {0.0f, 1.0f},
+    });
+    Solver solver = LinearSystemSolver.getSolver(VectorMath.transposeTimesSelf(rows));
+
+    assertNull(ALSUtils.computeUpdatedXu(solver, 1.0, null, null, 2, true));
+
+    assertArrayEquals(new float[] { 0.13043478f, 0.097826086f },
+                      ALSUtils.computeUpdatedXu(solver, 1.0, null, new float[] { 2.0f, 1.0f }, 2, true));
+
+    assertArrayEquals(new float[] { 0.11594203f, 0.08695652f },
+                      ALSUtils.computeUpdatedXu(solver, 0.5, null, new float[] { 2.0f, 1.0f }, 2, true));
+
+    assertArrayEquals(new float[] { 0.16086957f, 0.14565217f },
+                      ALSUtils.computeUpdatedXu(solver, 1.0,
+                                                new float[] { 0.1f, 0.1f },
+                                                new float[] { 2.0f, 1.0f },
+                                                2, true));
   }
 
 }

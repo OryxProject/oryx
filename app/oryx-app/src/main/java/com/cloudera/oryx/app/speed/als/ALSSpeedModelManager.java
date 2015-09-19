@@ -43,7 +43,6 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
@@ -58,12 +57,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSSpeedModel model;
-  private final boolean implicit;
   private final boolean noKnownItems;
   private final double minModelLoadFraction;
 
   public ALSSpeedModelManager(Config config) {
-    implicit = config.getBoolean("oryx.als.implicit");
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
     minModelLoadFraction = config.getDouble("oryx.speed.min-model-load-fraction");
     Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
@@ -109,10 +106,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
 
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
+          boolean implicit = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
 
           if (model == null || features != model.getFeatures()) {
             log.warn("No previous model, or # features has changed; creating new one");
-            model = new ALSSpeedModel(features);
+            model = new ALSSpeedModel(features, implicit);
           }
 
           log.info("Updating model");
@@ -137,6 +135,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     if (model == null || model.getFractionLoaded() < minModelLoadFraction) {
       return Collections.emptyList();
     }
+    boolean implicit = model.isImplicit();
+    int features = model.getFeatures();
 
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
@@ -176,9 +176,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Yi is the current row i in the Y item-feature matrix
       float[] Yi = model.getItemVector(item);
 
-      float[] newXu = newVector(YTYsolver, value, Xu, Yi);
+      float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, features, implicit);
       // Similarly for Y vs X
-      float[] newYi = newVector(XTXsolver, value, Yi, Xu);
+      float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, features, implicit);
 
       if (newXu != null) {
         result.add(toUpdateJSON("X", user, newXu, item));
@@ -188,34 +188,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       }
     }
     return result;
-  }
-
-  private float[] newVector(Solver solver, double value, float[] Xu, float[] Yi) {
-    float[] newXu = null;
-    if (Yi != null) {
-      // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction in Q = X * Y^t
-      double Qui = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
-      // Qui' is the target, new value of Qui
-      double targetQui = computeTargetQui(value, Xu == null ? 0.5 : Qui); // 0.5 reflects a "don't know" state
-      if (!Double.isNaN(targetQui)) {
-        // In Qu = Xu * Y^T, Xu is going to change to Xu' such that Qu' = Xu' * Y^T. Qu' will change
-        // from Qu by the vector dQu = [0, 0, ..., dQui, ...] where the nonzero value
-        // dQui = (Qui' - Qui) is in position i. The change dXu from Xu to Xu' should satisfy
-        // dQu = dXu * Y^T. We solve for dXu and then add it to Xu. dQu * Y = dXu * (Y^t * Y).
-        // dQu is 0 except for one value at position i, so dQu * Y is really dQui*Yi
-        double dQui = targetQui - Qui;
-        float[] dQuiYi = Yi.clone();
-        for (int i = 0; i < dQuiYi.length; i++) {
-          dQuiYi[i] *= dQui;
-        }
-        double[] dXu = solver.solveFToD(dQuiYi);
-        newXu = Xu == null ? new float[model.getFeatures()] : Xu.clone();
-        for (int i = 0; i < newXu.length; i++) {
-          newXu[i] += dXu[i];
-        }
-      }
-    }
-    return newXu;
   }
 
   private String toUpdateJSON(String matrix, String ID, float[] vector, String otherID) {
@@ -231,16 +203,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
   @Override
   public void close() {
     // do nothing
-  }
-
-  private double computeTargetQui(double value, double currentValue) {
-    // We want Qui to change based on value. What's the target value, Qui'?
-    if (implicit) {
-      return ALSUtils.implicitTargetQui(value, currentValue);
-    } else {
-      // Non-implicit -- value is supposed to be the new value
-      return value;
-    }
   }
 
   private static final PairFunction<String,Tuple2<String,String>,Double> TO_TUPLE_FN =

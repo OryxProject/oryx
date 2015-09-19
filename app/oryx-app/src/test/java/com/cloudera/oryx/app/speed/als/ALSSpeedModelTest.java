@@ -25,7 +25,7 @@ public final class ALSSpeedModelTest extends OryxTest {
 
   @Test
   public void testUserItemVector() {
-    ALSSpeedModel model = new ALSSpeedModel(2);
+    ALSSpeedModel model = new ALSSpeedModel(2, true);
     assertEquals(2, model.getFeatures());
     model.setUserVector("U1", new float[] { 1.5f, -2.5f });
     assertArrayEquals(new float[] { 1.5f, -2.5f }, model.getUserVector("U1"));
@@ -35,15 +35,16 @@ public final class ALSSpeedModelTest extends OryxTest {
 
   @Test
   public void testToString() {
-    String modelToString = new ALSSpeedModel(2).toString();
+    String modelToString = new ALSSpeedModel(2, true).toString();
     assertTrue(modelToString.contains("ALSSpeedModel"));
     assertTrue(modelToString.contains("features:2"));
+    assertTrue(modelToString.contains("implicit:true"));
   }
 
   @Test
   public void testFractionLoaded() {
-    assertEquals(1.0f, new ALSSpeedModel(2).getFractionLoaded());
-    ALSSpeedModel model = new ALSSpeedModel(2);
+    assertEquals(1.0f, new ALSSpeedModel(2, true).getFractionLoaded());
+    ALSSpeedModel model = new ALSSpeedModel(2, true);
     model.retainRecentAndUserIDs(Collections.singleton("U1"));
     model.retainRecentAndItemIDs(Collections.singleton("I0"));
     assertEquals(0.0f, model.getFractionLoaded());

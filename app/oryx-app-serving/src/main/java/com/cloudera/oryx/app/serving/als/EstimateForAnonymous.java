@@ -76,7 +76,7 @@ public final class EstimateForAnonymous extends AbstractALSResource {
         // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T
         double Qui = itemValue.getSecond();
         // Qui' is the target, new value of Qui
-        double targetQui = computeTargetQui(implicit, Qui, 0.5); // 0.5 reflects a "don't know" state
+        double targetQui = ALSUtils.computeTargetQui(implicit, Qui, 0.5); // 0.5 reflects a "don't know" state
         // We're constructing a row Xu for a fictional user u such that Qu = Xu * Y^T
         // This is solved as Qu * Y = Xu * (Y^T * Y) for Xu.
         // Qu is all zeroes except that it has values Qui in position i for several i.
@@ -102,19 +102,6 @@ public final class EstimateForAnonymous extends AbstractALSResource {
                     Double.parseDouble(s.substring(offset + 1)));
           }
         });
-  }
-
-  /**
-   * See also ALSServingModelManager
-   */
-  private static double computeTargetQui(boolean implicit, double value, double currentValue) {
-    // We want Qui to change based on value. What's the target value, Qui'?
-    if (implicit) {
-      return ALSUtils.implicitTargetQui(value, currentValue);
-    } else {
-      // Non-implicit -- value is supposed to be the new value
-      return value;
-    }
   }
 
 }
