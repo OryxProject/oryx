@@ -178,6 +178,13 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       consumer.shutdown();
       consumer = null;
     }
+    // Hacky, but prevents Tomcat from complaining that ZK's cleanup thread 'leaked' since
+    // it has a short sleep at its end
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException ie) {
+      // continue
+    }
   }
 
   @SuppressWarnings("unchecked")
