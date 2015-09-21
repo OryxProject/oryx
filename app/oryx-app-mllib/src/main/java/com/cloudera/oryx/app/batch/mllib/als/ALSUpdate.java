@@ -194,8 +194,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     log.info("Sending user / X data as model updates");
     String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
-    JavaPairRDD<String,double[]> userRDD =
-        readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
+    JavaPairRDD<String,float[]> userRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
 
     String updateBroker = modelUpdateTopic.getUpdateBroker();
     String topic = modelUpdateTopic.getTopic();
@@ -205,8 +204,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     log.info("Sending item / Y data as model updates");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
-    JavaPairRDD<String,double[]> productRDD =
-        readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
+    JavaPairRDD<String,float[]> productRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
 
     // For now, there is no use in sending known users for each item
     productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
@@ -408,8 +406,21 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     Path candidatePath,
                                     Map<Integer,String> reverseIDMapping) {
 
-    JavaPairRDD<Integer,double[]> userFeaturesRDD = massageToIntKey(model.userFeatures());
-    JavaPairRDD<Integer,double[]> itemFeaturesRDD = massageToIntKey(model.productFeatures());
+    Function<double[],float[]> doubleArrayToFloats = new Function<double[],float[]>() {
+      @Override
+      public float[] call(double[] d) {
+        float[] f = new float[d.length];
+        for (int i = 0; i < f.length; i++) {
+          f[i] = (float) d[i];
+        }
+        return f;
+      }
+    };
+
+    JavaPairRDD<Integer,float[]> userFeaturesRDD =
+        massageToIntKey(model.userFeatures()).mapValues(doubleArrayToFloats);
+    JavaPairRDD<Integer,float[]> itemFeaturesRDD =
+        massageToIntKey(model.productFeatures()).mapValues(doubleArrayToFloats);
 
     saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseIDMapping);
     saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseIDMapping);
@@ -437,7 +448,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static void addIDsExtension(PMML pmml,
                                       String key,
-                                      JavaPairRDD<Integer,double[]> features,
+                                      JavaPairRDD<Integer,?> features,
                                       Map<Integer,String> reverseIDMapping) {
     List<Integer> hashedIDs = features.keys().collect();
     List<String> ids = new ArrayList<>(hashedIDs.size());
@@ -448,17 +459,17 @@ public final class ALSUpdate extends MLUpdate<String> {
     AppPMMLUtils.addExtensionContent(pmml, key, ids);
   }
 
-  private static void saveFeaturesRDD(JavaPairRDD<Integer,double[]> features,
+  private static void saveFeaturesRDD(JavaPairRDD<Integer,float[]> features,
                                       Path path,
                                       final Map<Integer,String> reverseIDMapping) {
     log.info("Saving features RDD to {}", path);
-    features.map(new Function<Tuple2<Integer, double[]>, String>() {
+    features.map(new Function<Tuple2<Integer,float[]>,String>() {
       @Override
-      public String call(Tuple2<Integer, double[]> keyAndVector) {
+      public String call(Tuple2<Integer,float[]> keyAndVector) {
         Integer id = keyAndVector._1();
         String originalKey = reverseIDMapping.get(id);
         Object key = originalKey == null ? id : originalKey;
-        double[] vector = keyAndVector._2();
+        float[] vector = keyAndVector._2();
         return TextUtils.joinJSON(Arrays.asList(key, vector));
       }
     }).saveAsTextFile(path.toString(), GzipCodec.class);
@@ -469,23 +480,29 @@ public final class ALSUpdate extends MLUpdate<String> {
                                                         Path modelParentPath) {
     String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
     String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
-    JavaPairRDD<String,double[]> userRDD =
-        readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
-    JavaPairRDD<String,double[]> productRDD =
-        readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
+    JavaPairRDD<String,float[]> userRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
+    JavaPairRDD<String,float[]> productRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
     int rank = userRDD.first()._2().length;
     return new MatrixFactorizationModel(
         rank, readAndConvertFeatureRDD(userRDD), readAndConvertFeatureRDD(productRDD));
   }
 
-  private static RDD<Tuple2<Object,double[]>> readAndConvertFeatureRDD(
-      JavaPairRDD<String,double[]> javaRDD) {
+  private static RDD<Tuple2<Object,double[]>> readAndConvertFeatureRDD(JavaPairRDD<String,float[]> javaRDD) {
 
     RDD<Tuple2<Integer,double[]>> scalaRDD = javaRDD.mapToPair(
-        new PairFunction<Tuple2<String,double[]>,Integer,double[]>() {
+        new PairFunction<Tuple2<String,float[]>,Integer,float[]>() {
           @Override
-          public Tuple2<Integer,double[]> call(Tuple2<String, double[]> t) {
+          public Tuple2<Integer,float[]> call(Tuple2<String, float[]> t) {
             return new Tuple2<>(parseOrHashInt(t._1()), t._2());
+          }
+        }).mapValues(new Function<float[],double[]>() {
+          @Override
+          public double[] call(float[] f) {
+            double[] d = new double[f.length];
+            for (int i = 0; i < d.length; i++) {
+              d[i] = f[i];
+            }
+            return d;
           }
         }).rdd();
 
@@ -497,16 +514,15 @@ public final class ALSUpdate extends MLUpdate<String> {
     return objKeyRDD;
   }
 
-  private static JavaPairRDD<String,double[]> readFeaturesRDD(JavaSparkContext sparkContext,
-                                                              Path path) {
+  private static JavaPairRDD<String,float[]> readFeaturesRDD(JavaSparkContext sparkContext, Path path) {
     log.info("Loading features RDD from {}", path);
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
-    return featureLines.mapToPair(new PairFunction<String,String,double[]>() {
+    return featureLines.mapToPair(new PairFunction<String,String,float[]>() {
       @Override
-      public Tuple2<String, double[]> call(String line) throws IOException {
+      public Tuple2<String, float[]> call(String line) throws IOException {
         List<?> update = MAPPER.readValue(line, List.class);
         String key = update.get(0).toString();
-        double[] vector = MAPPER.convertValue(update.get(1), double[].class);
+        float[] vector = MAPPER.convertValue(update.get(1), float[].class);
         return new Tuple2<>(key, vector);
       }
     });

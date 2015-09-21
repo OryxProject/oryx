@@ -29,7 +29,7 @@ public final class LinearSystemSolverTest extends OryxTest {
   }
 
   @Test
-  public void testSolveFToD() {
+  public void testSolveFToF() {
     RealMatrix a = new Array2DRowRealMatrix(new double[][] {
         {1.3, -2.0, 3.0},
         {2.0, 0.0, 5.0},
@@ -37,23 +37,8 @@ public final class LinearSystemSolverTest extends OryxTest {
     });
     Solver solver = LinearSystemSolver.getSolver(a);
     assertNotNull(solver);
-    double[] y = solver.solveFToD(new float[] {1.0f, 2.0f, 6.5f});
-    assertArrayEquals(
-        new double[] {-1.9560439560439564,0.002197802197802894,1.1824175824175824}, y);
-  }
-
-  @Test
-  public void testSolveDToD() {
-    RealMatrix a = new Array2DRowRealMatrix(new double[][] {
-        {1.3, -2.0, 3.0},
-        {2.0, 0.0, 5.0},
-        {0.0, -1.5, 5.5},
-    });
-    Solver solver = LinearSystemSolver.getSolver(a);
-    assertNotNull(solver);
-    double[] y = solver.solveDToD(new double[]{1.0, 2.0, 6.5});
-    assertArrayEquals(
-        new double[] {-1.9560439560439564,0.002197802197802894,1.1824175824175824}, y);
+    float[] y = solver.solveFToF(new float[] {1.0f, 2.0f, 6.5f});
+    assertArrayEquals(new float[] {-1.956044f, 0.0021978023f, 1.1824176f}, y);
   }
 
   @Test

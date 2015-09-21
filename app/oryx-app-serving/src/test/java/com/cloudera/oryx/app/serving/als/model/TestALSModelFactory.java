@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.cloudera.oryx.app.serving.als.TestALSRescorerProvider;
-import com.cloudera.oryx.common.math.VectorMath;
 
 public final class TestALSModelFactory {
 
@@ -67,25 +66,25 @@ public final class TestALSModelFactory {
 
   public static ALSServingModel buildTestModel() {
     ALSServingModel model = new ALSServingModel(2, true, 1.0, new TestALSRescorerProvider());
-    setVectors(model, true, new double[][] {
-        {-0.358375051039897,      0.60391285187422},
-        {-0.775712888238815,      0.43271270099921},
-        {-0.775712888238816,     -0.43271270099921},
-        {-0.358375051039898,    -0.603912851874221},
-        {-1.13408793927871,      1.03662555287343},
-        {-1.55142577647763,  -3.53983555040678e-16},
-        {-1.13408793927871,     -1.03662555287343},
+    setVectors(model, true, new float[][] {
+        {-0.35837504f,  0.60391283f},
+        {-0.7757129f,   0.4327127f},
+        {-0.7757129f,  -0.4327127f},
+        {-0.35837504f, -0.60391283f},
+        {-1.1340879f,   1.0366255f},
+        {-1.5514258f,  -3.5398357e-16f},
+        {-1.1340879f,  -1.0366255f},
     });
-    setVectors(model, false, new double[][] {
-        {-0.231764776187115,     0.504302022409069},
-        {-0.537494339498882,     0.451675042099952},
-        {-0.537494339498881,    -0.451675042099952},
-        {-0.231764776187115,     -0.50430202240907},
-        {-0.769259115685997,     0.955977064509021},
-        {-1.07498867899776,  1.06195066512203e-16},
-        {-0.769259115685996,    -0.955977064509021},
-        {-1.30675345518488,     0.504302022409069},
-        {-1.30675345518488,    -0.504302022409069},
+    setVectors(model, false, new float[][] {
+        {-0.23176478f,  0.504302f},
+        {-0.53749436f,  0.45167503f},
+        {-0.53749436f, -0.45167503f},
+        {-0.23176478f, -0.504302f},
+        {-0.7692591f,   0.9559771f},
+        {-1.0749887f,   1.0619507e-16f},
+        {-0.7692591f,  -0.9559771f},
+        {-1.3067534f,   0.504302f},
+        {-1.3067534f,  -0.504302f},
     });
     setKnownItems(model, new int[][] {
         {1, 0, 0, 0, 1, 0, 0, 1, 0},
@@ -99,13 +98,12 @@ public final class TestALSModelFactory {
     return model;
   }
 
-  private static void setVectors(ALSServingModel model, boolean user, double[]... vectors) {
+  private static void setVectors(ALSServingModel model, boolean user, float[]... vectors) {
     for (int i = 0; i < vectors.length; i++) {
-      float[] modelVec = VectorMath.toFloats(vectors[i]);
       if (user) {
-        model.setUserVector("U" + i, modelVec);
+        model.setUserVector("U" + i, vectors[i]);
       } else {
-        model.setItemVector("I" + i, modelVec);
+        model.setItemVector("I" + i, vectors[i]);
       }
     }
   }

@@ -22,18 +22,19 @@ import com.cloudera.oryx.common.math.VectorMath;
  */
 public final class CosineAverageFunction implements CosineDistanceSensitiveFunction {
 
-  private final double[] itemFeaturesVector;
+  private final float[] itemFeaturesVector;
 
   public CosineAverageFunction(float[] itemFeatureVector) {
-    this.itemFeaturesVector = new double[itemFeatureVector.length];
+    float[] itemFeaturesVector = new float[itemFeatureVector.length];
     double vecNorm = VectorMath.norm(itemFeatureVector);
     for (int i = 0; i < itemFeatureVector.length; i++) {
       itemFeaturesVector[i] += itemFeatureVector[i] / vecNorm;
     }
+    this.itemFeaturesVector = itemFeaturesVector;
   }
 
   public CosineAverageFunction(float[][] itemFeatureVectors) {
-    this.itemFeaturesVector = new double[itemFeatureVectors[0].length];
+    float[] itemFeaturesVector = new float[itemFeatureVectors[0].length];
     for (float[] vec : itemFeatureVectors) {
       double vecNorm = VectorMath.norm(vec);
       for (int i = 0; i < vec.length; i++) {
@@ -43,6 +44,7 @@ public final class CosineAverageFunction implements CosineDistanceSensitiveFunct
     for (int i = 0; i < itemFeaturesVector.length; i++) {
       itemFeaturesVector[i] /= itemFeatureVectors.length;
     }
+    this.itemFeaturesVector = itemFeaturesVector;
   }
 
   @Override
@@ -51,7 +53,7 @@ public final class CosineAverageFunction implements CosineDistanceSensitiveFunct
   }
 
   @Override
-  public double[] getTargetVector() {
+  public float[] getTargetVector() {
     return itemFeaturesVector;
   }
 

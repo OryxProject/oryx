@@ -95,7 +95,7 @@ public final class ALSUtils {
         for (int i = 0; i < dQuiYi.length; i++) {
           dQuiYi[i] *= dQui;
         }
-        double[] dXu = solver.solveFToD(dQuiYi);
+        float[] dXu = solver.solveFToF(dQuiYi);
         newXu = Xu == null ? new float[numFeatures] : Xu.clone();
         for (int i = 0; i < newXu.length; i++) {
           newXu[i] += dXu[i];

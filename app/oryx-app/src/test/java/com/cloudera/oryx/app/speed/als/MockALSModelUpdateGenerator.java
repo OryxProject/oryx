@@ -27,7 +27,6 @@ import org.dmg.pmml.PMML;
 import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
-import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.kafka.util.DatumGenerator;
@@ -65,18 +64,18 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
    Y = V*sqrt(S)
    */
 
-  public static final Map<String,float[]> X = buildMatrix(6, new double[][] {
-      {-0.679001918401210,  0.173232408449017},
-      {-0.823244234718400, -0.920085196137775},
-      {-1.186534432549093,  0.446318558864201},
-      {-0.207895139404806,  0.530350819368002},
+  public static final Map<String,float[]> X = buildMatrix(6, new float[][] {
+      {-0.6790019f,   0.1732324f},
+      {-0.8232442f,  -0.9200852f},
+      {-1.1865344f,   0.44631857f},
+      {-0.20789514f,  0.5303508f},
   });
-  public static final Map<String,float[]> Y = buildMatrix(1, new double[][] {
-      {-0.720323513289685,  0.456546350776373},
-      {-0.776018558846806, -0.349118056105777},
-      {-0.538419102792183,  0.719706471415318},
-      {-1.038195732260794, -0.221463305994448},
-      {-0.317872218971108, -0.678009656770822},
+  public static final Map<String,float[]> Y = buildMatrix(1, new float[][] {
+      {-0.7203235f,   0.45654634f},
+      {-0.77601856f, -0.34911805f},
+      {-0.5384191f,   0.7197065f},
+      {-1.0381957f,  -0.22146331f},
+      {-0.31787223f, -0.6780096f},
   });
 
   @Override
@@ -104,11 +103,11 @@ public final class MockALSModelUpdateGenerator implements DatumGenerator<String,
     }
   }
 
-  static Map<String,float[]> buildMatrix(int startIndex, double[]... rows) {
+  static Map<String,float[]> buildMatrix(int startIndex, float[]... rows) {
     Map<String,float[]> matrix = new HashMap<>(rows.length);
     int index = startIndex;
-    for (double[] row : rows) {
-      matrix.put(ALSUtilsTest.idToStringID(index), VectorMath.toFloats(row));
+    for (float[] row : rows) {
+      matrix.put(ALSUtilsTest.idToStringID(index), row);
       index++;
     }
     return Collections.unmodifiableMap(matrix);

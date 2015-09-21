@@ -27,7 +27,7 @@ import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 final class EnqueueFeatureVecsAndKnownItemsFn
-    implements VoidFunction<Iterator<Tuple2<String,Tuple2<double[],Collection<String>>>>> {
+    implements VoidFunction<Iterator<Tuple2<String,Tuple2<float[],Collection<String>>>>> {
 
   private final String whichMatrix;
   private final String updateBroker;
@@ -40,15 +40,14 @@ final class EnqueueFeatureVecsAndKnownItemsFn
   }
 
   @Override
-  public void call(Iterator<Tuple2<String,Tuple2<double[],Collection<String>>>> it) {
+  public void call(Iterator<Tuple2<String,Tuple2<float[],Collection<String>>>> it) {
     if (it.hasNext()) {
-      try (TopicProducer<String, String> producer =
-               new TopicProducerImpl<>(updateBroker, topic, true)) {
+      try (TopicProducer<String, String> producer = new TopicProducerImpl<>(updateBroker, topic, true)) {
         while (it.hasNext()) {
-          Tuple2<String,Tuple2<double[],Collection<String>>> keyAndVectorAndItems = it.next();
+          Tuple2<String,Tuple2<float[],Collection<String>>> keyAndVectorAndItems = it.next();
           String id = keyAndVectorAndItems._1();
-          Tuple2<double[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
-          double[] vector = vectorAndItems._1();
+          Tuple2<float[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
+          float[] vector = vectorAndItems._1();
           Collection<String> knowItemIDs = vectorAndItems._2();
           producer.send("UP", TextUtils.joinJSON(
               Arrays.asList(whichMatrix, id, vector, knowItemIDs)));

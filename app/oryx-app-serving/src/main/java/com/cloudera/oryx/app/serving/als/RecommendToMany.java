@@ -37,7 +37,6 @@ import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Predicates;
-import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -74,7 +73,7 @@ public final class RecommendToMany extends AbstractALSResource {
     check(offset >= 0, "offset must be non-negative");
 
     ALSServingModel alsServingModel = getALSServingModel();
-    double[][] userFeaturesVectors = new double[pathSegmentsList.size()][];
+    float[][] userFeaturesVectors = new float[pathSegmentsList.size()][];
     Collection<String> userKnownItems = new HashSet<>();
 
     List<String> userIDs = new ArrayList<>(userFeaturesVectors.length);
@@ -83,7 +82,7 @@ public final class RecommendToMany extends AbstractALSResource {
       userIDs.add(userID);
       float[] userFeatureVector = alsServingModel.getUserVector(userID);
       checkExists(userFeatureVector != null, userID);
-      userFeaturesVectors[i] = VectorMath.toDoubles(userFeatureVector);
+      userFeaturesVectors[i] = userFeatureVector;
       if (!considerKnownItems) {
         userKnownItems.addAll(alsServingModel.getKnownItems(userID));
       }

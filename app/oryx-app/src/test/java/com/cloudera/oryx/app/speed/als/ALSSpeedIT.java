@@ -86,18 +86,18 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
      * Likewise 105 - 108 are (0.75*eye(4))*X*pinv(X'*X)
      */
 
-    Map<String,float[]> X = MockALSModelUpdateGenerator.buildMatrix(100, new double[][]{
-        {-0.2085992442067743, 0.2523213360207475},
-        {-0.2247280310573082, -0.1929485017146139},
-        {-0.1559213545536042, 0.3977631145260019},
-        {-0.3006521945941331, -0.1223970296839849},
-        {-0.0920529503873587, -0.3747183657047325},
+    Map<String,float[]> X = MockALSModelUpdateGenerator.buildMatrix(100, new float[][]{
+        {-0.20859924f,  0.25232133f},
+        {-0.22472803f, -0.1929485f},
+        {-0.15592135f,  0.3977631f},
+        {-0.3006522f,  -0.12239703f},
+        {-0.09205295f, -0.37471837f},
     });
-    Map<String,float[]> Y = MockALSModelUpdateGenerator.buildMatrix(105, new double[][]{
-        {-0.1966328800604910, 0.0957410625834965},
-        {-0.2384041642283309, -0.5085072425781164},
-        {-0.3436097549067730, 0.2466687004987837},
-        {-0.0602045721873638, 0.2931111530627041},
+    Map<String,float[]> Y = MockALSModelUpdateGenerator.buildMatrix(105, new float[][]{
+        {-0.19663288f,  0.09574106f},
+        {-0.23840417f, -0.50850725f},
+        {-0.34360975f,  0.2466687f},
+        {-0.060204573f, 0.29311115f},
     });
 
     for (int i = 10; i <= 18; i++) {

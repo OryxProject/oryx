@@ -28,7 +28,7 @@ final class LocalitySensitiveHash {
   static final int MAX_HASHES = 16;
   private static final Logger log = LoggerFactory.getLogger(LocalitySensitiveHash.class);
 
-  private final double[][] hashVectors;
+  private final float[][] hashVectors;
   private final int maxBitsDiffering;
   private final int[] candidateIndicesPrototype;
   private final int[] allIndices;
@@ -75,17 +75,17 @@ final class LocalitySensitiveHash {
 
     log.info("LSH with {} hashes, querying partitions with up to {} bits differing", numHashes, bitsDiffering);
     this.maxBitsDiffering = bitsDiffering;
-    hashVectors = new double[numHashes][];
+    hashVectors = new float[numHashes][];
 
     RandomGenerator random = RandomManager.getRandom();
     for (int i = 0; i < numHashes; i++) {
       // Pick the most-orthogonal next random vector
       double bestTotalDot = Double.POSITIVE_INFINITY;
-      double[] nextBest = null;
+      float[] nextBest = null;
       // Try, like, lots of them
       int candidatesSinceBest = 0;
       while (candidatesSinceBest < 1000) {
-        double[] candidate = VectorMath.randomVectorD(numFeatures, random);
+        float[] candidate = VectorMath.randomVectorF(numFeatures, random);
         // measure by total (absolute) dot product
         double score = totalAbsCos(hashVectors, i, candidate);
         if (score < bestTotalDot) {
@@ -150,24 +150,10 @@ final class LocalitySensitiveHash {
   }
 
   /**
-   * @param vector vector to hash
-   * @return index of partition into which it hashes
-   */
-  int getIndexFor(double[] vector) {
-    int index = 0;
-    for (int i = 0; i < hashVectors.length; i++) {
-      if (VectorMath.dot(hashVectors[i], vector) > 0.0) {
-        index |= 1 << i;
-      }
-    }
-    return index;
-  }
-
-  /**
    * @param vector vector whose dot product with hashed vectors is to be maximized
    * @return indices of partitions containing candidates to check
    */
-  int[] getCandidateIndices(double[] vector) {
+  int[] getCandidateIndices(float[] vector) {
     int mainIndex = getIndexFor(vector);
     // Simple cases
     int numHashes = getNumHashes();
@@ -190,7 +176,7 @@ final class LocalitySensitiveHash {
     return result;
   }
 
-  private static double totalAbsCos(double[][] existingVectors, int numExisting, double[] newVector) {
+  private static double totalAbsCos(float[][] existingVectors, int numExisting, float[] newVector) {
     double newNorm = VectorMath.norm(newVector);
     double sum = 0.0;
     for (int i = 0; i < numExisting; i++) {

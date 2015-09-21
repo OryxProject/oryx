@@ -27,6 +27,6 @@ public interface CosineDistanceSensitiveFunction extends ToDoubleFunction<float[
   /**
    * @return vector whose cosine distance to other vectors influence the function value
    */
-  double[] getTargetVector();
+  float[] getTargetVector();
 
 }

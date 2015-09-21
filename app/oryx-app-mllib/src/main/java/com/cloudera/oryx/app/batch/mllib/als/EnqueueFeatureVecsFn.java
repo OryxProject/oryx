@@ -25,7 +25,7 @@ import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.TopicProducerImpl;
 
-final class EnqueueFeatureVecsFn implements VoidFunction<Iterator<Tuple2<String,double[]>>> {
+final class EnqueueFeatureVecsFn implements VoidFunction<Iterator<Tuple2<String,float[]>>> {
 
   private final String whichMatrix;
   private final String updateBroker;
@@ -38,14 +38,13 @@ final class EnqueueFeatureVecsFn implements VoidFunction<Iterator<Tuple2<String,
   }
 
   @Override
-  public void call(Iterator<Tuple2<String,double[]>> it) {
+  public void call(Iterator<Tuple2<String,float[]>> it) {
     if (it.hasNext()) {
-      try (TopicProducer<String,String> producer =
-               new TopicProducerImpl<>(updateBroker, topic, true)) {
+      try (TopicProducer<String,String> producer = new TopicProducerImpl<>(updateBroker, topic, true)) {
         while (it.hasNext()) {
-          Tuple2<String,double[]> keyAndVector = it.next();
+          Tuple2<String,float[]> keyAndVector = it.next();
           String id = keyAndVector._1();
-          double[] vector = keyAndVector._2();
+          float[] vector = keyAndVector._2();
           producer.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
         }
       }

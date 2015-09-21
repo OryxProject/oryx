@@ -59,17 +59,16 @@ public final class EstimateForAnonymous extends AbstractALSResource {
     float[] toItemVector = model.getItemVector(toItemID);
     checkExists(toItemVector != null, toItemID);
 
-    double[] anonymousUserFeatures = buildAnonymousUserFeatures(model, pathSegments);
+    float[] anonymousUserFeatures = buildAnonymousUserFeatures(model, pathSegments);
     return VectorMath.dot(anonymousUserFeatures, toItemVector);
   }
 
-  static double[] buildAnonymousUserFeatures(ALSServingModel model,
-                                             List<PathSegment> pathSegments) {
+  static float[] buildAnonymousUserFeatures(ALSServingModel model, List<PathSegment> pathSegments) {
     List<Pair<String,Double>> itemValuePairs = parsePathSegments(pathSegments);
     boolean implicit = model.isImplicit();
     int features = model.getFeatures();
 
-    double[] QuiYi = new double[features];
+    float[] QuiYi = new float[features];
     for (Pair<String,Double> itemValue : itemValuePairs) {
       float[] itemVector = model.getItemVector(itemValue.getFirst());
       if (itemVector != null) {
@@ -86,7 +85,7 @@ public final class EstimateForAnonymous extends AbstractALSResource {
         }
       }
     }
-    return model.getYTYSolver().solveDToD(QuiYi);
+    return model.getYTYSolver().solveFToF(QuiYi);
   }
 
   static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {

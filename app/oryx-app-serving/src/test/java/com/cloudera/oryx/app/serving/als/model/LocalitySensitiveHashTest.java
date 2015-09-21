@@ -84,7 +84,7 @@ public final class LocalitySensitiveHashTest extends OryxTest {
   public void testCandidateIndicesNoSample() {
     int features = 10;
     LocalitySensitiveHash lsh = new LocalitySensitiveHash(1.0, features, 8);
-    double[] zeroVec = new double[features];
+    float[] zeroVec = new float[features];
     int[] candidates = lsh.getCandidateIndices(zeroVec);
     int numHashes = 1 << lsh.getNumHashes();
     assertEquals(numHashes, candidates.length);
@@ -99,19 +99,19 @@ public final class LocalitySensitiveHashTest extends OryxTest {
     LocalitySensitiveHash lsh = new LocalitySensitiveHash(0.1, features, 8);
     assertEquals(1, lsh.getMaxBitsDiffering());
 
-    double[] zeroVec = new double[features];
-    int[] candidates = lsh.getCandidateIndices(zeroVec);
-    assertEquals(1 + lsh.getNumHashes(), candidates.length);
-    assertEquals(0, candidates[0]);
-    for (int i = 1; i < candidates.length; i++) {
-      assertEquals(1L << (i-1), candidates[i]);
+    float[] zeroVec = new float[features];
+    int[] zeroCandidates = lsh.getCandidateIndices(zeroVec);
+    assertEquals(1 + lsh.getNumHashes(), zeroCandidates.length);
+    assertEquals(0, zeroCandidates[0]);
+    for (int i = 1; i < zeroCandidates.length; i++) {
+      assertEquals(1L << (i-1), zeroCandidates[i]);
     }
 
-    double[] oneVec = new double[features];
-    Arrays.fill(oneVec, 1.0);
-    candidates = lsh.getCandidateIndices(oneVec);
-    for (int i = 1; i < candidates.length; i++) {
-      assertEquals(candidates[0] ^ (1L << (i-1)), candidates[i]);
+    float[] oneVec = new float[features];
+    Arrays.fill(oneVec, 1.0f);
+    int[] oneCandidates = lsh.getCandidateIndices(oneVec);
+    for (int i = 1; i < oneCandidates.length; i++) {
+      assertEquals(oneCandidates[0] ^ (1L << (i-1)), oneCandidates[i]);
     }
   }
 
@@ -122,7 +122,7 @@ public final class LocalitySensitiveHashTest extends OryxTest {
     assertEquals(3, lsh.getMaxBitsDiffering());
     assertEquals(7, lsh.getNumHashes());
 
-    double[] oneVec = new double[features];
+    float[] oneVec = new float[features];
     Arrays.fill(oneVec, 1.0f);
     int[] candidates = lsh.getCandidateIndices(oneVec);
     assertEquals(64, candidates.length); // 1 + 7 + 21 + 35

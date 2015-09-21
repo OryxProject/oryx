@@ -71,8 +71,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel model = getALSServingModel();
-    double[] anonymousUserFeatures =
-        EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
+    float[] anonymousUserFeatures = EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
 
     List<String> knownItems = new ArrayList<>();
     for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {
