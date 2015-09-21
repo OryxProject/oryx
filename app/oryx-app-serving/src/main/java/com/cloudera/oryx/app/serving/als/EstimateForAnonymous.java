@@ -32,6 +32,7 @@ import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.math.Solver;
 import com.cloudera.oryx.common.math.VectorMath;
 
 /**
@@ -60,32 +61,24 @@ public final class EstimateForAnonymous extends AbstractALSResource {
     checkExists(toItemVector != null, toItemID);
 
     float[] anonymousUserFeatures = buildAnonymousUserFeatures(model, pathSegments);
-    return VectorMath.dot(anonymousUserFeatures, toItemVector);
+    return anonymousUserFeatures == null ? 0.0 : VectorMath.dot(anonymousUserFeatures, toItemVector);
   }
 
   static float[] buildAnonymousUserFeatures(ALSServingModel model, List<PathSegment> pathSegments) {
     List<Pair<String,Double>> itemValuePairs = parsePathSegments(pathSegments);
     boolean implicit = model.isImplicit();
     int features = model.getFeatures();
-
-    float[] QuiYi = new float[features];
+    Solver solver = model.getYTYSolver();
+    float[] Xu = null;
     for (Pair<String,Double> itemValue : itemValuePairs) {
-      float[] itemVector = model.getItemVector(itemValue.getFirst());
-      if (itemVector != null) {
-        // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T
-        double Qui = itemValue.getSecond();
-        // Qui' is the target, new value of Qui
-        double targetQui = ALSUtils.computeTargetQui(implicit, Qui, 0.5); // 0.5 reflects a "don't know" state
-        // We're constructing a row Xu for a fictional user u such that Qu = Xu * Y^T
-        // This is solved as Qu * Y = Xu * (Y^T * Y) for Xu.
-        // Qu is all zeroes except that it has values Qui in position i for several i.
-        // Qu * Y is really just Qui * Yi, summed up over i.
-        for (int i = 0; i < features; i++) {
-          QuiYi[i] += targetQui * itemVector[i];
-        }
+      float[] Yi = model.getItemVector(itemValue.getFirst());
+      // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T
+      float[] newXu = ALSUtils.computeUpdatedXu(solver, itemValue.getSecond(), Xu, Yi, features, implicit);
+      if (newXu != null) {
+        Xu = newXu;
       }
     }
-    return model.getYTYSolver().solveFToF(QuiYi);
+    return Xu;
   }
 
   static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {

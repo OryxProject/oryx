@@ -67,11 +67,13 @@ public final class RecommendToAnonymous extends AbstractALSResource {
       @DefaultValue("0") @QueryParam("offset") int offset,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
+    check(!pathSegments.isEmpty(), "Need at least 1 item to make recommendations");
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel model = getALSServingModel();
     float[] anonymousUserFeatures = EstimateForAnonymous.buildAnonymousUserFeatures(model, pathSegments);
+    check(anonymousUserFeatures != null, pathSegments.toString());
 
     List<String> knownItems = new ArrayList<>();
     for (Pair<String,?> itemValue : EstimateForAnonymous.parsePathSegments(pathSegments)) {

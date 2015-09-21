@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.Objects;
+
 import com.cloudera.oryx.common.math.VectorMath;
 
 /**
@@ -25,6 +27,7 @@ public final class DotsFunction implements CosineDistanceSensitiveFunction {
   private final float[] userFeaturesVector;
 
   public DotsFunction(float[] userVector) {
+    Objects.requireNonNull(userVector);
     this.userFeaturesVector = userVector;
   }
 

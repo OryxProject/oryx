@@ -32,7 +32,7 @@ public final class ALSUtils {
    * @param implicit whether the model is implicit feedback
    * @param value new interaction's strength
    * @param currentValue existing estimated of strength of interaction
-   * @return new target estimated of strength of interaction
+   * @return new target estimated of strength of interaction, or NaN to signal "no change needed"
    */
   public static double computeTargetQui(boolean implicit, double value, double currentValue) {
     // We want Qui to change based on value. What's the target value, Qui'?
@@ -69,7 +69,8 @@ public final class ALSUtils {
    * @param Yi current item vector
    * @param numFeatures number of model features
    * @param implicit whether the model is implicit feedback
-   * @return new user vector Xu
+   * @return new user vector Xu, or {@code null} if no update should be made (i.e. there was no
+   *  item vector; the update would push the new Qui farther out of range)
    */
   public static float[] computeUpdatedXu(Solver solver,
                                          double value,
@@ -77,30 +78,31 @@ public final class ALSUtils {
                                          float[] Yi,
                                          int numFeatures,
                                          boolean implicit) {
-    float[] newXu = null;
-    if (Yi != null) {
-      // Let Qui = Xu * (Yi)^t -- it's the current estimate of user-item interaction in Q = X * Y^t
-      double Qui = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
-      // Qui' is the target, new value of Qui
-      // 0.5 reflects a "don't know" state
-      double targetQui = computeTargetQui(implicit, value, Xu == null ? 0.5 : Qui);
-      if (!Double.isNaN(targetQui)) {
-        // In Qu = Xu * Y^T, Xu is going to change to Xu' such that Qu' = Xu' * Y^T. Qu' will change
-        // from Qu by the vector dQu = [0, 0, ..., dQui, ...] where the nonzero value
-        // dQui = (Qui' - Qui) is in position i. The change dXu from Xu to Xu' should satisfy
-        // dQu = dXu * Y^T. We solve for dXu and then add it to Xu. dQu * Y = dXu * (Y^t * Y).
-        // dQu is 0 except for one value at position i, so dQu * Y is really dQui*Yi
-        double dQui = targetQui - Qui;
-        float[] dQuiYi = Yi.clone();
-        for (int i = 0; i < dQuiYi.length; i++) {
-          dQuiYi[i] *= dQui;
-        }
-        float[] dXu = solver.solveFToF(dQuiYi);
-        newXu = Xu == null ? new float[numFeatures] : Xu.clone();
-        for (int i = 0; i < newXu.length; i++) {
-          newXu[i] += dXu[i];
-        }
-      }
+    if (Yi == null) {
+      return null;
+    }
+
+    double Qui = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
+    // Qui' is the target, new value of Qui
+    // 0.5 reflects a "don't know" state
+    double targetQui = computeTargetQui(implicit, value, Xu == null ? 0.5 : Qui);
+    if (Double.isNaN(targetQui)) {
+      return null;
+    }
+
+    double dQui = targetQui - Qui;
+    float[] dQuiYi = Yi.clone();
+    for (int i = 0; i < dQuiYi.length; i++) {
+      dQuiYi[i] *= dQui;
+    }
+    float[] dXu = solver.solveFToF(dQuiYi);
+
+    if (Xu == null) {
+      return dXu;
+    }
+    float[] newXu = Xu.clone();
+    for (int i = 0; i < newXu.length; i++) {
+      newXu[i] += dXu[i];
     }
     return newXu;
   }

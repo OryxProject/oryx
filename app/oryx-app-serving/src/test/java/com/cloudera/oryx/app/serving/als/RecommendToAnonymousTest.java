@@ -33,13 +33,24 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(7, recs, false);
     Assert.assertEquals("I7", recs.get(0).getID());
-    Assert.assertEquals(0.41001138390689273, recs.get(0).getValue(), FLOAT_EPSILON);
+    Assert.assertEquals(0.35964763164520264, recs.get(0).getValue(), FLOAT_EPSILON);
   }
 
   @Test
   public void testRecommendToAnonymousCSV() {
     String response = target("/recommendToAnonymous/I4=1.0/I5=2.0").request().get(String.class);
     testCSVTopByScore(7, response);
+  }
+
+  @Test
+  public void testRecommendToAnonymousWithUnknown() {
+    String response = target("/recommendToAnonymous/foo/I4=1.0/I5=2.0").request().get(String.class);
+    testCSVTopByScore(7, response);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testRecommendToAnonymousWithAllUnknown() {
+    target("/recommendToAnonymous/foo").request().get(String.class);
   }
 
   @Test
@@ -79,7 +90,7 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(3, recs, false);
     Assert.assertEquals("I7", recs.get(0).getID());
-    Assert.assertEquals(2.0 * 0.41001138390689273, recs.get(0).getValue(), FLOAT_EPSILON);
+    Assert.assertEquals(2.0 * 0.35964763164520264, recs.get(0).getValue(), FLOAT_EPSILON);
   }
 
 }

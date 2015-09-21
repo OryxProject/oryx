@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.Objects;
+
 import com.cloudera.oryx.common.math.VectorMath;
 
 /**
@@ -25,6 +27,7 @@ public final class CosineAverageFunction implements CosineDistanceSensitiveFunct
   private final float[] itemFeaturesVector;
 
   public CosineAverageFunction(float[] itemFeatureVector) {
+    Objects.requireNonNull(itemFeatureVector);
     float[] itemFeaturesVector = new float[itemFeatureVector.length];
     double vecNorm = VectorMath.norm(itemFeatureVector);
     for (int i = 0; i < itemFeatureVector.length; i++) {
