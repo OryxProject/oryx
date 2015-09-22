@@ -136,7 +136,6 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
     boolean implicit = model.isImplicit();
-    int features = model.getFeatures();
 
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
@@ -176,9 +175,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       // Yi is the current row i in the Y item-feature matrix
       float[] Yi = model.getItemVector(item);
 
-      float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, features, implicit);
+      float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, implicit);
       // Similarly for Y vs X
-      float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, features, implicit);
+      float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, implicit);
 
       if (newXu != null) {
         result.add(toUpdateJSON("X", user, newXu, item));

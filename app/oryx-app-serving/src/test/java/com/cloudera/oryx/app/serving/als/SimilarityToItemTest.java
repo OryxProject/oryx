@@ -34,8 +34,8 @@ public final class SimilarityToItemTest extends AbstractALSServingTest {
     List<Double> items = target("/similarityToItem/I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(2, items.size());
-    Assert.assertEquals(0.9042602737279073, items.get(0), FLOAT_EPSILON);
-    Assert.assertEquals(-0.26486863115406456, items.get(1), FLOAT_EPSILON);
+    Assert.assertEquals(0.9042603f, items.get(0), FLOAT_EPSILON);
+    Assert.assertEquals(-0.26486862f, items.get(1), FLOAT_EPSILON);
   }
 
   @Test
@@ -49,7 +49,7 @@ public final class SimilarityToItemTest extends AbstractALSServingTest {
     List<Double> items = target("/similarityToItem/I1/I10").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(1, items.size());
-    Assert.assertEquals(0.0, items.get(0), FLOAT_EPSILON);
+    Assert.assertEquals(0.0f, items.get(0), FLOAT_EPSILON);
   }
 
 }

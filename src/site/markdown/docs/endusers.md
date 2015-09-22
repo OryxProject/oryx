@@ -171,6 +171,7 @@ Oryx bundles several end-to-end applications, including a Serving Layer with RES
 * [`/recommend`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Recommend.html)
 * [`/recommendToMany`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/RecommendToMany.html)
 * [`/recommendToAnonymous`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/RecommendToAnonymous.html)
+* [`/recommendWithContext`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/RecommendWithContext.html)
 * [`/similarity`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/Similarity.html)
 * [`/similarityToItem`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/SimilarityToItem.html)
 * [`/knownItems`](http://oryx.io/apidocs/com/cloudera/oryx/app/serving/als/KnownItems.html)

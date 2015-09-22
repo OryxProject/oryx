@@ -69,19 +69,19 @@ public final class ALSUtilsTest extends OryxTest {
     });
     Solver solver = LinearSystemSolver.getSolver(VectorMath.transposeTimesSelf(rows));
 
-    assertNull(ALSUtils.computeUpdatedXu(solver, 1.0, null, null, 2, true));
+    assertNull(ALSUtils.computeUpdatedXu(solver, 1.0, null, null, true));
 
     assertArrayEquals(new float[] { 0.13043478f, 0.097826086f },
-                      ALSUtils.computeUpdatedXu(solver, 1.0, null, new float[] { 2.0f, 1.0f }, 2, true));
+                      ALSUtils.computeUpdatedXu(solver, 1.0, null, new float[] { 2.0f, 1.0f }, true));
 
     assertArrayEquals(new float[] { 0.11594203f, 0.08695652f },
-                      ALSUtils.computeUpdatedXu(solver, 0.5, null, new float[] { 2.0f, 1.0f }, 2, true));
+                      ALSUtils.computeUpdatedXu(solver, 0.5, null, new float[] { 2.0f, 1.0f }, true));
 
     assertArrayEquals(new float[] { 0.16086957f, 0.14565217f },
                       ALSUtils.computeUpdatedXu(solver, 1.0,
                                                 new float[] { 0.1f, 0.1f },
                                                 new float[] { 2.0f, 1.0f },
-                                                2, true));
+                                                true));
   }
 
 }

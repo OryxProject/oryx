@@ -67,7 +67,6 @@ public final class ALSUtils {
    * @param value strength of interaction
    * @param Xu current user vector (null if no existing user vector)
    * @param Yi current item vector
-   * @param numFeatures number of model features
    * @param implicit whether the model is implicit feedback
    * @return new user vector Xu, or {@code null} if no update should be made (i.e. there was no
    *  item vector; the update would push the new Qui farther out of range)
@@ -76,7 +75,6 @@ public final class ALSUtils {
                                          double value,
                                          float[] Xu,
                                          float[] Yi,
-                                         int numFeatures,
                                          boolean implicit) {
     if (Yi == null) {
       return null;

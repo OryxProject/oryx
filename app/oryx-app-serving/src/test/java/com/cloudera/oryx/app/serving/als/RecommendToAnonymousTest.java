@@ -33,7 +33,7 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(7, recs, false);
     Assert.assertEquals("I7", recs.get(0).getID());
-    Assert.assertEquals(0.35964763164520264, recs.get(0).getValue(), FLOAT_EPSILON);
+    Assert.assertEquals(0.35964763f, recs.get(0).getValue(), FLOAT_EPSILON);
   }
 
   @Test
@@ -90,7 +90,7 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(3, recs, false);
     Assert.assertEquals("I7", recs.get(0).getID());
-    Assert.assertEquals(2.0 * 0.35964763164520264, recs.get(0).getValue(), FLOAT_EPSILON);
+    Assert.assertEquals(2.0f * 0.35964763f, recs.get(0).getValue(), FLOAT_EPSILON);
   }
 
 }

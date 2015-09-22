@@ -29,9 +29,9 @@ public final class EstimateTest extends AbstractALSServingTest {
     List<Double> items = target("estimate/U0/I0/I1/I2").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(3, items.size());
-    Assert.assertEquals(0.387613186054306, items.get(0), FLOAT_EPSILON);
-    Assert.assertEquals(0.465396924146558, items.get(1), FLOAT_EPSILON);
-    Assert.assertEquals(-0.0801478014434228, items.get(2), FLOAT_EPSILON);
+    Assert.assertEquals(0.38761318f, items.get(0), FLOAT_EPSILON);
+    Assert.assertEquals(0.4653969f, items.get(1), FLOAT_EPSILON);
+    Assert.assertEquals(-0.0801478f, items.get(2), FLOAT_EPSILON);
   }
 
   @Test
@@ -50,7 +50,7 @@ public final class EstimateTest extends AbstractALSServingTest {
     List<Double> items = target("/estimate/U0/I10").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_DOUBLE_TYPE);
     Assert.assertEquals(1, items.size());
-    Assert.assertEquals(0.0, items.get(0), FLOAT_EPSILON);
+    Assert.assertEquals(0.0f, items.get(0), FLOAT_EPSILON);
   }
 
 }

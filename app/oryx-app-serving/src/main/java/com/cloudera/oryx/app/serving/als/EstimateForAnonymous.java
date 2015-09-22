@@ -60,20 +60,28 @@ public final class EstimateForAnonymous extends AbstractALSResource {
     float[] toItemVector = model.getItemVector(toItemID);
     checkExists(toItemVector != null, toItemID);
 
-    float[] anonymousUserFeatures = buildAnonymousUserFeatures(model, pathSegments);
+    float[] anonymousUserFeatures = buildTemporaryUserVector(model, parsePathSegments(pathSegments), null);
     return anonymousUserFeatures == null ? 0.0 : VectorMath.dot(anonymousUserFeatures, toItemVector);
   }
 
-  static float[] buildAnonymousUserFeatures(ALSServingModel model, List<PathSegment> pathSegments) {
-    List<Pair<String,Double>> itemValuePairs = parsePathSegments(pathSegments);
+  /**
+   * Builds a temporary user feature vector given an (optional) existing user vector and a context
+   * of items.
+   *
+   * @param model current ALS model
+   * @param parsedPathSegments request path segments containing item-value pairs
+   * @param Xu existing feature vector for the user (may be {@code null})
+   * @return user feature vector
+   */
+  static float[] buildTemporaryUserVector(ALSServingModel model,
+                                          List<Pair<String,Double>> parsedPathSegments,
+                                          float[] Xu) {
     boolean implicit = model.isImplicit();
-    int features = model.getFeatures();
     Solver solver = model.getYTYSolver();
-    float[] Xu = null;
-    for (Pair<String,Double> itemValue : itemValuePairs) {
+    for (Pair<String,Double> itemValue : parsedPathSegments) {
       float[] Yi = model.getItemVector(itemValue.getFirst());
       // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T
-      float[] newXu = ALSUtils.computeUpdatedXu(solver, itemValue.getSecond(), Xu, Yi, features, implicit);
+      float[] newXu = ALSUtils.computeUpdatedXu(solver, itemValue.getSecond(), Xu, Yi, implicit);
       if (newXu != null) {
         Xu = newXu;
       }
@@ -82,18 +90,19 @@ public final class EstimateForAnonymous extends AbstractALSResource {
   }
 
   static List<Pair<String, Double>> parsePathSegments(List<PathSegment> pathSegments) {
-    return Lists.transform(pathSegments,
-        new Function<PathSegment, Pair<String, Double>>() {
-          @Override
-          public Pair<String, Double> apply(PathSegment segment) {
-            String s = segment.getPath();
-            int offset = s.indexOf('=');
-            return offset < 0 ?
-                new Pair<>(s, 1.0) :
-                new Pair<>(s.substring(0, offset),
-                    Double.parseDouble(s.substring(offset + 1)));
-          }
-        });
+    return Lists.transform(pathSegments, PARSE_PATH_FN);
   }
+
+  private static final Function<PathSegment,Pair<String,Double>> PARSE_PATH_FN =
+      new Function<PathSegment,Pair<String,Double>>() {
+        @Override
+        public Pair<String,Double> apply(PathSegment segment) {
+          String s = segment.getPath();
+          int offset = s.indexOf('=');
+          return offset < 0 ?
+              new Pair<>(s, 1.0) :
+              new Pair<>(s.substring(0, offset), Double.parseDouble(s.substring(offset + 1)));
+        }
+      };
 
 }

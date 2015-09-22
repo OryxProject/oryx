@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -15,9 +15,6 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -27,67 +24,77 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
 
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.common.collection.NotContainsPredicate;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.common.collection.NotContainsPredicate;
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Predicates;
 
 /**
  * <p>Responds to a GET request to
- * {@code /recommendToAnonymous/[itemID1(=value1)](/[itemID2(=value2)]/...)(?howMany=n)(&offset=o)(&rescorerParams=...)}
+ * {@code /recommendWithContext/[userID]/([itemID1(=value1)]/...)
+ * (?howMany=n)(&offset=o)(&considerKnownItems=c)(&rescorerParams=...)}
  * </p>
  *
- * <p>Results are recommended items for an "anonymous" user, along with a score. The user is
- * defined by a set of items and optional interaction strengths, as in
- * {@link EstimateForAnonymous}.
- * Outputs contain item and score pairs, where the score is an opaque
- * value where higher values mean a better recommendation.</p>
+ * <p>This endpoint operates like a combination of {@code /recommend} and {@code /recommendToAnonymous}.
+ * It creates recommendations for a user, but modifies the recommendation as if the user also
+ * interacted with a given set of items. This creates no model updates. It's useful for recommending
+ * in the context of some possibly temporary interactions, like products in a basket.</p>
  *
  * <p>{@code howMany}, {@code considerKnownItems} and {@code offset} behavior, and output, are as in
  * {@link Recommend}.</p>
  */
 @Singleton
-@Path("/recommendToAnonymous")
-public final class RecommendToAnonymous extends AbstractALSResource {
+@Path("/recommendWithContext")
+public final class RecommendWithContext extends AbstractALSResource {
 
   @GET
-  @Path("{itemID : .+}")
+  @Path("{userID}/{itemID : .*}")
   @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
   public List<IDValue> get(
+      @PathParam("userID") String userID,
       @PathParam("itemID") List<PathSegment> pathSegments,
       @DefaultValue("10") @QueryParam("howMany") int howMany,
       @DefaultValue("0") @QueryParam("offset") int offset,
+      @DefaultValue("false") @QueryParam("considerKnownItems") boolean considerKnownItems,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    check(!pathSegments.isEmpty(), "Need at least 1 item to make recommendations");
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);
-    float[] anonymousUserFeatures = EstimateForAnonymous.buildTemporaryUserVector(model, parsedPathSegments, null);
-    check(anonymousUserFeatures != null, pathSegments.toString());
+    float[] userVector = model.getUserVector(userID);
+    checkExists(userVector != null, userID);
+
+    float[] tempUserVector = EstimateForAnonymous.buildTemporaryUserVector(model, parsedPathSegments, userVector);
 
     List<String> knownItems = new ArrayList<>();
     for (Pair<String,?> itemValue : parsedPathSegments) {
       knownItems.add(itemValue.getFirst());
+    }
+    if (!considerKnownItems) {
+      knownItems.addAll(model.getKnownItems(userID));
     }
 
     Predicate<String> allowedFn = new NotContainsPredicate<>(new HashSet<>(knownItems));
     ObjDoubleToDoubleFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
-      Rescorer rescorer = rescorerProvider.getRecommendToAnonymousRescorer(knownItems,
-                                                                           rescorerParams);
+      Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
+                                                                rescorerParams);
       if (rescorer != null) {
         allowedFn = Predicates.and(allowedFn, buildRescorerPredicate(rescorer));
         rescoreFn = buildRescoreFn(rescorer);
@@ -95,7 +102,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     }
 
     List<Pair<String,Double>> topIDDots = model.topN(
-        new DotsFunction(anonymousUserFeatures),
+        new DotsFunction(tempUserVector),
         rescoreFn,
         howMany + offset,
         allowedFn);
