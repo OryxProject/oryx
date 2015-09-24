@@ -72,10 +72,11 @@ public final class LoadTestALSModelFactory {
 
       log.info("Adding {} users", USERS);
       final AtomicInteger userCount = new AtomicInteger();
-      List<Callable<Void>> addUserCallables = new ArrayList<>();
+      List<Callable<Void>> addUserCallables = new ArrayList<>(numCores);
       for (int i = 0; i < numCores; i++) {
+        final long seed = i;
         addUserCallables.add(new LoggingVoidCallable() {
-          private final RandomGenerator random = RandomManager.getRandom();
+          private final RandomGenerator random = RandomManager.getRandom((seed << 32) ^ System.nanoTime());
           private final PoissonDistribution itemPerUserDist = new PoissonDistribution(
               random,
               AVG_ITEMS_PER_USER,
@@ -101,10 +102,11 @@ public final class LoadTestALSModelFactory {
 
       log.info("Adding {} items", ITEMS);
       final AtomicInteger itemCount = new AtomicInteger();
-      List<Callable<Void>> addItemCallables = new ArrayList<>();
+      List<Callable<Void>> addItemCallables = new ArrayList<>(numCores);
       for (int i = 0; i < numCores; i++) {
+        final long seed = i;
         addItemCallables.add(new LoggingVoidCallable() {
-          private final RandomGenerator random = RandomManager.getRandom();
+          private final RandomGenerator random = RandomManager.getRandom((seed << 32) ^ System.nanoTime());
           @Override
           public void doCall() {
             for (int item = itemCount.getAndIncrement(); item < ITEMS; item = itemCount.getAndIncrement()) {

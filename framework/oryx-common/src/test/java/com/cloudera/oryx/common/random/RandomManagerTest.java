@@ -29,4 +29,11 @@ public final class RandomManagerTest extends OryxTest {
     assertNotEquals(1553355631, generator.nextInt());
   }
 
+  @Test
+  public void testRandomStateWithSeed() {
+    RandomGenerator generator = RandomManager.getRandom(1234L);
+    assertEquals(35755635, generator.nextInt());
+    assertNotEquals(35755635, generator.nextInt());
+  }
+
 }

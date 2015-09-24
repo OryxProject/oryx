@@ -65,6 +65,16 @@ public final class RandomManager {
   }
 
   /**
+   * @param seed explicit seed for random number generator
+   * @return a new, seeded {@link RandomGenerator}
+   */
+  public static RandomGenerator getRandom(long seed) {
+    // Don't track these or use the test seed as the caller has manually specified
+    // the seeding behavior
+    return new Well19937c(seed);
+  }
+
+  /**
    * <em>Only call in test code.</em> Causes all known instances of {@link RandomGenerator},
    * and future ones, to be started from a fixed seed. This is useful for making
    * tests deterministic.

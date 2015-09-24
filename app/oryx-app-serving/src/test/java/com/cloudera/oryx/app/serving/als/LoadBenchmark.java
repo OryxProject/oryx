@@ -140,9 +140,8 @@ public final class LoadBenchmark extends AbstractALSServingTest {
       this.meanReqTimeMS = meanReqTimeMS;
       this.count = count;
       this.start = start;
-      random = RandomManager.getRandom();
       // We do *not* want a deterministic seed here!
-      random.setSeed(id.hashCode() ^ System.nanoTime());
+      random = RandomManager.getRandom(id.hashCode() ^ System.nanoTime());
     }
 
     @Override
