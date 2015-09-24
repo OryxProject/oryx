@@ -179,7 +179,7 @@
               <includes>
                 <include>**/*Benchmark.java</include>
               </includes>
-              <argLine>-Xmx8g</argLine>
+              <argLine>-Xmx12g -XX:+UseG1GC -XX:+UseStringDeduplication</argLine>
             </configuration>
           </plugin>
           <plugin>
