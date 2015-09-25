@@ -427,6 +427,13 @@
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
         <version>0.9.10</version>
+        <exclusions>
+          <!-- Exclude because it's LGPL licensed -->
+          <exclusion>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
