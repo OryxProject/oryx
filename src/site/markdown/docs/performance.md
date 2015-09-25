@@ -59,8 +59,22 @@ rather than the framework itself.
 ## Benchmark: Alternating Least Squares Recommendation
 
 Since most operations in the ALS app Serving Layer are performed on a huge matrix in memory in real-time,
-this app is the most challenging to scale. General rules of thumb:
+this app is the most challenging to scale. General rules of thumb follow below.
 
+To run similar benchmarks, use `LoadBenchmark`, which has some configuration parameters:
+
+```
+mvn -DskipTests clean install
+cd app/oryx-app-serving
+...
+mvn -Pbenchmark \
+ -Doryx.test.als.benchmark.users=1000000 \
+ -Doryx.test.als.benchmark.items=5000000 \
+ -Doryx.test.als.benchmark.features=250 \
+ -Doryx.test.als.benchmark.lshSampleRate=0.3 \
+ -Doryx.test.als.benchmark.workers=2 \
+ integration-test
+```
 
 ### Memory
 
@@ -86,29 +100,34 @@ Example steady-state heap usage (Java 8):
 - A single request is parallelized across CPUs; max throughput and minimum latency is already achieved at about 1-2 concurrent requests
 - Locality sensitive hashing decreases processing time roughly linearly; 0.33 ~= 1/0.33 ~= 3x faster (setting too low adversely affects result quality)
 
-Example throughput / latency for the `/recommend` endpoint (Java 8, 16-CPU Intel Xeon 2.3GHz):
+Below are representative throughput / latency measurements for the `/recommend` endpoint using  
+a 16-CPU Intel Xeon 2.3GHz (Haswell), OpenJDK 8 and flags `-XX:+UseG1GC -XX:+UseStringDeduplication`. 
+Heap size was comfortably large enough for the data set (>= 3GB headroom over the steady-state 
+heap usage above) in each case. The tests were run with 1 concurrent request at a time, and so 
+represent best-case latency, with near-full CPU utilization. Tests with 1M items were run with
+2 concurrent requests in order to get closer to full CPU utilization.
 
 *With LSH (sample rate = 0.3)*
 
 | Features | Items (M) | Throughput (qps) | Latency (ms) |
 | --------:| ---------:| ----------------:| ------------:|
-|  50      |  1        | 194              |   10         |
-| 250      |  1        |  83              |   24         |
-|  50      |  5        |  38              |   53         |
-| 250      |  5        |  17              |  119         |
-|  50      | 20        |  11              |  175         |
-| 250      | 20        |   4              |  491         |
+|  50      |  1        | 137              |   15         |
+| 250      |  1        |  74              |   27         |
+|  50      |  5        |  29              |   35         |
+| 250      |  5        |  13              |   77         |
+|  50      | 20        |   8              |  126         |
+| 250      | 20        |   3              |  294         |
 
 *Without LSH (sample rate = 1.0)*
 
 | Features | Items (M) | Throughput (qps) | Latency (ms) |
 | --------:| ---------:| ----------------:| ------------:|
-|  50      |  1        |  59              |   34         |
-| 250      |  1        |  23              |   86         |
-|  50      |  5        |  12              |  166         |
-| 250      |  5        |   4              |  452         |
-|  50      | 20        |   3              |  690         |
-| 250      | 20        |   1              | 1862         |
+|  50      |  1        |  43              |   47         |
+| 250      |  1        |  19              |  107         |
+|  50      |  5        |   9              |  111         |
+| 250      |  5        |   4              |  268         |
+|  50      | 20        |   2              |  421         |
+| 250      | 20        |   1              | 1054         |
 
 ## JVM Tuning
 
