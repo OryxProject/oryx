@@ -95,24 +95,9 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
       String expectedFeature = expectedFeatureNames.get(i);
       String featureName = miningField.getName().getValue();
       assertEquals("Wrong feature at position " + i, expectedFeature, featureName);
-      if (schema.isNumeric(expectedFeature)) {
+      if (schema.isNumeric(expectedFeature) || schema.isCategorical(expectedFeature)) {
         assertEquals("Wrong op type for feature + " + featureName,
-                     OpType.CONTINUOUS,
-                     miningField.getOpType());
-        if (schema.isTarget(expectedFeature)) {
-          assertEquals("Wrong usage type for feature + " + featureName,
-                       FieldUsageType.PREDICTED,
-                       miningField.getUsageType());
-        } else {
-          assertEquals("Wrong usage type for feature + " + featureName,
-                       FieldUsageType.ACTIVE,
-                       miningField.getUsageType());
-          double importance = miningField.getImportance();
-          assertTrue("Bad importance value " + importance, importance >= 0.0 && importance <= 1.0);
-        }
-      } else if (schema.isCategorical(expectedFeature)) {
-        assertEquals("Wrong op type for feature " + featureName,
-                     OpType.CATEGORICAL,
+                     schema.isNumeric(expectedFeature) ? OpType.CONTINUOUS : OpType.CATEGORICAL,
                      miningField.getOpType());
         if (schema.isTarget(expectedFeature)) {
           assertEquals("Wrong usage type for feature " + featureName,

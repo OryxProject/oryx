@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.kmeans;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -35,15 +36,7 @@ public abstract class AbstractKMeansResource extends AbstractOryxResource {
     KMeansServingModel model = getKMeansModel();
     InputSchema inputSchema = model.getInputSchema();
     check(data.length == inputSchema.getNumFeatures(), "Wrong number of features");
-
-    double[] features = new double[inputSchema.getNumPredictors()];
-    for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-      if (inputSchema.isActive(featureIndex)) {
-        features[inputSchema.featureToPredictorIndex(featureIndex)] =
-            Double.parseDouble(data[featureIndex]);
-      }
-    }
-    return model.closestCluster(features);
+    return model.closestCluster(KMeansUtils.featuresFromTokens(data, inputSchema));
   }
 
 }

@@ -54,6 +54,10 @@ public final class RandomManager {
       // No need to track instances anymore
       return new Well19937c(TEST_SEED);
     }
+    return getUnseededRandom();
+  }
+
+  static RandomGenerator getUnseededRandom() {
     RandomGenerator random = new Well19937c();
     Collection<RandomGenerator> instances = INSTANCES.get();
     if (instances != null) {

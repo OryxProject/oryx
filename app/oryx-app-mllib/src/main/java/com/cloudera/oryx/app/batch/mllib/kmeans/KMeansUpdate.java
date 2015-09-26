@@ -226,19 +226,6 @@ public final class KMeansUpdate extends MLUpdate<String> {
         clusters);
   }
 
-  /**
-   * @param pmml PMML model to retrieve the original {@link KMeansModel} from
-   * @return {@link KMeansModel} from PMML
-   */
-  private static KMeansModel pmmlToKMeansModel(PMML pmml) {
-    List<ClusterInfo> clusterInfos = KMeansPMMLUtils.read(pmml);
-    Vector[] clusterCenters = new Vector[clusterInfos.size()];
-    for (ClusterInfo clusterInfo : clusterInfos) {
-      clusterCenters[clusterInfo.getID()] = Vectors.dense(clusterInfo.getCenter());
-    }
-    return new KMeansModel(clusterCenters);
-  }
-
   private JavaRDD<Vector> parsedToVectorRDD(JavaRDD<String[]> parsedRDD) {
     return parsedRDD.map(new Function<String[], Vector>() {
       @Override

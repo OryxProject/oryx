@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf;
+package com.cloudera.oryx.app.rdf.example;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,15 +23,12 @@ import java.util.Map;
 import com.typesafe.config.Config;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
-public final class ToExampleFnTest extends OryxTest {
+public final class ExampleUtilsTest extends OryxTest {
 
   @Test
   public void testToExample() {
@@ -45,9 +42,8 @@ public final class ToExampleFnTest extends OryxTest {
     InputSchema schema = new InputSchema(config);
     CategoricalValueEncodings encodings =
         new CategoricalValueEncodings(Collections.singletonMap(4, Arrays.asList("A", "B", "C")));
-    ToExampleFn toExampleFn = new ToExampleFn(schema, encodings);
 
-    Example example = toExampleFn.call(new String[] {"foo", "1", "2.5", "-3.2", "B"});
+    Example example = ExampleUtils.dataToExample(new String[] {"foo", "1", "2.5", "-3.2", "B"}, schema, encodings);
     assertEquals(CategoricalFeature.forEncoding(1), example.getTarget());
     assertNull(example.getFeature(0));
     assertEquals(NumericFeature.forValue(1.0), example.getFeature(1));
