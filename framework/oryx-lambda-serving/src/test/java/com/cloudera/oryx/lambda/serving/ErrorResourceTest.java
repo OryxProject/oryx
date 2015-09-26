@@ -32,13 +32,22 @@ public final class ErrorResourceTest extends OryxTest {
     mockRequest.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, "http://foo/bar");
     mockRequest.setAttribute(RequestDispatcher.ERROR_MESSAGE, "Something was wrong");
     mockRequest.setAttribute(RequestDispatcher.ERROR_EXCEPTION, new IllegalStateException());
-    Response response  = new ErrorResource().errorHTML(mockRequest);
+    testResponse(new ErrorResource().errorHTML(mockRequest), false);
+    testResponse(new ErrorResource().errorText(mockRequest), false);
+    testResponse(new ErrorResource().errorEmpty(mockRequest), true);
+  }
+
+  private static void testResponse(Response response, boolean assertEmpty) {
     assertEquals(500, response.getStatus());
-    String responseBody = response.getEntity().toString();
-    assertTrue(responseBody.contains("500"));
-    assertTrue(responseBody.contains("http://foo/bar"));
-    assertTrue(responseBody.contains("Something was wrong"));
-    assertTrue(responseBody.contains("IllegalStateException"));
+    if (assertEmpty) {
+      assertNull(response.getEntity());
+    } else {
+      String responseBody = response.getEntity().toString();
+      assertTrue(responseBody.contains("500"));
+      assertTrue(responseBody.contains("http://foo/bar"));
+      assertTrue(responseBody.contains("Something was wrong"));
+      assertTrue(responseBody.contains("IllegalStateException"));
+    }
   }
 
 }
