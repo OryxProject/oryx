@@ -156,26 +156,25 @@ public final class KMeansUpdate extends MLUpdate<String> {
     log.info("Evaluation Strategy is {}", evaluationStrategy);
     double eval;
     switch (evaluationStrategy) {
-      case DAVIES_BOULDIN :
-        DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusterInfoList);
-        double dbIndex = daviesBouldinIndex.evaluate(evalData);
+      case DAVIES_BOULDIN:
+        double dbIndex = new DaviesBouldinIndex(clusterInfoList).evaluate(evalData);
+        log.info("Davies-Bouldin index: {}", dbIndex);
         eval = -dbIndex;
-        log.info("Davies-Bouldin index {}", dbIndex);
         break;
-      case DUNN :
-        DunnIndex dunnIndex = new DunnIndex(clusterInfoList);
-        eval = dunnIndex.evaluate(evalData);
-        log.info("Dunn index / eval {}", eval);
+      case DUNN:
+        double dunnIndex = new DunnIndex(clusterInfoList).evaluate(evalData);
+        log.info("Dunn index: {}", dunnIndex);
+        eval = dunnIndex;
         break;
       case SILHOUETTE:
-        SilhouetteCoefficient silhouetteCoefficient = new SilhouetteCoefficient(clusterInfoList);
-        eval = silhouetteCoefficient.evaluate(evalData);
-        log.info("Silhouette Coefficient / eval {}", eval);
+        double silhouette = new SilhouetteCoefficient(clusterInfoList).evaluate(evalData);
+        log.info("Silhouette Coefficient: {}", silhouette);
+        eval = silhouette;
         break;
       case SSE :
-        double sse = pmmlToKMeansModel(model).computeCost(evalData.rdd());
+        double sse = new SumSquaredError(clusterInfoList).evaluate(evalData);
+        log.info("Sum squared error: {}", sse);
         eval = -sse;
-        log.info("Sum of squared error {}", sse);
         break;
       default:
         throw new IllegalArgumentException("Unknown evaluation strategy " + evaluationStrategy);

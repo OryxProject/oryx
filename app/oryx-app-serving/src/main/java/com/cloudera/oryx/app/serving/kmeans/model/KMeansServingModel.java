@@ -23,7 +23,7 @@ import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansUtils;
-import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
+import com.cloudera.oryx.app.kmeans.EuclideanDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
 
@@ -43,7 +43,7 @@ public final class KMeansServingModel implements ServingModel {
     KMeansUtils.checkUniqueIDs(clusters);
     this.clusters = Collections.synchronizedList(clusters);
     this.inputSchema = inputSchema;
-    distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported
+    distanceFn = new EuclideanDistanceFn(); // For now, this is the only thing supported
   }
 
   public int getNumClusters() {

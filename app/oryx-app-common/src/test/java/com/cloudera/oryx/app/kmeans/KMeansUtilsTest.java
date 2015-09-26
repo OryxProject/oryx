@@ -31,7 +31,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 
 public final class KMeansUtilsTest extends OryxTest {
 
-  private static final DistanceFn<double[]> DISTANCE_FN = new SquaredDistanceFn();
+  private static final DistanceFn<double[]> DISTANCE_FN = new EuclideanDistanceFn();
 
   @Test(expected = IllegalArgumentException.class)
   public void testNoClusters() {
@@ -52,7 +52,7 @@ public final class KMeansUtilsTest extends OryxTest {
     Pair<ClusterInfo,Double> closestPairB =
         KMeansUtils.closestCluster(clusters, DISTANCE_FN, new double[] { 6.0, 5.0 });
     assertEquals(1, closestPairB.getFirst().getID());
-    assertEquals(25.0, closestPairB.getSecond().doubleValue());
+    assertEquals(5.0, closestPairB.getSecond().doubleValue());
   }
 
   @Test

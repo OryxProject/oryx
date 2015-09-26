@@ -16,7 +16,9 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -28,66 +30,59 @@ import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
-import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
+import com.cloudera.oryx.app.kmeans.EuclideanDistanceFn;
 
 abstract class AbstractKMeansEvaluation implements Serializable {
 
   private final DistanceFn<double[]> distanceFn;
-  private final int numClusters;
-  private final List<ClusterInfo> clusters;
+  private final Map<Integer,ClusterInfo> clusters;
 
-  AbstractKMeansEvaluation(List<ClusterInfo> clusters) {
-    this.distanceFn = new SquaredDistanceFn(); // for now using Squared Euclidean only
-    this.clusters = clusters;
-    this.numClusters = clusters.size();
+  AbstractKMeansEvaluation(List<ClusterInfo> clusterList) {
+    this.distanceFn = new EuclideanDistanceFn(); // for now using Euclidean only
+    this.clusters = new HashMap<>();
+    for (ClusterInfo info : clusterList) {
+      clusters.put(info.getID(), info);
+    }
   }
 
   final DistanceFn<double[]> getDistanceFn() {
     return distanceFn;
   }
 
-  final int getNumClusters() {
-    return numClusters;
-  }
-
-  final List<ClusterInfo> getClusters() {
+  final Map<Integer,ClusterInfo> getClustersByID() {
     return clusters;
   }
 
   abstract double evaluate(JavaRDD<Vector> evalData);
 
-  JavaPairRDD<Integer, Tuple2<Double, Long>> fetchClusterSumDistanceAndCounts(
-      JavaRDD<Vector> evalData) {
-
-    return evalData.mapToPair(new PairFunction<Vector, Integer, Tuple2<Double, Long>>() {
+  /**
+   * @param evalData points to cluster for evaluation
+   * @return cluster IDs as keys, and metrics for each cluster like the count, sum of distances to centroid,
+   *  and sum of squared distances
+   */
+  JavaPairRDD<Integer,ClusterMetric> fetchClusterMetrics(JavaRDD<Vector> evalData) {
+    return evalData.mapToPair(new PairFunction<Vector,Integer,ClusterMetric>() {
       @Override
-      public Tuple2<Integer, Tuple2<Double, Long>> call(Vector vector) {
+      public Tuple2<Integer,ClusterMetric> call(Vector vector) {
         double closestDist = Double.POSITIVE_INFINITY;
-        int minCluster = -1;
+        int minClusterID = Integer.MIN_VALUE;
         double[] vec = vector.toArray();
-
-        for (int i = 0; i < numClusters; i++) {
-          ClusterInfo cluster = clusters.get(i);
+        for (ClusterInfo cluster : clusters.values()) {
           double distance = distanceFn.distance(cluster.getCenter(), vec);
           if (distance < closestDist) {
             closestDist = distance;
-            minCluster = i;
+            minClusterID = cluster.getID();
           }
         }
-        Preconditions.checkState(minCluster >= 0);
         Preconditions.checkState(!Double.isInfinite(closestDist) && !Double.isNaN(closestDist));
-        return new Tuple2<>(minCluster, new Tuple2<>(closestDist, 1L));
+        return new Tuple2<>(minClusterID, new ClusterMetric(1L, closestDist, closestDist * closestDist));
       }
-    }).reduceByKey(
-        new Function2<Tuple2<Double, Long>, Tuple2<Double, Long>, Tuple2<Double, Long>>() {
-          @Override
-          public Tuple2<Double, Long> call(Tuple2<Double, Long> v1, Tuple2<Double, Long> v2) {
-            double intraClusterDistanceSum = v1._1() + v2._1();
-            long clusteredPointsCount = v1._2() + v2._2();
-
-            return new Tuple2<>(intraClusterDistanceSum, clusteredPointsCount);
-          }
-        });
+    }).reduceByKey(new Function2<ClusterMetric,ClusterMetric,ClusterMetric>() {
+      @Override
+      public ClusterMetric call(ClusterMetric a, ClusterMetric b) {
+        return a.add(b);
+      }
+    });
   }
 
 }

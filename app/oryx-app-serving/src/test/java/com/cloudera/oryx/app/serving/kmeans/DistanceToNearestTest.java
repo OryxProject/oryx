@@ -34,7 +34,7 @@ public final class DistanceToNearestTest extends AbstractKMeansServingTest {
   @Test
   public void testDistance2() {
     String prediction = target("/distanceToNearest/10,-1.0").request().get(String.class);
-    Assert.assertEquals(64.0, Double.parseDouble(prediction), OryxTest.DOUBLE_EPSILON);
+    Assert.assertEquals(8.0, Double.parseDouble(prediction), OryxTest.DOUBLE_EPSILON);
   }
 
 }

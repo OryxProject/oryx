@@ -22,7 +22,7 @@ import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansUtils;
-import com.cloudera.oryx.app.kmeans.SquaredDistanceFn;
+import com.cloudera.oryx.app.kmeans.EuclideanDistanceFn;
 
 /**
  * Contains all data structures needed to create near-real-time updates for a
@@ -36,7 +36,7 @@ public final class KMeansSpeedModel implements SpeedModel, Serializable {
   public KMeansSpeedModel(List<ClusterInfo> clusters) {
     KMeansUtils.checkUniqueIDs(clusters);
     this.clusters = clusters;
-    distanceFn = new SquaredDistanceFn(); // For now, this is the only thing supported
+    distanceFn = new EuclideanDistanceFn(); // For now, this is the only thing supported
   }
 
   public ClusterInfo getCluster(int id) {

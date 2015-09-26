@@ -15,64 +15,48 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DunnIndex extends AbstractKMeansEvaluation {
 
-  private static final Logger log = LoggerFactory.getLogger(DunnIndex.class);
-
   DunnIndex(List<ClusterInfo> clusters) {
     super(clusters);
   }
 
+  /**
+   * @param evalData data for evaluation
+   * @return the Dunn Index of a given clustering
+   *  (https://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation); higher is better
+   */
   @Override
   double evaluate(JavaRDD<Vector> evalData) {
-    return dunnIndex(fetchClusterSumDistanceAndCounts(evalData).collect());
-  }
-
-  /**
-   * Computes the Dunn Index of a given clustering
-   * (http://en.wikipedia.org/wiki/Dunn_index)
-   * @param clusterSumDistAndCounts data for evaluation
-   * @return Dunn Index; higher is better
-   */
-  double dunnIndex(List<Tuple2<Integer, Tuple2<Double, Long>>> clusterSumDistAndCounts) {
+    // Intra-cluster distance is mean distance to centroid
     double maxIntraClusterDistance = 0.0;
-    for (Tuple2<Integer, Tuple2<Double, Long>> entry : clusterSumDistAndCounts) {
-      double intraClusterDistance = entry._2()._1() / entry._2()._2();
-      if (maxIntraClusterDistance < intraClusterDistance) {
-        maxIntraClusterDistance = intraClusterDistance;
-      }
+    for (ClusterMetric metric : fetchClusterMetrics(evalData).values().collect()) {
+      maxIntraClusterDistance = Math.max(maxIntraClusterDistance, metric.getMeanDist());
     }
 
+    // Inter-cluster distance is distance between centroids
     double minInterClusterDistance = Double.POSITIVE_INFINITY;
-
-    List<ClusterInfo> clusters = getClusters();
-    int numClusters = getNumClusters();
+    List<ClusterInfo> clusters = new ArrayList<>(getClustersByID().values());
     DistanceFn<double[]> distanceFn = getDistanceFn();
-    for (int i = 0; i < numClusters; i++) {
-      double[] center = clusters.get(i).getCenter();
+    for (int i = 0; i < clusters.size(); i++) {
+      double[] centerI = clusters.get(i).getCenter();
       // Distances are symmetric, hence d(i,j) == d(j,i)
-      for (int j = i + 1; j < numClusters; j++) {
-        double distance = distanceFn.distance(center, clusters.get(j).getCenter());
-        if (distance < minInterClusterDistance) {
-          minInterClusterDistance = distance;
-        }
+      for (int j = i + 1; j < clusters.size(); j++) {
+        double[] centerJ = clusters.get(j).getCenter();
+        minInterClusterDistance = Math.min(minInterClusterDistance, distanceFn.distance(centerI, centerJ));
       }
     }
 
-    double dunnIndex = minInterClusterDistance / maxIntraClusterDistance;
-    log.info("Computed Dunn Index for {} clusters: {}", numClusters, dunnIndex);
-    return dunnIndex;
+    return minInterClusterDistance / maxIntraClusterDistance;
   }
 
 }

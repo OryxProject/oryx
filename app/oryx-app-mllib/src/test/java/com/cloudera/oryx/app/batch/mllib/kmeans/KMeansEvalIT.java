@@ -65,7 +65,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
     DunnIndex dunnIndex = new DunnIndex(clusters);
     double eval = dunnIndex.evaluate(getRddOfVectors());
     log.info("Dunn Index for {} clusters: {}", clusters.size(), eval);
-    assertEquals(1.7142857142857142, eval);
+    assertEquals(1.3110480733464633, eval);
   }
 
   @Test
@@ -74,7 +74,7 @@ public final class KMeansEvalIT extends AbstractSparkIT {
     DaviesBouldinIndex daviesBouldinIndex = new DaviesBouldinIndex(clusters);
     double eval = daviesBouldinIndex.evaluate(getRddOfVectors());
     log.info("Davies Bouldin Index for {} clusters: {}", clusters.size(), eval);
-    assertEquals(0.638888888888889, eval);
+    assertEquals(0.9702216688254247, eval);
   }
 
   @Test
@@ -83,16 +83,25 @@ public final class KMeansEvalIT extends AbstractSparkIT {
     SilhouetteCoefficient silhouetteCoefficient = new SilhouetteCoefficient(clusters);
     double eval = silhouetteCoefficient.evaluate(getRddOfVectors());
     log.info("Silhouette Coefficient for {} clusters: {}", clusters.size(), eval);
-    assertEquals(0.48484126984126985, eval);
+    assertEquals(0.30648167401009796, eval);
+  }
+
+  @Test
+  public void testSSEForClustering() {
+    List<ClusterInfo> clusters = getClusters();
+    SumSquaredError sse = new SumSquaredError(clusters);
+    double eval = sse.evaluate(getRddOfVectors());
+    log.info("SSE for {} clusters: {}", clusters.size(), eval);
+    assertEquals(5.5, eval);
   }
 
   @Test
   public void testComputeSilhouetteCoefficient() {
-    assertEquals(5.0, SilhouetteCoefficient.calcSilhouetteCoefficient(-0.8, 0.2));
-    assertEquals(-1.25, SilhouetteCoefficient.calcSilhouetteCoefficient(0.8, -0.2));
-    assertEquals(0.0, SilhouetteCoefficient.calcSilhouetteCoefficient(1.5, 1.5));
-    assertEquals(1.0, SilhouetteCoefficient.calcSilhouetteCoefficient(1.5, Double.POSITIVE_INFINITY));
-    assertEquals(-1.0, SilhouetteCoefficient.calcSilhouetteCoefficient(Double.POSITIVE_INFINITY, 1.5));
+    assertEquals(5.0, SilhouetteCoefficient.silhouetteCoefficient(-0.8, 0.2));
+    assertEquals(-1.25, SilhouetteCoefficient.silhouetteCoefficient(0.8, -0.2));
+    assertEquals(0.0, SilhouetteCoefficient.silhouetteCoefficient(1.5, 1.5));
+    assertEquals(1.0, SilhouetteCoefficient.silhouetteCoefficient(1.5, Double.POSITIVE_INFINITY));
+    assertEquals(-1.0, SilhouetteCoefficient.silhouetteCoefficient(Double.POSITIVE_INFINITY, 1.5));
   }
 
 }

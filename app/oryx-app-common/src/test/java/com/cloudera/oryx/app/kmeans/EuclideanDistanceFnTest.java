@@ -19,15 +19,17 @@ import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
 
-public final class SquaredDistanceFnTest extends OryxTest {
+public final class EuclideanDistanceFnTest extends OryxTest {
 
   @Test
   public void testDistance() {
-    assertEquals(14.0, new SquaredDistanceFn().distance(new double[] { 1.0, 2.0, 3.0 },
-                                                      new double[] { 0.0, 4.0, 6.0 }));
-    assertEquals(2.0, new SquaredDistanceFn().distance(new double[] { 0.0, 1.0 },
-                                                     new double[] { -1.0, 0.0 }));
-    assertEquals(0.0, new SquaredDistanceFn().distance(new double[] { 1.0 }, new double[] { 1.0 }));
+    assertEquals(Math.sqrt(14.0),
+                 new EuclideanDistanceFn().distance(new double[] { 1.0, 2.0, 3.0 },
+                                                    new double[] { 0.0, 4.0, 6.0 }));
+    assertEquals(Math.sqrt(2.0),
+                 new EuclideanDistanceFn().distance(new double[] { 0.0, 1.0 },
+                                                    new double[] { -1.0, 0.0 }));
+    assertEquals(0.0, new EuclideanDistanceFn().distance(new double[] { 1.0 }, new double[] { 1.0 }));
   }
 
 }

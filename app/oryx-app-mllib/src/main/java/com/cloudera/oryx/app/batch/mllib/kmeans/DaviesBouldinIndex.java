@@ -20,66 +20,51 @@ import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
 
-  private static final Logger log = LoggerFactory.getLogger(DaviesBouldinIndex.class);
-
   DaviesBouldinIndex(List<ClusterInfo> clusters) {
     super(clusters);
   }
 
+  /**
+   * @param evalData data for evaluation
+   * @return the Davies-Bouldin Index (http://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation);
+   *  lower is better
+   */
   @Override
   double evaluate(JavaRDD<Vector> evalData) {
-    return daviesBouldinIndex(fetchClusterSumDistanceAndCounts(evalData).collectAsMap());
-  }
-
-  /**
-   * Computes the Davies-Bouldin Index
-   * (http://en.wikipedia.org/wiki/Cluster_analysis#Internal_evaluation)
-   * @param clusterSumDistAndCounts data for evaluation
-   * @return Davies Bouldin index measure of clustering quality; lower is better
-   */
-  double daviesBouldinIndex(Map<Integer,Tuple2<Double,Long>> clusterSumDistAndCounts) {
+    Map<Integer,ClusterMetric> clusterMetricsByID = fetchClusterMetrics(evalData).collectAsMap();
     double totalDBIndex = 0.0;
-    List<ClusterInfo> clusters = getClusters();
-    int numClusters = getNumClusters();
+    Map<Integer,ClusterInfo> clustersByID = getClustersByID();
     DistanceFn<double[]> distanceFn = getDistanceFn();
-    for (int i = 0; i < numClusters; i++) {
+    for (Map.Entry<Integer,ClusterInfo> entryI : clustersByID.entrySet()) {
       double maxDBIndex = 0.0;
-      double[] center = clusters.get(i).getCenter();
-      double clusterScatter1 = scatter(clusterSumDistAndCounts.get(i));
+      Integer idI = entryI.getKey();
+      double[] centerI = entryI.getValue().getCenter();
+      double clusterScatter1 = clusterMetricsByID.get(idI).getMeanDist();
       // this inner loop should not be set to j = (i+1) as DB Index computation is not symmetric.
       // For a given cluster i, we look for a cluster j that maximizes
       // the ratio of (the sum of average distances from points in cluster i to its center and
       // points in cluster j to its center) to (the distance between cluster i and cluster j).
       // The key here is the Maximization of the DB Index for a cluster:
       // the cluster that maximizes this ratio may be j for i but not necessarily i for j
-      for (int j = 0; j < numClusters; j++) {
-        if (i != j) {
-          double dbIndex = (clusterScatter1 + scatter(clusterSumDistAndCounts.get(j))) /
-              distanceFn.distance(center, clusters.get(j).getCenter());
-          if (dbIndex > maxDBIndex) {
-            maxDBIndex = dbIndex;
-          }
+      for (Map.Entry<Integer,ClusterInfo> entryJ : clustersByID.entrySet()) {
+        Integer idJ = entryJ.getKey();
+        if (!idI.equals(idJ)) {
+          double[] centerJ = entryJ.getValue().getCenter();
+          double clusterScatter2 = clusterMetricsByID.get(idJ).getMeanDist();
+          double dbIndex = (clusterScatter1 + clusterScatter2) / distanceFn.distance(centerI, centerJ);
+          maxDBIndex = Math.max(maxDBIndex, dbIndex);
         }
       }
       totalDBIndex += maxDBIndex;
     }
 
-    double daviesBouldinIndex = totalDBIndex / numClusters;
-    log.info("Computed Davies-Bouldin Index for {} clusters: {}", numClusters, daviesBouldinIndex);
-    return daviesBouldinIndex;
-  }
-
-  private static double scatter(Tuple2<Double,Long> sumDistAndCount) {
-    return sumDistAndCount._1() / sumDistAndCount._2();
+    return totalDBIndex / clustersByID.size();
   }
 
 }

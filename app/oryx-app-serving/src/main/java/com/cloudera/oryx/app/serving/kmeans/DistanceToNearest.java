@@ -31,7 +31,7 @@ import com.cloudera.oryx.common.text.TextUtils;
  * to cluster, delimited, like "1,foo,3.0".</p>
  *
  * <p>The response body contains the distance from the point to its nearest cluster center.
- * The distance function depends on the model.</p>
+ * The distance function depends on the model. For now the default is Euclidean distance.</p>
  */
 @Singleton
 @Path("/distanceToNearest")
