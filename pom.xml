@@ -1175,7 +1175,7 @@
       <id>cdh5</id>
       <!-- Latest version; can be overridden -->
       <properties>
-        <cdh.version>5.4.5</cdh.version>
+        <cdh.version>5.4.7</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.3.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
