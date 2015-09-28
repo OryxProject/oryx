@@ -15,7 +15,7 @@ matrix:
      env: JAVA_VERSION=8 CDH=-Pcdh5
    # Covers Spark 1.5
    - jdk: oraclejdk8
-     env: JAVA_VERSION=8 SPARK=-Dspark.version=1.5.0 
+     env: JAVA_VERSION=8 SPARK=-Dspark.version=1.5.1
 cache:
   directories:
     - $HOME/.m2
