@@ -66,6 +66,9 @@ partition for the _update_ topic.
 
 Replication factor can be any value, but at least 2 is recommended.
 Note that the replication factor can't exceed the number of Kafka brokers in the cluster.
+The provided script sets replication to 1, by default, for this reason.
+This can be changed later with, for example, 
+`kafka-topics --zookeeper ... --alter --topic ... --replication-factor N`
 
 You may need to configure the retention time for one or both topics. In particular,
 it's typically important to limit the retention time for the update topic, since the Speed
@@ -121,7 +124,7 @@ Input topic OryxInput does not exist. Create it? y
 Creating topic OryxInput
 Created topic "OryxInput".
 Status of topic OryxInput:
-Topic:OryxInput	PartitionCount:4	ReplicationFactor:2	Configs:
+Topic:OryxInput	PartitionCount:4	ReplicationFactor:1	Configs:
 	Topic: OryxInput	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
 	Topic: OryxInput	Partition: 1	Leader: 121	Replicas: 121,120	Isr: 121,120
 	Topic: OryxInput	Partition: 2	Leader: 120	Replicas: 120,121	Isr: 120,121
@@ -132,7 +135,7 @@ Creating topic OryxUpdate
 Created topic "OryxUpdate".
 Updated config for topic "OryxUpdate".
 Status of topic OryxUpdate:
-Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:2	Configs:retention.ms=86400000,max.message.bytes=16777216
+Topic:OryxUpdate	PartitionCount:1	ReplicationFactor:1	Configs:retention.ms=86400000,max.message.bytes=16777216
 	Topic: OryxUpdate	Partition: 0	Leader: 120	Replicas: 120,121	Isr: 120,121
 ```
 

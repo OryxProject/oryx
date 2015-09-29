@@ -70,10 +70,10 @@ done
 if [ -z "${LAYER_JAR}" ]; then
   case "${COMMAND}" in
   batch|speed|serving)
-    LAYER_JAR=`ls -1 oryx-${COMMAND}-*.jar`
+    LAYER_JAR=`ls -1 oryx-${COMMAND}-*.jar 2> /dev/null`
     ;;
   *)
-    LAYER_JAR=`ls -1 oryx-batch-*.jar oryx-speed-*.jar oryx-serving-*.jar | head -1`
+    LAYER_JAR=`ls -1 oryx-batch-*.jar oryx-speed-*.jar oryx-serving-*.jar 2> /dev/null | head -1`
     ;;
   esac
 fi
@@ -88,6 +88,21 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 fi
 
 CONFIG_PROPS=`java -cp ${LAYER_JAR} -Dconfig.file=${CONFIG_FILE} com.cloudera.oryx.common.settings.ConfigToProperties`
+
+# Helps execute kafka-foo or kafka-foo.sh as appropriate.
+# Kind of assume we're using all one or the other
+if [ -x "$(command -v kafka-topics)" ]; then
+  KAFKA_TOPICS_SH="kafka-topics"
+  KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer"
+  KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer"
+elif [ -x "$(command -v kafka-topics.sh)" ]; then
+  KAFKA_TOPICS_SH="kafka-topics.sh"
+  KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer.sh"
+  KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer.sh"
+else
+  echo "Can't find kafka scripts like kafka-topics"
+  exit 2
+fi
 
 case "${COMMAND}" in
 batch|speed|serving)
@@ -242,7 +257,7 @@ kafka-setup|kafka-tail|kafka-input)
 
   case "${COMMAND}" in
   kafka-setup)
-    ALL_TOPICS=`kafka-topics --list --zookeeper ${INPUT_ZK} 2>&1 | grep -vE "^mkdir: cannot create directory"`
+    ALL_TOPICS=`${KAFKA_TOPICS_SH} --list --zookeeper ${INPUT_ZK} 2>&1 | grep -vE "^mkdir: cannot create directory"`
     echo "All available topics:"
     echo "${ALL_TOPICS}"
     echo
@@ -252,12 +267,12 @@ kafka-setup|kafka-tail|kafka-input)
       case "${CREATE}" in
         y|Y)
           echo "Creating topic ${INPUT_TOPIC}"
-          kafka-topics --zookeeper ${INPUT_ZK} --create --replication-factor 2 --partitions 4 --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+          ${KAFKA_TOPICS_SH} --zookeeper ${INPUT_ZK} --create --replication-factor 1 --partitions 4 --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
           ;;
       esac
     fi
     echo "Status of topic ${INPUT_TOPIC}:"
-    kafka-topics --zookeeper ${INPUT_ZK} --describe --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ${KAFKA_TOPICS_SH} --zookeeper ${INPUT_ZK} --describe --topic ${INPUT_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
     echo
 
     if [ -z `echo "${ALL_TOPICS}" | grep ${UPDATE_TOPIC}` ]; then
@@ -265,25 +280,25 @@ kafka-setup|kafka-tail|kafka-input)
       case "${CREATE}" in
         y|Y)
           echo "Creating topic ${UPDATE_TOPIC}"
-          kafka-topics --zookeeper ${UPDATE_ZK} --create --replication-factor 2 --partitions 1 --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
-          kafka-topics --zookeeper ${UPDATE_ZK} --alter --topic ${UPDATE_TOPIC} --config retention.ms=86400000 --config max.message.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
+          ${KAFKA_TOPICS_SH} --zookeeper ${UPDATE_ZK} --create --replication-factor 1 --partitions 1 --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+          ${KAFKA_TOPICS_SH} --zookeeper ${UPDATE_ZK} --alter --topic ${UPDATE_TOPIC} --config retention.ms=86400000 --config max.message.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
           ;;
       esac
     fi
     echo "Status of topic ${UPDATE_TOPIC}:"
-    kafka-topics --zookeeper ${UPDATE_ZK} --describe --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ${KAFKA_TOPICS_SH} --zookeeper ${UPDATE_ZK} --describe --topic ${UPDATE_TOPIC} 2>&1 | grep -vE "^mkdir: cannot create directory"
     echo
     ;;
 
   kafka-tail)
-    kafka-console-consumer --zookeeper ${INPUT_ZK} --whitelist ${INPUT_TOPIC},${UPDATE_TOPIC} --property fetch.message.max.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ${KAFKA_CONSOLE_CONSUMER_SH} --zookeeper ${INPUT_ZK} --whitelist ${INPUT_TOPIC},${UPDATE_TOPIC} --property fetch.message.max.bytes=16777216 2>&1 | grep -vE "^mkdir: cannot create directory"
     ;;
 
   kafka-input)
     if [ ! -f "${INPUT_FILE}" ]; then
       usageAndExit "Input file ${INPUT_FILE} does not exist"
     fi
-    kafka-console-producer --broker-list ${INPUT_KAFKA} --topic ${INPUT_TOPIC} < "${INPUT_FILE}" 2>&1 | grep -vE "^mkdir: cannot create directory"
+    ${KAFKA_CONSOLE_PRODUCER_SH} --broker-list ${INPUT_KAFKA} --topic ${INPUT_TOPIC} < "${INPUT_FILE}" 2>&1 | grep -vE "^mkdir: cannot create directory"
     ;;
 
   esac
