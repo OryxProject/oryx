@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.serving;
 
 import java.security.Principal;
 
+import org.apache.catalina.core.StandardContext;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -24,8 +25,13 @@ import com.cloudera.oryx.common.OryxTest;
 public final class InMemoryRealmTest extends OryxTest {
 
   @Test
-  public void testAuthenticate() {
+  public void testAuthenticate() throws Exception {
     InMemoryRealm realm = new InMemoryRealm();
+    StandardContext ctx = new StandardContext();
+    ctx.setName("OryxTest");
+    realm.setContainer(ctx);
+    realm.start();
+
     realm.addUser("foo", "bar");
     assertNotNull(realm.getName());
     Principal authPrincipal = realm.authenticate("foo", "bar");

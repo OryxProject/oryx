@@ -58,21 +58,12 @@ public final class InMemoryRealm extends RealmBase {
   @Override
   public Principal authenticate(String username, String credentials) {
     GenericPrincipal principal = principals.get(username);
-    boolean validated = false;
-    if (principal != null && credentials != null) {
-      if (hasMessageDigest()) {
-        // Hex hashes should be compared case-insensitive
-        validated = digest(credentials).equalsIgnoreCase(principal.getPassword());
-      } else {
-        validated = digest(credentials).equals(principal.getPassword());
-      }
-    }
+    boolean validated = principal != null && getCredentialHandler().matches(credentials, principal.getPassword());
     return validated ? principal : null;
   }
 
   public void addUser(String username, String password) {
-    principals.put(username,
-        new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
+    principals.put(username, new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
   }
 
   @Override
