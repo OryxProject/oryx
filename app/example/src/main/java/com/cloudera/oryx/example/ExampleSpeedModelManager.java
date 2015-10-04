@@ -17,6 +17,7 @@ package com.cloudera.oryx.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,28 +39,30 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
  */
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  private final Map<String,Integer> distinctOtherWords = new HashMap<>();
+  private final Map<String,Integer> distinctOtherWords =
+      Collections.synchronizedMap(new HashMap<String,Integer>());
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator,
                       Configuration hadoopConf) throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
-      switch (km.getKey()) {
+      String key = km.getKey();
+      String message = km.getMessage();
+      switch (key) {
         case "MODEL":
           @SuppressWarnings("unchecked")
-          Map<String,String> model = (Map<String,String>) new ObjectMapper().readValue(km.getMessage(), Map.class);
-          synchronized (distinctOtherWords) {
-            distinctOtherWords.clear();
-          }
+          Map<String,String> model = (Map<String,String>) new ObjectMapper().readValue(message, Map.class);
+          distinctOtherWords.keySet().retainAll(model.keySet());
           for (Map.Entry<String,String> entry : model.entrySet()) {
-            synchronized (distinctOtherWords) {
-              distinctOtherWords.put(entry.getKey(), Integer.valueOf(entry.getValue()));
-            }
+            distinctOtherWords.put(entry.getKey(), Integer.valueOf(entry.getValue()));
           }
           break;
-        default:
+        case "UP":
           // ignore
+          break;
+        default:
+          throw new IllegalArgumentException("Unknown key " + key);
       }
     }
   }
@@ -72,7 +75,8 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
       String word = entry.getKey();
       int newCount;
       synchronized (distinctOtherWords) {
-        newCount = distinctOtherWords.get(word) + 1;
+        Integer oldCount = distinctOtherWords.get(word);
+        newCount = oldCount == null ? 1 : oldCount + 1;
         distinctOtherWords.put(word, newCount);
       }
       updates.add(word + "," + newCount);
