@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -84,6 +85,7 @@ public abstract class AbstractOryxResource {
   protected final ServingModel getServingModel() throws OryxServingException {
     ServingModel servingModel = servingModelManager.getModel();
     if (hasLoadedEnough) {
+      Objects.requireNonNull(servingModel);
       return servingModel;
     }
     if (servingModel != null) {
@@ -97,6 +99,7 @@ public abstract class AbstractOryxResource {
       }
     }
     if (hasLoadedEnough) {
+      Objects.requireNonNull(servingModel);
       return servingModel;
     } else {
       throw new OryxServingException(Response.Status.SERVICE_UNAVAILABLE);
