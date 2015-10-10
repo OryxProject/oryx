@@ -22,14 +22,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
@@ -106,13 +109,24 @@ public abstract class AbstractOryxResource {
     }
   }
 
-  protected final List<FileItem> parseMultipart(HttpServletRequest request)
-      throws OryxServingException {
+  protected final Collection<Part> parseMultipart(HttpServletRequest request) throws OryxServingException {
+    Collection<Part> parts;
+    try {
+      try {
+        // Prefer container's standard JavaEE multipart parsing:
+        parts = request.getParts();
+      } catch (UnsupportedOperationException uoe) {
+        // Grizzly (used in tests) doesn't support this; fall back until it does
+        parts = parseMultipartWithCommonsFileUpload(request);
+      }
+    } catch (IOException | ServletException e) {
+      throw new OryxServingException(Response.Status.BAD_REQUEST, e.getMessage());
+    }
+    check(!parts.isEmpty(), "No parts");
+    return parts;
+  }
 
-    // JAX-RS does not by itself support multipart form data yet, so doing it manually.
-    // We'd use Servlet 3.0 but the Grizzly test harness doesn't let us test it :(
-    // Good old Commons FileUpload it is:
-
+  private Collection<Part> parseMultipartWithCommonsFileUpload(HttpServletRequest request) throws IOException {
     if (sharedFileItemFactory.get() == null) {
       // Not a big deal if two threads actually set this up
       DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(
@@ -122,14 +136,15 @@ public abstract class AbstractOryxResource {
       sharedFileItemFactory.compareAndSet(null, fileItemFactory);
     }
 
-    List<FileItem> fileItems;
+    Collection<Part> parts = new ArrayList<>();
     try {
-      fileItems = new ServletFileUpload(sharedFileItemFactory.get()).parseRequest(request);
+      for (FileItem item : new ServletFileUpload(sharedFileItemFactory.get()).parseRequest(request)) {
+        parts.add(new FileItemPart(item));
+      }
     } catch (FileUploadException e) {
-      throw new OryxServingException(Response.Status.BAD_REQUEST, e.getMessage());
+      throw new IOException(e.getMessage());
     }
-    check(!fileItems.isEmpty(), "No parts");
-    return fileItems;
+    return parts;
   }
 
   protected static void check(boolean condition,
@@ -162,7 +177,7 @@ public abstract class AbstractOryxResource {
     return reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
   }
 
-  protected static InputStream maybeDecompress(FileItem item) throws IOException {
+  protected static InputStream maybeDecompress(Part item) throws IOException {
     InputStream in = item.getInputStream();
     String contentType = item.getContentType();
     if (contentType != null) {

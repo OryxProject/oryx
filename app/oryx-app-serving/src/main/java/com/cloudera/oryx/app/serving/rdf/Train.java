@@ -20,14 +20,13 @@ import java.io.IOException;
 import java.io.Reader;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-
-import org.apache.commons.fileupload.FileItem;
 
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -60,7 +59,7 @@ public final class Train extends AbstractRDFResource {
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   public void post(@Context HttpServletRequest request) throws IOException, OryxServingException {
     checkNotReadOnly();
-    for (FileItem item : parseMultipart(request)) {
+    for (Part item : parseMultipart(request)) {
       try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         doPost(reader);
       }

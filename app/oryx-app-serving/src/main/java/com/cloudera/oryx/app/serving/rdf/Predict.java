@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.rdf;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,8 +33,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.fileupload.FileItem;
 
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
@@ -78,7 +77,7 @@ public final class Predict extends AbstractRDFResource {
   public List<String> post(@Context HttpServletRequest request)
       throws IOException, OryxServingException {
     List<String> result = new ArrayList<>();
-    for (FileItem item : parseMultipart(request)) {
+    for (Part item : parseMultipart(request)) {
       try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         result.addAll(doPost(reader));
       }

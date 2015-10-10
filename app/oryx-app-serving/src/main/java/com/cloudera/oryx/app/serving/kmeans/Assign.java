@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.kmeans;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -31,8 +32,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.fileupload.FileItem;
 
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.OryxServingException;
@@ -70,7 +69,7 @@ public final class Assign extends AbstractKMeansResource {
   public List<String> post(@Context HttpServletRequest request)
       throws IOException, OryxServingException {
     List<String> result = new ArrayList<>();
-    for (FileItem item : parseMultipart(request)) {
+    for (Part item : parseMultipart(request)) {
       try (BufferedReader reader = maybeBuffer(maybeDecompress(item))) {
         result.addAll(doPost(reader));
       }
