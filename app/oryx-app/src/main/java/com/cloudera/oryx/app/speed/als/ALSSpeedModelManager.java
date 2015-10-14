@@ -24,6 +24,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -43,6 +46,7 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.common.lang.LoggingVoidCallable;
 import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.common.math.SingularMatrixSolverException;
 import com.cloudera.oryx.common.math.Solver;
@@ -138,12 +142,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
-    // TODO if this is ever needed by other apps, this logic could be refactored for
-    // other SpeedModelManager implementations, like in AbstractOryxResource
     if (model == null || model.getFractionLoaded() < minModelLoadFraction) {
       return Collections.emptyList();
     }
-    boolean implicit = model.isImplicit();
 
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
@@ -151,7 +152,7 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     JavaPairRDD<Tuple2<String,String>,Double> tuples = sortedValues.mapToPair(TO_TUPLE_FN);
 
     JavaPairRDD<Tuple2<String,String>,Double> aggregated;
-    if (implicit) {
+    if (model.isImplicit()) {
       // See comments in ALSUpdate for explanation of how deletes are handled by this.
       aggregated = tuples.groupByKey().mapValues(MLFunctions.SUM_WITH_NAN);
     } else {
@@ -163,8 +164,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
         .filter(MLFunctions.<Tuple2<String,String>>notNaNValue())
         .map(TO_UIS_FN).collect();
 
-    Solver XTXsolver;
-    Solver YTYsolver;
+    final Solver XTXsolver;
+    final Solver YTYsolver;
     try {
       XTXsolver = model.getXTXSolver();
       YTYsolver = model.getYTYSolver();
@@ -172,27 +173,60 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    Collection<String> result = new ArrayList<>();
-    for (UserItemStrength uis : input) {
-      String user = uis.getUser();
-      String item = uis.getItem();
-      double value = uis.getStrength();
+    final Collection<String> result = new ArrayList<>();
+    int numThreads = Runtime.getRuntime().availableProcessors();
+    Collection<Callable<Void>> tasks = new ArrayList<>(numThreads);
+    final Iterator<UserItemStrength> inputIterator = input.iterator();
+    for (int i = 0; i < numThreads; i++) {
+      tasks.add(new LoggingVoidCallable() {
+        @Override
+        public void doCall() {
+          while (true) {
+            UserItemStrength uis;
+            synchronized (inputIterator) {
+              if (inputIterator.hasNext()) {
+                uis = inputIterator.next();
+              } else {
+                break;
+              }
+            }
+            String user = uis.getUser();
+            String item = uis.getItem();
+            double value = uis.getStrength();
 
-      // Xu is the current row u in the X user-feature matrix
-      float[] Xu = model.getUserVector(user);
-      // Yi is the current row i in the Y item-feature matrix
-      float[] Yi = model.getItemVector(item);
+            // Xu is the current row u in the X user-feature matrix
+            float[] Xu = model.getUserVector(user);
+            // Yi is the current row i in the Y item-feature matrix
+            float[] Yi = model.getItemVector(item);
 
-      float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, implicit);
-      // Similarly for Y vs X
-      float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, implicit);
+            float[] newXu = ALSUtils.computeUpdatedXu(YTYsolver, value, Xu, Yi, model.isImplicit());
+            // Similarly for Y vs X
+            float[] newYi = ALSUtils.computeUpdatedXu(XTXsolver, value, Yi, Xu, model.isImplicit());
 
-      if (newXu != null) {
-        result.add(toUpdateJSON("X", user, newXu, item));
-      }
-      if (newYi != null) {
-        result.add(toUpdateJSON("Y", item, newYi, user));
-      }
+            if (newXu != null) {
+              String update = toUpdateJSON("X", user, newXu, item);
+              synchronized (result) {
+                result.add(update);
+              }
+            }
+            if (newYi != null) {
+              String update = toUpdateJSON("Y", item, newYi, user);
+              synchronized (result) {
+                result.add(update);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+    try {
+      executor.invokeAll(tasks);
+    } catch (InterruptedException ie) {
+      throw new IllegalStateException(ie);
+    } finally {
+      executor.shutdown();
     }
     return result;
   }
