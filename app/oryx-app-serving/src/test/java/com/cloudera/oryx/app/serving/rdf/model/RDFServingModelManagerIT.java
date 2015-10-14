@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.rdf.tree.DecisionNode;
@@ -30,7 +31,6 @@ import com.cloudera.oryx.app.rdf.tree.DecisionTree;
 import com.cloudera.oryx.app.rdf.tree.TerminalNode;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.speed.rdf.MockRDFClassificationModelGenerator;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
@@ -59,8 +59,7 @@ public final class RDFServingModelManagerIT extends AbstractServingIT {
     sleepSeconds(1);
 
     RDFServingModelManager manager = (RDFServingModelManager)
-        getServingLayer().getContext().getServletContext().getAttribute(
-            AbstractOryxResource.MODEL_MANAGER_KEY);
+        getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
 
     assertNotNull("Manager must initialize in web context", manager);
 

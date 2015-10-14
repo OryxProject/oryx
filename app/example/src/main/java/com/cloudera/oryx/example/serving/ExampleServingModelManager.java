@@ -71,15 +71,7 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
 
   @Override
   public ServingModel getModel() {
-    return new ServingModel() {
-      @Override
-      public float getFractionLoaded() {
-        return 1.0f;
-      }
-      public Map<String,Integer> getWords() {
-        return distinctOtherWords;
-      }
-    };
+    return new ExampleServingModel(distinctOtherWords);
   }
 
 }

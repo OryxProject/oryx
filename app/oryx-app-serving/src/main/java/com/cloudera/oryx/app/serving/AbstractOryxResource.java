@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -46,54 +45,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.api.serving.ServingModel;
-import com.cloudera.oryx.api.serving.ServingModelManager;
 
 /**
  * Superclass of all Serving Layer application endpoints.
  */
-public abstract class AbstractOryxResource {
+public abstract class AbstractOryxResource extends OryxResource {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractOryxResource.class);
-
-  public static final String MODEL_MANAGER_KEY =
-      "com.cloudera.oryx.lambda.serving.ModelManagerListener.ModelManager";
-  public static final String INPUT_PRODUCER_KEY =
-      "com.cloudera.oryx.lambda.serving.ModelManagerListener.InputProducer";
 
   private static final AtomicReference<DiskFileItemFactory> sharedFileItemFactory =
       new AtomicReference<>();
 
   @Context
   private ServletContext servletContext;
-  private TopicProducer<String,String> inputProducer;
-  private ServingModelManager<?> servingModelManager;
   private boolean hasLoadedEnough;
 
-  @SuppressWarnings("unchecked")
-  @PostConstruct
-  protected void init() {
-    servingModelManager = (ServingModelManager<?>) servletContext.getAttribute(MODEL_MANAGER_KEY);
-    inputProducer = (TopicProducer<String,String>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
-  }
-
   protected final void sendInput(String message) {
+    @SuppressWarnings("unchecked")
+    TopicProducer<String,String> inputProducer = (TopicProducer<String,String>) getInputProducer();
     inputProducer.send(Integer.toHexString(message.hashCode()), message);
   }
 
   protected final boolean isReadOnly() {
-    return servingModelManager.isReadOnly();
+    return getServingModelManager().isReadOnly();
   }
 
   protected final ServingModel getServingModel() throws OryxServingException {
-    ServingModel servingModel = servingModelManager.getModel();
+    ServingModel servingModel = getServingModelManager().getModel();
     if (hasLoadedEnough) {
       Objects.requireNonNull(servingModel);
       return servingModel;
     }
     if (servingModel != null) {
-      double minModelLoadFraction =
-          servingModelManager.getConfig().getDouble("oryx.serving.min-model-load-fraction");
+      double minModelLoadFraction = getServingModelManager().getConfig()
+          .getDouble("oryx.serving.min-model-load-fraction");
       Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
       float fractionLoaded = servingModel.getFractionLoaded();
       log.info("Model loaded fraction: {}", fractionLoaded);

@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
-import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.speed.kmeans.MockKMeansModelGenerator;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
@@ -52,8 +52,7 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
     sleepSeconds(1);
 
     KMeansServingModelManager manager = (KMeansServingModelManager)
-        getServingLayer().getContext().getServletContext().getAttribute(
-            AbstractOryxResource.MODEL_MANAGER_KEY);
+        getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
 
     assertNotNull("Manager must initialize in web context", manager);
 

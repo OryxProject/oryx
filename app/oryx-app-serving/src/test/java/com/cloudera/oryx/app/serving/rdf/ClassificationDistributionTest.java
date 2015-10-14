@@ -26,7 +26,7 @@ import com.typesafe.config.Config;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.app.serving.rdf.model.TestRDFClassificationModelFactory;
@@ -81,9 +81,9 @@ public final class ClassificationDistributionTest extends AbstractRDFServingTest
     @Override
     public final void contextInitialized(ServletContextEvent sce) {
       ServletContext context = sce.getServletContext();
-      context.setAttribute(AbstractOryxResource.MODEL_MANAGER_KEY,
+      context.setAttribute(OryxResource.MODEL_MANAGER_KEY,
                            new MockClassificationServingModelManager(ConfigUtils.getDefault()));
-      context.setAttribute(AbstractOryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
+      context.setAttribute(OryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
   }
 

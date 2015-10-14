@@ -15,9 +15,9 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
+import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingIT;
-import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.speed.als.MockALSModelUpdateGenerator;
 
 import com.typesafe.config.Config;
@@ -49,8 +49,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     sleepSeconds(1);
 
     ALSServingModelManager manager = (ALSServingModelManager)
-        getServingLayer().getContext().getServletContext().getAttribute(
-            AbstractOryxResource.MODEL_MANAGER_KEY);
+        getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
 
     assertNotNull("Manager must initialize in web context", manager);
 
