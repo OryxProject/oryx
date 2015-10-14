@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.example
+package com.cloudera.oryx.example.batch
 
 import scala.collection.JavaConversions
 
@@ -38,8 +38,8 @@ class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,S
                                pastData: RDD[(String,String)],
                                modelDirString: String,
                                modelUpdateTopic: TopicProducer[String,String]) = {
-    val modelString = new ObjectMapper().writeValueAsString(
-      JavaConversions.mapAsJavaMap(ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData.union(pastData))))
+    val modelString = new ObjectMapper().writeValueAsString(JavaConversions.mapAsJavaMap(
+        ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData.union(pastData))))
     modelUpdateTopic.send("MODEL", modelString)
   }
 

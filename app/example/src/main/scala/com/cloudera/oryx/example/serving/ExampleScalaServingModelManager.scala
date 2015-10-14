@@ -13,25 +13,25 @@
  * License.
  */
 
-package com.cloudera.oryx.example
+package com.cloudera.oryx.example.serving
 
-import scala.collection.{JavaConversions, mutable}
+import com.typesafe.config.Config
+
+import scala.collection.{mutable, JavaConversions}
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.rdd.RDD
 
 import com.cloudera.oryx.api.KeyMessage
-import com.cloudera.oryx.api.speed.ScalaSpeedModelManager
+import com.cloudera.oryx.api.serving.{ServingModel, AbstractScalaServingModelManager}
 
 /**
- * Also counts and emits counts of number of distinct words that occur with words.
- * Listens for updates from the Batch Layer, which give the current correct count at its
- * last run. Updates these counts approximately in response to the same data stream
- * that the Batch Layer sees, but assumes all words seen are new and distinct, which is only
- * approximately true. Emits updates of the form "word,count".
+ * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
+ * strings, mapping words to count of distinct other words that appear with that word in an input line.
+ * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
+ * mapping to the Serving Layer applications.
  */
-class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
+class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaServingModelManager[String](config) {
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
@@ -49,23 +49,18 @@ class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String
               distinctOtherWords.put(word, count.toInt)
             )
           }
-        case _ => // ignore
+        case "UP" =>
+          val Array(word, count) = km.getMessage.split(",")
+          distinctOtherWords.synchronized(
+            distinctOtherWords.put(word, count.toInt)
+          )
       }
     )
   }
 
-  override def buildUpdates(newData: RDD[(String,String)]) = {
-    ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData).map { case (word, count) =>
-      distinctOtherWords.synchronized {
-        val newCount = distinctOtherWords(word) + 1
-        distinctOtherWords(word) = newCount
-        word + "," + newCount
-      }
-    }.toSeq
-  }
-
-  override def close(): Unit = {
-    // do nothing
+  override def getModel = new ServingModel() {
+    override def getFractionLoaded = 1.0f
+    def getWords: Map[String,Integer] = distinctOtherWords.toMap
   }
 
 }

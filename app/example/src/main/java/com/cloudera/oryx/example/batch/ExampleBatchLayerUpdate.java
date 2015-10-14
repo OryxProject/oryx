@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.example.batch;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
     modelUpdateTopic.send("MODEL", modelString);
   }
 
-  static Map<String,Integer> countDistinctOtherWords(JavaPairRDD<String,String> data) {
+  public static Map<String,Integer> countDistinctOtherWords(JavaPairRDD<String,String> data) {
     return data.values().flatMapToPair(new PairFlatMapFunction<String, String, String>() {
       @Override
       public Iterable<Tuple2<String, String>> call(String line) {

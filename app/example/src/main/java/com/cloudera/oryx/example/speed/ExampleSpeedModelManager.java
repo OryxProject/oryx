@@ -13,39 +13,39 @@
  * License.
  */
 
-package com.cloudera.oryx.example;
+package com.cloudera.oryx.example.speed;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.spark.api.java.JavaPairRDD;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.serving.AbstractServingModelManager;
-import com.cloudera.oryx.api.serving.ServingModel;
+import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
 
 /**
- * Reads models and updates produced by the Batch Layer and Speed Layer. Models are maps, encoded as JSON
- * strings, mapping words to count of distinct other words that appear with that word in an input line.
- * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
- * mapping to the Serving Layer applications.
+ * Also counts and emits counts of number of distinct words that occur with words.
+ * Listens for updates from the Batch Layer, which give the current correct count at its
+ * last run. Updates these counts approximately in response to the same data stream
+ * that the Batch Layer sees, but assumes all words seen are new and distinct, which is only
+ * approximately true. Emits updates of the form "word,count".
  */
-public final class ExampleServingModelManager extends AbstractServingModelManager<String> {
+public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private final Map<String,Integer> distinctOtherWords =
       Collections.synchronizedMap(new HashMap<String,Integer>());
 
-  public ExampleServingModelManager(Config config) {
-    super(config);
-  }
-
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator,
+                      Configuration hadoopConf) throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String,String> km = updateIterator.next();
       String key = km.getKey();
@@ -60,8 +60,7 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
           }
           break;
         case "UP":
-          String[] wordCount = message.split(",");
-          distinctOtherWords.put(wordCount[0], Integer.valueOf(wordCount[1]));
+          // ignore
           break;
         default:
           throw new IllegalArgumentException("Unknown key " + key);
@@ -70,16 +69,25 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
   }
 
   @Override
-  public ServingModel getModel() {
-    return new ServingModel() {
-      @Override
-      public float getFractionLoaded() {
-        return 1.0f;
+  public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
+    List<String> updates = new ArrayList<>();
+    for (Map.Entry<String,Integer> entry :
+         ExampleBatchLayerUpdate.countDistinctOtherWords(newData).entrySet()) {
+      String word = entry.getKey();
+      int newCount;
+      synchronized (distinctOtherWords) {
+        Integer oldCount = distinctOtherWords.get(word);
+        newCount = oldCount == null ? 1 : oldCount + 1;
+        distinctOtherWords.put(word, newCount);
       }
-      public Map<String,Integer> getWords() {
-        return distinctOtherWords;
-      }
-    };
+      updates.add(word + "," + newCount);
+    }
+    return updates;
+  }
+
+  @Override
+  public void close() {
+    // do nothing
   }
 
 }
