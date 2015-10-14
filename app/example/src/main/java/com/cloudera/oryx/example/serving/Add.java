@@ -23,7 +23,7 @@ import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.OryxResource;
 
 /**
- * Responds to a POST request to {@code /add/[word]}. Increments the count for the word</p>
+ * Responds to a POST request to {@code /add/[word]}. Increments the count for the word.
  */
 @Path("/add")
 public final class Add extends OryxResource {

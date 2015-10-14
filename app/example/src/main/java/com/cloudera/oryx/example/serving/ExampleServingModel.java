@@ -19,6 +19,9 @@ import java.util.Map;
 
 import com.cloudera.oryx.api.serving.ServingModel;
 
+/**
+ * {@link ServingModel} produced by {@link ExampleServingModelManager}.
+ */
 public final class ExampleServingModel implements ServingModel {
 
   private final Map<String,Integer> distinctOtherWords;
