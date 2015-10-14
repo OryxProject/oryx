@@ -80,6 +80,14 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           if (model == null) {
             continue; // No model to interpret with yet, so skip it
           }
+          // Note that here, the speed layer is actually listening for updates from
+          // two sources. First is the batch layer. This is somewhat unusual, because
+          // the batch layer usually only makes MODELs. The ALS model is too large
+          // to send in one file, so is sent as a skeleton model plus a series of updates.
+          // However it is also, neatly, listening for the same updates it produces below
+          // in response to new data, and applying them to the in-memory representation.
+          // ALS continues to be a somewhat special case here, in that it does benefit from
+          // real-time updates to even the speed layer reference model.
           List<?> update = MAPPER.readValue(message, List.class);
           // Update
           String id = update.get(1).toString();
