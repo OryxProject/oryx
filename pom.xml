@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.6</version>
+        <version>1.2.7</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -413,7 +413,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.2.1.RELEASE</version>
+        <version>4.2.2.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -689,7 +689,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>2.5.3</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.scm</groupId>

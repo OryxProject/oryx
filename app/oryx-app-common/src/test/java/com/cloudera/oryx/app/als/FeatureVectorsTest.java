@@ -112,13 +112,13 @@ public final class FeatureVectorsTest extends OryxTest {
   public void testConcurrent() throws Exception {
     final FeatureVectors fv = new FeatureVectors();
     final AtomicInteger counter = new AtomicInteger();
-    int numThreads = 16;
+    int numWorkers = 16;
+    final int numIterations = 10000;
 
-    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+    ExecutorService executor = Executors.newFixedThreadPool(numWorkers);
     try {
-      final int numIterations = 1000;
-      Collection<Callable<Void>> adds = new ArrayList<>(numThreads);
-      for (int i = 0; i < numThreads; i++) {
+      Collection<Callable<Void>> adds = new ArrayList<>(numWorkers);
+      for (int i = 0; i < numWorkers; i++) {
         adds.add(new LoggingVoidCallable() {
           @Override
           public void doCall() {
@@ -131,8 +131,11 @@ public final class FeatureVectorsTest extends OryxTest {
       }
       executor.invokeAll(adds);
 
-      Collection<Callable<Void>> removes = new ArrayList<>(numThreads);
-      for (int i = 0; i < numThreads; i++) {
+      assertEquals((long) numIterations * numWorkers, fv.size());
+      assertEquals((long) numIterations * numWorkers, counter.get());
+
+      Collection<Callable<Void>> removes = new ArrayList<>(numWorkers);
+      for (int i = 0; i < numWorkers; i++) {
         removes.add(new LoggingVoidCallable() {
           @Override
           public void doCall() {

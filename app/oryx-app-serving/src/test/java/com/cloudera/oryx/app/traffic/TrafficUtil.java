@@ -95,11 +95,12 @@ public final class TrafficUtil {
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     try {
       for (int i = 0; i < numThreads; i++) {
+        final int theI = i;
         executor.submit(new LoggingRunnable() {
           @Override
           public void doRun() {
 
-            RandomGenerator random = RandomManager.getRandom();
+            RandomGenerator random = RandomManager.getRandom(Integer.toString(theI).hashCode() ^ System.nanoTime());
             ExponentialDistribution msBetweenRequests;
             if (perClientRequestIntervalMS > 0) {
               msBetweenRequests = new ExponentialDistribution(random, perClientRequestIntervalMS);
