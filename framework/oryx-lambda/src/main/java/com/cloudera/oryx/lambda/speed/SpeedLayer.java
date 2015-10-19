@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.speed;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -128,8 +127,13 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     modelManager = loadManagerInstance();
     new Thread(new LoggingRunnable() {
       @Override
-      public void doRun() throws IOException {
-        modelManager.consume(transformed, streamingContext.sparkContext().hadoopConfiguration());
+      public void doRun() {
+        try {
+          modelManager.consume(transformed, streamingContext.sparkContext().hadoopConfiguration());
+        } catch (Throwable t) {
+          log.error("Error while consuming updates", t);
+          close();
+        }
       }
     }, "OryxSpeedLayerUpdateConsumerThread").start();
 

@@ -20,7 +20,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import java.io.IOException;
+import java.io.Closeable;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -61,7 +61,7 @@ import com.cloudera.oryx.kafka.util.KafkaUtils;
  * @param <U> type of update/model read from update topic
  */
 @WebListener
-public final class ModelManagerListener<K,M,U> implements ServletContextListener {
+public final class ModelManagerListener<K,M,U> implements ServletContextListener, Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
@@ -142,9 +142,16 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     modelManager = loadManagerInstance();
     new Thread(new LoggingRunnable() {
       @Override
-      public void doRun() throws IOException {
+      public void doRun() {
         // Can we do better than a default Hadoop config? Nothing else provides it here
-        modelManager.consume(transformed, new Configuration());
+        try {
+          modelManager.consume(transformed, new Configuration());
+        } catch (Throwable t) {
+          log.error("Error while consuming updates", t);
+          // Ideally we would shut down ServingLayer, but not clear how to plumb that through
+          // without assuming this has been run from ServingLayer and not a web app deployment
+          close();
+        }
       }
     }, "OryxServingLayerUpdateConsumerThread").start();
 
@@ -155,13 +162,26 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   @Override
   public void contextDestroyed(ServletContextEvent sce) {
     log.info("ModelManagerListener destroying");
-
     // Slightly paranoid; remove objects from app scope manually
     ServletContext context = sce.getServletContext();
     for (Enumeration<String> names = context.getAttributeNames(); names.hasMoreElements();) {
       context.removeAttribute(names.nextElement());
     }
 
+    close();
+
+    // Hacky, but prevents Tomcat from complaining that ZK's cleanup thread 'leaked' since
+    // it has a short sleep at its end
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException ie) {
+      // continue
+    }
+  }
+
+  @Override
+  public synchronized void close() {
+    log.info("ModelManagerListener closing");
     if (modelManager != null) {
       log.info("Shutting down model manager");
       modelManager.close();
@@ -177,13 +197,6 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       consumer.commitOffsets();
       consumer.shutdown();
       consumer = null;
-    }
-    // Hacky, but prevents Tomcat from complaining that ZK's cleanup thread 'leaked' since
-    // it has a short sleep at its end
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException ie) {
-      // continue
     }
   }
 
