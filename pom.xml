@@ -1004,6 +1004,9 @@
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
           <version>3.2.2</version>
+          <configuration>
+            <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
+          </configuration>
           <executions>
             <execution>
               <id>scala-compile-first</id>

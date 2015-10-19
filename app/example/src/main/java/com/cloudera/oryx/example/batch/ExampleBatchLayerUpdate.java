@@ -49,9 +49,10 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
                         JavaPairRDD<String,String> pastData,
                         String modelDirString,
                         TopicProducer<String,String> modelUpdateTopic) throws IOException {
+    JavaPairRDD<String,String> allData = pastData == null ? newData : newData.union(pastData);
     String modelString;
     try {
-      modelString = new ObjectMapper().writeValueAsString(countDistinctOtherWords(newData.union(pastData)));
+      modelString = new ObjectMapper().writeValueAsString(countDistinctOtherWords(allData));
     } catch (JsonProcessingException jpe) {
       throw new IOException(jpe);
     }

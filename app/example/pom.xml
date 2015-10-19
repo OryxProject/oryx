@@ -14,51 +14,79 @@
   License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <!-- Your project does not need to be a child of the Oryx project parent -->
-  <parent>
-    <groupId>com.cloudera.oryx</groupId>
-    <artifactId>oryx</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
-  </parent>
 
   <modelVersion>4.0.0</modelVersion>
+  <groupId>com.cloudera.oryx</groupId>
   <artifactId>example</artifactId>
   <packaging>jar</packaging>
   <name>Example</name>
   <description>Example Application</description>
   <version>2.0.0-SNAPSHOT</version>
 
-  <!-- This is the only essential part of your application build: -->
   <dependencies>
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-api</artifactId>
       <scope>provided</scope>
-      <!-- Set this to the version of Oryx you use -->
-      <version>${project.version}</version>
+      <version>${oryx.version}</version>
     </dependency>
     <!--
-      Use this if you use APIs specific to the project's provided
-      application implementations
+      Use this only if you use APIs specific to the project's provided
+      application implementations, like the ALS Rescorer interface
      -->
     <dependency>
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-app-api</artifactId>
       <scope>provided</scope>
-      <!-- Set this to the version of Oryx you use -->
-      <version>${project.version}</version>
+      <version>${oryx.version}</version>
     </dependency>
   </dependencies>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>1.7</java.version>
+    <!-- Set this to the version of Oryx you use -->
+    <oryx.version>${project.version}</oryx.version>
+  </properties>
+
   <build>
     <plugins>
-      <!-- Use scala compiler if using Scala APIs -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+      <!-- Use scala compiler only if using Scala APIs -->
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
+        <version>3.2.2</version>
+        <configuration>
+          <checkMultipleScalaVersions>false</checkMultipleScalaVersions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>scala-compile-first</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-source</goal>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
+
+  <repositories>
+    <repository>
+      <id>cloudera</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    </repository>
+  </repositories>
 
 </project>

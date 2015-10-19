@@ -15,25 +15,46 @@
 
 package com.cloudera.oryx.example.serving;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.OryxResource;
 
 /**
- * Responds to a POST request to {@code /add/[word]}. Increments the count for the word.
+ * Responds to a POST request to {@code /add/[line]}. Adds a new line of input for processing.
+ * Also responds to a POST to {@code /add} which contains lines in the request body.
  */
 @Path("/add")
 public final class Add extends OryxResource {
 
   @POST
-  @Path("{word}")
-  public void add(@PathParam("word") String word) {
+  @Path("{line}")
+  public void add(@PathParam("line") String line) {
+    getProducer().send(null, line);
+  }
+
+  @POST
+  @Consumes({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+  public void post(Reader reader) throws IOException {
+    TopicProducer<?,String> inputProducer = getProducer();
+    BufferedReader buffered = new BufferedReader(reader);
+    for (String line; (line = buffered.readLine()) != null;) {
+      inputProducer.send(null, line);
+    }
+  }
+
+  private TopicProducer<?,String> getProducer() {
     @SuppressWarnings("unchecked")
     TopicProducer<?,String> inputProducer = (TopicProducer<?,String>) getInputProducer();
-    inputProducer.send(null, word);
+    return inputProducer;
   }
 
 }

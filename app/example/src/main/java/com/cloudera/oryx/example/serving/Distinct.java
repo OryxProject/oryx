@@ -17,6 +17,7 @@ package com.cloudera.oryx.example.serving;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.cloudera.oryx.api.serving.OryxResource;
 
 /**
  * Responds to a GET request to {@code /distinct}. Returns all distinct words and their count.
+ * Responds to a GET request to {@code /distinct/[word]} as well to get the count for one word.
  */
 @Path("/distinct")
 public final class Distinct extends OryxResource {
@@ -32,9 +34,21 @@ public final class Distinct extends OryxResource {
   @GET
   @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   public Map<String,Integer> get() {
+    return getModel().getWords();
+  }
+
+  @GET
+  @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+  @Path("{word}")
+  public int get(@PathParam("word") String word) {
+    Integer count = getModel().getWords().get(word);
+    return count == null ? 0 : count;
+  }
+
+  private ExampleServingModel getModel() {
     @SuppressWarnings("unchecked")
     ExampleServingModel model = (ExampleServingModel) getServingModelManager().getModel();
-    return model.getWords();
+    return model;
   }
 
 }

@@ -76,20 +76,18 @@ implementation while still using the provided ALS Serving and Speed Layers.
 ## Creating an App
 
 In each case, creating a custom Batch, Speed or Serving Layer app amounts to implementing
-one Java interface or Scala trait. These interfaces/traits are found in the `oryx-api` module
-within the project.
+a few key Java interfaces or Scala traits in `com.cloudera.oryx.api`. 
+These interfaces/traits are found in the `oryx-api` module within the project.
 
-|         | Java                                                |
-| -------:|:--------------------------------------------------- |
-| Batch   | [`com.cloudera.oryx.api.batch.BatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/batch/BatchLayerUpdate.java)      |
-| Speed   | [`com.cloudera.oryx.api.speed.SpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/speed/SpeedModelManager.java)     |
-| Serving | [`com.cloudera.oryx.api.serving.ServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/serving/ServingModelManager.java) |
+|         | Java    | Scala   |
+| -------:|:------- |:------- |
+| Batch   | [`batch.BatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/batch/BatchLayerUpdate.java) | [`batch.ScalaBatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-lambda/src/main/scala/com/cloudera/oryx/lambda/batch/ScalaBatchLayerUpdateAdapter.scala) |
+| Speed   | [`speed.SpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/speed/SpeedModelManager.java) | [`speed.ScalaSpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/speed/ScalaSpeedModelManager.scala) |
+| Serving | [`serving.ServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/serving/ServingModelManager.java) | [`serving.ScalaServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/serving/ScalaServingModelManager.scala) |
 
-|         | Scala                                                    |
-| -------:|:-------------------------------------------------------- |
-| Batch   | [`com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-lambda/src/main/java/com/cloudera/oryx/lambda/batch/ScalaBatchLayerUpdateAdapter.java)      |
-| Speed   | [`com.cloudera.oryx.api.speed.ScalaSpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/speed/ScalaSpeedModelManager.scala)     |
-| Serving | [`com.cloudera.oryx.api.serving.ScalaServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/serving/ScalaServingModelManager.scala) |
+`com.cloudera.oryx.api` also contains key support classes and interfaces used by these interfaces.
+For example, [`serving.OryxResource`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/serving/OryxResource.java)
+is a starting point for building custom JAX-RS endpoints, but need not be used.
 
 ## Building an App
 
@@ -123,9 +121,24 @@ need a reference to this repo:
 ```
 
 A minimal skeleton project can be found at [example/](https://github.com/OryxProject/oryx/tree/master/app/example).
+In the spirit of "word count", this application consumes lines of space-separated words, and counts the number of
+distinct words that each word occurs with in a line. For example, in "the quicker the better", each word occurs
+with 2 other distinct words.
 
 Compile your code and create a JAR file containing only your implementation, and any supporting
 third-party code. With Maven, this happens with `mvn package`.
+
+
+### Compiling the Word Count Example
+
+For example, to compile the example app:
+
+```
+cd app/example
+mvn package
+```
+
+The application JAR is produced at `target/example-2.0.0.jar` for example.
 
 ## Customizing an Oryx App
 
@@ -157,3 +170,22 @@ class, as appropriate.
 
 When running the Batch / Speed / Serving Layers, add `--app-jar myapp.jar` to the `oryx-run.sh`
 command line.
+
+### Deploying the Word Count Example
+
+For example, if you've built the packaged example "word count" app above, you can run it by
+copying and adapting the provided [`wordcount-example.conf`](https://github.com/OryxProject/oryx/tree/master/app/conf/wordcount-example.conf)
+configuration file:
+
+```
+./oryx-run.sh batch --conf wordcount-example.conf example-2.0.0.jar
+```
+
+... and similarly for the speed and serving layers. Feed lines of input and then observe counts:
+
+```
+curl -X POST http://.../add/foo%20bar%20baz
+...
+curl http://.../distinct
+{"foo":2,"bar":2,"baz":2}
+```

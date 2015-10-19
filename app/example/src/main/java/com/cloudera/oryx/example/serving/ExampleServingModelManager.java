@@ -53,10 +53,10 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
       switch (key) {
         case "MODEL":
           @SuppressWarnings("unchecked")
-          Map<String,String> model = (Map<String,String>) new ObjectMapper().readValue(message, Map.class);
+          Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
           distinctOtherWords.keySet().retainAll(model.keySet());
-          for (Map.Entry<String,String> entry : model.entrySet()) {
-            distinctOtherWords.put(entry.getKey(), Integer.valueOf(entry.getValue()));
+          for (Map.Entry<String,Integer> entry : model.entrySet()) {
+            distinctOtherWords.put(entry.getKey(), entry.getValue());
           }
           break;
         case "UP":
