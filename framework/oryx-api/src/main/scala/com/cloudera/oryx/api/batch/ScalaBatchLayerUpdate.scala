@@ -26,6 +26,7 @@ import com.cloudera.oryx.api.TopicProducer
  * @tparam K type of key read from input topic
  * @tparam M type of message read from input topic
  * @tparam U type of model message written
+ * @since 2.0.0
  */
 trait ScalaBatchLayerUpdate[K,M,U] {
 
@@ -36,6 +37,7 @@ trait ScalaBatchLayerUpdate[K,M,U] {
    * @param pastData all previously-known data (may be { @code null})
    * @param modelDirString String representation of path where models should be output, if desired
    * @param modelUpdateTopic topic to push models onto, if desired
+   * @since 2.0.0
    */
   def configureUpdate(sparkContext: SparkContext,
                       timestamp: Long,

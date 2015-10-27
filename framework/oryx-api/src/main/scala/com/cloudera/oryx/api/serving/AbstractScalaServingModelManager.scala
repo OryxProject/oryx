@@ -17,14 +17,30 @@ package com.cloudera.oryx.api.serving
 
 import com.typesafe.config.Config
 
+/**
+ * Convenience implementation of [[ScalaServingModelManager]] that provides several default implementations.
+ *
+ * @param config  Oryx [[Config]] object
+ * @tparam U type of update message read/written
+ * @since 2.0.0
+ */
 abstract class AbstractScalaServingModelManager[U](private val config: Config) extends ScalaServingModelManager[U] {
 
   private val readOnly = config.getBoolean("oryx.serving.api.read-only")
 
+  /**
+   * @since 2.0.0
+   */
   override def getConfig = config
 
+  /**
+   * @since 2.0.0
+   */
   override def isReadOnly = readOnly
 
+  /**
+   * @since 2.0.0
+   */
   override def close(): Unit = {}
 
 }

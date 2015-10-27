@@ -23,16 +23,19 @@ import java.io.Serializable;
  * @param <K> key type
  * @param <M> message type
  * @see KeyMessageImpl
+ * @since 2.0.0
  */
 public interface KeyMessage<K,M> extends Serializable {
 
   /**
    * @return key
+   * @since 2.0.0
    */
   K getKey();
 
   /**
    * @return message
+   * @since 2.0.0
    */
   M getMessage();
 

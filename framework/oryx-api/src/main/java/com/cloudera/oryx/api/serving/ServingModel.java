@@ -17,12 +17,15 @@ package com.cloudera.oryx.api.serving;
 
 /**
  * Interface that all Serving Layer in-memory models implement.
+ *
+ * @since 2.0.0
  */
 public interface ServingModel {
 
   /**
    * @return fraction of IDs that were expected to be in the model whose value has been
    *  loaded from an update
+   * @since 2.0.0
    */
   float getFractionLoaded();
 

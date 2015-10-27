@@ -17,12 +17,15 @@ package com.cloudera.oryx.api.speed;
 
 /**
  * Interface that all Speed Layer in-memory models implement.
+ *
+ * @since 2.0.0
  */
 public interface SpeedModel {
 
   /**
    * @return fraction of IDs that were expected to be in the model whose value has been
    *  loaded from an update
+   * @since 2.0.0
    */
   float getFractionLoaded();
 

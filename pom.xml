@@ -601,7 +601,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>2.6.1</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -724,7 +724,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.18.1</version>
+          <version>2.19</version>
           <configuration>
             <systemPropertyVariables>
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
@@ -735,7 +735,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>2.18.1</version>
+          <version>2.19</version>
           <executions>
             <execution>
               <goals>
@@ -868,7 +868,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.16</version>
+          <version>2.17</version>
           <configuration>
             <configLocation>src/checkstyle/checkstyle.xml</configLocation>
           </configuration>

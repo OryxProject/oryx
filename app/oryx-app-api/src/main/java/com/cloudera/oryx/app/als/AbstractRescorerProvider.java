@@ -20,6 +20,8 @@ import java.util.List;
 /**
  * Abstract implementation of {@link RescorerProvider} which implements all methods to
  * return {@code null}.
+ *
+ * @since 2.0.0
  */
 public abstract class AbstractRescorerProvider implements RescorerProvider {
 

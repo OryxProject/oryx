@@ -24,25 +24,32 @@ import java.io.Closeable;
  *
  * @param <K> key type to send
  * @param <M> message type to send
+ * @since 2.0.0
  */
 public interface TopicProducer<K, M> extends Closeable {
 
   /**
    * @return broker(s) that the producer is sending to
+   * @since 2.0.0
    */
   String getUpdateBroker();
 
   /**
    * @return topic that the producer is sending to
+   * @since 2.0.0
    */
   String getTopic();
 
   /**
    * @param key key to send to the topic
    * @param message message to send with key to the topic
+   * @since 2.0.0
    */
   void send(K key, M message);
 
+  /**
+   * @since 2.0.0
+   */
   @Override
   void close();
 

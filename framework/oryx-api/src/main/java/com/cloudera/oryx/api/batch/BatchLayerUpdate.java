@@ -32,6 +32,7 @@ import com.cloudera.oryx.api.TopicProducer;
  * @param <K> type of key read from input topic
  * @param <M> type of message read from input topic
  * @param <U> type of model message written
+ * @since 2.0.0
  */
 public interface BatchLayerUpdate<K,M,U> extends Serializable {
 
@@ -45,6 +46,7 @@ public interface BatchLayerUpdate<K,M,U> extends Serializable {
    * @throws IOException if an error occurs during execution of the update function
    * @throws InterruptedException if the caller is interrupted waiting for parallel tasks
    *  to complete
+   * @since 2.0.0
    */
   void runUpdate(JavaSparkContext sparkContext,
                  long timestamp,

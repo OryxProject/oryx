@@ -22,6 +22,7 @@ import java.util.Objects;
  *
  * @param <K> key type
  * @param <M> message type
+ * @since 2.0.0
  */
 public final class KeyMessageImpl<K,M> implements KeyMessage<K,M> {
 
@@ -31,6 +32,7 @@ public final class KeyMessageImpl<K,M> implements KeyMessage<K,M> {
   /**
    * @param key key
    * @param message message
+   * @since 2.0.0
    */
   public KeyMessageImpl(K key, M message) {
     this.key = key;

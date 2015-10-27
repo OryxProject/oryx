@@ -26,6 +26,7 @@ import java.util.List;
  * the rescorings in the given order.
  *
  * @see MultiRescorerProvider
+ * @since 2.0.0
  */
 public final class MultiRescorer implements Rescorer {
 
@@ -36,17 +37,19 @@ public final class MultiRescorer implements Rescorer {
   }
 
   /**
-   * @param rescorers {@link Rescorer} objects to delegate to
-   * @return {@link Rescorer} aggregating their behaviors
+   * @param rescorers {@link Rescorer}s to aggregate
+   * @return a {@link Rescorer} which combines the rescoring of the given implementations
+   * @since 2.0.0
+   * @throws IllegalArgumentException if {@code rescorers} is empty or null
    */
   public static Rescorer of(Rescorer... rescorers) {
+    if (rescorers == null || rescorers.length == 0) {
+      throw new IllegalArgumentException("rescorers is null or empty");
+    }
     return of(Arrays.asList(rescorers));
   }
 
   static Rescorer of(List<Rescorer> rescorers) {
-    if (rescorers.isEmpty()) {
-      throw new IllegalArgumentException("rescorers is empty");
-    }
     List<Rescorer> expandedRescorers = new ArrayList<>();
     for (Rescorer rescorer : rescorers) {
       // Assuming at most one level of nesting here

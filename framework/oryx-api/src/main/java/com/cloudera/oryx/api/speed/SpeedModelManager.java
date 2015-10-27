@@ -32,6 +32,7 @@ import com.cloudera.oryx.api.KeyMessage;
  * @param <K> type of key read from input topic
  * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
+ * @since 2.0.0
  */
 public interface SpeedModelManager<K,M,U> extends Closeable {
 
@@ -43,6 +44,7 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
    * @param updateIterator iterator to read models from
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    * @throws IOException if an error occurs while reading updates
+   * @since 2.0.0
    */
   void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException;
 
@@ -50,9 +52,13 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
    * @param newData RDD of raw new data from the topic
    * @return updates to publish on the update topic
    * @throws IOException if an error occurs while building updates
+   * @since 2.0.0
    */
   Iterable<U> buildUpdates(JavaPairRDD<K,M> newData) throws IOException;
 
+  /**
+   * @since 2.0.0
+   */
   @Override
   void close();
 

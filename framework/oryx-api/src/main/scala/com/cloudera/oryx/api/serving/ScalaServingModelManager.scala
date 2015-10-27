@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration
  * Scala counterpart to Java ServingModelManager.
  *
  * @tparam U type of update message read/written
+ * @since 2.0.0
  */
 trait ScalaServingModelManager[U] {
 
@@ -33,24 +34,31 @@ trait ScalaServingModelManager[U] {
    *
    * @param updateIterator iterator to read models from
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS
+   * @since 2.0.0
    */
   def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit
 
   /**
    * @return configuration for the serving layer
+   * @since 2.0.0
    */
   def getConfig: Config
 
   /**
    * @return in-memory model representation
+   * @since 2.0.0
    */
   def getModel: ServingModel
 
   /**
    * @return true iff the model is considered read-only and not updateable
+   * @since 2.0.0
    */
   def isReadOnly: Boolean
 
+  /**
+   * @since 2.0.0
+   */
   def close(): Unit
 
 }

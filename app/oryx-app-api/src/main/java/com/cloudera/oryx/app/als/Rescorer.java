@@ -18,6 +18,8 @@ package com.cloudera.oryx.app.als;
 /**
  * Implementations of this interface can "rescore" the recommender's score for a item that is a candidate for
  * recommendation. It can boost or demote an item given its ID, or filter it out entirely.
+ *
+ * @since 2.0.0
  */
 public interface Rescorer {
 
@@ -25,12 +27,14 @@ public interface Rescorer {
    * @param id ID of item to rescore
    * @param originalScore original score from the recommender
    * @return new score; return {@link Double#NaN} to exclude the item from recommendation
+   * @since 2.0.0
    */
   double rescore(String id, double originalScore);
 
   /**
    * @param id of item to consider for filtering
    * @return true iff the item should be removed from consideration
+   * @since 2.0.0
    */
   boolean isFiltered(String id);
 

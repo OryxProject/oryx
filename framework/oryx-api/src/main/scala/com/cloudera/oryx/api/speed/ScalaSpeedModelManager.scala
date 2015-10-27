@@ -26,6 +26,7 @@ import com.cloudera.oryx.api.KeyMessage
  * @tparam K type of key read from input topic
  * @tparam M type of message read from input topic
  * @tparam U type of update message read/written
+ * @since 2.0.0
  */
 trait ScalaSpeedModelManager[K,M,U] {
 
@@ -36,15 +37,20 @@ trait ScalaSpeedModelManager[K,M,U] {
    *
    * @param updateIterator iterator to read models from
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS
+   * @since 2.0.0
    */
   def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit
 
   /**
    * @param newData RDD of raw new data from the topic
    * @return updates to publish on the update topic
+   * @since 2.0.0
    */
   def buildUpdates(newData: RDD[(K,M)]): Iterable[U]
 
+  /**
+   * @since 2.0.0
+   */
   def close(): Unit
 
 }

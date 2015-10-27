@@ -25,6 +25,7 @@ import java.util.List;
  * the rescorings in the given order.
  *
  * @see MultiRescorer
+ * @since 2.0.0
  */
 public final class MultiRescorerProvider extends AbstractRescorerProvider {
 
@@ -34,9 +35,15 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
     this.providers = providers;
   }
 
+  /**
+   * @param providers {@link RescorerProvider}s to aggregate
+   * @return a {@link RescorerProvider} which combines the rescoring of the given implementations
+   * @since 2.0.0
+   * @throws IllegalArgumentException if {@code providers} is empty or null
+   */
   public static RescorerProvider of(RescorerProvider... providers) {
-    if (providers.length == 0) {
-      throw new IllegalArgumentException("providers is empty");
+    if (providers == null || providers.length == 0) {
+      throw new IllegalArgumentException("providers is null or empty");
     }
     List<RescorerProvider> expandedProviders = new ArrayList<>();
     for (RescorerProvider provider : providers) {

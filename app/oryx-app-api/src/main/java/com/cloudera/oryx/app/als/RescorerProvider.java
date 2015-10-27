@@ -42,6 +42,8 @@ import java.util.List;
  * {@code args} parameter with <em>one</em> elements, {@code xxx,yyy,zzz}. A request containing
  * {@code ...?rescorerParams=xxx&...rescorerParams=yyy&...rescorerParams=zzz...} will result in an
  * {@code args} parameter with 3 elements, {@code xxx}, {@code yyy}, {@code zzz}.</p>
+ *
+ * @since 2.0.0
  */
 public interface RescorerProvider {
 
@@ -55,6 +57,7 @@ public interface RescorerProvider {
    *  The resulting {@link Rescorer} will be passed each candidate item ID to
    *  {@link Rescorer#isFiltered(String)}, and each non-filtered candidate with its original score
    *  to {@link Rescorer#rescore(String, double)}
+   * @since 2.0.0
    */
   Rescorer getRecommendRescorer(List<String> userIDs, List<String> args);
 
@@ -67,6 +70,7 @@ public interface RescorerProvider {
    *  The resulting {@link Rescorer} will be passed each candidate item ID to
    *  {@link Rescorer#isFiltered(String)}, and each non-filtered candidate with its original score
    *  to {@link Rescorer#rescore(String, double)}
+   * @since 2.0.0
    */
   Rescorer getRecommendToAnonymousRescorer(List<String> itemIDs, List<String> args);
 
@@ -76,6 +80,7 @@ public interface RescorerProvider {
    *  like current location. What it means is up to the implementation.
    * @return {@link Rescorer} to use or {@code null} if none should be used. Note that
    *  only its {@link Rescorer#isFiltered(String)} method has effect.
+   * @since 2.0.0
    */
   Rescorer getMostPopularItemsRescorer(List<String> args);
 
@@ -85,6 +90,7 @@ public interface RescorerProvider {
    *  like current location. What it means is up to the implementation.
    * @return {@link Rescorer} to use or {@code null} if none should be used. Note that
    *  only its {@link Rescorer#isFiltered(String)} method has effect.
+   * @since 2.0.0
    */
   Rescorer getMostActiveUsersRescorer(List<String> args);
 
@@ -97,6 +103,7 @@ public interface RescorerProvider {
    *  method, the candidate item ID passed in the user query as its second element.
    *  Each non-filtered pair is passed with its original score to
    *  {@link Rescorer#rescore(String, double)}
+   * @since 2.0.0
    */
   Rescorer getMostSimilarItemsRescorer(List<String> args);
 

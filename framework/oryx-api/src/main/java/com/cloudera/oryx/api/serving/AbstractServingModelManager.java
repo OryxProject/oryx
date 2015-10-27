@@ -21,12 +21,17 @@ import com.typesafe.config.Config;
  * Convenience implementation of {@link ServingModelManager} that provides several default implementations.
  *
  * @param <U> type of update message read/written
+ * @since 2.0.0
  */
 public abstract class AbstractServingModelManager<U> implements ServingModelManager<U> {
 
   private final Config config;
   private final boolean readOnly;
 
+  /**
+   * @param config Oryx {@link Config} object
+   * @since 2.0.0
+   */
   protected AbstractServingModelManager(Config config) {
     this.config = config;
     this.readOnly = config.getBoolean("oryx.serving.api.read-only");

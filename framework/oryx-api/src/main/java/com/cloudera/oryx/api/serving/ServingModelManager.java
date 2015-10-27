@@ -30,6 +30,7 @@ import com.cloudera.oryx.api.KeyMessage;
  * and consumes models and updates from it, and updates in-memory state accordingly.
  *
  * @param <U> type of update message read/written
+ * @since 2.0.0
  */
 public interface ServingModelManager<U> extends Closeable {
 
@@ -41,24 +42,31 @@ public interface ServingModelManager<U> extends Closeable {
    * @param updateIterator iterator to read models from
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS
    * @throws IOException if an error occurs while reading updates
+   * @since 2.0.0
    */
   void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException;
 
   /**
    * @return configuration for the serving layer
+   * @since 2.0.0
    */
   Config getConfig();
 
   /**
    * @return in-memory model representation
+   * @since 2.0.0
    */
   ServingModel getModel();
 
   /**
    * @return true iff the model is considered read-only and not updateable
+   * @since 2.0.0
    */
   boolean isReadOnly();
 
+  /**
+   * @since 2.0.0
+   */
   @Override
   void close();
 

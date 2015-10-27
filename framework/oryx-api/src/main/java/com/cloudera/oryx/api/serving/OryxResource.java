@@ -26,6 +26,8 @@ import com.cloudera.oryx.api.TopicProducer;
 /**
  * A utility class that can serve as a superclass of Serving Layer application endpoints.
  * It handles loading provided objects like a {@link ServingModelManager}.
+ *
+ * @since 2.0.0
  */
 public abstract class OryxResource {
 
@@ -50,6 +52,7 @@ public abstract class OryxResource {
   /**
    * @return a reference to the {@link ServingModelManager} for the app, configured in the
    *  {@link ServletContext} under key {@link #MODEL_MANAGER_KEY}
+   * @since 2.0.0
    */
   protected final ServingModelManager<?> getServingModelManager() {
     return servingModelManager;
@@ -58,6 +61,7 @@ public abstract class OryxResource {
   /**
    * @return a reference to the {@link TopicProducer} for the app, configured in the
    *  {@link ServletContext} under key {@link #INPUT_PRODUCER_KEY}
+   * @since 2.0.0
    */
   protected final TopicProducer<?,?> getInputProducer() {
     Objects.requireNonNull(inputProducer, "No input producer available; read-only mode?");
