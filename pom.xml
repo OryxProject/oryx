@@ -487,6 +487,7 @@
     <module>app/oryx-app-mllib</module>
     <module>app/oryx-app</module>
     <module>app/oryx-app-serving</module>
+    <module>app/example</module>
     <module>deploy/oryx-batch</module>
     <module>deploy/oryx-speed</module>
     <module>deploy/oryx-serving</module>
@@ -1221,17 +1222,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <profile>
-      <id>example</id>
-      <activation>
-        <property>
-          <name>!performRelease</name>
-        </property>
-      </activation>
-      <modules>
-        <module>app/example</module>
-      </modules>
     </profile>
   </profiles>
 
