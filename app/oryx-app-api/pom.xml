@@ -48,8 +48,6 @@
     </dependency>
   </dependencies>
 
-  <!-- reenable at 2.0.0 release -->
-  <!--
   <build>
     <plugins>
       <plugin>
@@ -58,6 +56,5 @@
       </plugin>
     </plugins>
   </build>
-   -->
 
 </project>

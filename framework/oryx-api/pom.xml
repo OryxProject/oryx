@@ -72,13 +72,10 @@
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
       </plugin>
-      <!-- reenable at 2.0.0 release -->
-      <!--
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
       </plugin>
-       -->
     </plugins>
   </build>
 
