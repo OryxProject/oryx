@@ -11,7 +11,7 @@ matrix:
    - jdk: oraclejdk7
      env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.1
    # Covers Java 8, Spark 1.5
-   - jdk: oraclejdk
+   - jdk: oraclejdk8
      env: JAVA_VERSION=8 SPARK=-Dspark.version=1.5.1
    # Covers CDH 5.4
    - jdk: oraclejdk7
