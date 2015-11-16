@@ -217,30 +217,34 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     // Then delete everything else
     fs.delete(candidatesPath, true);
 
-    // Push PMML model onto update topic, if it exists
-    Path bestModelPath = new Path(finalPath, MODEL_FILE_NAME);
-    if (fs.exists(bestModelPath)) {
-      FileStatus bestModelPathFS = fs.getFileStatus(bestModelPath);
-      PMML bestModel = null;
-      boolean modelNeededForUpdates = canPublishAdditionalModelData();
-      boolean modelNotTooLarge = bestModelPathFS.getLen() <= maxMessageSize;
-      if (modelNeededForUpdates || modelNotTooLarge) {
-        // Either the model is required for publishAdditionalModelData, or required because it's going to
-        // be serialized to Kafka
-        try (InputStream in = fs.open(bestModelPath)) {
-          bestModel = PMMLUtils.read(in);
+    if (modelUpdateTopic == null) {
+      log.info("No update topic configured, not publishing models to a topic");
+    } else {
+      // Push PMML model onto update topic, if it exists
+      Path bestModelPath = new Path(finalPath, MODEL_FILE_NAME);
+      if (fs.exists(bestModelPath)) {
+        FileStatus bestModelPathFS = fs.getFileStatus(bestModelPath);
+        PMML bestModel = null;
+        boolean modelNeededForUpdates = canPublishAdditionalModelData();
+        boolean modelNotTooLarge = bestModelPathFS.getLen() <= maxMessageSize;
+        if (modelNeededForUpdates || modelNotTooLarge) {
+          // Either the model is required for publishAdditionalModelData, or required because it's going to
+          // be serialized to Kafka
+          try (InputStream in = fs.open(bestModelPath)) {
+            bestModel = PMMLUtils.read(in);
+          }
         }
-      }
 
-      if (modelNotTooLarge) {
-        modelUpdateTopic.send("MODEL", PMMLUtils.toString(bestModel));
-      } else {
-        modelUpdateTopic.send("MODEL-REF", fs.makeQualified(bestModelPath).toString());
-      }
+        if (modelNotTooLarge) {
+          modelUpdateTopic.send("MODEL", PMMLUtils.toString(bestModel));
+        } else {
+          modelUpdateTopic.send("MODEL-REF", fs.makeQualified(bestModelPath).toString());
+        }
 
-      if (modelNeededForUpdates) {
-        publishAdditionalModelData(
-            sparkContext, bestModel, newData, pastData, finalPath, modelUpdateTopic);
+        if (modelNeededForUpdates) {
+          publishAdditionalModelData(
+              sparkContext, bestModel, newData, pastData, finalPath, modelUpdateTopic);
+        }
       }
     }
 

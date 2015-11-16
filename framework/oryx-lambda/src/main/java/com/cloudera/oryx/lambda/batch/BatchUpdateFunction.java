@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.TopicProducer;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.TopicProducerImpl;
 
 /**
@@ -76,8 +77,8 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
     this.messageWritableClass = messageWritableClass;
     this.dataDirString = dataDirString;
     this.modelDirString = modelDirString;
-    this.updateBroker = config.getString("oryx.update-topic.broker");
-    this.updateTopic = config.getString("oryx.update-topic.message.topic");
+    this.updateBroker = ConfigUtils.getOptionalString(config, "oryx.update-topic.broker");
+    this.updateTopic = ConfigUtils.getOptionalString(config, "oryx.update-topic.message.topic");
     this.updateInstance = updateInstance;
     this.sparkContext = streamingContext.sparkContext();
   }
@@ -128,16 +129,26 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                                         messageWritableClass));
     }
 
-    // This TopicProducer should not be async; sends one big model generally and
-    // needs to occur before other updates reliably rather than be buffered
-    try (TopicProducer<String,U> producer =
-             new TopicProducerImpl<>(updateBroker, updateTopic, false)) {
+    if (updateTopic == null || updateBroker == null) {
+      log.info("Not producing updates to update topic since none was configured");
       updateInstance.runUpdate(sparkContext,
                                timestamp.milliseconds(),
                                newData,
                                pastData,
                                modelDirString,
-                               producer);
+                               null);
+    } else {
+      // This TopicProducer should not be async; sends one big model generally and
+      // needs to occur before other updates reliably rather than be buffered
+      try (TopicProducer<String,U> producer =
+               new TopicProducerImpl<>(updateBroker, updateTopic, false)) {
+        updateInstance.runUpdate(sparkContext,
+                                 timestamp.milliseconds(),
+                                 newData,
+                                 pastData,
+                                 modelDirString,
+                                 producer);
+      }
     }
 
     return null;

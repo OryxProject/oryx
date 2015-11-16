@@ -91,8 +91,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
     this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
     this.inputBroker = config.getString("oryx.input-topic.broker");
-    this.updateTopic = config.getString("oryx.update-topic.message.topic");
-    this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
+    this.updateTopic = ConfigUtils.getOptionalString(config, "oryx.update-topic.message.topic");
+    this.updateTopicLockMaster = ConfigUtils.getOptionalString(config, "oryx.update-topic.lock.master");
     this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
@@ -211,9 +211,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     Preconditions.checkArgument(
         com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
         "Topic %s does not exist; did you create it?", inputTopic);
-    Preconditions.checkArgument(
-        com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
-        "Topic %s does not exist; did you create it?", updateTopic);
+    if (updateTopic != null && updateTopicLockMaster != null) {
+      Preconditions.checkArgument(
+          com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+          "Topic %s does not exist; did you create it?", updateTopic);
+    }
 
     Map<String,String> kafkaParams = new HashMap<>();
     //kafkaParams.put("zookeeper.connect", inputTopicLockMaster);

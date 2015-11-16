@@ -42,7 +42,8 @@ public interface BatchLayerUpdate<K,M,U> extends Serializable {
    * @param newData data that has arrived in current interval
    * @param pastData all previously-known data (may be {@code null})
    * @param modelDirString String representation of path where models should be output, if desired
-   * @param modelUpdateTopic topic to push models onto, if desired
+   * @param modelUpdateTopic topic to push models onto, if desired. Note that this may be {@code null}
+   *  if the application is configured to not produce updates to a topic
    * @throws IOException if an error occurs during execution of the update function
    * @throws InterruptedException if the caller is interrupted waiting for parallel tasks
    *  to complete
