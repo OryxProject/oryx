@@ -413,7 +413,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.2.2.RELEASE</version>
+        <version>4.2.3.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -510,7 +510,7 @@
     <koloboke.version>0.6.8</koloboke.version>
     <slf4j.version>1.7.13</slf4j.version>
     <spark.version>1.5.2</spark.version>
-    <tomcat.version>8.0.28</tomcat.version>
+    <tomcat.version>8.0.29</tomcat.version>
     <typesafe.config.version>1.2.1</typesafe.config.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
