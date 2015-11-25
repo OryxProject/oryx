@@ -7,16 +7,7 @@ matrix:
    # Covers Java 7, Open JDK, and code coverage
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
-   # Covers Spark 1.4
-   - jdk: oraclejdk7
-     env: JAVA_VERSION=7 SPARK=-Dspark.version=1.4.1
-   # Covers Java 8, Spark 1.5
-   - jdk: oraclejdk8
-     env: JAVA_VERSION=8 SPARK=-Dspark.version=1.5.2
-   # Covers CDH 5.4
-   - jdk: oraclejdk7
-     env: JAVA_VERSION=7 CDH=-Pcdh54
-   # Covers CDH 5.5
+   # Covers CDH 5.5, Java 8
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh55
 cache:

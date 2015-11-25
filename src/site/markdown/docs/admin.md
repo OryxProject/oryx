@@ -2,19 +2,21 @@ title: Docs: Admin
 
 # Cluster Setup
 
-The following are required:
+The following are required as of Oryx 2.1.0:
 
 - Java 7 or later (JRE only is required)
 - A Hadoop cluster running the following components:
     - Apache Hadoop 2.6.0 or later
     - Apache Zookeeper 3.4.5 or later
-    - Apache Kafka 0.8.2 or later
-    - Apache Spark 1.3.0 or later
+    - Apache Kafka 0.8.2 or later (in 0.8.x line)
+    - Apache Spark 1.5.0 or later
 
 [CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
-5.4.0 and later meet these requirements, although any Hadoop distribution with these
-components should work fine. While the rest of the instructions will refer to a CDH 5.4.0+
+5.5.0 and later meet these requirements, although any Hadoop distribution with these
+components should work fine. While the rest of the instructions will refer to a CDH 5.5+
 distribution, this is not a requirement.
+
+_Note: Oryx 2.0.x requires only Spark 1.3.0 and CDH 5.4.x_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
