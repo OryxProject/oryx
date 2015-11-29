@@ -188,10 +188,10 @@ public final class RDFPMMLUtils {
         // Categorical target
         Map<String,Integer> targetEncoding =
             categoricalValueEncodings.getValueEncodingMap(targetIndex);
-        int[] categoryCounts = new int[targetEncoding.size()];
+        double[] categoryCounts = new double[targetEncoding.size()];
         for (ScoreDistribution dist : scoreDistributions) {
           int encoding = targetEncoding.get(dist.getValue());
-          categoryCounts[encoding] = (int) Math.round(dist.getRecordCount());
+          categoryCounts[encoding] = dist.getRecordCount();
         }
         prediction = new CategoricalPrediction(categoryCounts);
       } else {

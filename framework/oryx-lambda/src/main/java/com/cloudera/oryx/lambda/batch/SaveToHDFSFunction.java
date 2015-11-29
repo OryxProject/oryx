@@ -28,41 +28,49 @@ import org.slf4j.LoggerFactory;
  * Function that saves RDDs to HDFS -- only if they're non empty, to prevent creation
  * of many small empty files if data is infrequent but the model interval is short.
  */
-final class SaveToHDFSFunction
-    implements Function2<JavaPairRDD<Writable,Writable>,Time,Void> {
+final class SaveToHDFSFunction<K,M> implements Function2<JavaPairRDD<K,M>,Time,Void> {
 
   private static final Logger log = LoggerFactory.getLogger(SaveToHDFSFunction.class);
 
   private final String prefix;
   private final String suffix;
+  private final Class<K> keyClass;
+  private final Class<M> messageClass;
   private final Class<? extends Writable> keyWritableClass;
   private final Class<? extends Writable> messageWritableClass;
   private final Configuration hadoopConf;
 
   SaveToHDFSFunction(String prefix,
                      String suffix,
+                     Class<K> keyClass,
+                     Class<M> messageClass,
                      Class<? extends Writable> keyWritableClass,
                      Class<? extends Writable> messageWritableClass,
                      Configuration hadoopConf) {
     this.prefix = prefix;
     this.suffix = suffix;
+    this.keyClass = keyClass;
+    this.messageClass = messageClass;
     this.keyWritableClass = keyWritableClass;
     this.messageWritableClass = messageWritableClass;
     this.hadoopConf = hadoopConf;
   }
 
   @Override
-  public Void call(JavaPairRDD<Writable, Writable> rdd, Time time) {
+  public Void call(JavaPairRDD<K,M> rdd, Time time) {
     if (rdd.isEmpty()) {
       log.info("RDD was empty, not saving to HDFS");
     } else {
       String file = prefix + "-" + time.milliseconds() + "." + suffix;
       log.info("Saving RDD to HDFS at {}", file);
-      rdd.saveAsNewAPIHadoopFile(file,
-                                 keyWritableClass,
-                                 messageWritableClass,
-                                 SequenceFileOutputFormat.class,
-                                 hadoopConf);
+      rdd.mapToPair(
+          new ValueToWritableFunction<>(keyClass, messageClass, keyWritableClass, messageWritableClass)
+      ).saveAsNewAPIHadoopFile(
+          file,
+          keyWritableClass,
+          messageWritableClass,
+          SequenceFileOutputFormat.class,
+          hadoopConf);
     }
     return null;
   }
