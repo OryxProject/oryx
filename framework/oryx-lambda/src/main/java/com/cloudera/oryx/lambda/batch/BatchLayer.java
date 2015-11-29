@@ -97,20 +97,15 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
                                   loadUpdateInstance(),
                                   streamingContext));
 
-    // Save data to HDFS. Write the original message type, not transformed.
-    JavaPairDStream<Writable,Writable> writableDStream = pairDStream.mapToPair(
-        new ValueToWritableFunction<>(keyClass,
-                                      messageClass,
-                                      keyWritableClass,
-                                      messageWritableClass));
-
     // "Inline" saveAsNewAPIHadoopFiles to be able to skip saving empty RDDs
-    writableDStream.foreachRDD(
-        new SaveToHDFSFunction(dataDirString + "/oryx",
-                               "data",
-                               keyWritableClass,
-                               messageWritableClass,
-                               streamingContext.sparkContext().hadoopConfiguration()));
+    pairDStream.foreachRDD(new SaveToHDFSFunction<>(
+        dataDirString + "/oryx",
+        "data",
+        keyClass,
+        messageClass,
+        keyWritableClass,
+        messageWritableClass,
+        streamingContext.sparkContext().hadoopConfiguration()));
 
     dStream.foreachRDD(new UpdateOffsetsFn<K,M>(getGroupID(), getInputTopicLockMaster()));
 

@@ -31,60 +31,61 @@ import com.cloudera.oryx.app.rdf.example.FeatureType;
  */
 public final class CategoricalPrediction extends Prediction {
 
-  private final int[] categoryCounts;
+  /** "counts" can be fractional, or less than 1 */
+  private final double[] categoryCounts;
+  /** Normalized categoryCounts */
   private volatile double[] categoryProbabilities;
   private volatile int maxCategory;
 
   public CategoricalPrediction(int[] categoryCounts) {
-    super(sum(categoryCounts));
+    this(toDoubles(categoryCounts));
+  }
+
+  private static double[] toDoubles(int[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = values[i];
+    }
+    return result;
+  }
+
+  /**
+   * @param categoryCounts "counts" for each category, which may be fractional
+   */
+  public CategoricalPrediction(double[] categoryCounts) {
+    super((int) Math.round(sum(categoryCounts)));
+    Preconditions.checkArgument(sum(categoryCounts) > 0.0);
     this.categoryCounts = categoryCounts;
     recompute();
   }
 
-  private static int sum(int[] categoryCounts) {
-    int total = 0;
-    for (int count : categoryCounts) {
+  private static double sum(double[] categoryCounts) {
+    double total = 0.0;
+    for (double count : categoryCounts) {
       total += count;
     }
     return total;
   }
 
   private synchronized void recompute() {
-    int total = getCount();
-    int maxCount = -1;
+    double total = sum(categoryCounts);
+    double maxCount = Double.NEGATIVE_INFINITY;
     int theMaxCategory = -1;
     double[] newCategoryProbabilities = new double[categoryCounts.length];
     for (int i = 0; i < newCategoryProbabilities.length; i++) {
-      int count = categoryCounts[i];
+      double count = categoryCounts[i];
       if (count > maxCount) {
         maxCount = count;
         theMaxCategory = i;
       }
-      newCategoryProbabilities[i] = (double) count / total;
+      newCategoryProbabilities[i] = count / total;
     }
+    Preconditions.checkArgument(theMaxCategory >= 0);
     categoryProbabilities = newCategoryProbabilities;
-    Preconditions.checkArgument(theMaxCategory >= 0);
     maxCategory = theMaxCategory;
   }
 
-  public CategoricalPrediction(double[] categoryProbabilities) {
-    super(0);
-    this.categoryCounts = null;
-    this.categoryProbabilities = categoryProbabilities;
-    double maxProbability = Double.NEGATIVE_INFINITY;
-    int theMaxCategory = -1;
-    for (int i = 0; i < categoryProbabilities.length; i++) {
-      double probability = categoryProbabilities[i];
-      if (probability > maxProbability) {
-        maxProbability = probability;
-        theMaxCategory = i;
-      }
-    }
-    Preconditions.checkArgument(theMaxCategory >= 0);
-    maxCategory = theMaxCategory;
-  }
-
-  public int[] getCategoryCounts() {
+  public double[] getCategoryCounts() {
     return categoryCounts;
   }
 
@@ -122,12 +123,12 @@ public final class CategoricalPrediction extends Prediction {
       return false;
     }
     CategoricalPrediction other = (CategoricalPrediction) o;
-    return Arrays.equals(categoryProbabilities, other.categoryProbabilities);
+    return Arrays.equals(categoryCounts, other.categoryCounts);
   }
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(categoryProbabilities);
+    return Arrays.hashCode(categoryCounts);
   }
 
   @Override

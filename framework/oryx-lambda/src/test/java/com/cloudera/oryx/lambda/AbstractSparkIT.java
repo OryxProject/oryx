@@ -16,12 +16,17 @@
 package com.cloudera.oryx.lambda;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.cloudera.oryx.common.OryxTest;
 
+/**
+ * Superclass of integration tests that need Spark, directly, but not any of the Oryx
+ * infrastructure.
+ */
 public abstract class AbstractSparkIT extends OryxTest {
 
   private static JavaSparkContext javaSparkContext;
@@ -29,7 +34,7 @@ public abstract class AbstractSparkIT extends OryxTest {
   @BeforeClass
   public static void setUp() {
     SparkConf sparkConf = new SparkConf().setMaster("local[*]").setAppName("SparkIT");
-    javaSparkContext = new JavaSparkContext(sparkConf);
+    javaSparkContext = JavaSparkContext.fromSparkContext(SparkContext.getOrCreate(sparkConf));
   }
 
   @AfterClass

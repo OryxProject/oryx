@@ -24,7 +24,7 @@ import com.cloudera.oryx.common.OryxTest;
 public final class ValueWritableConverterTest extends OryxTest {
 
   @Test
-  public void testTest() {
+  public void testText() {
     ValueWritableConverter<String> converter =
         new ValueWritableConverter<>(String.class, Text.class);
     assertEquals("foo", converter.fromWritable(new Text("foo")));

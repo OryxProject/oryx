@@ -31,6 +31,7 @@ import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
@@ -201,8 +202,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
 
-    return new JavaStreamingContext(new JavaSparkContext(sparkConf),
-                                    new Duration(generationIntervalMS));
+    JavaSparkContext jsc = JavaSparkContext.fromSparkContext(SparkContext.getOrCreate(sparkConf));
+    return new JavaStreamingContext(jsc, new Duration(generationIntervalMS));
   }
 
   protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(

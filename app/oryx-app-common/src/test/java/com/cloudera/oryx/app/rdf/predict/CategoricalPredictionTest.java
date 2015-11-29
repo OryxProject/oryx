@@ -33,7 +33,7 @@ public final class CategoricalPredictionTest extends OryxTest {
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
     assertEquals(FeatureType.CATEGORICAL, prediction.getFeatureType());
     assertEquals(4, prediction.getMostProbableCategoryEncoding());
-    assertArrayEquals(counts, prediction.getCategoryCounts());
+    assertArrayEquals(toDoubles(counts), prediction.getCategoryCounts());
     assertArrayEquals(new double[] {0.0, 0.125, 0.375, 0.0, 0.5, 0.0},
                       prediction.getCategoryProbabilities());
   }
@@ -44,7 +44,6 @@ public final class CategoricalPredictionTest extends OryxTest {
     CategoricalPrediction prediction = new CategoricalPrediction(probability);
     assertEquals(FeatureType.CATEGORICAL, prediction.getFeatureType());
     assertEquals(4, prediction.getMostProbableCategoryEncoding());
-    assertNull(prediction.getCategoryCounts());
     assertArrayEquals(probability, prediction.getCategoryProbabilities());
   }
 
@@ -58,7 +57,7 @@ public final class CategoricalPredictionTest extends OryxTest {
     prediction.update(example);
     assertEquals(2, prediction.getMostProbableCategoryEncoding());
     counts[2] += 2;
-    assertArrayEquals(counts, prediction.getCategoryCounts());
+    assertArrayEquals(toDoubles(counts), prediction.getCategoryCounts());
     assertArrayEquals(new double[] {0.0, 0.1, 0.5, 0.0, 0.4, 0.0},
                       prediction.getCategoryProbabilities());
   }
@@ -69,7 +68,7 @@ public final class CategoricalPredictionTest extends OryxTest {
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
     prediction.update(0, 3);
     prediction.update(1, 9);
-    assertArrayEquals(new int[] { 3, 10, 3, 0, 4, 0 }, prediction.getCategoryCounts());
+    assertArrayEquals(new double[] { 3, 10, 3, 0, 4, 0 }, prediction.getCategoryCounts());
     assertArrayEquals(new double[] {0.15, 0.5, 0.15, 0.0, 0.2, 0.0},
                       prediction.getCategoryProbabilities());
   }
@@ -78,7 +77,7 @@ public final class CategoricalPredictionTest extends OryxTest {
   public void testHashCode() {
     int[] counts = { 0, 1, 3, 0, 4, 0 };
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
-    assertEquals(-504480959, prediction.hashCode());
+    assertEquals(566115137, prediction.hashCode());
   }
 
   @Test
@@ -93,6 +92,14 @@ public final class CategoricalPredictionTest extends OryxTest {
     int[] counts = { 0, 1, 3, 0, 4, 0 };
     CategoricalPrediction prediction = new CategoricalPrediction(counts);
     assertNotEquals(prediction, new CategoricalPrediction(new int[] { 1, 2, 4, 5, 6, 7 }));
+  }
+
+  private static double[] toDoubles(int[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < result.length; i++) {
+      result[i] = values[i];
+    }
+    return result;
   }
 
 }
