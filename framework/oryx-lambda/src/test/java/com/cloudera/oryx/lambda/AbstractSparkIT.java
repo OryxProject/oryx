@@ -34,7 +34,7 @@ public abstract class AbstractSparkIT extends OryxTest {
   @BeforeClass
   public static void setUp() {
     SparkConf sparkConf = new SparkConf().setMaster("local[*]").setAppName("SparkIT");
-    javaSparkContext = JavaSparkContext.fromSparkContext(SparkContext.getOrCreate(sparkConf));
+    javaSparkContext = JavaSparkContext.fromSparkContext(new SparkContext(sparkConf));
   }
 
   @AfterClass

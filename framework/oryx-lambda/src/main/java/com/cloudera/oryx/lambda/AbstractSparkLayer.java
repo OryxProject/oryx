@@ -202,7 +202,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
 
-    JavaSparkContext jsc = JavaSparkContext.fromSparkContext(SparkContext.getOrCreate(sparkConf));
+    JavaSparkContext jsc = JavaSparkContext.fromSparkContext(new SparkContext(sparkConf));
     return new JavaStreamingContext(jsc, new Duration(generationIntervalMS));
   }
 
