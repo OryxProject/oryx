@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValue;
 import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
@@ -73,6 +74,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final Class<? extends Decoder<K>> keyDecoderClass;
   private final Class<? extends Decoder<M>> messageDecoderClass;
   private final int generationIntervalSec;
+  private final Map<String,Object> extraSparkConfig;
 
   @SuppressWarnings("unchecked")
   protected AbstractSparkLayer(Config config) {
@@ -97,6 +99,11 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.messageDecoderClass = (Class<? extends Decoder<M>>) ClassUtils.loadClass(
         config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
     this.generationIntervalSec = config.getInt("oryx." + group + ".streaming.generation-interval-sec");
+
+    this.extraSparkConfig = new HashMap<>();
+    for (Map.Entry<String,ConfigValue> e : config.getConfig("oryx." + group + ".streaming.config").entrySet()) {
+      extraSparkConfig.put(e.getKey(), e.getValue().unwrapped());
+    }
 
     Preconditions.checkArgument(generationIntervalSec > 0);
   }
@@ -158,13 +165,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       log.info("Overriding app name to {} for tests", appName);
       sparkConf.setAppName(appName);
     }
-    // TODO these are hard-coded to match what's set by default in oryx-run.sh
-    // They're here to make sure tests run with the same essential properties
-    // This could possible be defined in the .conf file and read by the code and
-    // also oryx-run.sh to have a single source of truth.
-    sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-    sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
-    sparkConf.setIfMissing("spark.logConf", "true");
+    for (Map.Entry<String,?> e : extraSparkConfig.entrySet()) {
+      sparkConf.setIfMissing(e.getKey(), e.getValue().toString());
+    }
 
     // Turn this down to prevent long blocking at shutdown
     sparkConf.setIfMissing(

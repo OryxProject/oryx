@@ -35,6 +35,7 @@ printLatest "spark-assembly-*.jar"
 printLatest "zookeeper-*.jar"
 printLatest "hadoop-common-*.jar"
 printLatest "commons-collections-*.jar"
+printLatest "snappy-java-*.jar"
 
 # These are needed for submitting the serving layer in YARN mode
 printLatest "hadoop-yarn-applications-distributedshell-*.jar"

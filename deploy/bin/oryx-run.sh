@@ -163,6 +163,7 @@ batch|speed|serving)
     setVarFromProperty "NUM_EXECUTORS" "oryx\.${COMMAND}\.streaming\.num-executors"
     setVarFromProperty "DYNAMIC_ALLOCATION" "oryx\.${COMMAND}\.streaming\.dynamic-allocation"
     setVarFromProperty "SPARK_UI_PORT" "oryx\.${COMMAND}\.ui\.port"
+    SPARK_EXTRA_CONFIG=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.${COMMAND}\.streaming\.config\..+=.+$" | grep -oE "spark.+$"`
     ;;
 
   serving)
@@ -187,15 +188,14 @@ batch|speed|serving)
   case "${DEPLOYMENT}" in
   spark-submit)
     # Launch Spark-based layer with spark-submit
-    # TODO the various --conf options are partially duplicated in AbstractSparkLayer for tests;
-    # unify them in the .conf file where both this script and code can access them?
 
     SPARK_SUBMIT_CMD="spark-submit --master ${SPARK_MASTER} --name ${APP_NAME} --class ${MAIN_CLASS} \
      --jars ${SPARK_STREAMING_JARS} --files ${CONFIG_FILE} --driver-memory ${DRIVER_MEMORY} \
-     --driver-java-options ${SPARK_JAVA_OPTS} --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
-     --conf spark.executor.extraJavaOptions=\"${SPARK_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT} \
-     --conf spark.io.compression.codec=lzf --conf spark.speculation=true --conf spark.logConf=true \
-     --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.ui.showConsoleProgress=false "
+     --driver-java-options \"${SPARK_JAVA_OPTS}\" --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
+     --conf spark.executor.extraJavaOptions=\"${SPARK_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT}"
+    for SPARK_KEY_VALUE_CONF in ${SPARK_EXTRA_CONFIG}; do
+      SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --conf ${SPARK_KEY_VALUE_CONF}"
+    done
     case "${DYNAMIC_ALLOCATION}" in
     true)
       SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --conf spark.dynamicAllocation.enabled=true \
