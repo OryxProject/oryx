@@ -134,7 +134,7 @@ public final class IOUtilsTest extends OryxTest {
   @Test
   public void testChooseFreePort() throws IOException {
     int freePort = IOUtils.chooseFreePort();
-    assertTrue(freePort >= 1024 && freePort < 65536);
+    assertRange(freePort, 1024, 65535);
     try (ServerSocket socket = new ServerSocket(freePort, 0)) {
       assertEquals(freePort, socket.getLocalPort());
     }

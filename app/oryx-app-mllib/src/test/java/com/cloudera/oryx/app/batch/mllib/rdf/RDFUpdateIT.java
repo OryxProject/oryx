@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.batch.mllib.rdf;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -87,8 +86,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
-      assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
-      assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      assertNonEmpty(modelFile);
       PMMLUtils.read(modelFile); // Shouldn't throw exception
     }
 
@@ -164,7 +162,8 @@ public final class RDFUpdateIT extends AbstractRDFIT {
   private static void checkNode(Node node) {
     assertNotNull(node.getId());
     List<ScoreDistribution> scoreDists = node.getScoreDistributions();
-    if (scoreDists.isEmpty()) {
+    int numDists = scoreDists.size();
+    if (numDists == 0) {
       // Non-leaf
       List<Node> children = node.getNodes();
       assertEquals(2, children.size());
@@ -179,7 +178,17 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       checkNode(leftChild);
     } else {
       // Leaf
-      assertEquals(1, scoreDists.size());
+      assertRange(numDists, 1, 2);
+      ScoreDistribution first = scoreDists.get(0);
+      if (numDists == 1) {
+        assertEquals(1.0, first.getConfidence().doubleValue());
+      } else {
+        assertGreater(first.getConfidence(), 0.0);
+        assertLess(first.getConfidence(), 1.0);
+        ScoreDistribution second = scoreDists.get(1);
+        assertGreater(second.getConfidence(), 0.0);
+        assertLess(second.getConfidence(), 1.0);
+      }
     }
   }
 
