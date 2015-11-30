@@ -93,6 +93,21 @@ public abstract class OryxTest extends Assert {
     Assert.assertTrue(a + " should be <= " + b, a <= b);
   }
 
+  public static void assertRange(double a, double min, double max) {
+    assertGreaterOrEqual(a, min);
+    assertLessOrEqual(a, max);
+  }
+
+  public static void assertRange(int a, int min, int max) {
+    Assert.assertTrue(a + " should be >= " + min, a >= min);
+    Assert.assertTrue(a + " should be <= " + max, a <= max);
+  }
+
+  public static void assertElementIndex(int i, int size) {
+    Assert.assertTrue(i + " should be >= 0", i >= 0);
+    Assert.assertTrue(i + " should be < " + size, i < size);
+  }
+
   public static <T> void assertContains(Collection<T> collection, T value) {
     assertTrue(abbreviatedToString(collection) + " should contain " + value, collection.contains(value));
   }
@@ -133,6 +148,11 @@ public abstract class OryxTest extends Assert {
       assertEquals(expected.size(), actual.size());
       assertTrue(expected.containsAll(actual) && actual.containsAll(expected));
     }
+  }
+
+  protected static void assertNonEmpty(Path p) throws IOException {
+    assertTrue("File should exist: " + p, Files.exists(p));
+    assertTrue("File should not be empty: " + p, Files.size(p) > 0);
   }
 
   protected static void sleepSeconds(int seconds) {

@@ -86,8 +86,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
-      assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
-      assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      assertNonEmpty(modelFile);
       PMMLUtils.read(modelFile); // Shouldn't throw exception
       Path xDir = modelInstanceDir.resolve("X");
       assertTrue(Files.exists(xDir));
@@ -144,7 +143,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           assertFalse(knownUsersItems.isEmpty());
           for (String known : knownUsersItems) {
             int i = ALSUtilsTest.stringIDtoID(known);
-            assertTrue(i >= 0 && i < NUM_USERS_ITEMS);
+            assertElementIndex(i, NUM_USERS_ITEMS);
           }
         }
 

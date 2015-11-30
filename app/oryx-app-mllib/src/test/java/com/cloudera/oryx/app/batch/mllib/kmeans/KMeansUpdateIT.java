@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -76,8 +75,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
-      assertTrue("Model file should exist: " + modelFile, Files.exists(modelFile));
-      assertTrue("Model file should not be empty: " + modelFile, Files.size(modelFile) > 0);
+      assertNonEmpty(modelFile);
       PMMLUtils.read(modelFile); // Shouldn't throw exception
     }
 
