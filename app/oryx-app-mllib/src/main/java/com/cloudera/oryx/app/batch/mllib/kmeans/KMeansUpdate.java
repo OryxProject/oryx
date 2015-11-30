@@ -191,7 +191,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
     ClusteringModel clusteringModel = pmmlClusteringModel(model, clusterSizesMap);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(AppPMMLUtils.buildDataDictionary(inputSchema, null));
-    pmml.getModels().add(clusteringModel);
+    pmml.addModels(clusteringModel);
     return pmml;
   }
 

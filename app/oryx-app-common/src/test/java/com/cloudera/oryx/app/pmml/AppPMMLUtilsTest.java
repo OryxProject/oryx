@@ -52,7 +52,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
     Node node = new Node().setRecordCount(123.0);
     TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
-    pmml.getModels().add(treeModel);
+    pmml.addModels(treeModel);
     return pmml;
   }
 
@@ -184,8 +184,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
     dataFields.add(new DataField(FieldName.create("foo"), OpType.CONTINUOUS, DataType.DOUBLE));
     DataField barField =
         new DataField(FieldName.create("bar"), OpType.CATEGORICAL, DataType.STRING);
-    barField.getValues().add(new Value("b"));
-    barField.getValues().add(new Value("a"));
+    barField.addValues(new Value("b"), new Value("a"));
     dataFields.add(barField);
     DataDictionary dictionary = new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
     CategoricalValueEncodings encodings = AppPMMLUtils.buildCategoricalValueEncodings(dictionary);

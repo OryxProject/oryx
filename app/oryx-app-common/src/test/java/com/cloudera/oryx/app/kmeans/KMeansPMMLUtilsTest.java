@@ -101,7 +101,7 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
     clusters.add(new Cluster().setId("1").setSize(2).setArray(AppPMMLUtils.toArray(2.0, -1.0)));
     clusters.add(new Cluster().setId("2").setSize(3).setArray(AppPMMLUtils.toArray(-1.0, 0.0)));
 
-    pmml.getModels().add(new ClusteringModel(
+    pmml.addModels(new ClusteringModel(
         MiningFunctionType.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),

@@ -119,13 +119,11 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<DataField> dataFields = new ArrayList<>();
     DataField predictor =
         new DataField(FieldName.create("color"), OpType.CATEGORICAL, DataType.STRING);
-    predictor.getValues().add(new Value("yellow"));
-    predictor.getValues().add(new Value("red"));
+    predictor.addValues(new Value("yellow"), new Value("red"));
     dataFields.add(predictor);
     DataField target =
         new DataField(FieldName.create("fruit"), OpType.CATEGORICAL, DataType.STRING);
-    target.getValues().add(new Value("banana"));
-    target.getValues().add(new Value("apple"));
+    target.addValues(new Value("banana"), new Value("apple"));
     dataFields.add(target);
     DataDictionary dataDictionary =
         new DataDictionary(dataFields).setNumberOfFields(dataFields.size());
@@ -149,15 +147,14 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     double halfCount = dummyCount / 2;
 
     Node left = new Node().setId("r-").setRecordCount(halfCount).setPredicate(new True());
-    left.getScoreDistributions().add(new ScoreDistribution("apple", halfCount));
+    left.addScoreDistributions(new ScoreDistribution("apple", halfCount));
     Node right = new Node().setId("r+").setRecordCount(halfCount)
         .setPredicate(new SimpleSetPredicate(FieldName.create("color"),
                                              SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
                                              new Array(Array.Type.STRING, "red")));
-    right.getScoreDistributions().add(new ScoreDistribution("banana", halfCount));
+    right.addScoreDistributions(new ScoreDistribution("banana", halfCount));
 
-    rootNode.getNodes().add(right);
-    rootNode.getNodes().add(left);
+    rootNode.addNodes(right, left);
 
     TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, miningSchema, rootNode)
         .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
@@ -175,9 +172,9 @@ public final class RDFPMMLUtilsTest extends OryxTest {
       }
       miningModel.setSegmentation(
           new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE, segments));
-      pmml.getModels().add(miningModel);
+      pmml.addModels(miningModel);
     } else {
-      pmml.getModels().add(treeModel);
+      pmml.addModels(treeModel);
     }
 
     return pmml;
@@ -220,15 +217,14 @@ public final class RDFPMMLUtilsTest extends OryxTest {
                                           SimplePredicate.Operator.GREATER_THAN).setValue("3.14"))
         .setScore("2.0");
 
-    rootNode.getNodes().add(right);
-    rootNode.getNodes().add(left);
+    rootNode.addNodes(right, left);
 
     TreeModel treeModel = new TreeModel(MiningFunctionType.REGRESSION, miningSchema, rootNode)
         .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
         .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD)
         .setMiningSchema(miningSchema);
 
-    pmml.getModels().add(treeModel);
+    pmml.addModels(treeModel);
 
     return pmml;
   }
