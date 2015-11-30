@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.speed;
 
-import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.lambda.HadoopUtils;
 import com.cloudera.oryx.lambda.speed.SpeedLayer;
 
 /**
@@ -30,7 +30,7 @@ public final class Main {
 
   public static void main(String[] args) {
     try (SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(speedLayer);
+      HadoopUtils.closeAtShutdown(speedLayer);
       speedLayer.start();
       speedLayer.await();
     }
