@@ -471,7 +471,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.setDataDictionary(dictionary);
-    pmml.getModels().add(model);
+    pmml.addModels(model);
 
     AppPMMLUtils.addExtension(pmml, "maxDepth", maxDepth);
     AppPMMLUtils.addExtension(pmml, "maxSplitCandidates", maxSplitCandidates);
@@ -535,7 +535,7 @@ public final class RDFUpdate extends MLUpdate<String> {
               ScoreDistribution distribution = new ScoreDistribution(encodingValue.getValue(), recordCount);
               // Not "confident" enough in the "probability" to call it one
               distribution.setConfidence(probability);
-              modelNode.getScoreDistributions().add(distribution);
+              modelNode.addScoreDistributions(distribution);
             }
           }
         } else {
@@ -547,9 +547,8 @@ public final class RDFUpdate extends MLUpdate<String> {
         Split split = treeNode.split().get();
 
         Node positiveModelNode = new Node().setId(modelNode.getId() + '+');
-        modelNode.getNodes().add(positiveModelNode);
         Node negativeModelNode = new Node().setId(modelNode.getId() + '-');
-        modelNode.getNodes().add(negativeModelNode);
+        modelNode.addNodes(positiveModelNode, negativeModelNode);
 
         org.apache.spark.mllib.tree.model.Node rightTreeNode = treeNode.rightNode().get();
         org.apache.spark.mllib.tree.model.Node leftTreeNode = treeNode.leftNode().get();

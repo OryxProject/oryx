@@ -95,7 +95,7 @@ public final class AppPMMLUtils {
    * @param value extension value
    */
   public static void addExtension(PMML pmml, String key, Object value) {
-    pmml.getExtensions().add(new Extension().setName(key).setValue(value.toString()));
+    pmml.addExtensions(new Extension().setName(key).setValue(value.toString()));
   }
 
   /**
@@ -110,7 +110,7 @@ public final class AppPMMLUtils {
       return;
     }
     String joined = TextUtils.joinPMMLDelimited(content);
-    pmml.getExtensions().add(new Extension().setName(key).addContent(joined));
+    pmml.addExtensions(new Extension().setName(key).addContent(joined));
   }
 
   /**
@@ -227,7 +227,7 @@ public final class AppPMMLUtils {
         Collection<String> valuesOrderedByEncoding =
             new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
         for (String value : valuesOrderedByEncoding) {
-          field.getValues().add(new Value(value));
+          field.addValues(new Value(value));
         }
       }
       dataFields.add(field);
