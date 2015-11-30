@@ -72,12 +72,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final Class<M> messageClass;
   private final Class<? extends Decoder<K>> keyDecoderClass;
   private final Class<? extends Decoder<M>> messageDecoderClass;
-  private final int numExecutors;
-  private final int executorCores;
-  private final String executorMemoryString;
-  private final boolean useDynamicAllocation;
   private final int generationIntervalSec;
-  private final int uiPort;
 
   @SuppressWarnings("unchecked")
   protected AbstractSparkLayer(Config config) {
@@ -101,18 +96,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
         config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
     this.messageDecoderClass = (Class<? extends Decoder<M>>) ClassUtils.loadClass(
         config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
-    this.numExecutors = config.getInt("oryx." + group + ".streaming.num-executors");
-    this.executorCores = config.getInt("oryx." + group + ".streaming.executor-cores");
-    this.executorMemoryString = config.getString("oryx." + group + ".streaming.executor-memory");
-    this.useDynamicAllocation = config.getBoolean("oryx." + group + ".streaming.dynamic-allocation");
-    this.generationIntervalSec =
-        config.getInt("oryx." + group + ".streaming.generation-interval-sec");
-    this.uiPort = config.getInt("oryx." + group + ".ui.port");
+    this.generationIntervalSec = config.getInt("oryx." + group + ".streaming.generation-interval-sec");
 
-    Preconditions.checkArgument(numExecutors >= 1);
-    Preconditions.checkArgument(executorCores >= 1);
     Preconditions.checkArgument(generationIntervalSec > 0);
-    Preconditions.checkArgument(uiPort > 0);
   }
 
   private static String generateRandomID() {
@@ -154,51 +140,37 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   }
 
   protected final JavaStreamingContext buildStreamingContext() {
-    log.info("Starting SparkContext for master {}, interval {} seconds",
-             streamingMaster, generationIntervalSec);
+    log.info("Starting SparkContext with interval {} seconds", generationIntervalSec);
 
     SparkConf sparkConf = new SparkConf();
 
-    sparkConf.setMaster(streamingMaster);
-    String appName = "Oryx" + getLayerName();
-    if (id != null) {
-      appName = appName + "-" + id;
+    // Only for tests, really
+    if (sparkConf.getOption("spark.master").isEmpty()) {
+      log.info("Overriding master to {} for tests", streamingMaster);
+      sparkConf.setMaster(streamingMaster);
     }
-    sparkConf.setAppName(appName);
-
+    // Only for tests, really
+    if (sparkConf.getOption("spark.app.name").isEmpty()) {
+      String appName = "Oryx" + getLayerName();
+      if (id != null) {
+        appName = appName + "-" + id;
+      }
+      log.info("Overriding app name to {} for tests", appName);
+      sparkConf.setAppName(appName);
+    }
+    // TODO these are hard-coded to match what's set by default in oryx-run.sh
+    // They're here to make sure tests run with the same essential properties
+    // This could possible be defined in the .conf file and read by the code and
+    // also oryx-run.sh to have a single source of truth.
     sparkConf.setIfMissing("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
     sparkConf.setIfMissing("spark.io.compression.codec", "lzf");
-    sparkConf.setIfMissing("spark.speculation", "true");
-    sparkConf.setIfMissing("spark.shuffle.manager", "sort");
-
-    if (useDynamicAllocation) {
-      if (streamingMaster.startsWith("yarn")) { // yarn, yarn-client, yarn-cluster
-        sparkConf.setIfMissing("spark.shuffle.service.enabled", "true");
-        sparkConf.setIfMissing("spark.dynamicAllocation.enabled", "true");
-        sparkConf.setIfMissing("spark.dynamicAllocation.minExecutors", "1");
-        sparkConf.setIfMissing("spark.dynamicAllocation.maxExecutors",
-                               Integer.toString(numExecutors));
-        sparkConf.setIfMissing("spark.dynamicAllocation.executorIdleTimeout", "60");
-      } else {
-        log.warn("Ignoring dynamic allocation since master is {}", streamingMaster);
-        sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
-      }
-    } else {
-      sparkConf.setIfMissing("spark.executor.instances", Integer.toString(numExecutors));
-    }
-
-    sparkConf.setIfMissing("spark.executor.cores", Integer.toString(executorCores));
-    sparkConf.setIfMissing("spark.executor.memory", executorMemoryString);
+    sparkConf.setIfMissing("spark.logConf", "true");
 
     // Turn this down to prevent long blocking at shutdown
     sparkConf.setIfMissing(
         "spark.streaming.gracefulStopTimeout",
         Long.toString(TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS)));
     sparkConf.setIfMissing("spark.cleaner.ttl", Integer.toString(20 * generationIntervalSec));
-    sparkConf.setIfMissing("spark.logConf", "true");
-    sparkConf.setIfMissing("spark.ui.port", Integer.toString(uiPort));
-    sparkConf.setIfMissing("spark.ui.showConsoleProgress", "false");
-
     long generationIntervalMS =
         TimeUnit.MILLISECONDS.convert(generationIntervalSec, TimeUnit.SECONDS);
 

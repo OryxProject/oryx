@@ -13,40 +13,28 @@
 # the specific language governing permissions and limitations under the
 # License.
 
-# CDH5.4+ specific classpath config
+# This is a hacky means to plug in to the versions of libraries used on the cluster
+# rather than ship a particular version with the binaries.
+# TODO: we need a better solution to dependencies
 
-HADOOP_CONF_DIR="/etc/hadoop/conf"
-CDH_JARS_DIR="/opt/cloudera/parcels/CDH/jars"
+# CDH specific classpath config
 
 function printLatest() {
-  ls -1 ${CDH_JARS_DIR}/$1 | grep -E "[0-9]\\.jar$" | tail -1
+  ls -1 /opt/cloudera/parcels/CDH/jars/$1 2>/dev/null | grep -vE "tests.jar$" | tail -1
 }
 
-# Some are known to have multiple versions, and so are fully specified:
-
-echo ${HADOOP_CONF_DIR}
-printLatest "zookeeper-*.jar"
-printLatest "spark-assembly-*.jar"
+# For Spark-based batch and speed layer, the only thing that needs to be supplied, really,
+# are the Kafka libraries that the cluster uses. The Spark Examples jar happens to ship this
+# and is maybe both easier to find and more harmonized than a stand-alone Kafka distro on
+# the cluster, but this is a hacky way to acquire it
 printLatest "spark-examples-*.jar"
-printLatest "hadoop-auth-*.jar"
+
+# The remaining dependencies support the Serving Layer, which needs Hadoop, Kafka,
+# and ZK dependencies
+printLatest "spark-assembly-*.jar"
+printLatest "zookeeper-*.jar"
 printLatest "hadoop-common-*.jar"
-printLatest "hadoop-hdfs-2*.jar"
-printLatest "hadoop-mapreduce-client-core-*.jar"
-printLatest "hadoop-yarn-api-*.jar"
-printLatest "hadoop-yarn-client-*.jar"
-printLatest "hadoop-yarn-common-*.jar"
-printLatest "hadoop-yarn-server-web-proxy-*.jar"
-printLatest "hadoop-yarn-applications-distributedshell-*.jar"
-printLatest "htrace-core-3.*.jar"
-printLatest "commons-cli-1.*.jar"
 printLatest "commons-collections-*.jar"
-printLatest "commons-configuration-1.*.jar"
-printLatest "commons-lang-2.*.jar"
-printLatest "httpclient-4.2.*.jar"
-printLatest "httpcore-4.2.*.jar"
-printLatest "httpmime-4.2.*.jar"
-printLatest "jackson-core-asl-1.9.12.jar"
-printLatest "jackson-mapper-asl-1.9.12.jar"
-printLatest "protobuf-java-*.jar"
-printLatest "snappy-java-*.jar"
-printLatest "avro-1.7.*.jar"
+
+# These are needed for submitting the serving layer in YARN mode
+printLatest "hadoop-yarn-applications-distributedshell-*.jar"
