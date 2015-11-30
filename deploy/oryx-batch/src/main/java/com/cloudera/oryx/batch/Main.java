@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.batch;
 
-import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.lambda.HadoopUtils;
 import com.cloudera.oryx.lambda.batch.BatchLayer;
 
 /**
@@ -30,7 +30,7 @@ public final class Main {
 
   public static void main(String[] args) {
     try (BatchLayer<?,?,?> batchLayer = new BatchLayer<>(ConfigUtils.getDefault())) {
-      JVMUtils.closeAtShutdown(batchLayer);
+      HadoopUtils.closeAtShutdown(batchLayer);
       batchLayer.start();
       batchLayer.await();
     }

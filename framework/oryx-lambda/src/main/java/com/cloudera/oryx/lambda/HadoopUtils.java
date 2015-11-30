@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,47 +13,45 @@
  * License.
  */
 
-package com.cloudera.oryx.common.lang;
+package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.util.ShutdownHookManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * JVM-related utility methods.
- */
-public final class JVMUtils {
+import com.cloudera.oryx.common.lang.OryxShutdownHook;
 
-  private static final Logger log = LoggerFactory.getLogger(JVMUtils.class);
+/**
+ * Hadoop-related utility methods.
+ */
+public final class HadoopUtils {
+
+  private static final Logger log = LoggerFactory.getLogger(HadoopUtils.class);
 
   private static final OryxShutdownHook SHUTDOWN_HOOK = new OryxShutdownHook();
 
-  private JVMUtils() {
+  private HadoopUtils() {
   }
 
   /**
    * Adds a shutdown hook that tries to call {@link Closeable#close()} on the given argument
-   * at JVM shutdown.
+   * at JVM shutdown. This integrates with Hadoop's {@link ShutdownHookManager} in order to
+   * better interact with Spark's usage of the same.
    *
    * @param closeable thing to close
    */
   public static void closeAtShutdown(Closeable closeable) {
     if (SHUTDOWN_HOOK.addCloseable(closeable)) {
       try {
-        Runtime.getRuntime().addShutdownHook(new Thread(SHUTDOWN_HOOK, "OryxShutdownHookThread"));
+        // Spark uses SHUTDOWN_HOOK_PRIORITY + 30; this tries to execute earlier
+        ShutdownHookManager.get().addShutdownHook(SHUTDOWN_HOOK, FileSystem.SHUTDOWN_HOOK_PRIORITY + 40);
       } catch (IllegalStateException ise) {
         log.warn("Can't close {} at shutdown since shutdown is in progress", closeable);
       }
     }
-  }
-
-  /**
-   * @return approximate heap used, in bytes
-   */
-  public static long getUsedMemory() {
-    Runtime runtime = Runtime.getRuntime();
-    return runtime.totalMemory() - runtime.freeMemory();
   }
 
 }
