@@ -2,9 +2,9 @@ title: Docs: Admin
 
 # Cluster Setup
 
-The following are required as of Oryx 2.1.0:
+The following are required as of Oryx 2.2.0:
 
-- Java 7 or later (JRE only is required)
+- Java 8 or later (JRE only is required)
 - A Hadoop cluster running the following components:
     - Apache Hadoop 2.6.0 or later
     - Apache Zookeeper 3.4.5 or later
@@ -16,7 +16,8 @@ The following are required as of Oryx 2.1.0:
 components should work fine. While the rest of the instructions will refer to a CDH 5.5+
 distribution, this is not a requirement.
 
-_Note: Oryx 2.0.x requires only Spark 1.3.0 and CDH 5.4.x_
+_Note: Oryx 2.0.x requires only Java 7, Spark 1.3.0 and CDH 5.4.x_
+_Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0 and CDH 5.5.x_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
