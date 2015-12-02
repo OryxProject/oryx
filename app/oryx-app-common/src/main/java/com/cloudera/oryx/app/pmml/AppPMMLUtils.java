@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
@@ -61,12 +61,8 @@ public final class AppPMMLUtils {
   private AppPMMLUtils() {}
 
   public static String getExtensionValue(PMML pmml, String name) {
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        return extension.getValue();
-      }
-    }
-    return null;
+    return pmml.getExtensions().stream().filter(extension -> name.equals(extension.getName())).findFirst().
+        map(Extension::getValue).orElse(null);
   }
 
   /**
@@ -76,17 +72,14 @@ public final class AppPMMLUtils {
    *  space-separated values, with PMML quoting rules
    */
   public static List<String> getExtensionContent(PMML pmml, String name) {
-    for (Extension extension : pmml.getExtensions()) {
-      if (name.equals(extension.getName())) {
-        List<?> content = extension.getContent();
-        Preconditions.checkArgument(content.size() <= 1);
-        if (content.isEmpty()) {
-          return Collections.emptyList();
-        }
-        return Arrays.asList(TextUtils.parsePMMLDelimited(content.get(0).toString()));
-      }
-    }
-    return null;
+    return pmml.getExtensions().stream().filter(extension -> name.equals(extension.getName())).findFirst().
+        map(extension -> {
+          List<?> content = extension.getContent();
+          Preconditions.checkArgument(content.size() <= 1);
+          return content.isEmpty() ?
+              Collections.<String>emptyList() :
+              Arrays.asList(TextUtils.parsePMMLDelimited(content.get(0).toString()));
+        }).orElse(null);
   }
 
   /**
@@ -222,11 +215,10 @@ public final class AppPMMLUtils {
       }
       DataField field = new DataField(FieldName.create(featureName), opType, dataType);
       if (schema.isCategorical(featureName)) {
-        Collection<String> valuesOrderedByEncoding =
-            new TreeMap<>(categoricalValueEncodings.getEncodingValueMap(featureIndex)).values();
-        for (String value : valuesOrderedByEncoding) {
-          field.addValues(new Value(value));
-        }
+        categoricalValueEncodings.getEncodingValueMap(featureIndex).entrySet().stream().
+            sorted(Comparator.comparing(Map.Entry::getKey)).
+            map(Map.Entry::getValue).
+            forEach(value -> field.addValues(new Value(value)));
       }
       dataFields.add(field);
     }

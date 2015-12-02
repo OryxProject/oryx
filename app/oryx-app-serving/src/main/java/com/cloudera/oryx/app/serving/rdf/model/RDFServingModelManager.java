@@ -91,11 +91,7 @@ public final class RDFServingModelManager extends AbstractServingModelManager<St
                 (CategoricalPrediction) nodeToUpdate.getPrediction();
             @SuppressWarnings("unchecked")
             Map<String,Integer> counts = (Map<String,Integer>) update.get(2); // JSON map keys are always Strings
-            for (Map.Entry<String,Integer> entry : counts.entrySet()) {
-              int encoding = Integer.parseInt(entry.getKey());
-              int count = entry.getValue();
-              predictionToUpdate.update(encoding, count);
-            }
+            counts.forEach((encoding, count) -> predictionToUpdate.update(Integer.parseInt(encoding), count));
           } else {
             TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
             NumericPrediction predictionToUpdate = (NumericPrediction) nodeToUpdate.getPrediction();

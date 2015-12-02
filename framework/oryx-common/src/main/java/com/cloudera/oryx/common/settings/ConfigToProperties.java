@@ -21,7 +21,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.typesafe.config.ConfigObject;
-import com.typesafe.config.ConfigValue;
 
 /**
  * Utility that outputs all configuration as key-value pairs (as in a .properties file)
@@ -31,7 +30,7 @@ public final class ConfigToProperties {
 
   private ConfigToProperties() {}
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     buildPropertiesLines().forEach(System.out::println);
   }
 
@@ -43,9 +42,8 @@ public final class ConfigToProperties {
   }
 
   private static void add(ConfigObject config, String prefix, Map<String,String> values) {
-    for (Map.Entry<String, ConfigValue> e : config.entrySet()) {
-      String nextPrefix = prefix + "." + e.getKey();
-      ConfigValue value = e.getValue();
+    config.forEach((key, value) -> {
+      String nextPrefix = prefix + "." + key;
       switch (value.valueType()) {
         case OBJECT:
           add((ConfigObject) value, nextPrefix, values);
@@ -56,7 +54,7 @@ public final class ConfigToProperties {
         default:
           values.put(nextPrefix, String.valueOf(value.unwrapped()));
       }
-    }
+    });
   }
 
 }

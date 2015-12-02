@@ -38,11 +38,10 @@ final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
   @Override
   double evaluate(JavaRDD<Vector> evalData) {
     Map<Integer,ClusterMetric> clusterMetricsByID = fetchClusterMetrics(evalData).collectAsMap();
-    double totalDBIndex = 0.0;
     Map<Integer,ClusterInfo> clustersByID = getClustersByID();
     DistanceFn<double[]> distanceFn = getDistanceFn();
-    for (Map.Entry<Integer,ClusterInfo> entryI : clustersByID.entrySet()) {
-      double maxDBIndex = 0.0;
+
+    return clustersByID.entrySet().stream().mapToDouble(entryI -> {
       Integer idI = entryI.getKey();
       double[] centerI = entryI.getValue().getCenter();
       double clusterScatter1 = clusterMetricsByID.get(idI).getMeanDist();
@@ -52,19 +51,16 @@ final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
       // points in cluster j to its center) to (the distance between cluster i and cluster j).
       // The key here is the Maximization of the DB Index for a cluster:
       // the cluster that maximizes this ratio may be j for i but not necessarily i for j
-      for (Map.Entry<Integer,ClusterInfo> entryJ : clustersByID.entrySet()) {
+      return clustersByID.entrySet().stream().mapToDouble(entryJ -> {
         Integer idJ = entryJ.getKey();
-        if (!idI.equals(idJ)) {
-          double[] centerJ = entryJ.getValue().getCenter();
-          double clusterScatter2 = clusterMetricsByID.get(idJ).getMeanDist();
-          double dbIndex = (clusterScatter1 + clusterScatter2) / distanceFn.applyAsDouble(centerI, centerJ);
-          maxDBIndex = Math.max(maxDBIndex, dbIndex);
+        if (idI.equals(idJ)) {
+          return 0.0;
         }
-      }
-      totalDBIndex += maxDBIndex;
-    }
-
-    return totalDBIndex / clustersByID.size();
+        double[] centerJ = entryJ.getValue().getCenter();
+        double clusterScatter2 = clusterMetricsByID.get(idJ).getMeanDist();
+        return (clusterScatter1 + clusterScatter2) / distanceFn.applyAsDouble(centerI, centerJ);
+      }).max().orElse(0.0);
+    }).average().orElse(0.0);
   }
 
 }

@@ -43,15 +43,13 @@ final class EnqueueFeatureVecsAndKnownItemsFn
   public void call(Iterator<Tuple2<String,Tuple2<float[],Collection<String>>>> it) {
     if (it.hasNext()) {
       try (TopicProducer<String, String> producer = new TopicProducerImpl<>(updateBroker, topic, true)) {
-        while (it.hasNext()) {
-          Tuple2<String,Tuple2<float[],Collection<String>>> keyAndVectorAndItems = it.next();
+        it.forEachRemaining(keyAndVectorAndItems -> {
           String id = keyAndVectorAndItems._1();
           Tuple2<float[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
           float[] vector = vectorAndItems._1();
           Collection<String> knowItemIDs = vectorAndItems._2();
-          producer.send("UP", TextUtils.joinJSON(
-              Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
-        }
+          producer.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
+        });
       }
     }
   }

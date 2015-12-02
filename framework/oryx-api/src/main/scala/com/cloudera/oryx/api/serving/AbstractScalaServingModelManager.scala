@@ -38,9 +38,4 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
    */
   override def isReadOnly = readOnly
 
-  /**
-   * @since 2.0.0
-   */
-  override def close(): Unit = {}
-
 }

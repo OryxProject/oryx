@@ -79,9 +79,4 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
     }).collect(Collectors.toList());
   }
 
-  @Override
-  public void close() {
-    // do nothing
-  }
-
 }

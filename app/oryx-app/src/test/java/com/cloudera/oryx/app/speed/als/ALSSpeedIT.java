@@ -53,9 +53,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
                                         9, 10);
 
     if (log.isDebugEnabled()) {
-      for (Pair<String, String> update : updates) {
-        log.debug("{}", update);
-      }
+      updates.forEach(update -> log.debug("{}", update));
     }
 
     // 10 original updates. 9 generate just 1 update since user or item is new.

@@ -46,12 +46,10 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
   }
 
   protected static void checkExtensions(PMML pmml, Map<String,?> expected) {
-    for (Map.Entry<String,?> e : expected.entrySet()) {
-      String key = e.getKey();
+    expected.forEach((key, value) ->
       assertEquals("Value for key " + key + " did not match",
-                   e.getValue().toString(),
-                   AppPMMLUtils.getExtensionValue(pmml, key));
-    }
+                   value.toString(), AppPMMLUtils.getExtensionValue(pmml, key))
+    );
   }
 
   protected static void checkDataDictionary(InputSchema schema, DataDictionary dataDictionary) {

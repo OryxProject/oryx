@@ -47,9 +47,4 @@ public abstract class AbstractServingModelManager<U> implements ServingModelMana
     return readOnly;
   }
 
-  @Override
-  public void close() {
-    // do nothing
-  }
-
 }

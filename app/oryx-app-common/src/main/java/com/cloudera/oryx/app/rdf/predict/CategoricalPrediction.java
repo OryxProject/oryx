@@ -54,17 +54,12 @@ public final class CategoricalPrediction extends Prediction {
    */
   public CategoricalPrediction(double[] categoryCounts) {
     super((int) Math.round(sum(categoryCounts)));
-    Preconditions.checkArgument(sum(categoryCounts) > 0.0);
     this.categoryCounts = categoryCounts;
     recompute();
   }
 
   private static double sum(double[] categoryCounts) {
-    double total = 0.0;
-    for (double count : categoryCounts) {
-      total += count;
-    }
-    return total;
+    return Arrays.stream(categoryCounts).sum();
   }
 
   private synchronized void recompute() {

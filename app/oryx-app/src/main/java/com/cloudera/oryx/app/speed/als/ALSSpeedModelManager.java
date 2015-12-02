@@ -217,9 +217,4 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
     return TextUtils.joinJSON(args);
   }
 
-  @Override
-  public void close() {
-    // do nothing
-  }
-
 }

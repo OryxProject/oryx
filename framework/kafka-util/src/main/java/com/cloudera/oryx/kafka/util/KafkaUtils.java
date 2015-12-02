@@ -126,18 +126,18 @@ public final class KafkaUtils {
     ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topic);
     Map<TopicAndPartition,Long> offsets = new HashMap<>();
     try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
-      List<Object> partitions = JavaConversions.seqAsJavaList(
+      List<?> partitions = JavaConversions.seqAsJavaList(
           ZkUtils.getPartitionsForTopics(
             zkClient,
             JavaConversions.asScalaBuffer(Collections.singletonList(topic))).head()._2());
-      for (Object partition : partitions) {
+      partitions.forEach(partition -> {
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         Option<String> maybeOffset = ZkUtils.readDataMaybeNull(zkClient, partitionOffsetPath)._1();
         Long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : null;
         TopicAndPartition topicAndPartition =
             new TopicAndPartition(topic, Integer.parseInt(partition.toString()));
         offsets.put(topicAndPartition, offset);
-      }
+      });
     }
     return offsets;
   }
@@ -151,14 +151,12 @@ public final class KafkaUtils {
                                 String groupID,
                                 Map<TopicAndPartition,Long> offsets) {
     try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
-      for (Map.Entry<TopicAndPartition,Long> entry : offsets.entrySet()) {
-        TopicAndPartition topicAndPartition = entry.getKey();
+      offsets.forEach((topicAndPartition, offset) -> {
         ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topicAndPartition.topic());
         int partition = topicAndPartition.partition();
-        long offset = entry.getValue();
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         ZkUtils.updatePersistentPath(zkClient, partitionOffsetPath, Long.toString(offset));
-      }
+      });
     }
   }
 

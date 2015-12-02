@@ -62,13 +62,7 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
       return distinctTokens.stream().flatMap(a ->
         distinctTokens.stream().filter(b -> !a.equals(b)).map(b -> new Tuple2<>(a, b))
       ).collect(Collectors.toList());
-    }).distinct().groupByKey().mapValues(values -> {
-      int count = 0;
-      for (String v : values) {
-        count++;
-      }
-      return count;
-    }).collectAsMap();
+    }).distinct().mapValues(a -> 1).reduceByKey((c1, c2) -> c1 + c2).collectAsMap();
   }
 
 }

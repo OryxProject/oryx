@@ -193,14 +193,13 @@ public final class ALSServingModel implements ServingModel {
     ObjSet<String> knownItems = doGetKnownItems(user);
     if (knownItems == null) {
       return Collections.emptySet();
-    } else {
-      synchronized (knownItems) {
-        if (knownItems.isEmpty()) {
-          return Collections.emptySet();
-        }
-        // Must copy since the original object is synchronized
-        return HashObjSets.newImmutableSet(knownItems);
+    }
+    synchronized (knownItems) {
+      if (knownItems.isEmpty()) {
+        return Collections.emptySet();
       }
+      // Must copy since the original object is synchronized
+      return HashObjSets.newImmutableSet(knownItems);
     }
   }
 
@@ -216,15 +215,13 @@ public final class ALSServingModel implements ServingModel {
   public Map<String,Integer> getUserCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
     try (AutoLock al = knownItemsLock.autoReadLock()) {
-      for (Map.Entry<String,ObjSet<String>> entry : knownItems.entrySet()) {
-        String userID = entry.getKey();
-        Collection<?> ids = entry.getValue();
+      knownItems.forEach((userID, ids) -> {
         int numItems;
         synchronized (ids) {
           numItems = ids.size();
         }
         counts.addValue(userID, numItems);
-      }
+      });
     }
     return counts;
   }
@@ -235,13 +232,11 @@ public final class ALSServingModel implements ServingModel {
   public Map<String,Integer> getItemCounts() {
     ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
     try (AutoLock al = knownItemsLock.autoReadLock()) {
-      for (Collection<String> ids : knownItems.values()) {
+      knownItems.values().forEach(ids -> {
         synchronized (ids) {
-          for (String id : ids) {
-            counts.addValue(id, 1);
-          }
+          ids.forEach(id -> counts.addValue(id, 1));
         }
-      }
+      });
     }
     return counts;
   }
@@ -441,11 +436,11 @@ public final class ALSServingModel implements ServingModel {
 
     Predicate<String> notKeptOrRecent = value -> !items.contains(value) && !allRecentKnownItems.contains(value);
     try (AutoLock al = knownItemsLock.autoReadLock()) {
-      for (ObjSet<String> knownItemsForUser : knownItems.values()) {
+      knownItems.values().forEach(knownItemsForUser -> {
         synchronized (knownItemsForUser) {
           knownItemsForUser.removeIf(notKeptOrRecent);
         }
-      }
+      });
     }
   }
 

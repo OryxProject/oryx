@@ -66,8 +66,4 @@ class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String
     }.toSeq
   }
 
-  override def close(): Unit = {
-    // do nothing
-  }
-
 }

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.common.util.concurrent.AtomicLongMap;
 import com.typesafe.config.Config;
@@ -117,50 +118,39 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
           return results;
         }).groupByKey();
 
-    List<String> updates = new ArrayList<>();
 
     if (inputSchema.isClassification()) {
 
-      List<Tuple2<Pair<Integer,String>,HashMap<Integer,Long>>> countsByTreeAndID =
-          targetsByTreeAndID.mapValues(categoricalTargets -> {
-            AtomicLongMap<Integer> categoryCounts = AtomicLongMap.create();
-            for (Feature f : categoricalTargets) {
-              categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
-            }
-            // Have to clone it as Kryo won't serialize the unmodifiable map
-            return new HashMap<>(categoryCounts.asMap());
-          }).collect();
-      for (Tuple2<Pair<Integer,String>,HashMap<Integer,Long>> p : countsByTreeAndID) {
+      return targetsByTreeAndID.mapValues(categoricalTargets -> {
+        AtomicLongMap<Integer> categoryCounts = AtomicLongMap.create();
+        for (Feature f : categoricalTargets) {
+          categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
+        }
+        // Have to clone it as Kryo won't serialize the unmodifiable map
+        return new HashMap<>(categoryCounts.asMap());
+      }).collect().stream().map(p -> {
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
-        updates.add(TextUtils.joinJSON(Arrays.asList(treeID, nodeID, p._2())));
-      }
+        return TextUtils.joinJSON(Arrays.asList(treeID, nodeID, p._2()));
+      }).collect(Collectors.toList());
 
     } else {
 
-      List<Tuple2<Pair<Integer,String>,Mean>> meanTargetsByTreeAndID = targetsByTreeAndID.mapValues(numericTargets -> {
-          Mean mean = new Mean();
-          for (Feature f : numericTargets) {
-            mean.increment(((NumericFeature) f).getValue());
-          }
-          return mean;
-        }).collect();
-      for (Tuple2<Pair<Integer,String>,Mean> p : meanTargetsByTreeAndID) {
+      return targetsByTreeAndID.mapValues(numericTargets -> {
+        Mean mean = new Mean();
+        for (Feature f : numericTargets) {
+          mean.increment(((NumericFeature) f).getValue());
+        }
+        return mean;
+      }).collect().stream().map(p -> {
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
         Mean mean = p._2();
-        updates.add(TextUtils.joinJSON(Arrays.asList(
-            treeID, nodeID, mean.getResult(), mean.getN())));
-      }
+        return TextUtils.joinJSON(Arrays.asList(treeID, nodeID, mean.getResult(), mean.getN()));
+      }).collect(Collectors.toList());
 
     }
 
-    return updates;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

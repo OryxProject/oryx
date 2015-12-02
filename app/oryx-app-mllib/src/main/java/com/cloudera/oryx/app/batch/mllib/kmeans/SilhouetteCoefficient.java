@@ -127,16 +127,13 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
       int otherClusterID,
       double[] point,
       Map<Integer, Iterable<double[]>> clusteredPointsMap) {
-    double minInterClusterDissimilarity = Double.POSITIVE_INFINITY;
-    for (Map.Entry<Integer, Iterable<double[]>> entry : clusteredPointsMap.entrySet()) {
+    return clusteredPointsMap.entrySet().stream().mapToDouble(entry -> {
       // only compute dissimilarities with other clusters
-      if (!entry.getKey().equals(otherClusterID)) {
-        List<double[]> clusteredPoints = iterableToList(entry.getValue());
-        minInterClusterDissimilarity = Math.min(minInterClusterDissimilarity,
-                                                clusterDissimilarityForPoint(point, clusteredPoints, false));
+      if (entry.getKey().equals(otherClusterID)) {
+        return Double.POSITIVE_INFINITY;
       }
-    }
-    return minInterClusterDissimilarity;
+      return clusterDissimilarityForPoint(point, iterableToList(entry.getValue()), false);
+    }).min().orElse(Double.POSITIVE_INFINITY);
   }
 
   static double silhouetteCoefficient(double ai, double bi) {

@@ -48,10 +48,10 @@ public final class ConsumeTopicRunnable implements Callable<Void> {
   @Override
   public Void call() {
     runLatch.countDown();
-    while (data.hasNext()) {
-      keyMessages.add(data.next());
+    data.forEachRemaining(datum -> {
+      keyMessages.add(datum);
       messagesLatch.countDown();
-    }
+    });
     return null;
   }
 

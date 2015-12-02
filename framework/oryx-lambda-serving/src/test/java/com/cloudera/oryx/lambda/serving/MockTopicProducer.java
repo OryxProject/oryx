@@ -44,9 +44,4 @@ public final class MockTopicProducer implements TopicProducer<String,String> {
     DATA.add(new Pair<>(key, message));
   }
 
-  @Override
-  public void close() {
-    // do nothing
-  }
-
 }

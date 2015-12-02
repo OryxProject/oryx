@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.serving.als.model;
 
 import java.util.Arrays;
+import java.util.IntSummaryStatistics;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -147,18 +148,11 @@ public final class LocalitySensitiveHashTest extends OryxTest {
       counts[lsh.getIndexFor(VectorMath.randomVectorF(features, random))]++;
     }
     log.info("{}", Arrays.toString(counts));
-    int max = Integer.MIN_VALUE;
-    int min = Integer.MAX_VALUE;
-    long sum = 0;
-    for (int count : counts) {
-      sum += count;
-      max = Math.max(max, count);
-      min = Math.min(min, count);
-      assertGreater(count, 0);
-    }
-    log.info("Total {} / Max {} / Min {}", sum, max, min);
-    assertEquals(trials, sum);
-    assertLessOrEqual(max, 2 * min);
+
+    IntSummaryStatistics stats = Arrays.stream(counts).summaryStatistics();
+    log.info("Total {} / Max {} / Min {}", stats.getSum(), stats.getMax(), stats.getMin());
+    assertEquals(trials, stats.getSum());
+    assertLessOrEqual(stats.getMax(), 2 * stats.getMin());
   }
 
   private static void doTestHashesBits(double sampleRate, int numCores, int numHashes, int maxBitsDiffering) {

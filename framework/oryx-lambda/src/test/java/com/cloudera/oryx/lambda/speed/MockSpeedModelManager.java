@@ -36,20 +36,12 @@ public final class MockSpeedModelManager implements SpeedModelManager<String,Str
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf) {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String,String> update = updateIterator.next();
-      holder.add(new KeyMessageImpl<>(update.getKey(), update.getMessage()));
-    }
+    updateIterator.forEachRemaining(update -> holder.add(new KeyMessageImpl<>(update.getKey(), update.getMessage())));
   }
 
   @Override
   public Iterable<String> buildUpdates(JavaPairRDD<String,String> newData) {
     return newData.values().collect();
-  }
-
-  @Override
-  public void close() {
-    // do nothing
   }
 
 }

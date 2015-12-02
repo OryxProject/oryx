@@ -18,9 +18,9 @@ package com.cloudera.oryx.lambda.serving;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Path;
@@ -89,15 +89,10 @@ public final class OryxApplication extends Application {
       String thePackage,
       Reflections reflections,
       Class<? extends Annotation> annotation) {
-    Set<Class<?>> classes = reflections.getTypesAnnotatedWith(annotation);
     // Filter classes actually in subpackages
-    for (Iterator<Class<?>> it = classes.iterator(); it.hasNext();) {
-      String classPackage = it.next().getPackage().getName();
-      if (!classPackage.equals(thePackage)) {
-        it.remove();
-      }
-    }
-    return classes;
+    return reflections.getTypesAnnotatedWith(annotation).stream().
+        filter(c -> c.getPackage().getName().equals(thePackage)).
+        collect(Collectors.toList());
   }
 
 }

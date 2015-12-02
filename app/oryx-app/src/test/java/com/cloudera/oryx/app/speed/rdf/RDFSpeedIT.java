@@ -61,9 +61,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
                                         1);
 
     if (log.isDebugEnabled()) {
-      for (Pair<String, String> update : updates) {
-        log.debug("{}", update);
-      }
+      updates.forEach(update -> log.debug("{}", update));
     }
 
     int numUpdates = updates.size();
@@ -144,9 +142,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
                                         1);
 
     if (log.isDebugEnabled()) {
-      for (Pair<String, String> update : updates) {
-        log.debug("{}", update);
-      }
+      updates.forEach(update -> log.debug("{}", update));
     }
 
     int numUpdates = updates.size();

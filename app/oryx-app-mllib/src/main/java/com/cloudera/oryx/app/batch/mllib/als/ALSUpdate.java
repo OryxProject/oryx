@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -404,12 +405,10 @@ public final class ALSUpdate extends MLUpdate<String> {
                                       String key,
                                       JavaPairRDD<Integer,?> features,
                                       Map<Integer,String> reverseIDMapping) {
-    List<Integer> hashedIDs = features.keys().collect();
-    List<String> ids = new ArrayList<>(hashedIDs.size());
-    for (Integer hashedID : hashedIDs) {
+    List<String> ids = features.keys().collect().stream().map(hashedID -> {
       String originalID = reverseIDMapping.get(hashedID);
-      ids.add(originalID == null ? hashedID.toString() : originalID);
-    }
+      return originalID == null ? hashedID.toString() : originalID;
+    }).collect(Collectors.toList());
     AppPMMLUtils.addExtensionContent(pmml, key, ids);
   }
 

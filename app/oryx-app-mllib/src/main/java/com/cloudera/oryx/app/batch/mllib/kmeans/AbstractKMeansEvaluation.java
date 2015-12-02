@@ -16,9 +16,10 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -37,10 +38,7 @@ abstract class AbstractKMeansEvaluation implements Serializable {
 
   AbstractKMeansEvaluation(List<ClusterInfo> clusterList) {
     this.distanceFn = new EuclideanDistanceFn(); // for now using Euclidean only
-    this.clusters = new HashMap<>();
-    for (ClusterInfo info : clusterList) {
-      clusters.put(info.getID(), info);
-    }
+    this.clusters = clusterList.stream().collect(Collectors.toMap(ClusterInfo::getID, Function.identity()));
   }
 
   final DistanceFn<double[]> getDistanceFn() {

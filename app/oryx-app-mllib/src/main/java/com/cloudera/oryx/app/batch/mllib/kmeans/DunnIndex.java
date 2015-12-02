@@ -38,10 +38,8 @@ final class DunnIndex extends AbstractKMeansEvaluation {
   @Override
   double evaluate(JavaRDD<Vector> evalData) {
     // Intra-cluster distance is mean distance to centroid
-    double maxIntraClusterDistance = 0.0;
-    for (ClusterMetric metric : fetchClusterMetrics(evalData).values().collect()) {
-      maxIntraClusterDistance = Math.max(maxIntraClusterDistance, metric.getMeanDist());
-    }
+    double maxIntraClusterDistance =
+        fetchClusterMetrics(evalData).values().mapToDouble(ClusterMetric::getMeanDist).max();
 
     // Inter-cluster distance is distance between centroids
     double minInterClusterDistance = Double.POSITIVE_INFINITY;

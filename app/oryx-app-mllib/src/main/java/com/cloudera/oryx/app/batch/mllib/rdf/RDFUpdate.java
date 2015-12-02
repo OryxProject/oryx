@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.AtomicLongMap;
@@ -134,10 +135,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     categoryInfo.remove(inputSchema.getTargetFeatureIndex()); // Don't specify target count
     // Need to translate indices to predictor indices
     Map<Integer,Integer> categoryInfoByPredictor = new HashMap<>(categoryInfo.size());
-    for (Map.Entry<Integer,Integer> e : categoryInfo.entrySet()) {
-      categoryInfoByPredictor.put(inputSchema.featureToPredictorIndex(e.getKey()),
-                                  e.getValue());
-    }
+    categoryInfo.forEach((k, v) -> categoryInfoByPredictor.put(inputSchema.featureToPredictorIndex(k), v));
 
     int seed = RandomManager.getRandom().nextInt();
 
@@ -205,31 +203,21 @@ public final class RDFUpdate extends MLUpdate<String> {
   }
 
   private Map<Integer,Collection<String>> getDistinctValues(JavaRDD<String[]> parsedRDD) {
-    List<Integer> categoricalIndices = new ArrayList<>();
-    for (int i = 0; i < inputSchema.getNumFeatures(); i++) {
-      if (inputSchema.isCategorical(i)) {
-        categoricalIndices.add(i);
-      }
-    }
+    int[] categoricalIndices = IntStream.range(0, inputSchema.getNumFeatures()).
+        filter(inputSchema::isCategorical).toArray();
 
-    JavaRDD<Map<Integer,Collection<String>>> distinctValuesByPartition = parsedRDD.mapPartitions(data -> {
-        Map<Integer,Collection<String>> distinctCategoricalValues = new HashMap<>();
+    return parsedRDD.mapPartitions(data -> {
+        Map<Integer,Collection<String>> categoryValues = new HashMap<>();
         for (int i : categoricalIndices) {
-          distinctCategoricalValues.put(i, new HashSet<>());
+          categoryValues.put(i, new HashSet<>());
         }
-        while (data.hasNext()) {
-          String[] datum = data.next();
-          for (Map.Entry<Integer,Collection<String>> e : distinctCategoricalValues.entrySet()) {
-            e.getValue().add(datum[e.getKey()]);
-          }
-        }
-        return Collections.singleton(distinctCategoricalValues);
-      });
-
-    return distinctValuesByPartition.reduce((v1, v2) -> {
-        for (Map.Entry<Integer,Collection<String>> e : v1.entrySet()) {
-          e.getValue().addAll(v2.get(e.getKey()));
-        }
+        data.forEachRemaining(datum ->
+          categoryValues.forEach((category, values) -> values.add(datum[category]))
+        );
+        return Collections.singleton(categoryValues);
+      }).reduce((v1, v2) -> {
+        // Assumes both have the same key set
+        v1.forEach((category, values) -> values.addAll(v2.get(category)));
         return v1;
       });
   }
@@ -280,13 +268,9 @@ public final class RDFUpdate extends MLUpdate<String> {
                                                                RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         DecisionTreeModel[] trees = model.trees();
-        int numTrees1 = trees.length;
-        List<AtomicLongMap<Integer>> treeNodeIDCounts = new ArrayList<>(numTrees1);
-        for (int i = 0; i < numTrees1; i++) {
-          treeNodeIDCounts.add(AtomicLongMap.<Integer>create());
-        }
-        while (data.hasNext()) {
-          LabeledPoint datum = data.next();
+        List<AtomicLongMap<Integer>> treeNodeIDCounts = IntStream.range(0, trees.length).
+            mapToObj(i -> AtomicLongMap.<Integer>create()).collect(Collectors.toList());
+        data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (int i = 0; i < trees.length; i++) {
             DecisionTreeModel tree = trees[i];
@@ -302,7 +286,7 @@ public final class RDFUpdate extends MLUpdate<String> {
             }
             nodeIDCount.incrementAndGet(node.id());
           }
-        }
+        });
         return Collections.<List<Map<Integer,Long>>>singleton(
             treeNodeIDCounts.stream().map(map -> new HashMap<>(map.asMap())).collect(Collectors.toList()));
       }
@@ -327,8 +311,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                                                           RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         AtomicLongMap<Integer> featureIndexCount = AtomicLongMap.create();
-        while (data.hasNext()) {
-          LabeledPoint datum = data.next();
+        data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (DecisionTreeModel tree : model.trees()) {
             org.apache.spark.mllib.tree.model.Node node = tree.topNode();
@@ -341,7 +324,7 @@ public final class RDFUpdate extends MLUpdate<String> {
               node = nextNode(featureVector, node, split, featureIndex);
             }
           }
-        }
+        });
         return Collections.<Map<Integer,Long>>singleton(new HashMap<>(featureIndexCount.asMap()));
       }
     ).reduce(RDFUpdate::merge);
@@ -372,11 +355,10 @@ public final class RDFUpdate extends MLUpdate<String> {
     if (b.size() > a.size()) {
       return merge(b, a);
     }
-    for (Map.Entry<T,Long> e : b.entrySet()) {
-      T key = e.getKey();
+    b.forEach((key, value) -> {
       Long current = a.get(key);
-      a.put(key, current == null ? e.getValue() : current + e.getValue());
-    }
+      a.put(key, current == null ? value : current + value);
+    });
     return a;
   }
 
@@ -570,14 +552,9 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private double[] countsToImportances(Map<Integer,Long> predictorIndexCounts) {
     double[] importances = new double[inputSchema.getNumPredictors()];
-    long total = 0L;
-    for (long count : predictorIndexCounts.values()) {
-      total += count;
-    }
+    long total = predictorIndexCounts.values().stream().mapToLong(l -> l).sum();
     Preconditions.checkArgument(total > 0);
-    for (Map.Entry<Integer,Long> e : predictorIndexCounts.entrySet()) {
-      importances[e.getKey()] = (double) e.getValue() / total;
-    }
+    predictorIndexCounts.forEach((k, count) -> importances[k] = (double) count / total);
     return importances;
   }
 

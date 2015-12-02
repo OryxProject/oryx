@@ -68,6 +68,8 @@ public interface ServingModelManager<U> extends Closeable {
    * @since 2.0.0
    */
   @Override
-  void close();
+  default void close() {
+    // do nothing
+  }
 
 }

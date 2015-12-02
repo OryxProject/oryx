@@ -88,9 +88,7 @@ public final class RandomManager {
     Collection<RandomGenerator> instances = INSTANCES.get();
     if (instances != null) {
       synchronized (instances) {
-        for (RandomGenerator random : instances) {
-          random.setSeed(TEST_SEED);
-        }
+        instances.forEach(random -> random.setSeed(TEST_SEED));
         instances.clear();
       }
       INSTANCES.clear();

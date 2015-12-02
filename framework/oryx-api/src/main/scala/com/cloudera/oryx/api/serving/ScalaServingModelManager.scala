@@ -59,6 +59,6 @@ trait ScalaServingModelManager[U] {
   /**
    * @since 2.0.0
    */
-  def close(): Unit
+  def close(): Unit = {}
 
 }

@@ -16,12 +16,11 @@
 package com.cloudera.oryx.app.speed.kmeans;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -92,28 +91,24 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
     // Use locals to avoid capturing a reference to the Manager class
     KMeansSpeedModel model = this.model;
     InputSchema inputSchema = this.inputSchema;
-    List<Tuple2<Integer,Tuple2<double[],Long>>> updatedPoints = newData.values().map(MLFunctions.PARSE_FN)
-        .mapToPair(data -> {
-          try {
-            double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
-            int closestClusterID = model.closestCluster(featureVector).getID();
-            return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
-          } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            log.warn("Bad input: {}", Arrays.toString(data));
-            throw e;
-          }
-        }).reduceByKey((t1, t2) -> {
-          double[] vec1 = t1._1();
-          double[] vec2 = t2._1();
-          // going to modify 1 in place
-          for (int i = 0; i < vec1.length; i++) {
-            vec1[i] += vec2[i];
-          }
-          return new Tuple2<>(vec1, t1._2() + t2._2());
-        }).collect();
-
-    List<String> updates = new ArrayList<>(updatedPoints.size());
-    for (Tuple2<Integer,Tuple2<double[],Long>> pair : updatedPoints) {
+    return newData.values().map(MLFunctions.PARSE_FN).mapToPair(data -> {
+      try {
+        double[] featureVector = KMeansUtils.featuresFromTokens(data, inputSchema);
+        int closestClusterID = model.closestCluster(featureVector).getID();
+        return new Tuple2<>(closestClusterID, new Tuple2<>(featureVector, 1L));
+      } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+        log.warn("Bad input: {}", Arrays.toString(data));
+        throw e;
+      }
+    }).reduceByKey((t1, t2) -> {
+      double[] vec1 = t1._1();
+      double[] vec2 = t2._1();
+      // going to modify 1 in place
+      for (int i = 0; i < vec1.length; i++) {
+        vec1[i] += vec2[i];
+      }
+      return new Tuple2<>(vec1, t1._2() + t2._2());
+    }).collect().stream().map(pair -> {
       int clusterID = pair._1();
       double[] vectorSum = pair._2()._1();
       long count = pair._2()._2();
@@ -124,18 +119,10 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
 
       ClusterInfo clusterInfo = model.getCluster(clusterID);
       clusterInfo.update(vectorSum, count);
+      // Note: this is updating the local model copy so can't happen in Spark
       model.setCluster(clusterID, clusterInfo);
-      // add to updates
-      updates.add(TextUtils.joinJSON(
-          Arrays.asList(clusterID, clusterInfo.getCenter(), clusterInfo.getCount())));
-    }
-
-    return updates;
-  }
-
-  @Override
-  public void close() {
-    // do nothing
+      return TextUtils.joinJSON(Arrays.asList(clusterID, clusterInfo.getCenter(), clusterInfo.getCount()));
+    }).collect(Collectors.toList());
   }
 
 }

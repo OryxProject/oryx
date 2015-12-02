@@ -30,11 +30,7 @@ final class SumSquaredError extends AbstractKMeansEvaluation {
 
   @Override
   double evaluate(JavaRDD<Vector> evalData) {
-    double totalSquaredDist = 0.0;
-    for (ClusterMetric metric : fetchClusterMetrics(evalData).values().collect()) {
-      totalSquaredDist += metric.getSumSquaredDist();
-    }
-    return totalSquaredDist;
+    return fetchClusterMetrics(evalData).values().mapToDouble(ClusterMetric::getSumSquaredDist).sum();
   }
 
 }

@@ -68,9 +68,7 @@ public final class ConfigUtils {
    */
   public static Config overlayOn(Map<String,?> overlay, Config underlying) {
     StringBuilder configFileString = new StringBuilder();
-    for (Map.Entry<String,?> entry : overlay.entrySet()) {
-      configFileString.append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
-    }
+    overlay.forEach((k, v) -> configFileString.append(k).append('=').append(v).append('\n'));
     String configFile = configFileString.toString();
     log.debug("Overlaid config: \n{}", configFile);
     return ConfigFactory.parseString(configFile).resolve().withFallback(underlying);

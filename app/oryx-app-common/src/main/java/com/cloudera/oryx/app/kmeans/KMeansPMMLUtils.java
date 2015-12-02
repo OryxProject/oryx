@@ -15,11 +15,10 @@
 
 package com.cloudera.oryx.app.kmeans;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import org.dmg.pmml.Cluster;
 import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.MiningFunctionType;
@@ -70,24 +69,15 @@ public final class KMeansPMMLUtils {
    * @return List of {@link ClusterInfo}
    */
   public static List<ClusterInfo> read(PMML pmml) {
-    List<Model> models = pmml.getModels();
-    Model model = models.get(0);
-
+    Model model = pmml.getModels().get(0);
     Preconditions.checkArgument(model instanceof ClusteringModel);
     ClusteringModel clusteringModel = (ClusteringModel) model;
 
-    List<Cluster> clusters = clusteringModel.getClusters();
-    List<ClusterInfo> clusterInfoList = new ArrayList<>(clusters.size());
-
-    for (Cluster cluster : clusters) {
-      String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
-      ClusterInfo clusterInfo = new ClusterInfo(Integer.parseInt(cluster.getId()),
-                                                VectorMath.parseVector(tokens),
-                                                cluster.getSize());
-      clusterInfoList.add(clusterInfo);
-    }
-
-    return clusterInfoList;
+    return clusteringModel.getClusters().stream().map(cluster ->
+      new ClusterInfo(Integer.parseInt(cluster.getId()),
+                      VectorMath.parseVector(TextUtils.parseDelimited(cluster.getArray().getValue(), ' ')),
+                      cluster.getSize())
+    ).collect(Collectors.toList());
   }
 
 }

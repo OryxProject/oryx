@@ -41,12 +41,11 @@ final class EnqueueFeatureVecsFn implements VoidFunction<Iterator<Tuple2<String,
   public void call(Iterator<Tuple2<String,float[]>> it) {
     if (it.hasNext()) {
       try (TopicProducer<String,String> producer = new TopicProducerImpl<>(updateBroker, topic, true)) {
-        while (it.hasNext()) {
-          Tuple2<String,float[]> keyAndVector = it.next();
+        it.forEachRemaining(keyAndVector -> {
           String id = keyAndVector._1();
           float[] vector = keyAndVector._2();
           producer.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector)));
-        }
+        });
       }
     }
   }

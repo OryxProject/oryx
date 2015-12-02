@@ -61,9 +61,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
                                         300, // @10 msec should make 1 interval
                                         1);
 
-    for (Pair<String, String> update : updates) {
-      log.info("{}", update);
-    }
+    updates.forEach(update -> log.info("{}", update));
 
     int numUpdates = updates.size();
 

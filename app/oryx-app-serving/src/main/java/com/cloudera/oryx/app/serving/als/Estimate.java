@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -60,17 +60,15 @@ public final class Estimate extends AbstractALSResource {
     ALSServingModel model = getALSServingModel();
     float[] userFeatures = model.getUserVector(userID);
     checkExists(userFeatures != null, userID);
-    List<Double> results = new ArrayList<>(pathSegmentsList.size());
-    for (PathSegment pathSegment : pathSegmentsList) {
+    return pathSegmentsList.stream().map(pathSegment -> {
       float[] itemFeatures = model.getItemVector(pathSegment.getPath());
       if (itemFeatures == null) {
-        results.add(0.0);
+        return 0.0;
       } else {
         double value = VectorMath.dot(itemFeatures, userFeatures);
         Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad estimate");
-        results.add(value);
+        return value;
       }
-    }
-    return results;
+    }).collect(Collectors.toList());
   }
 }

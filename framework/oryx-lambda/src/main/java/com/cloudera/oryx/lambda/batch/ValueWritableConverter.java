@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda.batch;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -56,17 +57,13 @@ final class ValueWritableConverter<V> {
    *  with a single argument whose type is the value class, and a no-arg constructor.
    */
   <W extends Writable> ValueWritableConverter(Class<V> valueClass, Class<W> writableClass) {
-    Method fromWritableMethod = null;
-    for (Method method : writableClass.getMethods()) {
-      if (method.getName().startsWith("get")) {
-        Class<?> returnType = method.getReturnType();
-        if (returnType.equals(valueClass) ||
-            returnType.equals(WRAPPER_TO_PRIMITIVE.get(valueClass))) {
-          fromWritableMethod = method;
-          break;
-        }
-      }
-    }
+    Method fromWritableMethod = Arrays.stream(writableClass.getMethods()).
+        filter(method -> method.getName().startsWith("get")).
+        filter(method -> {
+          Class<?> returnType = method.getReturnType();
+          return returnType.equals(valueClass) || returnType.equals(WRAPPER_TO_PRIMITIVE.get(valueClass));
+        }).findFirst().orElse(null);
+
     if (fromWritableMethod == null && String.class.equals(valueClass)) {
       // Special-case String
       try {

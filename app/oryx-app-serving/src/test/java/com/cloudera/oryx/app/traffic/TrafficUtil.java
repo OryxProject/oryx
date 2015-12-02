@@ -21,11 +21,12 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
@@ -77,10 +78,7 @@ public final class TrafficUtil {
     String[] otherArgs = new String[args.length - 3];
     System.arraycopy(args, 3, otherArgs, 0, otherArgs.length);
 
-    List<URI> hosts = new ArrayList<>(hostStrings.length);
-    for (String hostString : hostStrings) {
-      hosts.add(URI.create(hostString));
-    }
+    List<URI> hosts = Arrays.stream(hostStrings).map(URI::create).collect(Collectors.toList());
 
     int perClientRequestIntervalMS = numThreads * requestIntervalMS;
 

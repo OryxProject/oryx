@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigValue;
 import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
@@ -99,9 +98,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.generationIntervalSec = config.getInt("oryx." + group + ".streaming.generation-interval-sec");
 
     this.extraSparkConfig = new HashMap<>();
-    for (Map.Entry<String,ConfigValue> e : config.getConfig("oryx." + group + ".streaming.config").entrySet()) {
-      extraSparkConfig.put(e.getKey(), e.getValue().unwrapped());
-    }
+    config.getConfig("oryx." + group + ".streaming.config").entrySet().forEach(e ->
+      extraSparkConfig.put(e.getKey(), e.getValue().unwrapped())
+    );
 
     Preconditions.checkArgument(generationIntervalSec > 0);
   }
@@ -242,14 +241,12 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
       Map<TopicAndPartition,?> leaderOffsets =
           JavaConversions.mapAsJavaMap(kc.getLatestLeaderOffsets(needOffsetScalaSet).right().get());
-      for (Map.Entry<TopicAndPartition,?> entry : leaderOffsets.entrySet()) {
-        TopicAndPartition tAndP = entry.getKey();
+      leaderOffsets.forEach((tAndP, leaderOffsetsObj) -> {
         // Can't reference LeaderOffset class, so, hack away:
-        String leaderOffsetString = entry.getValue().toString();
-        Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetString);
+        Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetsObj.toString());
         Preconditions.checkState(m.matches());
         offsets.put(tAndP, Long.valueOf(m.group(1)));
-      }
+      });
     }
 
   }
