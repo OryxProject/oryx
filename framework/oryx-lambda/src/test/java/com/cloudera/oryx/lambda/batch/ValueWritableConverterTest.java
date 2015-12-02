@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.lambda.batch;
 
+import org.apache.hadoop.io.ArrayPrimitiveWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
@@ -37,6 +38,11 @@ public final class ValueWritableConverterTest extends OryxTest {
         new ValueWritableConverter<>(Long.class, LongWritable.class);
     assertEquals(-1L, converter.fromWritable(new LongWritable(-1L)).longValue());
     assertEquals(new LongWritable(1L), converter.toWritable(1L));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNoSuchMethod() {
+    new ValueWritableConverter<>(byte[].class, ArrayPrimitiveWritable.class);
   }
 
 }

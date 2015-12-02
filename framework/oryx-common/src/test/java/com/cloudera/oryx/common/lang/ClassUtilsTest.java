@@ -88,4 +88,16 @@ public final class ClassUtilsTest extends OryxTest {
     assertFalse(ClassUtils.classExists("java.Foo"));
   }
 
+  @Test
+  public void testNoContextCL() {
+    Thread current = Thread.currentThread();
+    ClassLoader savedCL = current.getContextClassLoader();
+    current.setContextClassLoader(null);
+    try {
+      assertTrue(ClassUtils.classExists(ClassUtilsTest.class.getName()));
+    } finally {
+      current.setContextClassLoader(savedCL);
+    }
+  }
+
 }

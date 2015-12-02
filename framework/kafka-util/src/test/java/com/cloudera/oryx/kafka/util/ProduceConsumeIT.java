@@ -34,7 +34,7 @@ public final class ProduceConsumeIT extends OryxTest {
 
   private static final Logger log = LoggerFactory.getLogger(ProduceConsumeIT.class);
 
-  private static final String TOPIC = "OryxTest";
+  private static final String TOPIC = ProduceConsumeIT.class.getSimpleName() + "Topic";
   private static final int NUM_DATA = 100;
 
   @Test

@@ -276,16 +276,7 @@ public final class ALSUpdate extends MLUpdate<String> {
       long now = System.currentTimeMillis();
       timestampRatingRDD = timestampRatingRDD.mapToPair(timestampRating -> {
           long timestamp = timestampRating._1();
-          Rating rating = timestampRating._2();
-          double newRating;
-          if (timestamp >= now) {
-            newRating = rating.rating();
-          } else {
-            double days = (now - timestamp) / 86400000.0;
-            newRating = rating.rating() * Math.pow(factor, days);
-          }
-          return new Tuple2<>(timestamp,
-                              new Rating(rating.user(), rating.product(), newRating));
+          return new Tuple2<>(timestamp, decayRating(timestampRating._2(), timestamp, now, factor));
         });
     }
 
@@ -295,6 +286,14 @@ public final class ALSUpdate extends MLUpdate<String> {
     }
 
     return timestampRatingRDD.sortByKey().values();
+  }
+
+  static Rating decayRating(Rating rating, long timestamp, long now, double factor) {
+    if (timestamp >= now) {
+      return rating;
+    }
+    double days = (now - timestamp) / 86400000.0;
+    return new Rating(rating.user(), rating.product(), rating.rating() * Math.pow(factor, days));
   }
 
   /**

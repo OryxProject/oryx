@@ -24,6 +24,14 @@ import com.cloudera.oryx.common.OryxTest;
 public final class AutoReadWriteLockTest extends OryxTest {
 
   @Test
+  public void testDefault() throws Exception {
+    AutoReadWriteLock al = new AutoReadWriteLock();
+    assertNotNull(al.toString());
+    assertNotNull(al.readLock());
+    assertNotNull(al.writeLock());
+  }
+
+  @Test
   public void testReadLock() {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     AutoReadWriteLock al = new AutoReadWriteLock(lock);

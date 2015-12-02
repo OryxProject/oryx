@@ -33,7 +33,7 @@ public final class LargeMessageIT extends OryxTest {
 
   private static final Logger log = LoggerFactory.getLogger(LargeMessageIT.class);
 
-  private static final String TOPIC = "OryxTest";
+  private static final String TOPIC = LargeMessageIT.class.getSimpleName() + "Topic";
   private static final int NUM_DATA = 1;
 
   @Test

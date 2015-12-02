@@ -16,6 +16,7 @@
 package com.cloudera.oryx.common.lang;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -29,6 +30,13 @@ public final class LoggingTest extends OryxTest {
   public void testLoggingCallable() throws Exception {
     Integer result = LoggingCallable.log(() -> 3).call();
     assertEquals(3, result.intValue());
+  }
+
+  @Test
+  public void testAsRunnable() {
+    AtomicInteger a = new AtomicInteger();
+    LoggingCallable.log(() -> a.set(3)).asRunnable().run();
+    assertEquals(3, a.get());
   }
 
   @Test(expected = IOException.class)

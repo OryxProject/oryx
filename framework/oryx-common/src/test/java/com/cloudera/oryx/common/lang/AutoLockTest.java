@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.common.lang;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.Test;
@@ -22,6 +23,20 @@ import org.junit.Test;
 import com.cloudera.oryx.common.OryxTest;
 
 public final class AutoLockTest extends OryxTest {
+
+  @Test
+  public void testDefault() throws Exception {
+    AutoLock al = new AutoLock();
+    assertNotNull(al.autoLock());
+    assertNotNull(al.toString());
+    assertNotNull(al.newCondition());
+    al.lockInterruptibly();
+    al.unlock();
+    assertTrue(al.tryLock());
+    al.unlock();
+    assertTrue(al.tryLock(1, TimeUnit.SECONDS));
+    al.unlock();
+  }
 
   @Test
   public void testClose() {
