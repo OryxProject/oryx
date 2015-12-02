@@ -187,6 +187,7 @@ public final class HyperParamsTest extends OryxTest {
                                  int howMany,
                                  List<T> expected) {
     assertEquals(expected, hyperParams.getTrialValues(howMany));
+    assertNotNull(hyperParams.toString());
   }
 
   private static void doTestContinuous(HyperParamValues<Double> range,
@@ -198,6 +199,7 @@ public final class HyperParamsTest extends OryxTest {
       valueArray[i] = values.get(i);
     }
     assertArrayEquals(expected, valueArray);
+    assertNotNull(range.toString());
   }
 
 }

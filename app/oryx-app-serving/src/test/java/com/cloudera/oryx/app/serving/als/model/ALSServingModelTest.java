@@ -222,6 +222,7 @@ public final class ALSServingModelTest extends OryxTest {
   public void testFractionLoaded() {
     assertEquals(1.0f, new ALSServingModel(2, true, 1.0, null).getFractionLoaded());
     ALSServingModel model = new ALSServingModel(2, true, 1.0, null);
+    assertNotNull(model.toString());
     model.retainRecentAndUserIDs(Collections.singleton("U1"));
     model.retainRecentAndItemIDs(Collections.singleton("I0"));
     assertEquals(0.0f, model.getFractionLoaded());

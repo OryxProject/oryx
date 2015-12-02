@@ -69,8 +69,8 @@ import scala.collection.JavaConversions;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.ToExampleFn;
 import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.rdf.example.ExampleUtils;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -186,8 +186,9 @@ public final class RDFUpdate extends MLUpdate<String> {
     DecisionForest forest = forestAndEncoding.getFirst();
     CategoricalValueEncodings valueEncodings = forestAndEncoding.getSecond();
 
-    JavaRDD<Example> examplesRDD =
-        testData.map(MLFunctions.PARSE_FN).map(new ToExampleFn(inputSchema, valueEncodings));
+    InputSchema inputSchema = this.inputSchema;
+    JavaRDD<Example> examplesRDD = testData.map(MLFunctions.PARSE_FN).
+        map(data -> ExampleUtils.dataToExample(data, inputSchema, valueEncodings));
 
     double eval;
     if (inputSchema.isClassification()) {

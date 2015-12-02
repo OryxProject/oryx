@@ -47,4 +47,21 @@ public final class NumericDecisionTest extends OryxTest {
     assertTrue(decision.isPositive(new Example(null, new Feature[] {null})));
   }
 
+  @Test
+  public void testToString() {
+    NumericDecision decision = new NumericDecision(0, 0.5, true);
+    assertEquals("(#0 >= 0.5)", decision.toString());
+  }
+
+  @Test
+  public void testEqualsHashCode() {
+    NumericDecision a = new NumericDecision(0, 0.5, true);
+    NumericDecision b = new NumericDecision(0, 0.5, true);
+    NumericDecision c = new NumericDecision(1, 0.5, true);
+    assertEquals(a, b);
+    assertNotEquals(a, c);
+    assertEquals(a.hashCode(), b.hashCode());
+    assertNotEquals(a.hashCode(), c.hashCode());
+  }
+
 }

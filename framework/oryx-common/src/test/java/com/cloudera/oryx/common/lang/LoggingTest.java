@@ -25,6 +25,13 @@ import com.cloudera.oryx.common.OryxTest;
 public final class LoggingTest extends OryxTest {
 
   private static final StackTraceElement[] NO_STACK = new StackTraceElement[0];
+  public static final IOException DUMMY_EXCEPTION = new IOException("It's safe to ignore this exception");
+  public static final AssertionError DUMMY_ERROR = new AssertionError("It's safe to ignore this exception");
+  static {
+    // to not pollute the logs
+    DUMMY_EXCEPTION.setStackTrace(NO_STACK);
+    DUMMY_ERROR.setStackTrace(NO_STACK);
+  }
 
   @Test
   public void testLoggingCallable() throws Exception {
@@ -41,20 +48,12 @@ public final class LoggingTest extends OryxTest {
 
   @Test(expected = IOException.class)
   public void testLoggingCallableException() throws Exception {
-    LoggingCallable.log(() -> {
-      IOException ioe = new IOException("It's safe to ignore this exception");
-      ioe.setStackTrace(NO_STACK); // to not pollute the logs
-      throw ioe;
-    }).call();
+    LoggingCallable.log(() -> { throw DUMMY_EXCEPTION; }).call();
   }
 
   @Test(expected = AssertionError.class)
   public void testLoggingCallableException2() throws Exception {
-    LoggingCallable.log(() -> {
-      AssertionError error = new AssertionError("It's safe to ignore this error");
-      error.setStackTrace(NO_STACK);
-      throw error;
-    }).call();
+    LoggingCallable.log(() -> { throw DUMMY_ERROR; }).call();
   }
 
 }

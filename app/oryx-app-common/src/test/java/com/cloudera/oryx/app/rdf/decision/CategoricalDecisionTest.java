@@ -61,4 +61,17 @@ public final class CategoricalDecisionTest extends OryxTest {
     assertEquals("(#0 ∈ [2,5])", decision.toString());
   }
 
+  @Test
+  public void testEqualsHashCode() {
+    BitSet activeCategories = new BitSet(10);
+    activeCategories.set(5);
+    CategoricalDecision a = new CategoricalDecision(0, activeCategories, true);
+    CategoricalDecision b = new CategoricalDecision(0, activeCategories, true);
+    CategoricalDecision c = new CategoricalDecision(1, activeCategories, true);
+    assertEquals(a, b);
+    assertNotEquals(a, c);
+    assertEquals(a.hashCode(), b.hashCode());
+    assertNotEquals(a.hashCode(), c.hashCode());
+  }
+
 }

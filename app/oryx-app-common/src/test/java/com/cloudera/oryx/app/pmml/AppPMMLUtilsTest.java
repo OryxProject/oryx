@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.app.pmml;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -194,6 +196,19 @@ public final class AppPMMLUtilsTest extends OryxTest {
     assertEquals("b", encodings.getEncodingValueMap(1).get(0));
     assertEquals("a", encodings.getEncodingValueMap(1).get(1));
     assertEquals(Collections.singletonMap(1, 2), encodings.getCategoryCounts());
+  }
+
+  @Test
+  public void testReadPMMLFromMessage() throws Exception {
+    PMML pmml = PMMLUtils.buildSkeletonPMML();
+    String pmmlString = PMMLUtils.toString(pmml);
+    assertEquals(PMMLUtils.VERSION, AppPMMLUtils.readPMMLFromUpdateKeyMessage(
+        "MODEL", pmmlString, null).getVersion());
+
+    Path pmmlPath = getTempDir().resolve("out.pmml");
+    Files.write(pmmlPath, Collections.singleton(pmmlString));
+    assertEquals(PMMLUtils.VERSION, AppPMMLUtils.readPMMLFromUpdateKeyMessage(
+        "MODEL-REF", pmmlPath.toAbsolutePath().toString(), null).getVersion());
   }
 
 }

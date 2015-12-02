@@ -41,9 +41,9 @@ import com.cloudera.oryx.api.speed.SpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.ToExampleFn;
 import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
 import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.rdf.example.ExampleUtils;
 import com.cloudera.oryx.app.rdf.example.Feature;
 import com.cloudera.oryx.app.rdf.example.NumericFeature;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
@@ -102,8 +102,10 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    JavaRDD<Example> examplesRDD = newData.values().map(MLFunctions.PARSE_FN)
-            .map(new ToExampleFn(inputSchema, model.getEncodings()));
+    InputSchema inputSchema = this.inputSchema;
+    CategoricalValueEncodings valueEncodings = model.getEncodings();
+    JavaRDD<Example> examplesRDD = newData.values().map(MLFunctions.PARSE_FN).
+        map(data -> ExampleUtils.dataToExample(data, inputSchema, valueEncodings));
 
     DecisionForest forest = model.getForest();
     JavaPairRDD<Pair<Integer,String>,Iterable<Feature>> targetsByTreeAndID =

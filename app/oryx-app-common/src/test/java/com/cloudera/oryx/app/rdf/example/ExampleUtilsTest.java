@@ -50,6 +50,7 @@ public final class ExampleUtilsTest extends OryxTest {
     assertEquals(NumericFeature.forValue(2.5), example.getFeature(2));
     assertEquals(NumericFeature.forValue(-3.2), example.getFeature(3));
     assertNull(example.getFeature(4));
+    assertTrue(example.toString().contains("2.5"));
   }
 
 }

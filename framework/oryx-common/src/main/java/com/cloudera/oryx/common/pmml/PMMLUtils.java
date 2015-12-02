@@ -40,6 +40,8 @@ import org.jpmml.model.JAXBUtil;
  */
 public final class PMMLUtils {
 
+  public static final String VERSION = "4.2.1";
+
   private PMMLUtils() {
   }
 
@@ -53,7 +55,7 @@ public final class PMMLUtils {
     Header header = new Header()
         .setTimestamp(new Timestamp().addContent(formattedDate))
         .setApplication(new Application("Oryx"));
-    return new PMML("4.2.1", header, null);
+    return new PMML(VERSION, header, null);
   }
 
   /**

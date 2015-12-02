@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.lang.LoggingTest;
 
 /**
  * Tests {@link IOUtils}.
@@ -131,6 +132,12 @@ public final class IOUtilsTest extends OryxTest {
       ports.add(IOUtils.chooseFreePort());
     }
     assertEquals(10, ports.size());
+  }
+
+  @Test
+  public void testCloseQuietly() {
+    // Shouldn't throw
+    IOUtils.closeQuietly(() -> { throw LoggingTest.DUMMY_EXCEPTION; });
   }
 
 }

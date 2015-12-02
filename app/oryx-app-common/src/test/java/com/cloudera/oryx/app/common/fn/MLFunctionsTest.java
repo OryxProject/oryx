@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.common.fn;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.junit.Test;
@@ -64,5 +65,16 @@ public final class MLFunctionsTest extends OryxTest {
     assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, Double.NaN))));
     assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(Double.NaN))));
   }
+
+  @Test(expected = IOException.class)
+  public void testParseBadLine() throws Exception {
+    MLFunctions.PARSE_FN.call("[1,]");
+  }
+
+  @Test(expected = ArrayIndexOutOfBoundsException.class)
+  public void testParseBadTimestamp() throws Exception {
+    MLFunctions.TO_TIMESTAMP_FN.call("[1,2,3]");
+  }
+
 
 }
