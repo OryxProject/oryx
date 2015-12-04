@@ -140,9 +140,11 @@ batch|speed|serving)
     if [ -n "${APP_JAR}" ]; then
       SPARK_STREAMING_JARS="${APP_JAR},${SPARK_STREAMING_JARS}"
     fi
-    SPARK_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE_NAME}"
+    SPARK_DRIVER_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE}"
+    SPARK_EXECUTOR_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE_NAME}"
     if [ -n "${JVM_ARGS}" ]; then
-      SPARK_JAVA_OPTS="${JVM_ARGS} ${SPARK_JAVA_OPTS}"
+      SPARK_DRIVER_JAVA_OPTS="${JVM_ARGS} ${SPARK_DRIVER_JAVA_OPTS}"
+      SPARK_EXECUTOR_JAVA_OPTS="${JVM_ARGS} ${SPARK_EXECUTOR_JAVA_OPTS}"
     fi
 
     # Force to spark-submit for Spark-based batch/speed layer
@@ -191,8 +193,8 @@ batch|speed|serving)
 
     SPARK_SUBMIT_CMD="spark-submit --master ${SPARK_MASTER} --name ${APP_NAME} --class ${MAIN_CLASS} \
      --jars ${SPARK_STREAMING_JARS} --files ${CONFIG_FILE} --driver-memory ${DRIVER_MEMORY} \
-     --driver-java-options \"${SPARK_JAVA_OPTS}\" --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
-     --conf spark.executor.extraJavaOptions=\"${SPARK_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT}"
+     --driver-java-options \"${SPARK_DRIVER_JAVA_OPTS}\" --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
+     --conf spark.executor.extraJavaOptions=\"${SPARK_EXECUTOR_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT}"
     for SPARK_KEY_VALUE_CONF in ${SPARK_EXTRA_CONFIG}; do
       SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --conf ${SPARK_KEY_VALUE_CONF}"
     done
