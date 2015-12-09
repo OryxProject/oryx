@@ -166,6 +166,30 @@ Then in another window, you can feed input, such as the `data.csv` example from 
 
 If all is well, these processes can be terminated. The cluster is ready to run Oryx.
 
+# Cloudera Quickstart VM Setup
+
+For quick testing and evaluation, it may be useful to run a single-node cluster in a VM, like the
+[Cloudera Quickstart VM](http://www.cloudera.com/content/www/en-us/downloads/quickstart_vms.html).
+This isn't generally suitable for production use.
+
+- Download and start the cluster VM
+    - Give the VM at least 4 cores and 12GB of memory
+    - Start the cluster in the VM; CDH Express is fine
+- Configure the cluster
+    - In parcel settings, add the location of Kafka parcels, currently http://archive.cloudera.com/kafka/parcels/latest/
+    - Distribute and activate the CDH parcel
+    - Distribute and activate the Kafka parcel
+    - Add Kafka as a service
+    - Start services HDFS, Hue, Kafka, Spark, YARN, Zookeeper
+	  - In the Spark service, choose to add Spark user dir, and Spark app history dir
+-	Download the app files
+	  - Download the batch layer JAR, oryx-run.sh, compute-classpath.sh and example JAR file from the latest release at https://github.com/OryxProject/oryx/releases
+	  - Download the word count example config file from https://github.com/OryxProject/oryx/blob/master/app/conf/wordcount-example.conf 
+- Run the batch layer
+    - Use `./oryx-run.sh kafka-setup --conf wordcount-example.conf` to set up topics
+	  - Use `./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-....jar` to start the batch layer
+- Run other services as desired
+
 
 # Handling Failure
 

@@ -48,7 +48,7 @@ supplied on the command line:
 1. To get the latest changes and tags post-build, `git pull --tags`
 1. Checkout the build tag for this build with `git checkout -f tags/...`
 1. `mvn -DskipTests clean package`
-1. Assembled binaries appear at `oryx-serving/target/oryx-serving-....jar` and likewise for `speed` and `batch`
+1. Assembled binaries appear at `oryx-serving/target/oryx-serving-....jar` and likewise for `speed` and `batch`; also find the compiled example JAR at `app/example/target/example-...jar`
 1. Navigate to the Github release that was just created, at `https://github.com/OryxProject/oryx/releases/tag/...`
 1. Edit the title to something more meaningful like `Oryx x.y.z`
 1. Paste brief release notes into the description, including a link to resolved issues for the associated milestone, usually of the form `https://github.com/OryxProject/oryx/issues?q=milestone%3A...+is%3Aclosed`
