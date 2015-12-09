@@ -189,3 +189,8 @@ curl -X POST http://.../add/foo%20bar%20baz
 curl http://.../distinct
 {"foo":2,"bar":2,"baz":2}
 ```
+
+The configuration file itself is already configured to match the hostname and general parameters of the
+[Cloudera Quickstart VM](http://www.cloudera.com/content/www/en-us/downloads/quickstart_vms.html). In fact,
+this example should work as-is on a demo cluster set up according to the 
+[Cloudera Quickstart VM Setup](admin.html#cloudera_quickstart_vm_setup).
