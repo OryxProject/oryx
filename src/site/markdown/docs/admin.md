@@ -98,7 +98,7 @@ for a more complete discussion. In particular, note that `replica.fetch.max.byte
 have to be set in the broker in order to _replicate_ any very large messages. There is no
 per-topic equivalent to this.
 
-## Automated Configuration
+### Automated Kafka Configuration
 
 The provided `oryx-run.sh` script can be used to print current configuration for Zookeeper,
 list existing topics in Kafka, and optionally create the configured input and update topics
@@ -165,6 +165,37 @@ Then in another window, you can feed input, such as the `data.csv` example from 
 ```
 
 If all is well, these processes can be terminated. The cluster is ready to run Oryx.
+
+## HDFS and Data Layout
+
+Kafka is the data transport mechanism in Oryx, so data is present in Kafka at least temporarily. However
+input data is also stored persistently in HDFS for later use. Likewise, models and updates are produced
+to a Kafka update topic, but models are also persisted to HDFS for later reference.
+
+Input data is stored in HDFS under the directory defined by `oryx.batch.storage.data-dir`. Under
+this directory, subdirectories titled `oryx-[timestamp].data` are created, one for each batch executed
+by Spark Streaming in the Batch Layer. Here, `timestamp` is the familiar Unix timestamp in milliseconds.
+
+Like most "files" output by distributed processes in Hadoop, this is actually a subdirectory containing 
+many `part-*` files. Each file is a `SequenceFile`, where keys and values from the Kafka input topic 
+have been serialized according to a `Writable` class implementation defined by 
+`oryx.batch.storage.key-writable-class` and `oryx.batch.storage.message-writable-class`. By default,
+this is `TextWritable` and the string representation of keys and messages are recorded.
+
+Data may be deleted from this data directory if desired. It will no longer be used in future Batch Layer
+computations. For example, data older than a certain age might be removed automatically.
+
+Similarly, machine-learning-oriented applications (which extend `MLUpdate`) output the model chosen 
+by the Batch Layer in each batch interval. It is also persisted in a subdirectory of the directory defined
+by `oryx.batch.storage.model-dir`. Under this directory are subdirectories named `[timestamp]`, where
+`timestamp` is again the familiar Unix timestamp in milliseconds.
+
+The content of this subdirectory will depend on the application, but typically contains a PMML model
+called `model.pmml`, and optionally supplementary files that go with the model.
+
+This directory exists to record PMML models for archiving and for use by other tools. Its content
+may be deleted if desired.
+
 
 # Cloudera Quickstart VM Setup
 
