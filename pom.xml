@@ -730,6 +730,8 @@
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
               <log4j.configuration>log4j.test.properties</log4j.configuration>
             </systemPropertyVariables>
+            <!-- Limit memory for unit tests in Travis -->
+            <argLine>-Xmx512m</argLine>
           </configuration>
         </plugin>
         <plugin>
@@ -749,6 +751,9 @@
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
               <log4j.configuration>log4j.test.properties</log4j.configuration>
             </systemPropertyVariables>
+            <!-- Limit memory for integration tests in Travis, and spin up fresh JVMs -->
+            <argLine>-Xmx1536m</argLine>
+            <reuseForks>false</reuseForks>
           </configuration>
         </plugin>
         <plugin>

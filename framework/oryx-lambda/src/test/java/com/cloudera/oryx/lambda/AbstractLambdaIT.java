@@ -99,9 +99,10 @@ public abstract class AbstractLambdaIT extends OryxTest {
     overlay.put("oryx.update-topic.lock.master", topicLockMaster);
     // Make sure to test both MODEL and MODEL-REF messages:
     overlay.put("oryx.update-topic.message.max-size", Integer.toString(1 << 12));
-    String masterLocalAllCores = "\"local[*]\"";
-    overlay.put("oryx.batch.streaming.master", masterLocalAllCores);
-    overlay.put("oryx.speed.streaming.master", masterLocalAllCores);
+    // Limit cores to keep tests slimmer
+    String masterLocal = "\"local[3]\"";
+    overlay.put("oryx.batch.streaming.master", masterLocal);
+    overlay.put("oryx.speed.streaming.master", masterLocal);
     overlay.put("oryx.batch.ui.port", IOUtils.chooseFreePort());
     overlay.put("oryx.speed.ui.port", IOUtils.chooseFreePort());
     return ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
