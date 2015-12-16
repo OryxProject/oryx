@@ -30,6 +30,11 @@ import org.apache.spark.api.java.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Function that deletes old data, if applicable, at each batch interval.
+ *
+ * @param <T> unused
+ */
 public final class DeleteOldDataFn<T> implements Function<JavaRDD<T>,Void> {
 
   private static final Logger log = LoggerFactory.getLogger(DeleteOldDataFn.class);

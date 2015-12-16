@@ -117,7 +117,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     dStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
 
     if (maxDataAgeHours != NO_MAX_DATA_AGE) {
-      dStream.foreachRDD(new DeleteOldDataFn<>(streamingContext.sc().hadoopConfiguration(),
+      dStream.foreachRDD(new DeleteOldDataFn<>(streamingContext.sparkContext().hadoopConfiguration(),
                                                dataDirString,
                                                maxDataAgeHours));
     }
