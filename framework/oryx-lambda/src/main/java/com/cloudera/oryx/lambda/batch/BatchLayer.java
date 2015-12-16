@@ -30,6 +30,7 @@ import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.lambda.AbstractSparkLayer;
+import com.cloudera.oryx.lambda.DeleteOldDataFn;
 import com.cloudera.oryx.lambda.UpdateOffsetsFn;
 
 /**
@@ -43,11 +44,14 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
   private static final Logger log = LoggerFactory.getLogger(BatchLayer.class);
 
+  private static final int NO_MAX_DATA_AGE = -1;
+
   private final Class<? extends Writable> keyWritableClass;
   private final Class<? extends Writable> messageWritableClass;
   private final String updateClassName;
   private final String dataDirString;
   private final String modelDirString;
+  private final int maxDataAgeHours;
   private JavaStreamingContext streamingContext;
 
   public BatchLayer(Config config) {
@@ -59,8 +63,10 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     this.updateClassName = config.getString("oryx.batch.update-class");
     this.dataDirString = config.getString("oryx.batch.storage.data-dir");
     this.modelDirString = config.getString("oryx.batch.storage.model-dir");
+    this.maxDataAgeHours = config.getInt("oryx.batch.storage.max-age-data-hours");
     Preconditions.checkArgument(!dataDirString.isEmpty());
     Preconditions.checkArgument(!modelDirString.isEmpty());
+    Preconditions.checkArgument(maxDataAgeHours >= 0 || maxDataAgeHours == NO_MAX_DATA_AGE);
   }
 
   @Override
@@ -109,6 +115,12 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         streamingContext.sparkContext().hadoopConfiguration()));
 
     dStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
+
+    if (maxDataAgeHours != NO_MAX_DATA_AGE) {
+      dStream.foreachRDD(new DeleteOldDataFn<>(streamingContext.sc().hadoopConfiguration(),
+                                               dataDirString,
+                                               maxDataAgeHours));
+    }
 
     log.info("Starting Spark Streaming");
 
