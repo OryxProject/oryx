@@ -182,7 +182,8 @@ have been serialized according to a `Writable` class implementation defined by
 this is `TextWritable` and the string representation of keys and messages are recorded.
 
 Data may be deleted from this data directory if desired. It will no longer be used in future Batch Layer
-computations. For example, data older than a certain age might be removed automatically.
+computations. In particular, note that setting `oryx.batch.storage.max-age-data-hours` to a nonnegative
+value will configure the Batch Layer to automatically delete data older than the given number of hours.
 
 Similarly, machine-learning-oriented applications (which extend `MLUpdate`) output the model chosen 
 by the Batch Layer in each batch interval. It is also persisted in a subdirectory of the directory defined
