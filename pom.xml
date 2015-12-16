@@ -850,17 +850,16 @@
                     </excludes>
                   </filter>
                 </filters>
-                <!--
+                <!-- Conflicts with JPMML 1.1.x in Spark, so shade -->
                 <relocations>
                   <relocation>
-                    <pattern>com.google</pattern>
-                    <shadedPattern>oryx.com.google</shadedPattern>
+                    <pattern>org.jpmml</pattern>
+                    <shadedPattern>oryx.org.jpmml</shadedPattern>
                     <includes>
-                      <include>com.google.common.**</include>
+                      <include>org.jpmml.**</include>
                     </includes>
                   </relocation>
                 </relocations>
-                -->
               </configuration>
             </execution>
           </executions>
