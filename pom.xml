@@ -864,6 +864,13 @@
                       <include>org.jpmml.**</include>
                     </includes>
                   </relocation>
+                  <relocation>
+                    <pattern>org.dmg</pattern>
+                    <shadedPattern>oryx.org.dmg</shadedPattern>
+                    <includes>
+                      <include>org.dmg.**</include>
+                    </includes>
+                  </relocation>
                 </relocations>
               </configuration>
             </execution>
