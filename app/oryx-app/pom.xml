@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx</artifactId>
-    <version>2.1.1</version>
+    <version>2.1.2-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -28,7 +28,7 @@
   <name>Apps: Oryx</name>
   <description>Speed and batch components of machine learning applications built from
   algorithms implemented in this project</description>
-  <version>2.1.1</version>
+  <version>2.1.2-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
