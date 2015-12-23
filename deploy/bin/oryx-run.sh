@@ -211,7 +211,7 @@ batch|speed|serving)
     SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} ${LAYER_JAR}"
 
     echo "${SPARK_SUBMIT_CMD}"
-    ${SPARK_SUBMIT_CMD}
+    bash -c "${SPARK_SUBMIT_CMD}"
     ;;
 
   yarn)
