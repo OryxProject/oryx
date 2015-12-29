@@ -7,6 +7,8 @@ matrix:
  include:
    # Covers code coverage
    - env: JACOCO=-Pjacoco
+   # Covers Spark 1.6
+   - env: SPARK=-Dspark.version=1.6.0
    # Covers CDH 5.5
    - env: CDH=-Pcdh55
 cache:
