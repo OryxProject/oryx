@@ -78,6 +78,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     return "BatchLayer";
   }
 
+  @SuppressWarnings("deprecation") // For foreachRDD deprecated in 1.6+
   public synchronized void start() {
     String id = getID();
     if (id != null) {
