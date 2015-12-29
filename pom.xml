@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.7</version>
+        <version>1.2.8</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -413,7 +413,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.2.3.RELEASE</version>
+        <version>4.2.4.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -1183,7 +1183,7 @@
       <id>cdh54</id>
       <!-- Latest 5.4.x version; can be overridden -->
       <properties>
-        <cdh.version>5.4.8</cdh.version>
+        <cdh.version>5.4.9</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.3.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
@@ -1194,11 +1194,11 @@
       <id>cdh55</id>
       <!-- Latest 5.5.x version; can be overridden -->
       <properties>
-        <cdh.version>5.5.0</cdh.version>
+        <cdh.version>5.5.1</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.5.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.8.2.0-kafka-1.3.2</kafka.version>
+        <kafka.version>0.8.2.0-kafka-1.4.0</kafka.version>
       </properties>
     </profile>
     <profile>
