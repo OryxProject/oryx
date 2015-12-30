@@ -92,7 +92,8 @@ public abstract class AbstractServingTest extends JerseyTest {
   @Override
   protected final DeploymentContext configureDeployment() {
     configureProperties();
-    String joinedPackages = Joiner.on(',').join(getResourcePackages());
+    String joinedPackages = Joiner.on(',').join(getResourcePackages()) +
+        ",com.cloudera.oryx.lambda.serving";
     return ServletDeploymentContext.builder(OryxApplication.class)
         .initParam("javax.ws.rs.Application", OryxApplication.class.getName())
         .contextParam(OryxApplication.class.getName() + ".packages", joinedPackages)

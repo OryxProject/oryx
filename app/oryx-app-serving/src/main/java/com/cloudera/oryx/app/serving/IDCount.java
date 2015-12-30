@@ -36,7 +36,7 @@ public final class IDCount extends IDEntity {
   }
 
   @Override
-  public String getValueString() {
+  public String valueString() {
     return Integer.toString(count);
   }
 

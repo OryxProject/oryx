@@ -36,7 +36,7 @@ public final class IDValue extends IDEntity {
   }
 
   @Override
-  public String getValueString() {
+  public String valueString() {
     return Double.toString(value);
   }
 

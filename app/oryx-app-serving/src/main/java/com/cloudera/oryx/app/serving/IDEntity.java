@@ -34,16 +34,16 @@ abstract class IDEntity implements HasCSV, Serializable {
     return id;
   }
 
-  abstract String getValueString();
+  abstract String valueString();
 
   @Override
   public final String toString() {
-    return id + ":" + getValueString();
+    return id + ":" + valueString();
   }
 
   @Override
   public final String toCSV() {
-    return id + "," + getValueString();
+    return id + "," + valueString();
   }
 
 }
