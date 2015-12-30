@@ -15,18 +15,23 @@
 
 package com.cloudera.oryx.app.serving.rdf.model;
 
+import java.util.Map;
 import java.util.Objects;
 
-import com.cloudera.oryx.api.serving.ServingModel;
+import com.cloudera.oryx.app.rdf.example.ExampleUtils;
+import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
+import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.app.serving.classreg.model.ClassificationRegressionServingModel;
 
 /**
  * Contains all data structures needed to serve queries for a
  * random decision forest-based classifier or regressor.
  */
-public final class RDFServingModel implements ServingModel {
+public final class RDFServingModel implements ClassificationRegressionServingModel {
 
   private final DecisionForest forest;
   private final CategoricalValueEncodings encodings;
@@ -41,6 +46,27 @@ public final class RDFServingModel implements ServingModel {
     this.forest = forest;
     this.encodings = encodings;
     this.inputSchema = inputSchema;
+  }
+
+  @Override
+  public String predict(String[] example) {
+    Prediction prediction = makePrediction(example);
+    if (inputSchema.isClassification()) {
+      int targetIndex = inputSchema.getTargetFeatureIndex();
+      Map<Integer,String> targetEncodingName = encodings.getEncodingValueMap(targetIndex);
+      int mostProbable = ((CategoricalPrediction) prediction).getMostProbableCategoryEncoding();
+      return targetEncodingName.get(mostProbable);
+    } else {
+      double score = ((NumericPrediction) prediction).getPrediction();
+      return Double.toString(score);
+    }
+  }
+
+  public Prediction makePrediction(String[] example) {
+    if (example.length != inputSchema.getNumFeatures()) {
+      throw new IllegalArgumentException("Wrong number of features");
+    }
+    return forest.predict(ExampleUtils.dataToExample(example, inputSchema, encodings));
   }
 
   public DecisionForest getForest() {

@@ -30,11 +30,14 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
-public abstract class AbstractKMeansServingTest extends AbstractServingTest {
+abstract class AbstractKMeansServingTest extends AbstractServingTest {
 
   @Override
   protected final List<String> getResourcePackages() {
-    return Arrays.asList("com.cloudera.oryx.app.serving", "com.cloudera.oryx.app.serving.kmeans");
+    return Arrays.asList(
+        "com.cloudera.oryx.app.serving",
+        "com.cloudera.oryx.app.serving.clustering",
+        "com.cloudera.oryx.app.serving.kmeans");
   }
 
   @Override
@@ -54,8 +57,8 @@ public abstract class AbstractKMeansServingTest extends AbstractServingTest {
     }
   }
 
-  protected static class MockServingModelManager extends AbstractMockServingModelManager {
-    public MockServingModelManager(Config config) {
+  static class MockServingModelManager extends AbstractMockServingModelManager {
+    MockServingModelManager(Config config) {
       super(config);
     }
     @Override

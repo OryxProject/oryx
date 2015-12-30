@@ -65,8 +65,8 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     }
   }
 
-  protected static class MockServingModelManager extends AbstractMockServingModelManager {
-    public MockServingModelManager(Config config) {
+  static class MockServingModelManager extends AbstractMockServingModelManager {
+    MockServingModelManager(Config config) {
       super(config);
     }
     @Override
@@ -75,7 +75,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     }
   }
 
-  protected final void testOffset(String requestPath, int howMany, int offset, int expectedSize) {
+  final void testOffset(String requestPath, int howMany, int offset, int expectedSize) {
     List<?> results = target(requestPath)
         .queryParam("howMany", Integer.toString(howMany))
         .queryParam("offset", Integer.toString(offset))
@@ -85,7 +85,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     Assert.assertEquals(expectedSize, results.size());
   }
 
-  protected final void testHowMany(String requestPath, int howMany, int expectedSize) {
+  final void testHowMany(String requestPath, int howMany, int expectedSize) {
     List<?> results = target(requestPath)
         .queryParam("howMany", Integer.toString(howMany))
         .request()
@@ -94,9 +94,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     Assert.assertEquals(expectedSize, results.size());
   }
 
-  protected static void testTopByValue(int expectedSize,
-                                       List<IDValue> values,
-                                       boolean reverse) {
+  static void testTopByValue(int expectedSize, List<IDValue> values, boolean reverse) {
     Assert.assertEquals(expectedSize, values.size());
     for (int i = 0; i < values.size(); i++) {
       IDValue value = values.get(i);
@@ -114,7 +112,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     }
   }
 
-  protected static void testTopCount(int expectedSize, List<IDCount> top) {
+  static void testTopCount(int expectedSize, List<IDCount> top) {
     Assert.assertEquals(expectedSize, top.size());
     for (int i = 0; i < top.size(); i++) {
       int thisCount = top.get(i).getCount();
@@ -125,15 +123,15 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     }
   }
 
-  protected static void testCSVTopByScore(int expectedSize, String response) {
+  static void testCSVTopByScore(int expectedSize, String response) {
     testCSVTop(expectedSize, response, false, false);
   }
 
-  protected static void testCSVLeastByScore(int expectedSize, String response) {
+  static void testCSVLeastByScore(int expectedSize, String response) {
     testCSVTop(expectedSize, response, false, true);
   }
 
-  protected static void testCSVTopByCount(int expectedSize, String response) {
+  static void testCSVTopByCount(int expectedSize, String response) {
     testCSVTop(expectedSize, response, true, false);
   }
 
@@ -164,7 +162,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
     }
   }
 
-  protected static void testCSVScores(int expectedSize, String response) {
+  static void testCSVScores(int expectedSize, String response) {
     String[] rows = response.split("\n");
     Assert.assertEquals(expectedSize, rows.length);
     for (String row : rows) {

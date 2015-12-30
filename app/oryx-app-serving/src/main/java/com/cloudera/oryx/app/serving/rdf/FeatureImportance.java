@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
 /**
@@ -42,12 +43,12 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
  */
 @Singleton
 @Path("/feature/importance")
-public final class FeatureImportance extends AbstractRDFResource {
+public final class FeatureImportance extends AbstractOryxResource {
 
   @GET
   @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<Double> getAllImportances() throws OryxServingException {
-    RDFServingModel model = getRDFServingModel();
+    RDFServingModel model = (RDFServingModel) getServingModel();
     double[] importances = model.getForest().getFeatureImportances();
     List<Double> result = new ArrayList<>(importances.length);
     for (double importance : importances) {
@@ -61,7 +62,7 @@ public final class FeatureImportance extends AbstractRDFResource {
   @Path("{featureNumber}")
   public Double getImportance(@PathParam("featureNumber") int featureNumber)
       throws OryxServingException {
-    RDFServingModel model = getRDFServingModel();
+    RDFServingModel model = (RDFServingModel) getServingModel();
     double[] importances = model.getForest().getFeatureImportances();
     check(featureNumber >= 0 && featureNumber < importances.length, "Bad feature number");
     return importances[featureNumber];

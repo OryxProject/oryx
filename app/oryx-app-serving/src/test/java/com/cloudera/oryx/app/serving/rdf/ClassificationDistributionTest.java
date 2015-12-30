@@ -87,9 +87,9 @@ public final class ClassificationDistributionTest extends AbstractRDFServingTest
     }
   }
 
-  protected static class MockClassificationServingModelManager
+  static class MockClassificationServingModelManager
       extends AbstractMockServingModelManager {
-    public MockClassificationServingModelManager(Config config) {
+    MockClassificationServingModelManager(Config config) {
       super(config);
     }
     @Override

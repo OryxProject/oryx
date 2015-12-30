@@ -32,14 +32,17 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.lambda.serving.AbstractServingTest;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
-public abstract class AbstractRDFServingTest extends AbstractServingTest {
+abstract class AbstractRDFServingTest extends AbstractServingTest {
 
   protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
 
   @Override
   protected final List<String> getResourcePackages() {
-    return Arrays.asList("com.cloudera.oryx.app.serving", "com.cloudera.oryx.app.serving.rdf");
+    return Arrays.asList(
+        "com.cloudera.oryx.app.serving",
+        "com.cloudera.oryx.app.serving.classreg",
+        "com.cloudera.oryx.app.serving.rdf");
   }
 
   @Override
@@ -54,13 +57,13 @@ public abstract class AbstractRDFServingTest extends AbstractServingTest {
       context.setAttribute(OryxResource.MODEL_MANAGER_KEY, getModelManager());
       context.setAttribute(OryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
-    protected MockServingModelManager getModelManager() {
+    MockServingModelManager getModelManager() {
       return new MockServingModelManager(ConfigUtils.getDefault());
     }
   }
 
-  protected static class MockServingModelManager extends AbstractMockServingModelManager {
-    public MockServingModelManager(Config config) {
+  static class MockServingModelManager extends AbstractMockServingModelManager {
+    MockServingModelManager(Config config) {
       super(config);
     }
     @Override

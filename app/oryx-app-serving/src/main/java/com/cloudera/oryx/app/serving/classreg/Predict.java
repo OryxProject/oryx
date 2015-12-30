@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.kmeans;
+package com.cloudera.oryx.app.serving.classreg;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +26,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -34,25 +34,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.classreg.model.ClassificationRegressionServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * <p>Responds to a GET request to {@code /assign/[datum]}, or a POST to {@code /assign}
- * containing several data points, one on each line. The inputs are data points to cluster,
- * delimited, like "1,foo,3.0".</p>
+ * <p>Responds to a GET request to {@code /predict/[datum]}, or a POST to {@code /predict}
+ * containing several data points, one on each line. The inputs are data points to predict,
+ * delimited, like "1,foo,3.0". The value of the target feature in the input is ignored.</p>
  *
- * <p>The response body contains the result of clustering -- the IDs of the assigned clusters --
- * one for each input data point, one per line.</p>
+ * <p>The response body contains the result of prediction, one for each input data point, one per
+ * line. The result depends on the classifier or regressor -- could be a number
+ * or a category name. If JSON output is selected, the result is a JSON list.</p>
  */
 @Singleton
-@Path("/assign")
-public final class Assign extends AbstractKMeansResource {
+@Path("/predict")
+public final class Predict extends AbstractOryxResource {
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public String get(@PathParam("datum") String datum) throws OryxServingException {
-    return nearestClusterID(datum).toString();
+    return predict(datum);
   }
 
   @POST
@@ -79,15 +82,20 @@ public final class Assign extends AbstractKMeansResource {
   private List<String> doPost(BufferedReader buffered) throws IOException, OryxServingException {
     List<String> predictions = new ArrayList<>();
     for (String line; (line = buffered.readLine()) != null;) {
-      predictions.add(nearestClusterID(line).toString());
+      predictions.add(predict(line));
     }
     return predictions;
   }
 
-  private Integer nearestClusterID(String datum) throws OryxServingException {
-    check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
-    String[] tokens = TextUtils.parseDelimited(datum, ',');
-    return cluster(tokens).getFirst().getID();
+  private String predict(String datum) throws OryxServingException {
+    check(datum != null && !datum.isEmpty(), "Missing input data");
+    ClassificationRegressionServingModel model = (ClassificationRegressionServingModel) getServingModel();
+    String[] parsedDatum = TextUtils.parseDelimited(datum, ',');
+    try {
+      return model.predict(parsedDatum);
+    } catch (IllegalArgumentException iae) {
+      throw new OryxServingException(Response.Status.BAD_REQUEST, iae.getMessage());
+    }
   }
 
 }

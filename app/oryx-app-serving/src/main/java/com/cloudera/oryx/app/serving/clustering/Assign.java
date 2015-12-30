@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.rdf;
+package com.cloudera.oryx.app.serving.clustering;
 
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
@@ -26,41 +26,36 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
-import com.cloudera.oryx.app.rdf.predict.Prediction;
-import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
-import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.clustering.model.ClusteringServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * <p>Responds to a GET request to {@code /predict/[datum]}, or a POST to {@code /predict}
- * containing several data points, one on each line. The inputs are data points to predict,
- * delimited, like "1,foo,3.0". The value of the target feature in the input is ignored.</p>
+ * <p>Responds to a GET request to {@code /assign/[datum]}, or a POST to {@code /assign}
+ * containing several data points, one on each line. The inputs are data points to cluster,
+ * delimited, like "1,foo,3.0".</p>
  *
- * <p>The response body contains the result of prediction, one for each input data point, one per
- * line. The result depends on the classifier or regressor -- could be a number
- * or a category name. If JSON output is selected, the result is a JSON list.</p>
+ * <p>The response body contains the result of clustering -- the IDs of the assigned clusters --
+ * one for each input data point, one per line.</p>
  */
 @Singleton
-@Path("/predict")
-public final class Predict extends AbstractRDFResource {
+@Path("/assign")
+public final class Assign extends AbstractOryxResource {
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public String get(@PathParam("datum") String datum) throws OryxServingException {
-    return predict(datum);
+    return nearestClusterID(datum);
   }
 
   @POST
@@ -87,30 +82,22 @@ public final class Predict extends AbstractRDFResource {
   private List<String> doPost(BufferedReader buffered) throws IOException, OryxServingException {
     List<String> predictions = new ArrayList<>();
     for (String line; (line = buffered.readLine()) != null;) {
-      predictions.add(predict(line));
+      predictions.add(nearestClusterID(line));
     }
     return predictions;
   }
 
-  private String predict(String datum) throws OryxServingException {
-    check(datum != null && !datum.isEmpty(), "Missing input data");
-    RDFServingModel model = getRDFServingModel();
-    InputSchema inputSchema = model.getInputSchema();
-
-    Prediction prediction = makePrediction(TextUtils.parseDelimited(datum, ','));
-
-    String result;
-    if (inputSchema.isClassification()) {
-      int targetIndex = inputSchema.getTargetFeatureIndex();
-      CategoricalValueEncodings valueEncodings = model.getEncodings();
-      Map<Integer,String> targetEncodingName = valueEncodings.getEncodingValueMap(targetIndex);
-      int mostProbable = ((CategoricalPrediction) prediction).getMostProbableCategoryEncoding();
-      result = targetEncodingName.get(mostProbable);
-    } else {
-      double score = ((NumericPrediction) prediction).getPrediction();
-      result = Double.toString(score);
+  private String nearestClusterID(String datum) throws OryxServingException {
+    check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
+    String[] tokens = TextUtils.parseDelimited(datum, ',');
+    ClusteringServingModel model = (ClusteringServingModel) getServingModel();
+    int nearestID;
+    try {
+      nearestID = model.nearestClusterID(tokens);
+    } catch (IllegalArgumentException iae) {
+      throw new OryxServingException(Response.Status.BAD_REQUEST, iae.getMessage());
     }
-    return result;
+    return Integer.toString(nearestID);
   }
 
 }

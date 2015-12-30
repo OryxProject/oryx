@@ -37,7 +37,9 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
   public void testKMeansServingModel() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.serving.application-resources",
-                      "\"com.cloudera.oryx.app.serving,com.cloudera.oryx.app.serving.kmeans\"");
+                      "\"com.cloudera.oryx.app.serving," +
+                          "com.cloudera.oryx.app.serving.clustering," +
+                          "com.cloudera.oryx.app.serving.kmeans\"");
     overlayConfig.put("oryx.serving.model-manager-class",
                       KMeansServingModelManager.class.getName());
     overlayConfig.put("oryx.input-schema.feature-names", "[\"x\",\"y\"]");

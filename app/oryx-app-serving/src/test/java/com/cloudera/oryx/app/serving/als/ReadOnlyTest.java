@@ -51,8 +51,8 @@ public final class ReadOnlyTest extends AbstractALSServingTest {
     }
   }
 
-  protected static final class ReadOnlyMockServingModelManager extends MockServingModelManager {
-    public ReadOnlyMockServingModelManager(Config config) {
+  static final class ReadOnlyMockServingModelManager extends MockServingModelManager {
+    ReadOnlyMockServingModelManager(Config config) {
       super(config);
     }
     @Override

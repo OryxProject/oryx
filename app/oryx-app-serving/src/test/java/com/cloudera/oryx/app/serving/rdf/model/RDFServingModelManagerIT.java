@@ -43,7 +43,9 @@ public final class RDFServingModelManagerIT extends AbstractServingIT {
   public void testRDFServingModel() throws Exception {
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.serving.application-resources",
-                      "\"com.cloudera.oryx.app.serving,com.cloudera.oryx.app.serving.rdf\"");
+                      "\"com.cloudera.oryx.app.serving," +
+                          "com.cloudera.oryx.app.serving.classreg," +
+                          "com.cloudera.oryx.app.serving.rdf\"");
     overlayConfig.put("oryx.serving.model-manager-class", RDFServingModelManager.class.getName());
     overlayConfig.put("oryx.input-schema.feature-names", "[\"color\",\"fruit\"]");
     overlayConfig.put("oryx.input-schema.numeric-features", "[]");

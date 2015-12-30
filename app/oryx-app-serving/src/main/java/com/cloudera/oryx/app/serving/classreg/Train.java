@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.rdf;
+package com.cloudera.oryx.app.serving.classreg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +29,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
 
 /**
  * <p>Responds to POST request to {@code /train}. The input is one or more data points
@@ -38,7 +39,7 @@ import com.cloudera.oryx.api.serving.OryxServingException;
  */
 @Singleton
 @Path("/train")
-public final class Train extends AbstractRDFResource {
+public final class Train extends AbstractOryxResource {
 
   @POST
   @Consumes({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})

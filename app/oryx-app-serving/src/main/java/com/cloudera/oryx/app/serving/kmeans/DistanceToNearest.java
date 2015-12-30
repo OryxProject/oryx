@@ -23,6 +23,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
+import com.cloudera.oryx.app.kmeans.KMeansUtils;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
+import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -34,15 +37,16 @@ import com.cloudera.oryx.common.text.TextUtils;
  */
 @Singleton
 @Path("/distanceToNearest")
-public final class DistanceToNearest extends AbstractKMeansResource {
+public final class DistanceToNearest extends AbstractOryxResource {
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public String get(@PathParam("datum") String datum) throws OryxServingException {
     check(datum != null && !datum.isEmpty(), "Data is needed to cluster");
+    KMeansServingModel model = (KMeansServingModel) getServingModel();
     String[] tokens = TextUtils.parseDelimited(datum, ',');
-    return cluster(tokens).getSecond().toString();
+    return model.closestCluster(KMeansUtils.featuresFromTokens(tokens, model.getInputSchema())).getSecond().toString();
   }
 
 }

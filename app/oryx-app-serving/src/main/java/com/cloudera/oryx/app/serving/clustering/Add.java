@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.kmeans;
+package com.cloudera.oryx.app.serving.clustering;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +29,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
 
 /**
  * <p>Responds to POST request to {@code /add}. The input is one or more data points
@@ -39,7 +40,7 @@ import com.cloudera.oryx.api.serving.OryxServingException;
  */
 @Singleton
 @Path("/add")
-public final class Add extends AbstractKMeansResource {
+public final class Add extends AbstractOryxResource {
 
   @POST
   @Consumes({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})

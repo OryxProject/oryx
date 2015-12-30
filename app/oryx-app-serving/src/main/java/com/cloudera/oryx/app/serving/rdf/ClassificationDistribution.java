@@ -31,13 +31,15 @@ import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * <p>Responds to a GET request to {@code /classificationDistribution/[datum]}.
- * Like {@link Predict} but this returns not just the most probable category,
+ * Like {@link com.cloudera.oryx.app.serving.classreg.Predict} but this
+ * returns not just the most probable category,
  * but all categories and their associated probability. It is not defined for
  * regression problems and returns an error.</p>
  *
@@ -48,18 +50,18 @@ import com.cloudera.oryx.common.text.TextUtils;
  */
 @Singleton
 @Path("/classificationDistribution")
-public final class ClassificationDistribution extends AbstractRDFResource {
+public final class ClassificationDistribution extends AbstractOryxResource {
 
   @GET
   @Path("{datum}")
   @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<IDValue> get(@PathParam("datum") String datum) throws OryxServingException {
     check(datum != null && !datum.isEmpty(), "Missing input data");
-    RDFServingModel model = getRDFServingModel();
+    RDFServingModel model = (RDFServingModel) getServingModel();
     InputSchema inputSchema = model.getInputSchema();
     check(inputSchema.isClassification(), "Only applicable for classification");
 
-    Prediction prediction = makePrediction(TextUtils.parseDelimited(datum, ','));
+    Prediction prediction = model.makePrediction(TextUtils.parseDelimited(datum, ','));
 
     double[] probabilities = ((CategoricalPrediction) prediction).getCategoryProbabilities();
     int targetIndex = inputSchema.getTargetFeatureIndex();

@@ -45,8 +45,8 @@ public final class ReadOnlyTest extends AbstractRDFServingTest {
     }
   }
 
-  protected static final class ReadOnlyMockServingModelManager extends MockServingModelManager {
-    public ReadOnlyMockServingModelManager(Config config) {
+  static final class ReadOnlyMockServingModelManager extends MockServingModelManager {
+    ReadOnlyMockServingModelManager(Config config) {
       super(config);
     }
     @Override

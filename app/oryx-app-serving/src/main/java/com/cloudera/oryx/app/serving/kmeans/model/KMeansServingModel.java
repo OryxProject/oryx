@@ -19,19 +19,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.DistanceFn;
 import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.kmeans.EuclideanDistanceFn;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.app.serving.clustering.model.ClusteringServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Contains all data structures needed to serve queries for a
  * k-means clustering application.
  */
-public final class KMeansServingModel implements ServingModel {
+public final class KMeansServingModel implements ClusteringServingModel {
 
   private final List<ClusterInfo> clusters;
   private final InputSchema inputSchema;
@@ -44,6 +44,14 @@ public final class KMeansServingModel implements ServingModel {
     this.clusters = Collections.synchronizedList(clusters);
     this.inputSchema = inputSchema;
     distanceFn = new EuclideanDistanceFn(); // For now, this is the only thing supported
+  }
+
+  @Override
+  public int nearestClusterID(String[] datum) {
+    if (datum.length != inputSchema.getNumFeatures()) {
+      throw new IllegalArgumentException("Wrong number of features");
+    }
+    return closestCluster(KMeansUtils.featuresFromTokens(datum, inputSchema)).getFirst().getID();
   }
 
   public int getNumClusters() {
