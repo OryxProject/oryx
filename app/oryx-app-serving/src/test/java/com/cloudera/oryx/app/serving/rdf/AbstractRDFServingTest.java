@@ -34,7 +34,7 @@ import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 abstract class AbstractRDFServingTest extends AbstractServingTest {
 
-  protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
+  static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
 
   @Override

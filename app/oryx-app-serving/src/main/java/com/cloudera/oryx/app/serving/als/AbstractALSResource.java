@@ -32,7 +32,7 @@ import com.cloudera.oryx.common.collection.Pair;
 /**
  * Superclass of all Serving Layer ALS application endpoints.
  */
-public abstract class AbstractALSResource extends AbstractOryxResource {
+abstract class AbstractALSResource extends AbstractOryxResource {
 
   final ALSServingModel getALSServingModel() throws OryxServingException {
     return (ALSServingModel) getServingModel();

@@ -26,7 +26,7 @@ public final class LoggingTest extends OryxTest {
 
   private static final StackTraceElement[] NO_STACK = new StackTraceElement[0];
   public static final IOException DUMMY_EXCEPTION = new IOException("It's safe to ignore this exception");
-  public static final AssertionError DUMMY_ERROR = new AssertionError("It's safe to ignore this exception");
+  private static final AssertionError DUMMY_ERROR = new AssertionError("It's safe to ignore this exception");
   static {
     // to not pollute the logs
     DUMMY_EXCEPTION.setStackTrace(NO_STACK);

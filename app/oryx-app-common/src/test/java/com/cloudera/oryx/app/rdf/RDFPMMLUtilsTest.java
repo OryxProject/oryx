@@ -113,7 +113,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     return buildDummyClassificationModel(1);
   }
 
-  public static PMML buildDummyClassificationModel(int numTrees) {
+  private static PMML buildDummyClassificationModel(int numTrees) {
     PMML pmml = PMMLUtils.buildSkeletonPMML();
 
     List<DataField> dataFields = new ArrayList<>();

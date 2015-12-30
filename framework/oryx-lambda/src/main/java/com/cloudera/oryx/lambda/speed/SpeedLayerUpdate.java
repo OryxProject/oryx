@@ -34,7 +34,7 @@ import com.cloudera.oryx.lambda.TopicProducerImpl;
  * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
  */
-public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
+final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
 
   private static final Logger log = LoggerFactory.getLogger(SpeedLayerUpdate.class);
 
@@ -42,9 +42,7 @@ public final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,
   private final String updateBroker;
   private final String updateTopic;
 
-  public SpeedLayerUpdate(SpeedModelManager<K,M,U> modelManager,
-                          String updateBroker,
-                          String updateTopic) {
+  SpeedLayerUpdate(SpeedModelManager<K,M,U> modelManager, String updateBroker, String updateTopic) {
     this.modelManager = modelManager;
     this.updateBroker = updateBroker;
     this.updateTopic = updateTopic;

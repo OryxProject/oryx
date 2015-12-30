@@ -63,9 +63,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
-  public static final String MANAGER_KEY = ModelManagerListener.class.getName() + ".ModelManager";
-  public static final String INPUT_PRODUCER_KEY =
-      ModelManagerListener.class.getName() + ".InputProducer";
+  static final String MANAGER_KEY = ModelManagerListener.class.getName() + ".ModelManager";
+  static final String INPUT_PRODUCER_KEY = ModelManagerListener.class.getName() + ".InputProducer";
 
   private Config config;
   private String updateTopic;
@@ -82,7 +81,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   private TopicProducer<K,M> inputProducer;
 
   @SuppressWarnings("unchecked")
-  public void init(ServletContext context) {
+  void init(ServletContext context) {
     String serializedConfig = context.getInitParameter(ConfigUtils.class.getName() + ".serialized");
     Objects.requireNonNull(serializedConfig);
     this.config = ConfigUtils.deserialize(serializedConfig);

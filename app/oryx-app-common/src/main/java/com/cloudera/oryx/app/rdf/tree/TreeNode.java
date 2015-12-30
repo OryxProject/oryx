@@ -29,7 +29,7 @@ public abstract class TreeNode implements Serializable {
 
   private final String id;
 
-  protected TreeNode(String id) {
+  TreeNode(String id) {
     Objects.requireNonNull(id);
     this.id = id;
   }

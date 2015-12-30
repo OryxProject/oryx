@@ -38,9 +38,9 @@ import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
 public abstract class AbstractALSServingTest extends AbstractServingTest {
 
-  protected static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
+  static final GenericType<List<IDValue>> LIST_ID_VALUE_TYPE =
       new GenericType<List<IDValue>>() {};
-  protected static final GenericType<List<IDCount>> LIST_ID_COUNT_TYPE =
+  static final GenericType<List<IDCount>> LIST_ID_COUNT_TYPE =
       new GenericType<List<IDCount>>() {};
 
   @Override
@@ -60,7 +60,7 @@ public abstract class AbstractALSServingTest extends AbstractServingTest {
       context.setAttribute(OryxResource.MODEL_MANAGER_KEY, getModelManager());
       context.setAttribute(OryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
-    protected MockServingModelManager getModelManager() {
+    MockServingModelManager getModelManager() {
       return new MockServingModelManager(ConfigUtils.getDefault());
     }
   }

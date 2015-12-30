@@ -52,7 +52,7 @@ abstract class AbstractKMeansServingTest extends AbstractServingTest {
       context.setAttribute(OryxResource.MODEL_MANAGER_KEY, getModelManager());
       context.setAttribute(OryxResource.INPUT_PRODUCER_KEY, new MockTopicProducer());
     }
-    protected MockServingModelManager getModelManager() {
+    MockServingModelManager getModelManager() {
       return new MockServingModelManager(ConfigUtils.getDefault());
     }
   }

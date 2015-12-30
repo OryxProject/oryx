@@ -160,14 +160,10 @@ public final class HyperParamsTest extends OryxTest {
     overlay.put("c", "[3,4]");
     overlay.put("d", "[5.3,6.6]");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
-    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "a"),
-           1, Collections.singletonList(1));
-    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "b"),
-           1, Collections.singletonList(2.7));
-    doTest((HyperParamValues<Integer>) HyperParams.fromConfig(config, "c"),
-           2, Arrays.asList(3, 4));
-    doTest((HyperParamValues<Double>) HyperParams.fromConfig(config, "d"),
-           2, Arrays.asList(5.3, 6.6));
+    doTest(HyperParams.fromConfig(config, "a"), 1, Collections.singletonList(1));
+    doTest(HyperParams.fromConfig(config, "b"), 1, Collections.singletonList(2.7));
+    doTest(HyperParams.fromConfig(config, "c"), 2, Arrays.asList(3, 4));
+    doTest(HyperParams.fromConfig(config, "d"), 2, Arrays.asList(5.3, 6.6));
   }
 
   @Test
@@ -183,9 +179,7 @@ public final class HyperParamsTest extends OryxTest {
     assertEquals(2, HyperParams.chooseValuesPerHyperParam(3, 8));
   }
 
-  private static <T> void doTest(HyperParamValues<T> hyperParams,
-                                 int howMany,
-                                 List<T> expected) {
+  private static void doTest(HyperParamValues<?> hyperParams, int howMany, List<?> expected) {
     assertEquals(expected, hyperParams.getTrialValues(howMany));
     assertNotNull(hyperParams.toString());
   }

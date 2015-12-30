@@ -17,10 +17,10 @@ package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import com.cloudera.oryx.app.batch.mllib.AbstractAppMLlibIT;
 
-public abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
+abstract class AbstractKMeansIT extends AbstractAppMLlibIT {
 
-  protected static final int NUM_CLUSTERS = 3;
-  protected static final int NUM_FEATURES = 5;
-  protected static final KMeansEvalStrategy EVALUATION_STRATEGY = KMeansEvalStrategy.SSE;
+  static final int NUM_CLUSTERS = 3;
+  static final int NUM_FEATURES = 5;
+  static final KMeansEvalStrategy EVALUATION_STRATEGY = KMeansEvalStrategy.SSE;
 
 }

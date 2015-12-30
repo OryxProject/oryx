@@ -36,7 +36,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
-  protected final List<Pair<String,String>> startServerProduceConsumeTopics(
+  final List<Pair<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
       int howManyUpdate) throws IOException, InterruptedException {

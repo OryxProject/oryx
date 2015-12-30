@@ -17,10 +17,10 @@ package com.cloudera.oryx.app.batch.mllib.rdf;
 
 import com.cloudera.oryx.app.batch.mllib.AbstractAppMLlibIT;
 
-public abstract class AbstractRDFIT extends AbstractAppMLlibIT {
+abstract class AbstractRDFIT extends AbstractAppMLlibIT {
 
-  protected static final int MAX_DEPTH = 8;
-  protected static final int MAX_SPLIT_CANDIDATES = 100;
-  protected static final String IMPURITY = "entropy";
+  static final int MAX_DEPTH = 8;
+  static final int MAX_SPLIT_CANDIDATES = 100;
+  static final String IMPURITY = "entropy";
 
 }

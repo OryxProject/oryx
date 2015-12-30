@@ -46,9 +46,9 @@ import org.apache.catalina.realm.RealmBase;
  */
 public final class InMemoryRealm extends RealmBase {
 
-  public static final String NAME = "Oryx";
+  static final String NAME = "Oryx";
 
-  public static final String AUTH_ROLE = "oryx-user";
+  static final String AUTH_ROLE = "oryx-user";
 
   /**
    * The set of valid Principals for this Realm, keyed by user name.
@@ -62,7 +62,7 @@ public final class InMemoryRealm extends RealmBase {
     return validated ? principal : null;
   }
 
-  public void addUser(String username, String password) {
+  void addUser(String username, String password) {
     principals.put(username, new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
   }
 
