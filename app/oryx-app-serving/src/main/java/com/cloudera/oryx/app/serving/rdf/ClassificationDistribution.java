@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 import com.cloudera.oryx.common.text.TextUtils;
 

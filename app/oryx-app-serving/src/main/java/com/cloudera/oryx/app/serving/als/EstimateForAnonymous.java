@@ -25,9 +25,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.ALSUtils;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.Solver;

@@ -15,12 +15,12 @@
 
 package com.cloudera.oryx.app.serving.rdf;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.rdf.example.Example;
 import com.cloudera.oryx.app.rdf.example.ExampleUtils;
 import com.cloudera.oryx.app.rdf.predict.Prediction;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
 /**

@@ -28,8 +28,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
-import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to POST request to {@code /add}. The input is one or more data points

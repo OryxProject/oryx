@@ -20,13 +20,16 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Map;
 
 import com.cloudera.oryx.api.serving.OryxResource;
+import com.cloudera.oryx.api.serving.OryxServingException;
 
 /**
  * Responds to a GET request to {@code /distinct}. Returns all distinct words and their count.
- * Responds to a GET request to {@code /distinct/[word]} as well to get the count for one word.
+ * Responds to a GET request to {@code /distinct/[word]} as well to get the count for one word. If the
+ * word's count is unknown, returns an HTTP {@link Response.Status#BAD_REQUEST} error response.
  */
 @Path("/distinct")
 public final class Distinct extends OryxResource {
@@ -40,9 +43,12 @@ public final class Distinct extends OryxResource {
   @GET
   @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Path("{word}")
-  public int get(@PathParam("word") String word) {
+  public int get(@PathParam("word") String word) throws OryxServingException {
     Integer count = getModel().getWords().get(word);
-    return count == null ? 0 : count;
+    if (count == null) {
+      throw new OryxServingException(Response.Status.BAD_REQUEST, "No such word");
+    }
+    return count;
   }
 
   private ExampleServingModel getModel() {

@@ -22,12 +22,12 @@ import java.util.function.Predicate;
 import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
-import com.cloudera.oryx.app.serving.OryxServingException;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
+import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Superclass of all Serving Layer ALS application endpoints.

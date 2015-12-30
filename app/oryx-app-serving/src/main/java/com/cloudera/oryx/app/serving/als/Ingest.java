@@ -28,8 +28,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**

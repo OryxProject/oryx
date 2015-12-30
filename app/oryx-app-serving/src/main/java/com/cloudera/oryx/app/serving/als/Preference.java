@@ -27,8 +27,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
-import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a POST request to {@code /pref/[userID]/[itemID]}. The first line of the request

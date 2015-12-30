@@ -32,11 +32,11 @@ import java.util.stream.Collectors;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 

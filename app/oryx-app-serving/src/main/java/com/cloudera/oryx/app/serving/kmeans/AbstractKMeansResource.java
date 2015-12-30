@@ -15,11 +15,11 @@
 
 package com.cloudera.oryx.app.serving.kmeans;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
-import com.cloudera.oryx.app.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.kmeans.model.KMeansServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 

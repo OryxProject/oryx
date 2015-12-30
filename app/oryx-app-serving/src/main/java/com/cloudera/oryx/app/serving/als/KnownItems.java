@@ -23,8 +23,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
-import com.cloudera.oryx.app.serving.OryxServingException;
 
 /**
  * <p>Responds to a GET request to {@code /knownItems/[userID]}.</p>
