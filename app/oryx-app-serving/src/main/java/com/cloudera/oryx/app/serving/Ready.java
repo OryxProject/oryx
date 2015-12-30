@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2014, Cloudera and Intel, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving.rdf;
+package com.cloudera.oryx.app.serving;
 
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
@@ -21,7 +21,7 @@ import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import com.cloudera.oryx.app.serving.OryxServingException;
+import com.cloudera.oryx.api.serving.OryxServingException;
 
 /**
  * <p>Responds to a HEAD or GET request to {@code /ready}
@@ -31,7 +31,7 @@ import com.cloudera.oryx.app.serving.OryxServingException;
  */
 @Singleton
 @Path("/ready")
-public final class Ready extends AbstractRDFResource {
+public final class Ready extends AbstractOryxResource {
 
   @HEAD
   public Response head() throws OryxServingException {
@@ -40,7 +40,7 @@ public final class Ready extends AbstractRDFResource {
 
   @GET
   public Response get() throws OryxServingException {
-    getRDFServingModel(); // Make sure it doesn't error
+    getServingModel(); // Make sure it doesn't error
     return Response.ok().build();
   }
 }
