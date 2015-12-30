@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving;
+package com.cloudera.oryx.lambda.serving;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,6 +27,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 
+import com.cloudera.oryx.api.serving.HasCSV;
+
 /**
  * A {@link MessageBodyWriter} that can produce CSV ({@code text/csv}). If given an
  * {@link Iterable}, produces a line of CSV for each element. If an element implements
@@ -36,8 +38,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 @Produces({MediaType.TEXT_PLAIN, "text/csv"})
 public final class CSVMessageBodyWriter implements MessageBodyWriter<Object> {
 
-  public static final String TEXT_CSV = "text/csv";
-  public static final MediaType TEXT_CSV_TYPE = new MediaType("text", "csv");
+  private static final MediaType TEXT_CSV_TYPE = new MediaType("text", "csv");
 
   @Override
   public boolean isWriteable(Class<?> type,

@@ -28,7 +28,6 @@ import javax.ws.rs.core.PathSegment;
 import com.google.common.base.Preconditions;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.math.VectorMath;
 
@@ -46,7 +45,7 @@ public final class SimilarityToItem extends AbstractALSResource {
 
   @GET
   @Path("{toItemID}/{itemID : .+}")
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<Double> get(
       @PathParam("toItemID") String toItemID,
       @PathParam("itemID") List<PathSegment> pathSegmentsList) throws OryxServingException {

@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
@@ -51,21 +50,21 @@ public final class Assign extends AbstractKMeansResource {
 
   @GET
   @Path("{datum}")
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public String get(@PathParam("datum") String datum) throws OryxServingException {
     return nearestClusterID(datum).toString();
   }
 
   @POST
-  @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Consumes({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<String> post(Reader reader) throws IOException, OryxServingException {
     return doPost(maybeBuffer(reader));
   }
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<String> post(@Context HttpServletRequest request)
       throws IOException, OryxServingException {
     List<String> result = new ArrayList<>();

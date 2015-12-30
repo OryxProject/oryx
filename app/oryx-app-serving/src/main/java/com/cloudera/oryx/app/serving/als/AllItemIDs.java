@@ -23,7 +23,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 
 /**
  * <p>Responds to a GET request to {@code /item/allIDs}.</p>
@@ -36,7 +35,7 @@ public final class AllItemIDs extends AbstractALSResource {
 
   @GET
   @Path("/allIDs")
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public Collection<String> get() throws OryxServingException {
     return getALSServingModel().getAllItemIDs();
   }

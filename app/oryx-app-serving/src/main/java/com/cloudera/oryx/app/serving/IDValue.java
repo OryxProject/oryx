@@ -36,13 +36,8 @@ public final class IDValue extends IDEntity {
   }
 
   @Override
-  public String toString() {
-    return getID() + ":" + value;
-  }
-
-  @Override
-  public String toCSV() {
-    return getID() + "," + value;
+  public String getValueString() {
+    return Double.toString(value);
   }
 
 }

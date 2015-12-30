@@ -27,7 +27,6 @@ import javax.ws.rs.core.PathSegment;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.ALSUtils;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.Solver;
@@ -49,7 +48,7 @@ public final class EstimateForAnonymous extends AbstractALSResource {
 
   @GET
   @Path("{toItemID}/{itemID : .+}")
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public Double get(
       @PathParam("toItemID") String toItemID,
       @PathParam("itemID") List<PathSegment> pathSegments) throws OryxServingException {

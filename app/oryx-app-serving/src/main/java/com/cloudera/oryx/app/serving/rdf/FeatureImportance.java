@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 
 /**
@@ -46,7 +45,7 @@ import com.cloudera.oryx.app.serving.rdf.model.RDFServingModel;
 public final class FeatureImportance extends AbstractRDFResource {
 
   @GET
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<Double> getAllImportances() throws OryxServingException {
     RDFServingModel model = getRDFServingModel();
     double[] importances = model.getForest().getFeatureImportances();
@@ -58,7 +57,7 @@ public final class FeatureImportance extends AbstractRDFResource {
   }
 
   @GET
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   @Path("{featureNumber}")
   public Double getImportance(@PathParam("featureNumber") int featureNumber)
       throws OryxServingException {

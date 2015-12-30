@@ -29,7 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 
 /**
  * <p>Responds to POST request to {@code /train}. The input is one or more data points
@@ -42,7 +41,7 @@ import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 public final class Train extends AbstractRDFResource {
 
   @POST
-  @Consumes({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Consumes({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public void post(Reader reader) throws IOException, OryxServingException {
     checkNotReadOnly();
     doPost(maybeBuffer(reader));

@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.lambda.serving.MockTopicProducer;
 
@@ -53,7 +52,7 @@ public final class PreferenceTest extends AbstractALSServingTest {
   @Test
   public void testPostCSV() {
     Response response = target("/pref/U1/I1").request()
-        .post(Entity.entity(PREFERENCE_DATA, CSVMessageBodyWriter.TEXT_CSV_TYPE));
+        .post(Entity.entity(PREFERENCE_DATA, "text/csv"));
     checkResponse(response, "U1", "I1", "2.5");
   }
 

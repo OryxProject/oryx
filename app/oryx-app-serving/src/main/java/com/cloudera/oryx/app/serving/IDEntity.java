@@ -15,10 +15,14 @@
 
 package com.cloudera.oryx.app.serving;
 
+import java.io.Serializable;
+
+import com.cloudera.oryx.api.serving.HasCSV;
+
 /**
  * Superclass of objects that encapsulate, among other things, a String ID.
  */
-abstract class IDEntity implements HasCSV {
+abstract class IDEntity implements HasCSV, Serializable {
 
   private final String id;
 
@@ -28,6 +32,18 @@ abstract class IDEntity implements HasCSV {
 
   public final String getID() {
     return id;
+  }
+
+  abstract String getValueString();
+
+  @Override
+  public final String toString() {
+    return id + ":" + getValueString();
+  }
+
+  @Override
+  public final String toCSV() {
+    return id + "," + getValueString();
   }
 
 }

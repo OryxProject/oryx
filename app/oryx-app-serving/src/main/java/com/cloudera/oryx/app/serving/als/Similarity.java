@@ -34,7 +34,6 @@ import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
-import com.cloudera.oryx.app.serving.CSVMessageBodyWriter;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
@@ -61,7 +60,7 @@ public final class Similarity extends AbstractALSResource {
 
   @GET
   @Path("{itemID : .+}")
-  @Produces({MediaType.TEXT_PLAIN, CSVMessageBodyWriter.TEXT_CSV, MediaType.APPLICATION_JSON})
+  @Produces({MediaType.TEXT_PLAIN, "text/csv", MediaType.APPLICATION_JSON})
   public List<IDValue> get(
       @PathParam("itemID") List<PathSegment> pathSegmentsList,
       @DefaultValue("10") @QueryParam("howMany") int howMany,

@@ -13,16 +13,21 @@
  * License.
  */
 
-package com.cloudera.oryx.app.serving;
+package com.cloudera.oryx.api.serving;
 
 /**
- * Implementations of this interface can produce a CSV representation.
+ * Implementations of this interface can produce a CSV representation. This is useful for
+ * app endpoints that wish to return objects that can then automatically be translated
+ * to CSV by the framework if a CSV response is requested.
+ *
+ * @since 2.2.0
  */
-@FunctionalInterface
 public interface HasCSV {
 
   /**
    * @return CSV string representation of this object
+   *
+   * @since 2.2.0
    */
   String toCSV();
 
