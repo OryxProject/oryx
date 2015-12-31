@@ -115,12 +115,15 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD);
     trainRatingData = aggregateScores(trainRatingData);
-    MatrixFactorizationModel model;
+    ALS als = new ALS()
+        .setRank(features)
+        .setIterations(iterations)
+        .setLambda(lambda)
+        .setCheckpointInterval(5);
     if (implicit) {
-      model = ALS.trainImplicit(trainRatingData.rdd(), features, iterations, lambda, alpha);
-    } else {
-      model = ALS.train(trainRatingData.rdd(), features, iterations, lambda);
+      als = als.setImplicitPrefs(true).setAlpha(alpha);
     }
+    MatrixFactorizationModel model = als.run(trainRatingData.rdd());
 
     Map<Integer,String> reverseIDLookup = parsedRDD.flatMapToPair(tokens -> {
         List<Tuple2<Integer,String>> results = new ArrayList<>(2);
