@@ -18,6 +18,7 @@ package com.cloudera.oryx.lambda.batch;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import kafka.message.MessageAndMetadata;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -86,6 +87,11 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     }
 
     streamingContext = buildStreamingContext();
+
+    Path checkpointPath = new Path(new Path(modelDirString), ".checkpoint");
+    log.info("Setting checkpoint dir to {}", checkpointPath);
+    streamingContext.sparkContext().setCheckpointDir(checkpointPath.toString());
+
     log.info("Creating message stream from topic");
     JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
 
