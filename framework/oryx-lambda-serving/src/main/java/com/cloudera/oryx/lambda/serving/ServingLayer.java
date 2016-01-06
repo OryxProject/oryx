@@ -46,6 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.net.ssl.SSLContext;
+import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -280,6 +281,7 @@ public final class ServingLayer implements Closeable {
     //wrapper.addInitParameter(OryxApplication.class.getName() + ".packages", appResourcesPackage);
     wrapper.addMapping("/*");
     wrapper.setLoadOnStartup(1);
+    wrapper.setMultipartConfigElement(new MultipartConfigElement(""));
 
     if (!doNotInitTopics) { // Only for tests
       context.addApplicationListener(ModelManagerListener.class.getName());
