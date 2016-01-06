@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.8</version>
+        <version>1.2.9</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -510,7 +510,8 @@
     <koloboke.version>0.6.8</koloboke.version>
     <slf4j.version>1.7.13</slf4j.version>
     <spark.version>1.3.1</spark.version>
-    <tomcat.version>8.0.29</tomcat.version>
+    <surefire.version>2.19.1</surefire.version>
+    <tomcat.version>8.0.30</tomcat.version>
     <typesafe.config.version>1.2.1</typesafe.config.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
@@ -724,7 +725,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.19</version>
+          <version>${surefire.version}</version>
           <configuration>
             <systemPropertyVariables>
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
@@ -735,7 +736,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>2.19</version>
+          <version>${surefire.version}</version>
           <executions>
             <execution>
               <goals>
