@@ -101,7 +101,7 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
 
     JavaPairRDD<K,M> pastData;
     Path inputPathPattern = new Path(dataDirString + "/*/part-*");
-    FileSystem fs = FileSystem.get(hadoopConf);
+    FileSystem fs = FileSystem.get(inputPathPattern.toUri(), hadoopConf);
     FileStatus[] inputPathStatuses = fs.globStatus(inputPathPattern);
     if (inputPathStatuses == null || inputPathStatuses.length == 0) {
 
