@@ -33,8 +33,11 @@ printLatest "spark-examples-*.jar"
 # and ZK dependencies
 printLatest "spark-assembly-*.jar"
 printLatest "zookeeper-*.jar"
+printLatest "hadoop-auth-*.jar"
 printLatest "hadoop-common-*.jar"
+printLatest "htrace-core4-*.jar"
 printLatest "commons-collections-*.jar"
+printLatest "commons-configuration-*.jar"
 printLatest "snappy-java-*.jar"
 
 # These are needed for submitting the serving layer in YARN mode

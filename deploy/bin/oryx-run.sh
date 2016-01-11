@@ -85,6 +85,9 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 fi
 
 CONFIG_PROPS=`java -cp ${LAYER_JAR} -Dconfig.file=${CONFIG_FILE} com.cloudera.oryx.common.settings.ConfigToProperties`
+if [ -z "${CONFIG_PROPS}" ]; then
+  usageAndExit "Config file ${CONFIG_FILE} could not be parsed"
+fi
 
 # If first arg is FOO and second is bar, and CONFIG_PROPS contains a property bar=baz, then
 # environment variable FOO is set to value baz by this function. The second argument must be
