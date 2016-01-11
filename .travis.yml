@@ -4,11 +4,11 @@ install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} -DskipTests=true -Dmaven.java
 script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${JACOCO} -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
-   # Covers Java 7, Open JDK, and code coverage
+   # Covers Java 7, Open JDK, code coverage, Spark 1.5
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
    # Covers Spark 1.6
-   - env: JAVA_VERSION=7 SPARK=-Dspark.version=1.6.0
+   - env: JAVA_VERSION=7 SPARK=-Pspark-1.6
    # Covers CDH 5.5, Java 8
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh55
