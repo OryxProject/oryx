@@ -52,8 +52,9 @@ public final class DeleteOldDataFn<T> implements Function<JavaRDD<T>,Void> {
 
   @Override
   public Void call(JavaRDD<T> ignored) throws IOException {
-    FileSystem fs = FileSystem.get(hadoopConf);
-    FileStatus[] inputPathStatuses = fs.globStatus(new Path(dataDirString + "/*"));
+    Path dataDirPath = new Path(dataDirString + "/*");
+    FileSystem fs = FileSystem.get(dataDirPath.toUri(), hadoopConf);
+    FileStatus[] inputPathStatuses = fs.globStatus(dataDirPath);
     if (inputPathStatuses != null) {
       long oldestTimeAllowed =
           System.currentTimeMillis() - TimeUnit.MILLISECONDS.convert(maxDataAgeHours, TimeUnit.HOURS);

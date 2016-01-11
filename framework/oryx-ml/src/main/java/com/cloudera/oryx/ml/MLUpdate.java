@@ -197,11 +197,12 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                                candidates,
                                                valuesPerHyperParam);
 
-    FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
 
     Path modelDir = new Path(modelDirString);
     Path tempModelPath = new Path(modelDir, ".temporary");
     Path candidatesPath = new Path(tempModelPath, Long.toString(System.currentTimeMillis()));
+
+    FileSystem fs = FileSystem.get(modelDir.toUri(), sparkContext.hadoopConfiguration());
     fs.mkdirs(candidatesPath);
 
     Path bestCandidatePath = findBestCandidatePath(
@@ -292,12 +293,14 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       }
     }
 
-    FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
-
+    FileSystem fs = null;
     Path bestCandidatePath = null;
     double bestEval = Double.NEGATIVE_INFINITY;
     for (Map.Entry<Path,Double> pathEval : pathToEval.entrySet()) {
       Path path = pathEval.getKey();
+      if (fs == null) {
+        fs = FileSystem.get(path.toUri(), sparkContext.hadoopConfiguration());
+      }
       if (path != null && fs.exists(path)) {
         Double eval = pathEval.getValue();
         if (eval != null) {
@@ -362,7 +365,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
         } else {
           Path modelPath = new Path(candidatePath, MODEL_FILE_NAME);
           log.info("Writing model to {}", modelPath);
-          FileSystem fs = FileSystem.get(sparkContext.hadoopConfiguration());
+          FileSystem fs = FileSystem.get(candidatePath.toUri(), sparkContext.hadoopConfiguration());
           fs.mkdirs(candidatePath);
           try (OutputStream out = fs.create(modelPath)) {
             PMMLUtils.write(model, out);

@@ -283,8 +283,9 @@ public final class AppPMMLUtils {
         if (hadoopConf == null) {
           hadoopConf = new Configuration();
         }
-        FileSystem fs = FileSystem.get(hadoopConf);
-        try (InputStreamReader in = new InputStreamReader(fs.open(new Path(message)), StandardCharsets.UTF_8)) {
+        Path messagePath = new Path(message);
+        FileSystem fs = FileSystem.get(messagePath.toUri(), hadoopConf);
+        try (InputStreamReader in = new InputStreamReader(fs.open(messagePath), StandardCharsets.UTF_8)) {
           pmmlString = CharStreams.toString(in);
         }
         break;
