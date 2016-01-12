@@ -35,9 +35,12 @@ printLatest "spark-assembly-*.jar"
 printLatest "zookeeper-*.jar"
 printLatest "hadoop-auth-*.jar"
 printLatest "hadoop-common-*.jar"
+printLatest "hadoop-hdfs-2*.jar"
 printLatest "htrace-core4-*.jar"
+printLatest "commons-cli-1*.jar"
 printLatest "commons-collections-*.jar"
 printLatest "commons-configuration-*.jar"
+printLatest "protobuf-java-2.5*.jar"
 printLatest "snappy-java-*.jar"
 
 # These are needed for submitting the serving layer in YARN mode
