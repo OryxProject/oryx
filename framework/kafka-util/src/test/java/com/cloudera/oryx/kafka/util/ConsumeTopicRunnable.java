@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import com.cloudera.oryx.common.collection.Pair;
 
@@ -68,7 +68,7 @@ public final class ConsumeTopicRunnable implements Callable<Void> {
   }
 
   public List<String> getKeys() {
-    return Lists.transform(keyMessages, Pair::getFirst);
+    return keyMessages.stream().map(Pair::getFirst).collect(Collectors.toList());
   }
 
 }

@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
@@ -26,7 +27,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
@@ -79,10 +79,8 @@ public final class MostPopularItems extends AbstractALSResource {
 
     Ordering<Pair<String,Integer>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
     List<Pair<String,Integer>> allTopCountPairs = ordering.greatestOf(countPairs.iterator(), howMany + offset);
-    List<Pair<String,Integer>> topCountPairs = selectedSublist(allTopCountPairs, howMany, offset);
-    return Lists.transform(
-        topCountPairs,
-        idCount -> new IDCount(idCount.getFirst(), idCount.getSecond()));
+    return selectedSublist(allTopCountPairs, howMany, offset).stream().map(
+        idCount -> new IDCount(idCount.getFirst(), idCount.getSecond())).collect(Collectors.toList());
   }
 
 }

@@ -18,8 +18,6 @@ package com.cloudera.oryx.app.rdf.tree;
 import java.io.Serializable;
 
 import com.google.common.base.Preconditions;
-import com.google.common.primitives.Booleans;
-import com.google.common.primitives.Longs;
 
 /**
  * Encapsulates a path from root to a node in the tree.
@@ -56,7 +54,7 @@ final class TreePath implements Comparable<TreePath>, Serializable {
   
   @Override
   public int hashCode() {
-    return Longs.hashCode(leftRight) ^ pathLength;
+    return Long.hashCode(leftRight) ^ pathLength;
   }
   
   @Override
@@ -86,7 +84,7 @@ final class TreePath implements Comparable<TreePath>, Serializable {
         if (i < o.length()) {
           boolean thatLeft = o.isLeftAt(i);
           if (thisLeft != thatLeft) {
-            return Booleans.compare(thatLeft, thisLeft);
+            return Boolean.compare(thatLeft, thisLeft);
           }
           // else continue
         } else {

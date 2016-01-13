@@ -18,8 +18,6 @@ package com.cloudera.oryx.common.math;
 import java.io.Serializable;
 
 import com.google.common.base.Preconditions;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Longs;
 import org.apache.commons.math3.stat.descriptive.AbstractStorelessUnivariateStatistic;
 
 /**
@@ -99,7 +97,7 @@ public final class DoubleWeightedMean
 
   @Override
   public int hashCode() {
-    return Longs.hashCode(count) ^ Doubles.hashCode(totalWeight) ^ Doubles.hashCode(mean);
+    return Long.hashCode(count) ^ Double.hashCode(totalWeight) ^ Double.hashCode(mean);
   }
 
   @Override
@@ -109,8 +107,8 @@ public final class DoubleWeightedMean
     }
     DoubleWeightedMean other = (DoubleWeightedMean) o;
     return count == other.count &&
-        Doubles.compare(totalWeight, other.totalWeight) == 0 &&
-        Doubles.compare(mean, other.mean) == 0;
+        Double.compare(totalWeight, other.totalWeight) == 0 &&
+        Double.compare(mean, other.mean) == 0;
   }
 
 }

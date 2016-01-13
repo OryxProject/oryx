@@ -18,8 +18,8 @@ package com.cloudera.oryx.app.serving.als;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
@@ -48,8 +48,8 @@ abstract class AbstractALSResource extends AbstractOryxResource {
   static List<IDValue> toIDValueResponse(List<Pair<String,Double>> pairs,
                                          int howMany,
                                          int offset) {
-    List<Pair<String,Double>> sublist = selectedSublist(pairs, howMany, offset);
-    return Lists.transform(sublist, idDot -> new IDValue(idDot.getFirst(), idDot.getSecond()));
+    return selectedSublist(pairs, howMany, offset).stream().map(
+        idDot -> new IDValue(idDot.getFirst(), idDot.getSecond())).collect(Collectors.toList());
   }
 
   static ObjDoubleToDoubleFunction<String> buildRescoreFn(Rescorer rescorer) {

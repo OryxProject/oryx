@@ -16,8 +16,7 @@
 package com.cloudera.oryx.app.rdf.tree;
 
 import java.util.Arrays;
-
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 
 import com.cloudera.oryx.app.classreg.predict.Prediction;
 import com.cloudera.oryx.app.classreg.example.Example;
@@ -66,7 +65,8 @@ public final class DecisionForest implements TreeBasedClassifier {
   @Override
   public Prediction predict(Example test) {
     return WeightedPrediction.voteOnFeature(
-        Lists.transform(Arrays.asList(trees), tree -> tree.predict(test)), weights);
+        Arrays.stream(trees).map(tree -> tree.predict(test)).collect(Collectors.toList()),
+        weights);
   }
 
   @Override

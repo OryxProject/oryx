@@ -32,7 +32,6 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.common.base.Joiner;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.glassfish.jersey.client.ClientConfig;
@@ -92,7 +91,7 @@ public abstract class AbstractServingTest extends JerseyTest {
   @Override
   protected final DeploymentContext configureDeployment() {
     configureProperties();
-    String joinedPackages = Joiner.on(',').join(getResourcePackages()) +
+    String joinedPackages = String.join(",", getResourcePackages()) +
         ",com.cloudera.oryx.lambda.serving";
     return ServletDeploymentContext.builder(OryxApplication.class)
         .initParam("javax.ws.rs.Application", OryxApplication.class.getName())
