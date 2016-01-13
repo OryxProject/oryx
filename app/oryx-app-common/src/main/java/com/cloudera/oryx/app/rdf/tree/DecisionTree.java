@@ -21,8 +21,8 @@ import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 
-import com.cloudera.oryx.app.rdf.predict.Prediction;
-import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
+import com.cloudera.oryx.app.classreg.example.Example;
 import com.cloudera.oryx.common.collection.Pair;
 
 /**

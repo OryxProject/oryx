@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.example;
+package com.cloudera.oryx.app.classreg.example;
 
 import java.util.Arrays;
 

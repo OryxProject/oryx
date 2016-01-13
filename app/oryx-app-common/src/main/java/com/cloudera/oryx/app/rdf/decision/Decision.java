@@ -17,8 +17,8 @@ package com.cloudera.oryx.app.rdf.decision;
 
 import java.io.Serializable;
 
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
 
 /**
  * Subclasses represent a binary yes/no positive/negative decision based on the value of

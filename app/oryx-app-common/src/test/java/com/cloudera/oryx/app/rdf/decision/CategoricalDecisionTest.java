@@ -19,10 +19,10 @@ import java.util.BitSet;
 
 import org.junit.Test;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.Feature;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.Feature;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
 import com.cloudera.oryx.common.OryxTest;
 
 /**

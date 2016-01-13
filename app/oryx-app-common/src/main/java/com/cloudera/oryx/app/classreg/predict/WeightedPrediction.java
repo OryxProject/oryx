@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.predict;
+package com.cloudera.oryx.app.classreg.predict;
 
 import java.util.List;
 

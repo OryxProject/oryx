@@ -19,9 +19,9 @@ import java.util.Arrays;
 
 import com.google.common.collect.Lists;
 
-import com.cloudera.oryx.app.rdf.predict.Prediction;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.predict.WeightedPrediction;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.predict.WeightedPrediction;
 
 /**
  * An ensemble classifier based on many {@link DecisionTree}s.

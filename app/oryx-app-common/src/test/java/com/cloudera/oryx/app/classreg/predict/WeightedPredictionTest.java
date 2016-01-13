@@ -13,14 +13,14 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.predict;
+package com.cloudera.oryx.app.classreg.predict;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 
-import com.cloudera.oryx.app.rdf.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
 import com.cloudera.oryx.common.OryxTest;
 
 /**

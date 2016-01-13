@@ -13,11 +13,11 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.predict;
+package com.cloudera.oryx.app.classreg.predict;
 
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.NumericFeature;
 
 /**
  * Represents a predicted value of a numeric target.

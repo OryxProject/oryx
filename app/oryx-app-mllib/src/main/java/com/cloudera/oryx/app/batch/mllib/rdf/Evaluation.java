@@ -17,11 +17,11 @@ package com.cloudera.oryx.app.batch.mllib.rdf;
 
 import org.apache.spark.api.java.JavaRDD;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
+import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.NumericFeature;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 
 final class Evaluation {

@@ -27,10 +27,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.common.collection.Pair;

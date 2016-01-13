@@ -23,10 +23,10 @@ import java.util.Map;
 
 import com.typesafe.config.Config;
 
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.decision.CategoricalDecision;
 import com.cloudera.oryx.app.rdf.decision.Decision;
 import com.cloudera.oryx.app.rdf.decision.NumericDecision;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.rdf.tree.DecisionNode;
 import com.cloudera.oryx.app.rdf.tree.DecisionTree;

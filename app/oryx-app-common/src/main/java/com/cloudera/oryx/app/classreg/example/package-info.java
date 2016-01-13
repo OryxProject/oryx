@@ -15,6 +15,6 @@
 
 /**
  * Representations of features and training / test examples that are used inside a
- * decision tree scoring process.
+ * classification or regression process.
  */
-package com.cloudera.oryx.app.rdf.example;
+package com.cloudera.oryx.app.classreg.example;

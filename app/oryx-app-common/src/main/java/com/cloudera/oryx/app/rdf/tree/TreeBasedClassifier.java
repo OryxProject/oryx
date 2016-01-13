@@ -17,8 +17,8 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import java.io.Serializable;
 
-import com.cloudera.oryx.app.rdf.predict.Prediction;
-import com.cloudera.oryx.app.rdf.example.Example;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
+import com.cloudera.oryx.app.classreg.example.Example;
 
 /**
  * Base interface for decision-tree-based classifiers in this package, whether they be a single

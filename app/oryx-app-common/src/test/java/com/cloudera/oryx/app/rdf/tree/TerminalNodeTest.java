@@ -17,8 +17,8 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import org.junit.Test;
 
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
-import com.cloudera.oryx.app.rdf.predict.Prediction;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
 import com.cloudera.oryx.common.OryxTest;
 
 public final class TerminalNodeTest extends OryxTest {

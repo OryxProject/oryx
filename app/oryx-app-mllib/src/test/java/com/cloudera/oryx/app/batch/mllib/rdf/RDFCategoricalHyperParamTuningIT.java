@@ -25,10 +25,10 @@ import com.typesafe.config.Config;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.NumericFeature;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.common.collection.Pair;

@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.example;
+package com.cloudera.oryx.app.classreg.example;
 
 /**
  * Represents the value of a numeric feature -- one that takes on a real value, whether conceptually discrete or

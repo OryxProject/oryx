@@ -13,7 +13,7 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.example;
+package com.cloudera.oryx.app.classreg.example;
 
 /**
  * Represents the type of a {@link Feature}.
@@ -25,7 +25,7 @@ public enum FeatureType {
 
   /**
    * Categorical feature (a.k.a. nominal): taking on discrete unordered values like
-   * {@code {male,female}}.
+   * {@code [male,female]}.
    */
   CATEGORICAL,
 

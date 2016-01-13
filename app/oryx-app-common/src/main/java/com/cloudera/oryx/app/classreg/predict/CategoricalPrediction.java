@@ -13,15 +13,15 @@
  * License.
  */
 
-package com.cloudera.oryx.app.rdf.predict;
+package com.cloudera.oryx.app.classreg.predict;
 
 import java.util.Arrays;
 
 import com.google.common.base.Preconditions;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
 
 /**
  * Represents a prediction of the value of a categorical target. The prediction is not just a single category

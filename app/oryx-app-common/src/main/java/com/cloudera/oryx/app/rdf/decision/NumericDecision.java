@@ -15,9 +15,9 @@
 
 package com.cloudera.oryx.app.rdf.decision;
 
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.NumericFeature;
 
 /**
  * Represents a decision over a numeric feature. Decisions are defined simply by a threshold

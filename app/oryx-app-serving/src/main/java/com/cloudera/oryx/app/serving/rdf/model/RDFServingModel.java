@@ -18,10 +18,10 @@ package com.cloudera.oryx.app.serving.rdf.model;
 import java.util.Map;
 import java.util.Objects;
 
-import com.cloudera.oryx.app.rdf.example.ExampleUtils;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
-import com.cloudera.oryx.app.rdf.predict.Prediction;
+import com.cloudera.oryx.app.classreg.example.ExampleUtils;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;

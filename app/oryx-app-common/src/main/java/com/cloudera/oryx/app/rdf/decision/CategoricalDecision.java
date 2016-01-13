@@ -17,9 +17,9 @@ package com.cloudera.oryx.app.rdf.decision;
 
 import java.util.BitSet;
 
-import com.cloudera.oryx.app.rdf.example.CategoricalFeature;
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.FeatureType;
+import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.FeatureType;
 
 /**
  * Represents a decision over a categorical feature. If the categorical feature takes on

@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
-import com.cloudera.oryx.app.rdf.predict.Prediction;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.classreg.predict.Prediction;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;

@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.rdf.RDFPMMLUtils;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.rdf.tree.TerminalNode;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;

@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.serving.OryxResource;
-import com.cloudera.oryx.app.rdf.predict.CategoricalPrediction;
+import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 import com.cloudera.oryx.app.rdf.tree.DecisionNode;
 import com.cloudera.oryx.app.rdf.tree.DecisionTree;

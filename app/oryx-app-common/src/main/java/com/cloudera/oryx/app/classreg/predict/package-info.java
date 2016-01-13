@@ -14,6 +14,6 @@
  */
 
 /**
- * Representations of the output of a decision tree scoring process.
+ * Representations of the output of a classification or regression process.
  */
-package com.cloudera.oryx.app.rdf.predict;
+package com.cloudera.oryx.app.classreg.predict;

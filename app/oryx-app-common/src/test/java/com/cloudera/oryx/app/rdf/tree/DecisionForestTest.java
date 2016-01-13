@@ -17,9 +17,9 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import org.junit.Test;
 
-import com.cloudera.oryx.app.rdf.example.Example;
-import com.cloudera.oryx.app.rdf.example.NumericFeature;
-import com.cloudera.oryx.app.rdf.predict.NumericPrediction;
+import com.cloudera.oryx.app.classreg.example.Example;
+import com.cloudera.oryx.app.classreg.example.NumericFeature;
+import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
 import com.cloudera.oryx.common.OryxTest;
 
 public final class DecisionForestTest extends OryxTest {
