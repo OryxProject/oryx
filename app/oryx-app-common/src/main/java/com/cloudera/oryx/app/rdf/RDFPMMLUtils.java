@@ -19,6 +19,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.DataDictionary;
@@ -96,15 +97,15 @@ public final class RDFPMMLUtils {
     Preconditions.checkArgument(schema.getFeatureNames().equals(
         AppPMMLUtils.getFeatureNames(miningSchema)));
 
+    Integer pmmlIndex = AppPMMLUtils.findTargetIndex(miningSchema);
     if (schema.hasTarget()) {
       int schemaIndex = schema.getTargetFeatureIndex();
-      int pmmlIndex = AppPMMLUtils.findTargetIndex(miningSchema);
       Preconditions.checkArgument(
-          schemaIndex == pmmlIndex,
+          pmmlIndex != null && schemaIndex == pmmlIndex,
           "Configured schema expects target at index %s, but PMML has target at index %s",
           schemaIndex, pmmlIndex);
     } else {
-      Preconditions.checkArgument(AppPMMLUtils.findTargetIndex(miningSchema) == null);
+      Preconditions.checkArgument(pmmlIndex == null);
     }
   }
 
@@ -122,7 +123,7 @@ public final class RDFPMMLUtils {
     List<Model> models = pmml.getModels();
     Model model = models.get(0);
     MiningSchema miningSchema = model.getMiningSchema();
-    int targetIndex = AppPMMLUtils.findTargetIndex(miningSchema);
+    int targetIndex = Objects.requireNonNull(AppPMMLUtils.findTargetIndex(miningSchema));
 
     DecisionTree[] trees;
     double[] weights;

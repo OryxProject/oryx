@@ -95,7 +95,8 @@ public final class RecommendToMany extends AbstractALSResource {
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(userIDs, rescorerParams);
       if (rescorer != null) {
-        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
+        Predicate<String> rescorerPredicate = buildRescorerPredicate(rescorer);
+        allowedFn = allowedFn == null ? rescorerPredicate : allowedFn.and(rescorerPredicate);
         rescoreFn = buildRescoreFn(rescorer);
       }
     }

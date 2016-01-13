@@ -89,9 +89,7 @@ public final class CategoricalValueEncodings implements Serializable {
 
   private BiMap<String,Integer> doGetMap(int index) {
     Preconditions.checkArgument(index >= 0);
-    BiMap<String,Integer> map = encodingsForIndex.get(index);
-    Objects.requireNonNull(map, "No values for index " + index);
-    return map;
+    return Objects.requireNonNull(encodingsForIndex.get(index), "No values for index " + index);
   }
 
   @Override

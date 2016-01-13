@@ -60,9 +60,8 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
       throws IOException {
     while (updateIterator.hasNext()) {
       KeyMessage<String, String> km = updateIterator.next();
-      String key = km.getKey();
+      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
       String message = km.getMessage();
-      Objects.requireNonNull(key, "Bad message: " + km);
       switch (key) {
         case "UP":
           // do nothing, hearing our own updates

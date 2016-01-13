@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.classreg.predict;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 
@@ -76,6 +77,7 @@ public final class WeightedPrediction {
         weightedProbabilities[j] += categoryProbabilities[j] * weight;
       }
     }
+    Objects.requireNonNull(weightedProbabilities, "No predictions?");
     for (int j = 0; j < weightedProbabilities.length; j++) {
       weightedProbabilities[j] /= totalWeight;
     }

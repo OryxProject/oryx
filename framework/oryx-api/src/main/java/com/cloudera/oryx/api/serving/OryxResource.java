@@ -44,9 +44,12 @@ public abstract class OryxResource {
   @SuppressWarnings("unchecked")
   @PostConstruct
   protected void init() {
-    servingModelManager = (ServingModelManager<?>) servletContext.getAttribute(MODEL_MANAGER_KEY);
-    Objects.requireNonNull(servingModelManager, "No ServingModelManager");
-    inputProducer = (TopicProducer<?,?>) servletContext.getAttribute(INPUT_PRODUCER_KEY);
+    servingModelManager = Objects.requireNonNull(
+        (ServingModelManager<?>) servletContext.getAttribute(MODEL_MANAGER_KEY),
+        "No ServingModelManager");
+    inputProducer = Objects.requireNonNull(
+        (TopicProducer<?,?>) servletContext.getAttribute(INPUT_PRODUCER_KEY),
+        "No input producer available; read-only mode?");
   }
 
   /**
@@ -64,7 +67,6 @@ public abstract class OryxResource {
    * @since 2.0.0
    */
   protected final TopicProducer<?,?> getInputProducer() {
-    Objects.requireNonNull(inputProducer, "No input producer available; read-only mode?");
     return inputProducer;
   }
 

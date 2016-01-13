@@ -98,7 +98,8 @@ public final class Recommend extends AbstractALSResource {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
                                                                 rescorerParams);
       if (rescorer != null) {
-        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
+        Predicate<String> rescorerPredicate = buildRescorerPredicate(rescorer);
+        allowedFn = allowedFn == null ? rescorerPredicate : allowedFn.and(rescorerPredicate);
         rescoreFn = buildRescoreFn(rescorer);
       }
     }
