@@ -17,11 +17,8 @@ package com.cloudera.oryx.app.serving.als.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -29,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.serving.als.TestALSRescorerProvider;
+import com.cloudera.oryx.common.lang.ExecUtils;
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.random.RandomManager;
@@ -65,46 +63,36 @@ public final class LoadTestALSModelFactory {
     AtomicLong totalEntries = new AtomicLong();
 
     int numCores = Runtime.getRuntime().availableProcessors();
-    ForkJoinPool pool = new ForkJoinPool(numCores);
-    try {
-      log.info("Adding {} users", USERS);
-      AtomicInteger userCount = new AtomicInteger();
-      pool.submit(() -> IntStream.range(0, numCores).parallel().forEach(i -> {
-        RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
-        PoissonDistribution itemPerUserDist = new PoissonDistribution(
-            random,
-            AVG_ITEMS_PER_USER,
-            PoissonDistribution.DEFAULT_EPSILON,
-            PoissonDistribution.DEFAULT_MAX_ITERATIONS);
-        for (int user = userCount.getAndIncrement(); user < USERS; user = userCount.getAndIncrement()) {
-          String userID = "U" + user;
-          model.setUserVector(userID, VectorMath.randomVectorF(FEATURES, random));
-          int itemsPerUser = itemPerUserDist.sample();
-          totalEntries.addAndGet(itemsPerUser);
-          Collection<String> knownIDs = new ArrayList<>(itemsPerUser);
-          for (int item = 0; item < itemsPerUser; item++) {
-            knownIDs.add("I" + random.nextInt(ITEMS));
-          }
-          model.addKnownItems(userID, knownIDs);
+    log.info("Adding {} users", USERS);
+    AtomicInteger userCount = new AtomicInteger();
+    ExecUtils.doInParallel(numCores, i -> {
+      RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
+      PoissonDistribution itemPerUserDist = new PoissonDistribution(
+          random,
+          AVG_ITEMS_PER_USER,
+          PoissonDistribution.DEFAULT_EPSILON,
+          PoissonDistribution.DEFAULT_MAX_ITERATIONS);
+      for (int user = userCount.getAndIncrement(); user < USERS; user = userCount.getAndIncrement()) {
+        String userID = "U" + user;
+        model.setUserVector(userID, VectorMath.randomVectorF(FEATURES, random));
+        int itemsPerUser = itemPerUserDist.sample();
+        totalEntries.addAndGet(itemsPerUser);
+        Collection<String> knownIDs = new ArrayList<>(itemsPerUser);
+        for (int item = 0; item < itemsPerUser; item++) {
+          knownIDs.add("I" + random.nextInt(ITEMS));
         }
-      })).get();
+        model.addKnownItems(userID, knownIDs);
+      }
+    });
 
-      log.info("Adding {} items", ITEMS);
-      AtomicInteger itemCount = new AtomicInteger();
-      pool.submit(() -> IntStream.range(0, numCores).parallel().forEach(i -> {
-        RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
-        for (int item = itemCount.getAndIncrement(); item < ITEMS; item = itemCount.getAndIncrement()) {
-          model.setItemVector("I" + item, VectorMath.randomVectorF(FEATURES, random));
-        }
-      })).get();
-
-    } catch (InterruptedException ie) {
-      throw new IllegalStateException(ie);
-    } catch (ExecutionException ee) {
-      throw new IllegalStateException(ee.getCause());
-    } finally {
-      pool.shutdown();
-    }
+    log.info("Adding {} items", ITEMS);
+    AtomicInteger itemCount = new AtomicInteger();
+    ExecUtils.doInParallel(numCores, i -> {
+      RandomGenerator random = RandomManager.getRandom(((long) i << 32) ^ System.nanoTime());
+      for (int item = itemCount.getAndIncrement(); item < ITEMS; item = itemCount.getAndIncrement()) {
+        model.setItemVector("I" + item, VectorMath.randomVectorF(FEATURES, random));
+      }
+    });
 
     System.gc();
     long endMemory = JVMUtils.getUsedMemory();

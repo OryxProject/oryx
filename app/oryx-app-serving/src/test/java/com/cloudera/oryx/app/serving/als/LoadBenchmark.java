@@ -15,9 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 
@@ -29,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.common.lang.ExecUtils;
 import com.cloudera.oryx.common.lang.JVMUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
@@ -69,28 +68,23 @@ public final class LoadBenchmark extends AbstractALSServingTest {
     long start = System.currentTimeMillis();
 
     int workers = LoadTestALSModelFactory.WORKERS;
-    ForkJoinPool pool = new ForkJoinPool(workers);
-    try {
-      pool.submit(() -> IntStream.range(0, workers).parallel().forEach(i -> {
-        RandomGenerator random = RandomManager.getRandom(Integer.toString(i).hashCode() ^ System.nanoTime());
-        for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
-          String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
-          long callStart = System.currentTimeMillis();
-          target("/recommend/" + userID).request()
-              .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-          long timeMS = System.currentTimeMillis() - callStart;
-          synchronized (meanReqTimeMS) {
-            meanReqTimeMS.increment(timeMS);
-          }
-          long currentCount = count.incrementAndGet();
-          if (currentCount % 100 == 0) {
-            log(currentCount, meanReqTimeMS, start);
-          }
+    ExecUtils.doInParallel(workers, workers, true, i -> {
+      RandomGenerator random = RandomManager.getRandom(Integer.toString(i).hashCode() ^ System.nanoTime());
+      for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
+        String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
+        long callStart = System.currentTimeMillis();
+        target("/recommend/" + userID).request()
+            .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
+        long timeMS = System.currentTimeMillis() - callStart;
+        synchronized (meanReqTimeMS) {
+          meanReqTimeMS.increment(timeMS);
         }
-      })).get();
-    } finally {
-      pool.shutdown();
-    }
+        long currentCount = count.incrementAndGet();
+        if (currentCount % 100 == 0) {
+          log(currentCount, meanReqTimeMS, start);
+        }
+      }
+    });
 
     int totalRequests = workers * LoadTestALSModelFactory.REQS_PER_WORKER;
     log(totalRequests, meanReqTimeMS, start);

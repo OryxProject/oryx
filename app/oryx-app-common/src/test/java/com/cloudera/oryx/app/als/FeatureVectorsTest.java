@@ -20,13 +20,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.lang.ExecUtils;
 
 public final class FeatureVectorsTest extends OryxTest {
 
@@ -105,7 +105,7 @@ public final class FeatureVectorsTest extends OryxTest {
     AtomicInteger counter = new AtomicInteger();
     int numWorkers = 16;
     int numIterations = 10000;
-    IntStream.range(0, numWorkers).parallel().forEach(i -> {
+    ExecUtils.doInParallel(numWorkers, i -> {
       for (int j = 0; j < numIterations; j++) {
         int c = counter.getAndIncrement();
         fv.setVector(Integer.toString(c), new float[] { c });
@@ -113,7 +113,7 @@ public final class FeatureVectorsTest extends OryxTest {
     });
     assertEquals((long) numIterations * numWorkers, fv.size());
     assertEquals((long) numIterations * numWorkers, counter.get());
-    IntStream.range(0, numWorkers).parallel().forEach(i -> {
+    ExecUtils.doInParallel(numWorkers, i -> {
       for (int j = 0; j < numIterations; j++) {
         fv.removeVector(Integer.toString(counter.decrementAndGet()));
       }

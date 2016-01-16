@@ -19,13 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -43,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.ExecUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.ml.param.HyperParamValues;
@@ -254,30 +252,13 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                      JavaRDD<M> newData,
                                      JavaRDD<M> pastData,
                                      List<List<?>> hyperParameterCombos,
-                                     Path candidatesPath) throws InterruptedException, IOException {
-    int numWorkers = Math.min(evalParallelism, candidates);
-    Map<Path,Double> pathToEval = Collections.synchronizedMap(new HashMap<>(candidates));
-    IntStream tasks = IntStream.range(0, candidates);
-    if (numWorkers > 1) {
-      ForkJoinPool pool = new ForkJoinPool(numWorkers);
-      try {
-        pool.submit(() -> tasks.parallel().forEach(i -> {
-          Pair<Path,Double> eval =
-              buildAndEval(i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath);
-          pathToEval.put(eval.getFirst(), eval.getSecond());
-        })).get();
-      } catch (ExecutionException ee) {
-        throw new IllegalStateException(ee.getCause());
-      } finally {
-        pool.shutdown();
-      }
-    } else {
-      tasks.forEach(i -> {
-        Pair<Path,Double> eval =
-            buildAndEval(i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath);
-        pathToEval.put(eval.getFirst(), eval.getSecond());
-      });
-    }
+                                     Path candidatesPath) throws IOException {
+    Map<Path,Double> pathToEval = ExecUtils.collectInParallel(
+        candidates,
+        Math.min(evalParallelism, candidates),
+        true,
+        i -> buildAndEval(i, hyperParameterCombos, sparkContext, newData, pastData, candidatesPath),
+        Collectors.toMap(Pair::getFirst, Pair::getSecond));
 
     FileSystem fs = null;
     Path bestCandidatePath = null;
@@ -289,7 +270,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       }
       if (path != null && fs.exists(path)) {
         Double eval = pathEval.getValue();
-        if (eval != null) {
+        if (!Double.isNaN(eval)) {
           // Valid evaluation; if it's the best so far, keep it
           if (eval > bestEval) {
             log.info("Best eval / model path is now {} / {}", eval, path);
@@ -322,7 +303,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> allTrainData = trainTestData.getFirst();
     JavaRDD<M> testData = trainTestData.getSecond();
 
-    Double eval = null;
+    Double eval = Double.NaN;
     if (empty(allTrainData)) {
       log.info("No train data to build a model");
     } else {
@@ -345,8 +326,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
           log.info("No test data available to evaluate model");
         } else {
           log.info("Evaluating model");
-          double thisEval = evaluate(sparkContext, model, candidatePath, testData, allTrainData);
-          eval = Double.isNaN(thisEval) ? null : thisEval;
+          eval = evaluate(sparkContext, model, candidatePath, testData, allTrainData);
         }
       }
     }
