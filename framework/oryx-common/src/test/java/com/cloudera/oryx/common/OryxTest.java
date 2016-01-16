@@ -116,8 +116,8 @@ public abstract class OryxTest extends Assert {
     assertFalse(abbreviatedToString(collection) + " should not contain " + value, collection.contains(value));
   }
 
-  private static String abbreviatedToString(Collection<?> c) {
-    return c.stream().limit(16).collect(Collectors.toList()) + (c.size() > 16 ? "..." : "");
+  private static <T> String abbreviatedToString(Collection<T> c) {
+    return c.size() <= 16 ? c.toString() : c.stream().limit(16).collect(Collectors.toList()) + "...";
   }
 
   /**
