@@ -15,14 +15,17 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.Pairs;
 
 final class TopNConsumer implements BiConsumer<String,float[]> {
 
@@ -36,12 +39,11 @@ final class TopNConsumer implements BiConsumer<String,float[]> {
   /** Local flag that avoids checking queue size each time. */
   private boolean full;
 
-  TopNConsumer(Queue<Pair<String, Double>> topN,
-               int howMany,
+  TopNConsumer(int howMany,
                ToDoubleFunction<float[]> scoreFn,
                ObjDoubleToDoubleFunction<String> rescoreFn,
                Predicate<String> allowedPredicate) {
-    this.topN = topN;
+    this.topN = new PriorityQueue<>(howMany, Pairs.orderBySecond(Pairs.SortOrder.ASCENDING));
     this.howMany = howMany;
     this.scoreFn = scoreFn;
     this.rescoreFn = rescoreFn;
@@ -64,15 +66,12 @@ final class TopNConsumer implements BiConsumer<String,float[]> {
         // Might still not be big enough if another thread has put higher values in the
         // queue.
         if (score > topScoreLowerBound) {
-          double peek;
-          synchronized (topN) {
-            peek = topN.peek().getSecond();
-            if (score > peek) {
-              // Remove least of the top elements
-              topN.poll();
-              // Add new element
-              topN.add(new Pair<>(key, score));
-            }
+          double peek = topN.peek().getSecond();
+          if (score > peek) {
+            // Remove least of the top elements
+            topN.poll();
+            // Add new element
+            topN.add(new Pair<>(key, score));
           }
           if (peek > topScoreLowerBound) {
             // Update lower bound on what's big enough to go in the queue
@@ -81,17 +80,17 @@ final class TopNConsumer implements BiConsumer<String,float[]> {
         }
       } else {
         // Otherwise always add the new element
-        int newSize;
-        synchronized (topN) {
-          topN.add(new Pair<>(key, score));
-          newSize = topN.size();
-        }
-        if (newSize >= howMany) {
+        topN.add(new Pair<>(key, score));
+        if (topN.size() >= howMany) {
           // Remember the queue is already full enough, to avoid checking the queue again
           full = true;
         }
       }
     }
+  }
+
+  Stream<Pair<String,Double>> getTopN() {
+    return topN.stream();
   }
 
 }

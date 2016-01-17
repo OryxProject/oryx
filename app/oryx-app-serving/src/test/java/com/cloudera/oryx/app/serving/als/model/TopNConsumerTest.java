@@ -18,22 +18,20 @@ package com.cloudera.oryx.app.serving.als.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.Pairs;
 
 public final class TopNConsumerTest extends OryxTest {
 
   @Test
   public void testTopN() {
     int howMany = 5;
-    Queue<Pair<String,Double>> topQueue =
-        new PriorityQueue<>(howMany + 1, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
-    TopNConsumer consumer = new TopNConsumer(topQueue, howMany, value -> value[0], null, null);
+    TopNConsumer consumer = new TopNConsumer(howMany, value -> value[0], null, null);
     List<Integer> values = new ArrayList<>();
     int numValues = 100;
     for (int i = 0; i < numValues; i++) {
@@ -43,10 +41,10 @@ public final class TopNConsumerTest extends OryxTest {
     for (int value : values) {
       consumer.accept(Integer.toString(value), new float[] { value });
     }
-    assertEquals(howMany, topQueue.size());
-    List<Pair<String,Double>> topList = new ArrayList<>(topQueue);
-    Collections.sort(topList, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
-    Collections.reverse(topList);
+    List<Pair<String,Double>> topList = consumer.getTopN()
+        .sorted(Pairs.orderBySecond(Pairs.SortOrder.DESCENDING))
+        .collect(Collectors.toList());
+    assertEquals(howMany, topList.size());
     int expected = numValues - 1;
     for (Pair<String,Double> p : topList) {
       assertEquals(Integer.toString(expected), p.getFirst());

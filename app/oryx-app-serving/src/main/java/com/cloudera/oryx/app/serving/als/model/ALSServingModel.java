@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -299,11 +297,9 @@ public final class ALSServingModel implements ServingModel {
     for (int partition : candidateIndices) {
       if (Y[partition].size() > 0) {
         tasks.add(LoggingCallable.log(() -> {
-          Queue<Pair<String,Double>> topN =
-              new PriorityQueue<>(howMany + 1, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
-          Y[partition].forEach(new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate));
-          // Ordering and excess items don't matter; will be merged and finally sorted later
-          return topN.stream();
+          TopNConsumer consumer = new TopNConsumer(howMany, scoreFn, rescoreFn, allowedPredicate);
+          Y[partition].forEach(consumer);
+          return consumer.getTopN();
         }));
       }
     }
