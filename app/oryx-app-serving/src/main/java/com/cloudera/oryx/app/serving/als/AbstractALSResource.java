@@ -15,15 +15,11 @@
 
 package com.cloudera.oryx.app.serving.als;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import java.util.stream.Stream;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
-import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.serving.AbstractOryxResource;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
@@ -38,26 +34,12 @@ abstract class AbstractALSResource extends AbstractOryxResource {
     return (ALSServingModel) getServingModel();
   }
 
-  static <T> List<T> selectedSublist(List<T> values, int howMany, int offset) {
-    if (values.size() < offset) {
-      return Collections.emptyList();
-    }
-    return values.subList(offset, Math.min(offset + howMany, values.size()));
-  }
-
-  static List<IDValue> toIDValueResponse(List<Pair<String,Double>> pairs,
+  static List<IDValue> toIDValueResponse(Stream<Pair<String,Double>> pairs,
                                          int howMany,
                                          int offset) {
-    return selectedSublist(pairs, howMany, offset).stream().map(
-        idDot -> new IDValue(idDot.getFirst(), idDot.getSecond())).collect(Collectors.toList());
-  }
-
-  static ObjDoubleToDoubleFunction<String> buildRescoreFn(Rescorer rescorer) {
-    return rescorer::rescore;
-  }
-
-  static Predicate<String> buildRescorerPredicate(Rescorer rescorer) {
-    return id -> !rescorer.isFiltered(id);
+    return pairs.skip(offset).limit(howMany)
+        .map(idDot -> new IDValue(idDot.getFirst(), idDot.getSecond()))
+        .collect(Collectors.toList());
   }
 
 }

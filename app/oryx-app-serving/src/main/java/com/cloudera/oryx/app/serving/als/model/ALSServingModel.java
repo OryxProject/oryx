@@ -27,13 +27,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.openhft.koloboke.collect.map.ObjIntMap;
 import net.openhft.koloboke.collect.map.ObjObjMap;
@@ -49,6 +47,7 @@ import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.als.CosineDistanceSensitiveFunction;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.Pairs;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
@@ -289,14 +288,14 @@ public final class ALSServingModel implements ServingModel {
     }
   }
 
-  public List<Pair<String,Double>> topN(
+  public Stream<Pair<String,Double>> topN(
       CosineDistanceSensitiveFunction scoreFn,
       ObjDoubleToDoubleFunction<String> rescoreFn,
       int howMany,
       Predicate<String> allowedPredicate) {
 
     int[] candidateIndices = lsh.getCandidateIndices(scoreFn.getTargetVector());
-    List<Callable<Iterable<Pair<String,Double>>>> tasks = new ArrayList<>(candidateIndices.length);
+    List<Callable<Stream<Pair<String,Double>>>> tasks = new ArrayList<>(candidateIndices.length);
     for (int partition : candidateIndices) {
       if (Y[partition].size() > 0) {
         tasks.add(LoggingCallable.log(() -> {
@@ -304,38 +303,39 @@ public final class ALSServingModel implements ServingModel {
               new PriorityQueue<>(howMany + 1, (p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
           Y[partition].forEach(new TopNConsumer(topN, howMany, scoreFn, rescoreFn, allowedPredicate));
           // Ordering and excess items don't matter; will be merged and finally sorted later
-          return topN;
+          return topN.stream();
         }));
       }
     }
 
     int numTasks = tasks.size();
     if (numTasks == 0) {
-      return Collections.emptyList();
+      return Stream.empty();
     }
 
-    Ordering<Pair<?,Double>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
+    Stream<Pair<String,Double>> stream;
     if (numTasks == 1) {
-      Iterable<Pair<String,Double>> iterable;
       try {
-        iterable = tasks.get(0).call();
+        stream = tasks.get(0).call();
       } catch (Exception e) {
         throw new IllegalStateException(e);
       }
-      return ordering.greatestOf(iterable, howMany);
-    }
-
-    List<Iterable<Pair<String,Double>>> iterables = new ArrayList<>(numTasks);
-    try {
-      for (Future<Iterable<Pair<String, Double>>> future : executor.invokeAll(tasks)) {
-        iterables.add(future.get());
+    } else {
+      try {
+        stream = executor.invokeAll(tasks).stream().map(future -> {
+          try {
+            return future.get();
+          } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+          } catch (ExecutionException e) {
+            throw new IllegalStateException(e.getCause());
+          }
+        }).reduce(Stream::concat).get();
+      } catch (InterruptedException e) {
+        throw new IllegalStateException(e);
       }
-    } catch (InterruptedException e) {
-      throw new IllegalStateException(e);
-    } catch (ExecutionException e) {
-      throw new IllegalStateException(e.getCause());
     }
-    return ordering.greatestOf(Iterables.concat(iterables), howMany);
+    return stream.sorted(Pairs.orderBySecond(Pairs.SortOrder.DESCENDING)).limit(howMany);
   }
 
   /**

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 
@@ -90,12 +91,12 @@ public final class RecommendWithContext extends AbstractALSResource {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
                                                                 rescorerParams);
       if (rescorer != null) {
-        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
-        rescoreFn = buildRescoreFn(rescorer);
+        allowedFn = allowedFn.and(id -> !rescorer.isFiltered(id));
+        rescoreFn = rescorer::rescore;
       }
     }
 
-    List<Pair<String,Double>> topIDDots = model.topN(
+    Stream<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(tempUserVector),
         rescoreFn,
         howMany + offset,

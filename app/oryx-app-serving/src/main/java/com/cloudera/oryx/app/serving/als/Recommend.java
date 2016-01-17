@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -98,13 +99,13 @@ public final class Recommend extends AbstractALSResource {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),
                                                                 rescorerParams);
       if (rescorer != null) {
-        Predicate<String> rescorerPredicate = buildRescorerPredicate(rescorer);
+        Predicate<String> rescorerPredicate = id -> !rescorer.isFiltered(id);
         allowedFn = allowedFn == null ? rescorerPredicate : allowedFn.and(rescorerPredicate);
-        rescoreFn = buildRescoreFn(rescorer);
+        rescoreFn = rescorer::rescore;
       }
     }
 
-    List<Pair<String,Double>> topIDDots = model.topN(
+    Stream<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(userVector),
         rescoreFn,
         howMany + offset,

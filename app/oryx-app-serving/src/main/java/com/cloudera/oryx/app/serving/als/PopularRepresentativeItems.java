@@ -17,6 +17,7 @@ package com.cloudera.oryx.app.serving.als;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -50,8 +51,8 @@ public final class PopularRepresentativeItems extends AbstractALSResource {
     float[] unitVector = new float[features];
     for (int i = 0; i < features; i++) {
       unitVector[i] = 1.0f;
-      List<Pair<String,Double>> topIDDot = model.topN(new DotsFunction(unitVector), null, 1, null);
-      items.add(topIDDot.isEmpty() ? null : topIDDot.get(0).getFirst());
+      Stream<Pair<String,Double>> topIDDot = model.topN(new DotsFunction(unitVector), null, 1, null);
+      items.add(topIDDot.findFirst().map(Pair::getFirst).orElse(null));
       unitVector[i] = 0.0f; // reset
     }
     return items;

@@ -27,14 +27,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.collect.Ordering;
-
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.IDCount;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.Pairs;
 
 /**
  * <p>Responds to a GET request to
@@ -72,15 +71,15 @@ public final class MostPopularItems extends AbstractALSResource {
                                               int offset,
                                               Rescorer rescorer) {
     Stream<Pair<String,Integer>> countPairs =
-        counts.entrySet().stream().map(input -> new Pair<>(input.getKey(), input.getValue()));
+        counts.entrySet().stream().map(e -> new Pair<>(e.getKey(), e.getValue()));
     if (rescorer != null) {
       countPairs = countPairs.filter(input -> !rescorer.isFiltered(input.getFirst()));
     }
-
-    Ordering<Pair<String,Integer>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
-    List<Pair<String,Integer>> allTopCountPairs = ordering.greatestOf(countPairs.iterator(), howMany + offset);
-    return selectedSublist(allTopCountPairs, howMany, offset).stream().map(
-        idCount -> new IDCount(idCount.getFirst(), idCount.getSecond())).collect(Collectors.toList());
+    return countPairs
+        .sorted(Pairs.orderBySecond(Pairs.SortOrder.DESCENDING))
+        .skip(offset).limit(howMany)
+        .map(idCount -> new IDCount(idCount.getFirst(), idCount.getSecond()))
+        .collect(Collectors.toList());
   }
 
 }

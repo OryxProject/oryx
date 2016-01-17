@@ -16,8 +16,8 @@
 package com.cloudera.oryx.app.serving.als;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -27,12 +27,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.collect.Ordering;
-
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.collection.Pairs;
 import com.cloudera.oryx.common.math.VectorMath;
 
 /**
@@ -73,10 +72,10 @@ public final class MostSurprising extends AbstractALSResource {
       return Collections.emptyList();
     }
 
-    Iterator<Pair<String,Double>> idDots = knownItemVectors.stream().map(itemIDVector ->
-        new Pair<>(itemIDVector.getFirst(), VectorMath.dot(userVector, itemIDVector.getSecond()))).iterator();
-    Ordering<Pair<?,Double>> ordering = Ordering.from((p1, p2) -> p1.getSecond().compareTo(p2.getSecond()));
-    return toIDValueResponse(ordering.leastOf(idDots, howMany + offset), howMany, offset);
+    Stream<Pair<String,Double>> idDots = knownItemVectors.stream().map(itemIDVector ->
+        new Pair<>(itemIDVector.getFirst(), VectorMath.dot(userVector, itemIDVector.getSecond())));
+    return toIDValueResponse(idDots.sorted(Pairs.orderBySecond(Pairs.SortOrder.ASCENDING)),
+                             howMany, offset);
   }
 
 }

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -89,12 +90,12 @@ public final class Similarity extends AbstractALSResource {
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getMostSimilarItemsRescorer(rescorerParams);
       if (rescorer != null) {
-        allowedFn = allowedFn.and(buildRescorerPredicate(rescorer));
-        rescoreFn = buildRescoreFn(rescorer);
+        allowedFn = allowedFn.and(id -> !rescorer.isFiltered(id));
+        rescoreFn = rescorer::rescore;
       }
     }
 
-    List<Pair<String,Double>> topIDCosines = alsServingModel.topN(
+    Stream<Pair<String,Double>> topIDCosines = alsServingModel.topN(
         new CosineAverageFunction(itemFeatureVectors),
         rescoreFn,
         howMany + offset,

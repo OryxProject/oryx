@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -95,13 +96,13 @@ public final class RecommendToMany extends AbstractALSResource {
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(userIDs, rescorerParams);
       if (rescorer != null) {
-        Predicate<String> rescorerPredicate = buildRescorerPredicate(rescorer);
+        Predicate<String> rescorerPredicate = id -> !rescorer.isFiltered(id);
         allowedFn = allowedFn == null ? rescorerPredicate : allowedFn.and(rescorerPredicate);
-        rescoreFn = buildRescoreFn(rescorer);
+        rescoreFn = rescorer::rescore;
       }
     }
 
-    List<Pair<String,Double>> topIDDots = alsServingModel.topN(
+    Stream<Pair<String,Double>> topIDDots = alsServingModel.topN(
         new DotsFunction(userFeaturesVectors),
         rescoreFn,
         howMany + offset,
