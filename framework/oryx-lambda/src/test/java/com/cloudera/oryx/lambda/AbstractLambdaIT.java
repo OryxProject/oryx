@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.junit.After;
 import org.junit.Before;
@@ -40,8 +39,6 @@ import com.cloudera.oryx.kafka.util.LocalZKServer;
 public abstract class AbstractLambdaIT extends OryxTest {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractLambdaIT.class);
-
-  protected static final ObjectMapper MAPPER = new ObjectMapper();
 
   protected static final String INPUT_TOPIC = "OryxInput";
   protected static final String UPDATE_TOPIC = "OryxUpdate";

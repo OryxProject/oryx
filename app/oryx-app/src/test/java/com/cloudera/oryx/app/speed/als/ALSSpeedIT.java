@@ -30,6 +30,7 @@ import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
 public final class ALSSpeedIT extends AbstractSpeedIT {
@@ -64,11 +65,11 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     for (int i = 1; i <= 9; i++) {
       assertEquals("UP", updates.get(i).getFirst());
-      List<?> update = MAPPER.readValue(updates.get(i).getSecond(), List.class);
+      List<?> update = TextUtils.readJSON(updates.get(i).getSecond(), List.class);
       boolean isX = "X".equals(update.get(0).toString());
       String id = update.get(1).toString();
       float[] expected = (isX ? MockALSModelUpdateGenerator.X : MockALSModelUpdateGenerator.Y).get(id);
-      assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class));
+      assertArrayEquals(expected, TextUtils.convertViaJSON(update.get(2), float[].class));
       @SuppressWarnings("unchecked")
       Collection<String> knownUsersItems = (Collection<String>) update.get(3);
       Collection<String> expectedKnownUsersItems =
@@ -100,11 +101,11 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     for (int i = 10; i <= 18; i++) {
       assertEquals("UP", updates.get(i).getFirst());
-      List<?> update = MAPPER.readValue(updates.get(i).getSecond(), List.class);
+      List<?> update = TextUtils.readJSON(updates.get(i).getSecond(), List.class);
       boolean isX = "X".equals(update.get(0).toString());
       String id = update.get(1).toString();
       float[] expected = (isX ? X : Y).get(id);
-      assertArrayEquals(expected, MAPPER.convertValue(update.get(2), float[].class), 1.0e-5f);
+      assertArrayEquals(expected, TextUtils.convertViaJSON(update.get(2), float[].class), 1.0e-5f);
       String otherID = ALSUtilsTest.idToStringID(ALSUtilsTest.stringIDtoID(id) - 99);
       @SuppressWarnings("unchecked")
       Collection<String> knownUsersItems = (Collection<String>) update.get(3);

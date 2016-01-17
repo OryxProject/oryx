@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 
 public final class ALSModelContentIT extends AbstractALSIT {
 
@@ -73,7 +74,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
 
       if ("UP".equals(type)) {
 
-        List<?> update = MAPPER.readValue(value, List.class);
+        List<?> update = TextUtils.readJSON(value, List.class);
         if ("X".equals(update.get(0).toString())) {
           String userID = update.get(1).toString();
           @SuppressWarnings("unchecked")

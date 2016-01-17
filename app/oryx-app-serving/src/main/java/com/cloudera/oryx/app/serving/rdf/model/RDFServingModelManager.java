@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
@@ -39,6 +38,7 @@ import com.cloudera.oryx.app.rdf.tree.TerminalNode;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
@@ -47,7 +47,6 @@ import com.cloudera.oryx.common.collection.Pair;
 public final class RDFServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFServingModelManager.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final InputSchema inputSchema;
   private RDFServingModel model;
@@ -80,7 +79,7 @@ public final class RDFServingModelManager extends AbstractServingModelManager<St
           }
 
           DecisionForest forest = model.getForest();
-          List<?> update = MAPPER.readValue(message, List.class);
+          List<?> update = TextUtils.readJSON(message, List.class);
           int treeID = Integer.parseInt(update.get(0).toString());
           String nodeID = update.get(1).toString();
 

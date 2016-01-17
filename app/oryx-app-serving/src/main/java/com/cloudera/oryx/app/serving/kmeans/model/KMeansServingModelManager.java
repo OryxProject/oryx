@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.dmg.pmml.PMML;
@@ -33,6 +32,7 @@ import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
@@ -41,7 +41,6 @@ import com.cloudera.oryx.app.schema.InputSchema;
 public final class KMeansServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansServingModelManager.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final InputSchema inputSchema;
   private KMeansServingModel model;
@@ -71,10 +70,10 @@ public final class KMeansServingModelManager extends AbstractServingModelManager
           if (model == null) {
             continue; // No model to interpret with yet, so skip it
           }
-          List<?> update = MAPPER.readValue(message, List.class);
+          List<?> update = TextUtils.readJSON(message, List.class);
           // Update
           int id = Integer.parseInt(update.get(0).toString());
-          double[] center = MAPPER.convertValue(update.get(1), double[].class);
+          double[] center = TextUtils.convertViaJSON(update.get(1), double[].class);
           long count = Long.parseLong(update.get(2).toString());
           model.update(id, center, count);
           break;

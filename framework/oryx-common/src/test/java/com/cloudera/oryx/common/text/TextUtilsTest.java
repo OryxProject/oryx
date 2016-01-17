@@ -127,4 +127,18 @@ public final class TextUtilsTest extends OryxTest {
                  TextUtils.joinJSON(Arrays.asList("A", map, "B")));
   }
 
+  @Test
+  public void testReadJSON() {
+    assertEquals(3, TextUtils.readJSON("3", Integer.class).intValue());
+    assertEquals(Arrays.asList("foo", "bar"), TextUtils.readJSON("[\"foo\", \"bar\"]", List.class));
+    assertArrayEquals(new float[] { 1.0f, 2.0f }, TextUtils.readJSON("[1,2]", float[].class));
+  }
+
+  @Test
+  public void testConvertViaJSON() {
+    assertEquals(3, TextUtils.convertViaJSON("3", Long.class).longValue());
+    assertArrayEquals(new float[] { 1.0f, 2.0f },
+                      TextUtils.convertViaJSON(new double[] { 1.0, 2.0 }, float[].class));
+  }
+
 }

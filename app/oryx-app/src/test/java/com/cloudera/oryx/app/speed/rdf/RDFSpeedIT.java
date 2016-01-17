@@ -33,6 +33,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.lambda.speed.AbstractSpeedIT;
 
 public final class RDFSpeedIT extends AbstractSpeedIT {
@@ -75,7 +76,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     for (int i = 1; i < numUpdates; i++) {
       Pair<String, String> update = updates.get(i);
       assertEquals("UP", update.getFirst());
-      List<?> fields = MAPPER.readValue(update.getSecond(), List.class);
+      List<?> fields = TextUtils.readJSON(update.getSecond(), List.class);
       int treeID = (Integer) fields.get(0);
       String nodeID = fields.get(1).toString();
       double mean = (Double) fields.get(2);
@@ -90,8 +91,8 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     for (int i = 1; i < numUpdates; i += 2) {
       Pair<String, String> update1 = updates.get(i);
       Pair<String, String> update2 = updates.get(i + 1);
-      List<?> fields1 = MAPPER.readValue(update1.getSecond(), List.class);
-      List<?> fields2 = MAPPER.readValue(update2.getSecond(), List.class);
+      List<?> fields1 = TextUtils.readJSON(update1.getSecond(), List.class);
+      List<?> fields2 = TextUtils.readJSON(update2.getSecond(), List.class);
       int count1 = (Integer) fields1.get(3);
       int count2 = (Integer) fields2.get(3);
       assertLessOrEqual(Math.abs(count1 - count2), 1);
@@ -164,7 +165,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     for (int i = 1; i < numUpdates; i++) {
       Pair<String, String> update = updates.get(i);
       assertEquals("UP", update.getFirst());
-      List<?> fields = MAPPER.readValue(update.getSecond(), List.class);
+      List<?> fields = TextUtils.readJSON(update.getSecond(), List.class);
       int treeID = (Integer) fields.get(0);
       String nodeID = fields.get(1).toString();
       @SuppressWarnings("unchecked")

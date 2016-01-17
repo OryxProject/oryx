@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -52,7 +51,6 @@ import com.cloudera.oryx.common.math.Solver;
 public final class ALSSpeedModelManager implements SpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSSpeedModelManager.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSSpeedModel model;
   private final boolean noKnownItems;
@@ -85,10 +83,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
           // in response to new data, and applying them to the in-memory representation.
           // ALS continues to be a somewhat special case here, in that it does benefit from
           // real-time updates to even the speed layer reference model.
-          List<?> update = MAPPER.readValue(message, List.class);
+          List<?> update = TextUtils.readJSON(message, List.class);
           // Update
           String id = update.get(1).toString();
-          float[] vector = MAPPER.convertValue(update.get(2), float[].class);
+          float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
           switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);

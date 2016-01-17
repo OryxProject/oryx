@@ -164,4 +164,27 @@ public final class TextUtils {
     }
   }
 
+  /**
+   * @param json JSON string
+   * @param clazz Java type to interpret as
+   * @return the JSON string, parsed into the given type
+   */
+  public static <T> T readJSON(String json, Class<T> clazz) {
+    try {
+      return MAPPER.readValue(json, clazz);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * @param value value to convert
+   * @param clazz desired type to interpret as
+   * @return the given value, reinterpreted as the given type, as if serialized/deserialized
+   *  via JSON to perform the conversion
+   */
+  public static <T> T convertViaJSON(Object value, Class<T> clazz) {
+    return MAPPER.convertValue(value, clazz);
+  }
+
 }

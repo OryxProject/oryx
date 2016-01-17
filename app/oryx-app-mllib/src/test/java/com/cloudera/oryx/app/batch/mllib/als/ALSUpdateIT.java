@@ -41,6 +41,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 import com.cloudera.oryx.ml.MLUpdate;
 
 public final class ALSUpdateIT extends AbstractALSIT {
@@ -121,7 +122,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
         assertNotNull(seenUsers);
         assertNotNull(seenProducts);
 
-        List<?> update = MAPPER.readValue(value, List.class);
+        List<?> update = TextUtils.readJSON(value, List.class);
         // First field is X or Y, depending on whether it's a user or item vector
         String whichMatrixField = update.get(0).toString();
         boolean isUser = "X".equals(whichMatrixField);
@@ -135,7 +136,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           seenProducts.add(id);
         }
         // Verify that feature vector are valid floats
-        for (float f : MAPPER.convertValue(update.get(2), float[].class)) {
+        for (float f : TextUtils.convertViaJSON(update.get(2), float[].class)) {
           assertTrue(!Float.isNaN(f) && !Float.isInfinite(f));
         }
 
@@ -192,14 +193,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
     for (Path file : IOUtils.listFiles(path, "part-*")) {
       Path uncompressedFile = copyAndUncompress(file);
       Files.lines(uncompressedFile).forEach(line -> {
-        List<?> update = null;
-        try {
-          update = MAPPER.readValue(line, List.class);
-        } catch (IOException e) {
-          fail("Unexpected exception: " + e);
-        }
+        List<?> update = TextUtils.readJSON(line, List.class);
         seenIDs.add(update.get(0).toString());
-        assertEquals(FEATURES, MAPPER.convertValue(update.get(1), float[].class).length);
+        assertEquals(FEATURES, TextUtils.convertViaJSON(update.get(1), float[].class).length);
       });
       Files.delete(uncompressedFile);
     }

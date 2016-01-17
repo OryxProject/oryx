@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -66,7 +65,6 @@ import com.cloudera.oryx.ml.param.HyperParams;
 public final class ALSUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSUpdate.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final HashFunction HASH = Hashing.md5();
   private static final Pattern MOST_INTS_PATTERN = Pattern.compile("(0|-?[1-9][0-9]{0,9})");
 
@@ -464,9 +462,9 @@ public final class ALSUpdate extends MLUpdate<String> {
     log.info("Loading features RDD from {}", path);
     JavaRDD<String> featureLines = sparkContext.textFile(path.toString());
     return featureLines.mapToPair(line -> {
-      List<?> update = MAPPER.readValue(line, List.class);
+      List<?> update = TextUtils.readJSON(line, List.class);
       String key = update.get(0).toString();
-      float[] vector = MAPPER.convertValue(update.get(1), float[].class);
+      float[] vector = TextUtils.convertViaJSON(update.get(1), float[].class);
       return new Tuple2<>(key, vector);
     });
   }

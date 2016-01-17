@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -38,6 +37,7 @@ import com.cloudera.oryx.app.als.MultiRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.common.text.TextUtils;
 
 /**
  * A {@link com.cloudera.oryx.api.serving.ServingModelManager} that manages and provides access to an
@@ -46,7 +46,6 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 public final class ALSServingModelManager extends AbstractServingModelManager<String> {
 
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
-  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private ALSServingModel model;
   private final double sampleRate;
@@ -74,10 +73,10 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
           if (model == null) {
             continue; // No model to interpret with yet, so skip it
           }
-          List<?> update = MAPPER.readValue(message, List.class);
+          List<?> update = TextUtils.readJSON(message, List.class);
           // Update
           String id = update.get(1).toString();
-          float[] vector = MAPPER.convertValue(update.get(2), float[].class);
+          float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
           switch (update.get(0).toString()) {
             case "X":
               model.setUserVector(id, vector);
