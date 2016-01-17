@@ -19,15 +19,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.DoubleSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import com.google.common.util.concurrent.AtomicLongMap;
 import com.typesafe.config.Config;
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -122,14 +121,12 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
 
     if (inputSchema.isClassification()) {
 
-      return targetsByTreeAndID.mapValues(categoricalTargets -> {
-        AtomicLongMap<Integer> categoryCounts = AtomicLongMap.create();
-        for (Feature f : categoricalTargets) {
-          categoryCounts.incrementAndGet(((CategoricalFeature) f).getEncoding());
-        }
-        // Have to clone it as Kryo won't serialize the unmodifiable map
-        return new HashMap<>(categoryCounts.asMap());
-      }).collect().stream().map(p -> {
+      return targetsByTreeAndID.mapValues(categoricalTargets ->
+        StreamSupport.stream(categoricalTargets.spliterator(), false)
+            .collect(Collectors.groupingBy(f -> ((CategoricalFeature) f).getEncoding(), Collectors.counting()))
+      ).collect().stream().map(p -> {
+        // This happens on the driver since the call below uses Jackson, and we have a version
+        // conflict with Spark. Or did.
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
         return TextUtils.joinJSON(Arrays.asList(treeID, nodeID, p._2()));
@@ -137,17 +134,16 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
 
     } else {
 
-      return targetsByTreeAndID.mapValues(numericTargets -> {
-        Mean mean = new Mean();
-        for (Feature f : numericTargets) {
-          mean.increment(((NumericFeature) f).getValue());
-        }
-        return mean;
-      }).collect().stream().map(p -> {
+      return targetsByTreeAndID.mapValues(numericTargets ->
+        StreamSupport.stream(numericTargets.spliterator(), false)
+            .collect(Collectors.summarizingDouble(f -> ((NumericFeature) f).getValue()))
+      ).collect().stream().map(p -> {
+        // This happens on the driver since the call below uses Jackson, and we have a version
+        // conflict with Spark. Or did.
         Integer treeID = p._1().getFirst();
         String nodeID = p._1().getSecond();
-        Mean mean = p._2();
-        return TextUtils.joinJSON(Arrays.asList(treeID, nodeID, mean.getResult(), mean.getN()));
+        DoubleSummaryStatistics stats = p._2();
+        return TextUtils.joinJSON(Arrays.asList(treeID, nodeID, stats.getAverage(), stats.getCount()));
       }).collect(Collectors.toList());
 
     }

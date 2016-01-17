@@ -30,8 +30,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.AtomicLongMap;
 import com.typesafe.config.Config;
+import net.openhft.koloboke.collect.map.IntLongMap;
+import net.openhft.koloboke.collect.map.hash.HashIntLongMaps;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -269,27 +270,27 @@ public final class RDFUpdate extends MLUpdate<String> {
                                                                RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         DecisionTreeModel[] trees = model.trees();
-        List<AtomicLongMap<Integer>> treeNodeIDCounts = IntStream.range(0, trees.length).
-            mapToObj(i -> AtomicLongMap.<Integer>create()).collect(Collectors.toList());
+        List<IntLongMap> treeNodeIDCounts = IntStream.range(0, trees.length).
+            mapToObj(i -> HashIntLongMaps.newMutableMap()).collect(Collectors.toList());
         data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (int i = 0; i < trees.length; i++) {
             DecisionTreeModel tree = trees[i];
-            AtomicLongMap<Integer> nodeIDCount = treeNodeIDCounts.get(i);
+            IntLongMap nodeIDCount = treeNodeIDCounts.get(i);
             org.apache.spark.mllib.tree.model.Node node = tree.topNode();
             // This logic cloned from Node.predict:
             while (!node.isLeaf()) {
               // Count node ID
-              nodeIDCount.incrementAndGet(node.id());
+              nodeIDCount.addValue(node.id(), 1);
               Split split = node.split().get();
               int featureIndex = split.feature();
               node = nextNode(featureVector, node, split, featureIndex);
             }
-            nodeIDCount.incrementAndGet(node.id());
+            nodeIDCount.addValue(node.id(), 1);
           }
         });
         return Collections.<List<Map<Integer,Long>>>singleton(
-            treeNodeIDCounts.stream().map(map -> new HashMap<>(map.asMap())).collect(Collectors.toList()));
+            treeNodeIDCounts.stream().map(HashMap::new).collect(Collectors.toList()));
       }
     ).reduce((a, b) -> {
         Preconditions.checkArgument(a.size() == b.size());
@@ -311,7 +312,7 @@ public final class RDFUpdate extends MLUpdate<String> {
   private static Map<Integer,Long> predictorExampleCounts(JavaRDD<LabeledPoint> trainPointData,
                                                           RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
-        AtomicLongMap<Integer> featureIndexCount = AtomicLongMap.create();
+        IntLongMap featureIndexCount = HashIntLongMaps.newMutableMap();
         data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (DecisionTreeModel tree : model.trees()) {
@@ -321,14 +322,14 @@ public final class RDFUpdate extends MLUpdate<String> {
               Split split = node.split().get();
               int featureIndex = split.feature();
               // Count feature
-              featureIndexCount.incrementAndGet(featureIndex);
+              featureIndexCount.addValue(featureIndex, 1);
               node = nextNode(featureVector, node, split, featureIndex);
             }
           }
         });
-        return Collections.<Map<Integer,Long>>singleton(new HashMap<>(featureIndexCount.asMap()));
-      }
-    ).reduce(RDFUpdate::merge);
+        // Clone to avoid problem with Kryo serializing Koloboke
+        return Collections.<Map<Integer,Long>>singleton(new HashMap<>(featureIndexCount));
+    }).reduce(RDFUpdate::merge);
   }
 
   private static org.apache.spark.mllib.tree.model.Node nextNode(
@@ -356,10 +357,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     if (b.size() > a.size()) {
       return merge(b, a);
     }
-    b.forEach((key, value) -> {
-      Long current = a.get(key);
-      a.put(key, current == null ? value : current + value);
-    });
+    b.forEach((key, value) -> a.merge(key, value, (x, y) -> x + y));
     return a;
   }
 
@@ -553,7 +551,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private double[] countsToImportances(Map<Integer,Long> predictorIndexCounts) {
     double[] importances = new double[inputSchema.getNumPredictors()];
-    long total = predictorIndexCounts.values().stream().mapToLong(l -> l).sum();
+    long total = predictorIndexCounts.values().stream().collect(Collectors.summingLong(l -> l));
     Preconditions.checkArgument(total > 0);
     predictorIndexCounts.forEach((k, count) -> importances[k] = (double) count / total);
     return importances;

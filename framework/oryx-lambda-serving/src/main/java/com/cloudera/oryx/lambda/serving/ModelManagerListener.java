@@ -25,9 +25,9 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.stream.StreamSupport;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import com.typesafe.config.Config;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
@@ -126,10 +126,10 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
                                       new StringDecoder(null),
-                                      loadDecoderInstance())
-            .get(updateTopic).get(0);
-    Iterator<KeyMessage<String,U>> transformed = Iterators.transform(stream.iterator(),
-        input -> new KeyMessageImpl<>(input.key(), input.message()));
+                                      loadDecoderInstance()).get(updateTopic).get(0);
+    Iterator<KeyMessage<String,U>> transformed = StreamSupport.stream(stream.spliterator(), false)
+        .map(input -> (KeyMessage<String,U>) new KeyMessageImpl<>(input.key(), input.message()))
+        .iterator();
 
     modelManager = loadManagerInstance();
     new Thread(LoggingCallable.log(() -> {
