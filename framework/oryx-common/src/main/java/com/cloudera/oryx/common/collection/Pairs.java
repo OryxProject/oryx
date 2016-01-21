@@ -27,6 +27,8 @@ public final class Pairs {
 
   /**
    * @param order whether to sort ascending or descending; {@code null} comes last
+   * @param <C> type of first element in {@link Pair}s to be compared
+   * @param <D> type of second element in {@link Pair}s to be compared
    * @return an ordering on {@link Pair}s by first element as a {@link Comparator}
    */
   public static <C extends Comparable<C>,D> Comparator<Pair<C,D>> orderByFirst(SortOrder order) {
@@ -39,6 +41,8 @@ public final class Pairs {
 
   /**
    * @param order whether to sort ascending or descending; {@code null} comes last
+   * @param <C> type of first element in {@link Pair}s to be compared
+   * @param <D> type of second element in {@link Pair}s to be compared
    * @return an ordering on {@link Pair}s by second element as a {@link Comparator}
    */
   public static <C,D extends Comparable<D>> Comparator<Pair<C,D>> orderBySecond(SortOrder order) {

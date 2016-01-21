@@ -164,6 +164,7 @@ public final class TextUtils {
   /**
    * @param json JSON string
    * @param clazz Java type to interpret as
+   * @param <T> type that should be parsed from JSON and returned
    * @return the JSON string, parsed into the given type
    */
   public static <T> T readJSON(String json, Class<T> clazz) {
@@ -177,6 +178,7 @@ public final class TextUtils {
   /**
    * @param value value to convert
    * @param clazz desired type to interpret as
+   * @param <T> type that should be parsed from JSON and returned
    * @return the given value, reinterpreted as the given type, as if serialized/deserialized
    *  via JSON to perform the conversion
    */

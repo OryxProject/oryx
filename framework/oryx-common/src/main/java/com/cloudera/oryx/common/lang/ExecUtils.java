@@ -87,6 +87,9 @@ public final class ExecUtils {
    * @param task task to execute; takes an {@code Integer} argument that is the index of
    *  the task that has been executed in [0, numTasks) and returns some value
    * @param collector instance used to collect results into the return value
+   * @param <T> type produced by each task
+   * @param <R> type produced by {@code collector} from task results
+   * @return result of collecting individual task results
    */
   public static <T,R> R collectInParallel(int numTasks,
                                           int parallelism,
