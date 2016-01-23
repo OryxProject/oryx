@@ -101,33 +101,31 @@ Example steady-state heap usage (Java 8):
 - Locality sensitive hashing decreases processing time roughly linearly; 0.33 ~= 1/0.33 ~= 3x faster (setting too low adversely affects result quality)
 
 Below are representative throughput / latency measurements for the `/recommend` endpoint using  
-a 16-CPU Intel Xeon 2.3GHz (Haswell), OpenJDK 8 and flags `-XX:+UseG1GC -XX:+UseStringDeduplication`. 
-Heap size was comfortably large enough for the data set (>= 3GB headroom over the steady-state 
-heap usage above) in each case. The tests were run with 1 concurrent request at a time, and so 
-represent best-case latency, with near-full CPU utilization. Tests with 1M items were run with
-2 concurrent requests in order to get closer to full CPU utilization.
+a 32-core Intel Xeon 2.3GHz (Haswell), OpenJDK 8 and flags `-XX:+UseG1GC -XX:+UseStringDeduplication`. 
+Heap size was comfortably large enough for the data set in each case. 
+The tests were run with 1-3 concurrent request at a time, as necessary to achieve near-full CPU utilization.
 
 *With LSH (sample rate = 0.3)*
 
 | Features | Items (M) | Throughput (qps) | Latency (ms) |
 | --------:| ---------:| ----------------:| ------------:|
-|  50      |  1        | 137              |   15         |
-| 250      |  1        |  74              |   27         |
-|  50      |  5        |  29              |   35         |
-| 250      |  5        |  13              |   77         |
-|  50      | 20        |   8              |  126         |
-| 250      | 20        |   3              |  294         |
+|  50      |  1        | 437              |    7         |
+| 250      |  1        | 151              |   13         |
+|  50      |  5        |  84              |   24         |
+| 250      |  5        |  36              |   56         |
+|  50      | 20        |  14              |   69         |
+| 250      | 20        |   6              |  162         |
 
 *Without LSH (sample rate = 1.0)*
 
 | Features | Items (M) | Throughput (qps) | Latency (ms) |
 | --------:| ---------:| ----------------:| ------------:|
-|  50      |  1        |  43              |   47         |
-| 250      |  1        |  19              |  107         |
-|  50      |  5        |   9              |  111         |
-| 250      |  5        |   4              |  268         |
-|  50      | 20        |   2              |  421         |
-| 250      | 20        |   1              | 1054         |
+|  50      |  1        |  74              |   27         |
+| 250      |  1        |  23              |   44         |
+|  50      |  5        |  13              |   80         |
+| 250      |  5        |   5              |  191         |
+|  50      | 20        |   4              |  282         |
+| 250      | 20        |   1              |  708         |
 
 ## JVM Tuning
 

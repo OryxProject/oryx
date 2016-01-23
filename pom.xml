@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.9</version>
+        <version>1.2.10</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -1196,7 +1196,7 @@
       <id>cdh55</id>
       <!-- Latest 5.5.x version; can be overridden -->
       <properties>
-        <cdh.version>5.5.1</cdh.version>
+        <cdh.version>5.5.2</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.5.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
