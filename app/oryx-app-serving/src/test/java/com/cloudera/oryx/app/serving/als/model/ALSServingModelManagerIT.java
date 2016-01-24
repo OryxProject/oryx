@@ -60,9 +60,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     assertEquals(2, model.getFeatures());
     assertTrue(model.isImplicit());
 
-    Collection<String> expectedItems = MockALSModelUpdateGenerator.Y.keySet();
-    assertTrue(expectedItems.containsAll(model.getAllItemIDs()));
-    assertTrue(model.getAllItemIDs().containsAll(expectedItems));
+    assertContainsSame(MockALSModelUpdateGenerator.Y.keySet(), model.getAllItemIDs());
 
     assertNotNull(model.getYTYSolver());
 
@@ -73,10 +71,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
       assertArrayEquals(entry.getValue(), model.getItemVector(entry.getKey()));
     }
     for (Map.Entry<String,Collection<String>> entry : MockALSModelUpdateGenerator.A.entrySet()) {
-      Collection<String> expected = entry.getValue();
-      Collection<String> actual = model.getKnownItems(entry.getKey());
-      assertTrue(expected.containsAll(actual));
-      assertTrue(actual.containsAll(expected));
+      assertContainsSame(entry.getValue(), model.getKnownItems(entry.getKey()));
     }
   }
 

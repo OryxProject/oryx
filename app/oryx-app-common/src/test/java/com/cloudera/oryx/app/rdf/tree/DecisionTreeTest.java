@@ -61,7 +61,7 @@ public final class DecisionTreeTest extends OryxTest {
   public void testToString() {
     String s = buildTestTree().toString();
     assertTrue(s.startsWith("(#0 >= 1.0)"));
-    assertTrue(s.contains("(#0 >= -1.0)"));
+    assertContains(s, "(#0 >= -1.0)");
   }
 
 }

@@ -15,11 +15,14 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.cloudera.oryx.common.OryxTest;
 
 public final class PopularRepresentativeItemsTest extends AbstractALSServingTest {
 
@@ -29,7 +32,7 @@ public final class PopularRepresentativeItemsTest extends AbstractALSServingTest
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_STRING_TYPE);
     Assert.assertEquals(2, items.size());
     // These are tied in the current model:
-    Assert.assertTrue("I0".equals(items.get(0)) || "I3".equals(items.get(0)));
+    OryxTest.assertContains(Arrays.asList("I0", "I3"), items.get(0));
     Assert.assertEquals("I4", items.get(1));
   }
 

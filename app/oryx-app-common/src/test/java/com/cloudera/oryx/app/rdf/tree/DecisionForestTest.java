@@ -42,7 +42,7 @@ public final class DecisionForestTest extends OryxTest {
   public void testToString() {
     String s = buildTestForest().toString();
     assertTrue(s.startsWith("(#0 >= 1.0)"));
-    assertTrue(s.contains("(#0 >= -1.0)"));
+    assertContains(s, "(#0 >= -1.0)");
   }
 
 }

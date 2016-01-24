@@ -68,8 +68,8 @@ public final class MLFunctionsTest extends OryxTest {
     OryxTest.assertEquals(1.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0)).doubleValue());
     OryxTest.assertEquals(6.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, 3.0)).doubleValue());
     OryxTest.assertEquals(3.0, MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, Double.NaN, 3.0)).doubleValue());
-    assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, Double.NaN))));
-    assertTrue(Double.isNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(Double.NaN))));
+    assertNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(1.0, 2.0, Double.NaN)));
+    assertNaN(MLFunctions.SUM_WITH_NAN.call(Arrays.asList(Double.NaN)));
   }
 
 }

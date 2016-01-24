@@ -92,7 +92,7 @@ public final class FeatureVectorsTest extends OryxTest {
     fv.addAllIDsTo(allIDs);
     assertEquals(Collections.singleton("foo"), allIDs);
     fv.removeAllIDsFrom(allIDs);
-    assertTrue(allIDs.isEmpty());
+    assertEquals(0, allIDs.size());
   }
 
   @Test
@@ -105,7 +105,7 @@ public final class FeatureVectorsTest extends OryxTest {
     fv.retainRecentAndIDs(Collections.singleton("foo"));
     recentIDs.clear();
     fv.addAllRecentTo(recentIDs);
-    assertTrue(recentIDs.isEmpty());
+    assertEquals(0, recentIDs.size());
   }
 
   @Test

@@ -51,12 +51,12 @@ public final class ClassUtilsTest extends OryxTest {
 
   @Test
   public void testLoadInstanceOf() {
-    assertTrue(ClassUtils.loadInstanceOf(HashSet.class) instanceof HashSet);
+    assertInstanceOf(ClassUtils.loadInstanceOf(HashSet.class), HashSet.class);
   }
 
   @Test
   public void testLoadInstanceOf2() {
-    assertTrue(ClassUtils.loadInstanceOf(HashSet.class.getName(), Set.class) instanceof HashSet);
+    assertInstanceOf(ClassUtils.loadInstanceOf(HashSet.class.getName(), Set.class), HashSet.class);
   }
 
   @Test

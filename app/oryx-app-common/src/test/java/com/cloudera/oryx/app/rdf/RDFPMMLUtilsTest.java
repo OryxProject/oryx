@@ -98,7 +98,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     PMML pmml = buildDummyRegressionModel();
     Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings = RDFPMMLUtils.read(pmml);
     CategoricalValueEncodings encodings = forestAndEncodings.getSecond();
-    assertTrue(encodings.getCategoryCounts().isEmpty());
+    assertEquals(0, encodings.getCategoryCounts().size());
   }
 
   @Test

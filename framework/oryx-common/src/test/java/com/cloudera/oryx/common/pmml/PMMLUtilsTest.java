@@ -54,7 +54,7 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model2 = PMMLUtils.read(tempModelFile);
     List<Model> models = model2.getModels();
     assertEquals(1, models.size());
-    assertTrue(models.get(0) instanceof TreeModel);
+    assertInstanceOf(models.get(0), TreeModel.class);
     TreeModel treeModel = (TreeModel) models.get(0);
     assertEquals(123.0, treeModel.getNode().getRecordCount().doubleValue());
     assertEquals(MiningFunctionType.CLASSIFICATION, treeModel.getFunctionName());

@@ -37,18 +37,18 @@ public final class MultiRescorerProviderTest extends OryxTest {
     Rescorer provider2 = multi.getRecommendRescorer(Collections.singletonList("AB"), null);
     assertNotNull(provider2);
     assertFalse(provider2 instanceof MultiRescorer);
-    assertTrue(provider2.isFiltered("ABC"));
-    assertFalse(provider2.isFiltered("AB"));
-    assertTrue(Double.isNaN(provider2.rescore("ABC", 1.0)));
+    assertIsFiltered(provider2, "ABC");
+    assertNotFiltered(provider2, "AB");
+    assertNaN(provider2.rescore("ABC", 1.0));
     assertEquals(1.0, provider2.rescore("AB", 1.0));
 
     Rescorer provider3 = multi.getRecommendRescorer(Collections.singletonList("ABCDEF"), null);
     assertNotNull(provider3);
-    assertTrue(provider3 instanceof MultiRescorer);
-    assertTrue(provider3.isFiltered("ABC"));
-    assertTrue(provider3.isFiltered("AB"));
-    assertFalse(provider3.isFiltered("ABCDEFABCDEF"));
-    assertTrue(Double.isNaN(provider3.rescore("ABC", 1.0)));
+    assertInstanceOf(provider3, MultiRescorer.class);
+    assertIsFiltered(provider3, "ABC");
+    assertIsFiltered(provider3, "AB");
+    assertNotFiltered(provider3, "ABCDEFABCDEF");
+    assertNaN(provider3.rescore("ABC", 1.0));
     assertEquals(1.0, provider3.rescore("ABCDEFABCDEF", 1.0));
   }
   
@@ -65,16 +65,16 @@ public final class MultiRescorerProviderTest extends OryxTest {
         multi.getRecommendToAnonymousRescorer(Collections.singletonList("AB"), null);
     assertNotNull(provider2);
     assertFalse(provider2 instanceof MultiRescorer);
-    assertTrue(provider2.isFiltered("ABC"));
-    assertFalse(provider2.isFiltered("AB"));
+    assertIsFiltered(provider2, "ABC");
+    assertNotFiltered(provider2, "AB");
 
     Rescorer provider3 =
         multi.getRecommendToAnonymousRescorer(Collections.singletonList("ABCDEF"), null);
     assertNotNull(provider3);
-    assertTrue(provider3 instanceof MultiRescorer);
-    assertTrue(provider3.isFiltered("ABC"));
-    assertTrue(provider3.isFiltered("AB"));
-    assertFalse(provider3.isFiltered("ABCDEF"));
+    assertInstanceOf(provider3, MultiRescorer.class);
+    assertIsFiltered(provider3, "ABC");
+    assertIsFiltered(provider3, "AB");
+    assertNotFiltered(provider3, "ABCDEF");
   }
   
   @Test
@@ -83,10 +83,10 @@ public final class MultiRescorerProviderTest extends OryxTest {
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostPopularItemsRescorer(null);
     assertNotNull(provider);
-    assertTrue(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertTrue(provider.isFiltered("AB"));
-    assertFalse(provider.isFiltered("ABCDEF"));
+    assertInstanceOf(provider, MultiRescorer.class);
+    assertIsFiltered(provider, "ABC");
+    assertIsFiltered(provider, "AB");
+    assertNotFiltered(provider, "ABCDEF");
   }
 
   @Test
@@ -95,10 +95,10 @@ public final class MultiRescorerProviderTest extends OryxTest {
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostActiveUsersRescorer(null);
     assertNotNull(provider);
-    assertTrue(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertTrue(provider.isFiltered("AB"));
-    assertFalse(provider.isFiltered("ABCDEF"));
+    assertInstanceOf(provider, MultiRescorer.class);
+    assertIsFiltered(provider, "ABC");
+    assertIsFiltered(provider, "AB");
+    assertNotFiltered(provider, "ABCDEF");
   }
   
   @Test
@@ -107,10 +107,18 @@ public final class MultiRescorerProviderTest extends OryxTest {
         new SimpleModRescorerProvider(2), new SimpleModRescorerProvider(3));
     Rescorer provider = multi.getMostSimilarItemsRescorer(null);
     assertNotNull(provider);
-    assertTrue(provider instanceof MultiRescorer);
-    assertTrue(provider.isFiltered("ABC"));
-    assertTrue(provider.isFiltered("ABCDE"));
-    assertFalse(provider.isFiltered("ABCDEFABCDEF"));
+    assertInstanceOf(provider, MultiRescorer.class);
+    assertIsFiltered(provider, "ABC");
+    assertIsFiltered(provider, "ABCDE");
+    assertNotFiltered(provider, "ABCDEFABCDEF");
+  }
+
+  private static void assertIsFiltered(Rescorer rescorer, String value) {
+    assertTrue(rescorer + " should filter " + value, rescorer.isFiltered(value));
+  }
+
+  private static void assertNotFiltered(Rescorer rescorer, String value) {
+    assertFalse(rescorer + " should not filter " + value, rescorer.isFiltered(value));
   }
   
 }

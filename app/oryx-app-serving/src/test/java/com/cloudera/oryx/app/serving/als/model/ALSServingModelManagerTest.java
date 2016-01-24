@@ -28,11 +28,11 @@ public class ALSServingModelManagerTest extends OryxTest {
     assertNull(ALSServingModelManager.loadRescorerProviders(null));
     RescorerProvider provider = ALSServingModelManager.loadRescorerProviders(
         "com.cloudera.oryx.app.serving.als.model.NullProvider2");
-    assertTrue(provider instanceof NullProvider2);
+    assertInstanceOf(provider, NullProvider2.class);
     RescorerProvider multiProvider = ALSServingModelManager.loadRescorerProviders(
         "com.cloudera.oryx.app.serving.als.model.NullProvider2," +
         "com.cloudera.oryx.app.serving.als.model.NullProvider2");
-    assertTrue(multiProvider instanceof MultiRescorerProvider);
+    assertInstanceOf(multiProvider, MultiRescorerProvider.class);
   }
 
   @Test(expected = IllegalArgumentException.class)

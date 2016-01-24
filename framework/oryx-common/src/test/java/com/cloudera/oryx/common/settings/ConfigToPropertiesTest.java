@@ -26,8 +26,8 @@ public final class ConfigToPropertiesTest extends OryxTest {
   @Test
   public void testToProperties() {
     List<String> propertiesLines = ConfigToProperties.buildPropertiesLines();
-    assertTrue(propertiesLines.contains("oryx.serving.api.secure-port=443"));
-    assertFalse(propertiesLines.contains("oryx.id=null"));
+    assertContains(propertiesLines, "oryx.serving.api.secure-port=443");
+    assertNotContains(propertiesLines, "oryx.id=null");
     for (String line : propertiesLines) {
       assertTrue(line.startsWith("oryx."));
     }

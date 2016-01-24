@@ -73,7 +73,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
     Model model = pmml.getModels().get(0);
-    assertTrue(model instanceof ClusteringModel);
+    assertInstanceOf(model, ClusteringModel.class);
 
     ClusteringModel clusteringModel = (ClusteringModel) model;
     assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());

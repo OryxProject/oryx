@@ -43,10 +43,10 @@ public final class ErrorResourceTest extends OryxTest {
       assertNull(response.getEntity());
     } else {
       String responseBody = response.getEntity().toString();
-      assertTrue(responseBody.contains("500"));
-      assertTrue(responseBody.contains("http://foo/bar"));
-      assertTrue(responseBody.contains("Something was wrong"));
-      assertTrue(responseBody.contains("IllegalStateException"));
+      assertContains(responseBody, "500");
+      assertContains(responseBody, "http://foo/bar");
+      assertContains(responseBody, "Something was wrong");
+      assertContains(responseBody, "IllegalStateException");
     }
   }
 
