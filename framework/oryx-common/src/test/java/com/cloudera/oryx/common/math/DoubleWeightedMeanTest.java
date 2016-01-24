@@ -28,7 +28,7 @@ public final class DoubleWeightedMeanTest extends OryxTest {
   public void testNone() {
     DoubleWeightedMean mean = new DoubleWeightedMean();
     assertEquals(0, mean.getN());
-    assertTrue(Double.isNaN(mean.getResult()));
+    assertNaN(mean.getResult());
   }
 
   @Test
@@ -74,8 +74,8 @@ public final class DoubleWeightedMeanTest extends OryxTest {
     mean.increment(0.2, 4.0);
     mean.increment(-0.1, 2.0);
     DoubleWeightedMean copy = mean.copy();
-    assertEquals(copy, mean);
-    assertEquals(copy.hashCode(), mean.hashCode());
+    assertEquals(mean, copy);
+    assertEquals(mean.hashCode(), copy.hashCode());
     DoubleWeightedMean zero = new DoubleWeightedMean();
     mean.clear();
     assertEquals(zero, mean);

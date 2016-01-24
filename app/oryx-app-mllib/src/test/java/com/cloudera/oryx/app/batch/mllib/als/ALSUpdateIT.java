@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,9 +85,9 @@ public final class ALSUpdateIT extends AbstractALSIT {
     checkIntervals(generations, DATA_TO_WRITE, WRITE_INTERVAL_MSEC, GEN_INTERVAL_SEC);
 
     List<Collection<String>> userIDs = new ArrayList<>();
-    userIDs.add(Collections.<String>emptySet()); // Add dummy empty set as prior value
+    userIDs.add(Collections.emptySet()); // Add dummy empty set as prior value
     List<Collection<String>> productIDs = new ArrayList<>();
-    productIDs.add(Collections.<String>emptySet()); // Add dummy empty set as prior value
+    productIDs.add(Collections.emptySet()); // Add dummy empty set as prior value
 
     for (Path modelInstanceDir : modelInstanceDirs) {
       Path modelFile = modelInstanceDir.resolve(MLUpdate.MODEL_FILE_NAME);
@@ -144,7 +145,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
           // Only known-items for users exist now, not known users for items
           @SuppressWarnings("unchecked")
           Collection<String> knownUsersItems = (Collection<String>) update.get(3);
-          assertFalse(knownUsersItems.isEmpty());
+          assertNotEquals(0, knownUsersItems.size());
           for (String known : knownUsersItems) {
             int i = ALSUtilsTest.stringIDtoID(known);
             assertElementIndex(i, NUM_USERS_ITEMS);
@@ -153,7 +154,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
       } else {
 
-        assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+        assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
         PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
         checkHeader(pmml.getHeader());
@@ -199,7 +200,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
       });
       Files.delete(uncompressedFile);
     }
-    assertFalse(seenIDs.isEmpty());
+    assertNotEquals(0, seenIDs.size());
     assertTrue(seenIDs.containsAll(previousIDs));
     return seenIDs;
   }

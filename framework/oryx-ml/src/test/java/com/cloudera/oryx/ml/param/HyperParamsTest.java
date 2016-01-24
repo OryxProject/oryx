@@ -145,10 +145,9 @@ public final class HyperParamsTest extends OryxTest {
 
   @Test
   public void testNoCombos() {
-    List<List<?>> combos = HyperParams.chooseHyperParameterCombos(
-        Collections.<HyperParamValues<?>>emptyList(), 1, 0);
+    List<List<?>> combos = HyperParams.chooseHyperParameterCombos(Collections.emptyList(), 1, 0);
     assertEquals(1, combos.size());
-    assertTrue(combos.get(0).isEmpty());
+    assertEquals(0, combos.get(0).size());
   }
 
   @SuppressWarnings("unchecked")

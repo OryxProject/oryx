@@ -74,8 +74,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
       Collection<String> knownUsersItems = (Collection<String>) update.get(3);
       Collection<String> expectedKnownUsersItems =
           (isX ? MockALSModelUpdateGenerator.A : MockALSModelUpdateGenerator.At).get(id);
-      assertTrue(knownUsersItems.containsAll(expectedKnownUsersItems));
-      assertTrue(expectedKnownUsersItems.containsAll(knownUsersItems));
+      assertContainsSame(knownUsersItems, expectedKnownUsersItems);
     }
 
     /*

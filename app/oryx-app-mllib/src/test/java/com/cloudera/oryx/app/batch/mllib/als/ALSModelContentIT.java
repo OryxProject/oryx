@@ -84,7 +84,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
 
       } else {
 
-        assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+        assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
         PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
         modelUsers = AppPMMLUtils.getExtensionContent(pmml, "XIDs");
         modelItems = AppPMMLUtils.getExtensionContent(pmml, "YIDs");

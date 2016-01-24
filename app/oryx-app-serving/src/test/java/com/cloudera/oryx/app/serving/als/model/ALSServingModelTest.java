@@ -124,19 +124,19 @@ public final class ALSServingModelTest extends OryxTest {
     model.retainRecentAndItemIDs(Collections.emptyList());
 
     model.retainRecentAndKnownItems(Arrays.asList("U4", "U5", "U6"), Arrays.asList("I4", "I5", "I6"));
-    assertTrue(model.getKnownItems("U3").isEmpty());
+    assertEquals(0, model.getKnownItems("U3").size());
     assertContains(model.getKnownItems("U4"), "I4");
     assertContains(model.getKnownItems("U6"), "I6");
     assertNotContains(model.getKnownItems("U6"), "I7");
-    assertTrue(model.getKnownItems("U2").isEmpty());
+    assertEquals(0, model.getKnownItems("U2").size());
   }
 
   @Test
   public void testToString() {
     String modelToString = new ALSServingModel(2, true, 1.0, null).toString();
-    assertTrue(modelToString.contains("ALSServingModel"));
-    assertTrue(modelToString.contains("features:2"));
-    assertTrue(modelToString.contains("implicit:true"));
+    assertContains(modelToString, "ALSServingModel");
+    assertContains(modelToString, "features:2");
+    assertContains(modelToString, "implicit:true");
   }
 
   private static void populateKnownItems(ALSServingModel model) {

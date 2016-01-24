@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,19 +59,13 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     assertEquals(2, model.getFeatures());
     assertTrue(model.isImplicit());
 
-    Collection<String> expectedItems = MockALSModelUpdateGenerator.Y.keySet();
-    assertTrue(expectedItems.containsAll(model.getAllItemIDs()));
-    assertTrue(model.getAllItemIDs().containsAll(expectedItems));
+    assertContainsSame(MockALSModelUpdateGenerator.Y.keySet(), model.getAllItemIDs());
 
     assertNotNull(model.getYTYSolver());
 
     MockALSModelUpdateGenerator.X.forEach((id, vector) -> assertArrayEquals(vector, model.getUserVector(id)));
     MockALSModelUpdateGenerator.Y.forEach((id, vector) -> assertArrayEquals(vector, model.getItemVector(id)));
-    MockALSModelUpdateGenerator.A.forEach((id, expected) -> {
-      Collection<String> actual = model.getKnownItems(id);
-      assertTrue(expected.containsAll(actual));
-      assertTrue(actual.containsAll(expected));
-    });
+    MockALSModelUpdateGenerator.A.forEach((id, expected) -> assertContainsSame(expected, model.getKnownItems(id)));
   }
 
 }

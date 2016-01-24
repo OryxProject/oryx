@@ -29,11 +29,11 @@ public final class ALSUtilsTest extends OryxTest {
 
   @Test
   public void testImplicitQui() {
-    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, 1.0)));
-    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, 0.0)));
-    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.0, -1.0)));
-    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, 0.5, 1.0)));
-    assertTrue(Double.isNaN(ALSUtils.computeTargetQui(true, -0.5, 0.0)));
+    assertNaN(ALSUtils.computeTargetQui(true, 0.0, 1.0));
+    assertNaN(ALSUtils.computeTargetQui(true, 0.0, 0.0));
+    assertNaN(ALSUtils.computeTargetQui(true, 0.0, -1.0));
+    assertNaN(ALSUtils.computeTargetQui(true, 0.5, 1.0));
+    assertNaN(ALSUtils.computeTargetQui(true, -0.5, 0.0));
     assertEquals(0.75, ALSUtils.computeTargetQui(true, 1.0, 0.5));
     assertEquals(0.25, ALSUtils.computeTargetQui(true, -1.0, 0.5));
     for (double d : new double[] { -1.0 , 0.0, 0.5, 1.0, 2.0 }) {

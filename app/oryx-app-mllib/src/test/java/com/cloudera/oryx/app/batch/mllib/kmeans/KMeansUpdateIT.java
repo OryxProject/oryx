@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +87,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
       PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
       checkHeader(pmml.getHeader());

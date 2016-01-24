@@ -36,9 +36,9 @@ public final class ALSSpeedModelTest extends OryxTest {
   @Test
   public void testToString() {
     String modelToString = new ALSSpeedModel(2, true).toString();
-    assertTrue(modelToString.contains("ALSSpeedModel"));
-    assertTrue(modelToString.contains("features:2"));
-    assertTrue(modelToString.contains("implicit:true"));
+    assertContains(modelToString, "ALSSpeedModel");
+    assertContains(modelToString, "features:2");
+    assertContains(modelToString, "implicit:true");
   }
 
   @Test

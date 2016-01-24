@@ -41,7 +41,7 @@ public final class ConfigUtilsTest extends OryxTest {
   @Test
   public void testSerialize() {
     String serialized = ConfigUtils.serialize(ConfigUtils.getDefault());
-    assertTrue(serialized.contains("update-class"));
+    assertContains(serialized, "update-class");
     Config deserialized = ConfigUtils.deserialize(serialized);
     assertEquals(
         ConfigUtils.getDefault().getString("oryx.serving.api.port"),
@@ -80,11 +80,11 @@ public final class ConfigUtilsTest extends OryxTest {
   public void testPrettyPrint() {
     String pretty = ConfigUtils.prettyPrint(ConfigUtils.getDefault());
     // Spot checks:
-    assertTrue(pretty.contains("oryx {"));
-    assertTrue(pretty.contains("batch {"));
-    assertTrue(pretty.contains("master=yarn-client"));
-    assertTrue(pretty.contains("password=*****"));
-    assertTrue(pretty.contains("keystore-password=*****"));
+    assertContains(pretty, "oryx {");
+    assertContains(pretty, "batch {");
+    assertContains(pretty, "master=yarn-client");
+    assertContains(pretty, "password=*****");
+    assertContains(pretty, "keystore-password=*****");
   }
 
   @Test
@@ -92,12 +92,12 @@ public final class ConfigUtilsTest extends OryxTest {
     String redacted = ConfigUtils.redact("  password=foo \nPassword=foo\nPASSWORD = foo\n" +
                                              " the-password= foo \nThe-Password =foo");
     assertFalse(redacted.contains("foo"));
-    assertTrue(redacted.contains("*****"));
-    assertTrue(redacted.contains("password="));
-    assertTrue(redacted.contains("Password="));
-    assertTrue(redacted.contains("PASSWORD = "));
-    assertTrue(redacted.contains("the-password= "));
-    assertTrue(redacted.contains("The-Password ="));
+    assertContains(redacted, "*****");
+    assertContains(redacted, "password=");
+    assertContains(redacted, "Password=");
+    assertContains(redacted, "PASSWORD = ");
+    assertContains(redacted, "the-password= ");
+    assertContains(redacted, "The-Password =");
   }
 
   @Test

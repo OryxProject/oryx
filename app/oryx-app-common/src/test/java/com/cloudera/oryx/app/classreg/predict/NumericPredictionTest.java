@@ -63,9 +63,9 @@ public final class NumericPredictionTest extends OryxTest {
     NumericPrediction prediction1 = new NumericPrediction(1.5, 2);
     assertEquals(prediction, prediction1);
     prediction1.update(2.0, 2);
-    assertFalse(prediction.equals(prediction1));
+    assertNotEquals(prediction, prediction1);
     prediction1.update(1.5, 4);
-    assertFalse(prediction.equals(prediction1));
+    assertNotEquals(prediction, prediction1);
   }
 
 }

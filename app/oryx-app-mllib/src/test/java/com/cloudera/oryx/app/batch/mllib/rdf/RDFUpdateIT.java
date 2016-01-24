@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.rdf;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +98,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       String type = km.getFirst();
       String value = km.getSecond();
 
-      assertTrue("MODEL".equals(type) || "MODEL-REF".equals(type));
+      assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
       PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
 
       checkHeader(pmml.getHeader());
@@ -131,9 +132,9 @@ public final class RDFUpdateIT extends AbstractRDFIT {
         for (int i = 0; i < segments.size(); i++) {
           Segment segment = segments.get(i);
           assertEquals(Integer.toString(i), segment.getId());
-          assertTrue(segment.getPredicate() instanceof True);
+          assertInstanceOf(segment.getPredicate(), True.class);
           assertEquals(1.0, segment.getWeight().doubleValue());
-          assertTrue(segment.getModel() instanceof TreeModel);
+          assertInstanceOf(segment.getModel(), TreeModel.class);
           checkTreeModel((TreeModel) segment.getModel());
         }
 
@@ -169,7 +170,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       assertEquals(2, children.size());
       Node rightChild = children.get(0);
       Node leftChild = children.get(1);
-      assertTrue(leftChild.getPredicate() instanceof True);
+      assertInstanceOf(leftChild.getPredicate(), True.class);
       assertEquals(node.getRecordCount().doubleValue(),
                    leftChild.getRecordCount() + rightChild.getRecordCount());
       assertEquals(node.getId() + "+", rightChild.getId());

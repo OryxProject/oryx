@@ -69,7 +69,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
     // Model, and then pairs of positive / negative
     assertGreaterOrEqual(numUpdates, 3);
-    assertTrue(numUpdates % 2 != 0);
+    assertNotEquals(0, numUpdates % 2);
     // Not testing the model much here:
     assertEquals("MODEL", updates.get(0).getFirst());
 
@@ -82,10 +82,9 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       double mean = (Double) fields.get(2);
       int count = (Integer) fields.get(3);
       assertEquals(0, treeID);
-      assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
+      assertContains(Arrays.asList("r-", "r+"), nodeID);
       double[] minMax = minMaxExpectedMean(count, "r+".equals(nodeID));
-      assertTrue(count + "/" + mean + " not in " + Arrays.toString(minMax),
-                 mean >= minMax[0] - DOUBLE_EPSILON && mean <= minMax[1] + DOUBLE_EPSILON);
+      assertRange(mean, minMax[0] - DOUBLE_EPSILON, minMax[1] + DOUBLE_EPSILON);
     }
 
     for (int i = 1; i < numUpdates; i += 2) {
@@ -150,7 +149,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
     // Model, and then pairs of positive / negative
     assertGreaterOrEqual(numUpdates, 3);
-    assertTrue(numUpdates % 2 != 0);
+    assertNotEquals(0, numUpdates % 2);
     // Not testing the model much here:
     assertEquals("MODEL", updates.get(0).getFirst());
 
@@ -171,7 +170,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       @SuppressWarnings("unchecked")
       Map<String,Integer> countMap = (Map<String,Integer>) fields.get(2);
       assertEquals(0, treeID);
-      assertTrue("r-".equals(nodeID) || "r+".equals(nodeID));
+      assertContains(Arrays.asList("r-", "r+"), nodeID);
       int yellowCount = countMap.containsKey(yellow) ? countMap.get(yellow) : 0;
       int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
       int count = yellowCount + redCount;
