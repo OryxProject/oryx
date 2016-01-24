@@ -8,7 +8,8 @@ matrix:
    - jdk: openjdk7
      env: JAVA_VERSION=7 JACOCO=-Pjacoco
    # Covers Spark 1.6
-   - env: JAVA_VERSION=7 SPARK=-Pspark-1.6
+   - jdk: openjdk7
+     env: JAVA_VERSION=7 SPARK=-Pspark-1.6
    # Covers CDH 5.5, Java 8
    - jdk: oraclejdk8
      env: JAVA_VERSION=8 CDH=-Pcdh55
