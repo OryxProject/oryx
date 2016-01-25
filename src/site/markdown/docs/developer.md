@@ -22,11 +22,9 @@ mvn -DskipTests package
 
 This will build the following binaries:
 
-- Batch Layer: `deploy/oryx-batch/target/oryx-batch-x.y.z.jar`
-- Speed Layer: `deploy/oryx-speed/target/oryx-speed-x.y.z.jar`
-- Serving Layer: `deploy/oryx-serving/target/oryx-serving-x.y.z.jar`
-
-... where `x.y.z` is the current version string, like `2.2.0`.
+- Batch Layer: `deploy/oryx-batch/target/oryx-batch-2.2.0.jar`
+- Speed Layer: `deploy/oryx-speed/target/oryx-speed-2.2.0.jar`
+- Serving Layer: `deploy/oryx-serving/target/oryx-serving-2.2.0.jar`
 
 Note that if you are interested in developing on Oryx, you should probably 
 [fork this repository](https://help.github.com/articles/fork-a-repo) and then work on 
