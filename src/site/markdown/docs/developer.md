@@ -22,11 +22,9 @@ mvn -DskipTests package
 
 This will build the following binaries:
 
-- Batch Layer: `deploy/oryx-batch/target/oryx-batch-x.y.z.jar`
-- Speed Layer: `deploy/oryx-speed/target/oryx-speed-x.y.z.jar`
-- Serving Layer: `deploy/oryx-serving/target/oryx-serving-x.y.z.jar`
-
-... where `x.y.z` is the current version string, like `2.1.0`.
+- Batch Layer: `deploy/oryx-batch/target/oryx-batch-2.1.2.jar`
+- Speed Layer: `deploy/oryx-speed/target/oryx-speed-2.1.2.jar`
+- Serving Layer: `deploy/oryx-serving/target/oryx-serving-2.1.2.jar`
 
 Note that if you are interested in developing on Oryx, you should probably 
 [fork this repository](https://help.github.com/articles/fork-a-repo) and then work on 
@@ -102,7 +100,7 @@ In Maven, this would mean adding a dependency like:
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx-api</artifactId>
     <scope>provided</scope>
-    <version>2.1.0</version>
+    <version>2.1.2</version>
   </dependency>
 </dependencies>
 ```
@@ -138,7 +136,7 @@ cd app/example
 mvn package
 ```
 
-The application JAR is produced at `target/example-2.1.0.jar` for example.
+The application JAR is produced at `target/example-2.1.2.jar` for example.
 
 ## Customizing an Oryx App
 
@@ -155,7 +153,7 @@ here for stand-alone applications.
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx-app-api</artifactId>
     <scope>provided</scope>
-    <version>2.1.0</version>
+    <version>2.1.2</version>
   </dependency>
 </dependencies>
 ```
@@ -178,7 +176,7 @@ copying and adapting the provided [`wordcount-example.conf`](https://github.com/
 configuration file:
 
 ```
-./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-2.1.0.jar
+./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-2.1.2.jar
 ```
 
 ... and similarly for the speed and serving layers. Feed lines of input and then observe counts:
