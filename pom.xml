@@ -497,7 +497,7 @@
     <!-- Maven settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.version.min>3.3.3</maven.version.min>
+    <maven.version.min>3.2.1</maven.version.min>
     <!-- Dependency versions -->
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
