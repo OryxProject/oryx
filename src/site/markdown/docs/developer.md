@@ -6,7 +6,7 @@ title: Docs: Dev
 
 - [`git`](http://git-scm.com/), or an IDE that supports Git
 - [Apache Maven](http://maven.apache.org/) 3.2.1 or later
-- [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (not just JRE) 7 or later
+- [Java JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (not just JRE) 8 or later
 
 Some or all of these may already be installed on your development machine.
 
@@ -29,10 +29,6 @@ This will build the following binaries:
 Note that if you are interested in developing on Oryx, you should probably 
 [fork this repository](https://help.github.com/articles/fork-a-repo) and then work on 
 your own fork, so that you can submit pull requests with changes.
-
-### Java 8
-
-To configure the build to use Java 8, add `-Pjava8` to build and test commands here.
 
 ### Platform Only
 

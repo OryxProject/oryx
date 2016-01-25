@@ -79,10 +79,10 @@ mvn -Pbenchmark \
 ### Memory
 
 - Memory requirements scale linearly with (users + items) x features
-- `-XX:+UseStringDeduplication` helps a lot in Java 8 (reflected below)
+- `-XX:+UseStringDeduplication` helps a lot (reflected below)
 - At scale, 1M users or items ~= 500-1000M of heap required, depending on features
 
-Example steady-state heap usage (Java 8):
+Example steady-state heap usage:
 
 | Features | Users+Items (M) | Heap (MB) |
 | --------:| ---------------:| ---------:|
@@ -137,7 +137,7 @@ Memory requirements are dominated by the need to load a model in memory. For lar
 may mean ensuring that the Serving layer memory setting is comfortably high enough to hold the model without
 GC thrashing. See `oryx.serving.memory`.
 
-`-XX:+UseG1GC` remains a good garbage collection setting to supply with `--jvm-args`. In Java 8, 
+`-XX:+UseG1GC` remains a good garbage collection setting to supply with `--jvm-args`.  
 `-XX:+UseStringDeduplication` can reduce memory requirements by about 20%.
 
 # Speed Layer

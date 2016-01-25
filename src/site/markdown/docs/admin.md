@@ -301,9 +301,9 @@ and otherwise, it will resume reading from the latest offset.
 
 # Troubleshooting / FAQ
 
-## Unsupported major.minor version 51.0
+## Unsupported major.minor version 51.0 / 52.0
 
-This means you are running Java 6 somewhere. Oryx 2 requires Java 7 or later.
+This means you are running Java 6 / 7 somewhere. Oryx 2 requires Java 8 or later.
 
 ## Initial job has not accepted any resources
 
@@ -385,13 +385,13 @@ designs, with batch, speed and serving layers
 | No app-level extensibility | Platform for building other lambda- and ML-based apps |
 | Two layers: Computation and Serving | Three layers: Batch, Speed and Serving |
 | Based on Crunch, MapReduce, HDFS, Tomcat | Based on HDFS, YARN, Spark (+ Streaming, MLlib), Kafka, Zookeeper, Tomcat |
-| 27K lines production code / 4K test | 10K lines production code / 7.5K test: simpler, better tested |
+| 32K lines production code / 3K test | 19K lines production code / 9K test: simpler, better tested |
 
 ## Deployment Differences
 
 | Oryx 1 | Oryx 2 |
 | ------ | ------ |
-| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 7, core Hadoop 2.5+ (YARN, not "MR1") Spark 1.3+, Kafka 0.8.2+, Zookeeper 3.4.5+ |
+| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 8, core Hadoop 2.6+ (YARN, not "MR1") Spark 1.5+, Kafka 0.8.2+, Zookeeper 3.4.5+ |
 | Supports local, non-Hadoop deployment  | No non-Hadoop deployment |
 | Supports MapReduce-based Hadoop deployment | Supports  only deployment with core Hadoop, YARN, Spark, Kafka |
 
