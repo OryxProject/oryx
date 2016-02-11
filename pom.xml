@@ -511,7 +511,7 @@
     <slf4j.version>1.7.14</slf4j.version>
     <spark.version>1.3.1</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.0.30</tomcat.version>
+    <tomcat.version>8.0.32</tomcat.version>
     <typesafe.config.version>1.2.1</typesafe.config.version>
     <zookeeper.version>3.4.6</zookeeper.version>
   </properties>
@@ -586,7 +586,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.5</version>
+          <version>3.5.1</version>
           <configuration>
             <optimize>true</optimize>
             <showDeprecation>true</showDeprecation>
