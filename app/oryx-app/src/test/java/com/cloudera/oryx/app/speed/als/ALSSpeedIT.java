@@ -50,7 +50,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
         startServerProduceConsumeTopics(config,
                                         new MockALSInputGenerator(),
                                         new MockALSModelUpdateGenerator(),
-                                        9, 10);
+                                        10, 10);
 
     if (log.isDebugEnabled()) {
       for (Pair<String, String> update : updates) {
