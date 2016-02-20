@@ -260,7 +260,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.2.10</version>
+        <version>1.2.11</version>
         <exclusions>
           <!-- Not needed in Java 7+ -->
           <exclusion>
@@ -502,13 +502,13 @@
     <java.version>1.7</java.version>
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.10</scala.minor.version>
-    <scala.complete.version>${scala.minor.version}.4</scala.complete.version>
+    <scala.complete.version>${scala.minor.version}.5</scala.complete.version>
     <hadoop.version>2.6.0</hadoop.version>
     <jackson.version>2.4.5</jackson.version>
-    <jersey.version>2.22.1</jersey.version>
+    <jersey.version>2.22.2</jersey.version>
     <kafka.version>0.8.2.2</kafka.version>
     <koloboke.version>0.6.8</koloboke.version>
-    <slf4j.version>1.7.14</slf4j.version>
+    <slf4j.version>1.7.16</slf4j.version>
     <snappy.version>1.1.1.7</snappy.version>
     <spark.version>1.5.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
@@ -608,7 +608,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.4</version>
+          <version>3.0.0</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -785,7 +785,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.4</version>
+          <version>3.5</version>
           <inherited>false</inherited>
           <dependencies>
             <dependency>
@@ -960,7 +960,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.5.201505241946</version>
+          <version>0.7.6.201602180812</version>
           <executions>
             <execution>
               <id>jacoco-prepare-agent</id>
@@ -1198,6 +1198,13 @@
       <properties>
         <spark.version>1.6.0</spark.version>
         <snappy.version>1.1.2.1</snappy.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>scala-2.11</id>
+      <properties>
+        <scala.minor.version>2.11</scala.minor.version>
+        <scala.complete.version>${scala.minor.version}.7</scala.complete.version>
       </properties>
     </profile>
     <profile>
