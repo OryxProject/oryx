@@ -1,14 +1,14 @@
 language: java
 sudo: false
 jdk: oraclejdk8
-install: mvn ${CDH} ${SPARK} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script:  mvn ${CDH} ${SPARK} ${JACOCO} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
+install: mvn ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+script:  mvn ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
    # Covers code coverage, Spark 1.5
    - env: JACOCO=-Pjacoco
    # Covers Spark 1.6
-   - env: SPARK=-Pspark-1.6
+   - env: SPARK=-Pspark-1.6 SCALA=-Pscala-2.11
    # Covers CDH 5.5
    - env: CDH=-Pcdh55
 cache:
