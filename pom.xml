@@ -151,16 +151,6 @@
         <artifactId>spark-core_${scala.minor.version}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
