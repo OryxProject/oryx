@@ -1,7 +1,8 @@
 language: java
 sudo: false
 jdk: oraclejdk8
-install: mvn ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
+# TODO remove temporary Travis debugging step:
+install: mvn ${CDH} ${SPARK} ${SCALA} -Ptravis dependency:tree; mvn -X ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
 script:  mvn ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
