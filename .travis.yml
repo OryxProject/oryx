@@ -7,8 +7,8 @@ matrix:
  include:
    # Covers code coverage, Spark 1.5
    - env: JACOCO=-Pjacoco
-   # Covers Spark 1.6
-   - env: SPARK=-Pspark-1.6
+   # Covers Spark 1.6, Scala 2.11
+   - env: SPARK=-Pspark-1.6 SCALA=-Pscala-2.11
    # Covers CDH 5.6
    - env: CDH=-Pcdh56
 cache:
