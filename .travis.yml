@@ -10,9 +10,9 @@ matrix:
    # Covers Spark 1.6
    - jdk: openjdk7
      env: JAVA_VERSION=7 SPARK=-Pspark-1.6
-   # Covers CDH 5.5, Java 8
+   # Covers CDH 5.6, Java 8
    - jdk: oraclejdk8
-     env: JAVA_VERSION=8 CDH=-Pcdh55
+     env: JAVA_VERSION=8 CDH=-Pcdh56
 cache:
   directories:
     - $HOME/.m2
