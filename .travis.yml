@@ -1,12 +1,12 @@
 language: java
 sudo: false
 install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
-script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
+script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
 matrix:
  include:
-   # Covers Java 7, Open JDK, code coverage, Spark 1.5
+   # Covers Java 7, Open JDK, Spark 1.5
    - jdk: openjdk7
-     env: JAVA_VERSION=7 JACOCO=-Pjacoco
+     env: JAVA_VERSION=7
    # Covers Spark 1.6
    - jdk: openjdk7
      env: JAVA_VERSION=7 SPARK=-Pspark-1.6
@@ -18,17 +18,3 @@ cache:
     - $HOME/.m2
 git:
   depth: 10
-after_success: if [ -n "$JACOCO" ]; then bash <(curl -s https://codecov.io/bash); fi
-env:
-  global:
-   # COVERITY_SCAN_TOKEN
-   - secure: "Mk2nLq4A9+EmweXDp8+VCXVCkjFXdITIWd/Rt3K2kCSNZFtRyxJ43CNvPlgapsDccZ4qNRfOco+/L2cPzZxAzi2I1CZ0JzFeEfTHPFlyXZS2//TqInGqOvngntVaJ+Up8BGCZUvQ8k8Mx2NrHp1AxolbchfMxUJXTf9KUEuK/4A="
-addons:
-  coverity_scan:
-    project:
-      name: "OryxProject/oryx"
-      description: "Build submitted via Travis CI"
-    notification_email: srowen@gmail.com
-    build_command_prepend: "mvn clean"
-    build_command: "mvn -Pjava${JAVA_VERSION} -DskipTests=true compile test-compile"
-    branch_pattern: coverity_scan
