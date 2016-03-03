@@ -17,16 +17,3 @@ cache:
 git:
   depth: 10
 after_success: if [ -n "$JACOCO" ]; then bash <(curl -s https://codecov.io/bash); fi
-env:
-  global:
-   # COVERITY_SCAN_TOKEN
-   - secure: "Mk2nLq4A9+EmweXDp8+VCXVCkjFXdITIWd/Rt3K2kCSNZFtRyxJ43CNvPlgapsDccZ4qNRfOco+/L2cPzZxAzi2I1CZ0JzFeEfTHPFlyXZS2//TqInGqOvngntVaJ+Up8BGCZUvQ8k8Mx2NrHp1AxolbchfMxUJXTf9KUEuK/4A="
-addons:
-  coverity_scan:
-    project:
-      name: "OryxProject/oryx"
-      description: "Build submitted via Travis CI"
-    notification_email: srowen@gmail.com
-    build_command_prepend: "mvn clean"
-    build_command: "mvn -DskipTests=true compile test-compile"
-    branch_pattern: coverity_scan
