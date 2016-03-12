@@ -68,7 +68,8 @@ public final class ProduceData {
             "metadata.broker.list", "localhost:" + kafkaPort,
             "serializer.class", "kafka.serializer.StringEncoder",
             "compression.codec", "gzip",
-            "compressed.topics", topic
+            "compressed.topics", topic,
+            "request.required.acks", 1
         )));
     try {
       for (int i = 0; i < howMany; i++) {

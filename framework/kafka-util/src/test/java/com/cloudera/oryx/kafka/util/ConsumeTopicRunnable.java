@@ -23,8 +23,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Preconditions;
-
 import com.cloudera.oryx.common.collection.Pair;
 
 public final class ConsumeTopicRunnable implements Callable<Void> {
@@ -60,7 +58,11 @@ public final class ConsumeTopicRunnable implements Callable<Void> {
   }
 
   public void awaitMessages() throws InterruptedException {
-    Preconditions.checkState(messagesLatch.await(1, TimeUnit.MINUTES));
+    if (!messagesLatch.await(1, TimeUnit.MINUTES)) {
+      throw new IllegalStateException(
+          "Timed out waiting for " + messagesLatch.getCount() + " more messages " +
+          "(got " + keyMessages.size() + " messages)");
+    }
   }
 
   public List<Pair<String,String>> getKeyMessages() {
