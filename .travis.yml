@@ -3,12 +3,7 @@ sudo: false
 jdk: oraclejdk8
 install: mvn ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -Dmaven.javadoc.skip=true -B -V install
 script:  mvn ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Dmaven.javadoc.skip=true -q -B verify
-matrix:
- include:
-   # Covers code coverage
-   - env: JACOCO=-Pjacoco
-   # Covers CDH 5.7
-   - env: CDH=-Pcdh57
+env: JACOCO=-Pjacoco CDH=-Pcdh57
 cache:
   directories:
     - $HOME/.m2

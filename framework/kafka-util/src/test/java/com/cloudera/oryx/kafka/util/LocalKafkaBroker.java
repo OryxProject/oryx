@@ -75,7 +75,7 @@ public final class LocalKafkaBroker implements Closeable {
         "log.dirs", logsDir.toAbsolutePath(),
         "port", port,
         "zookeeper.connect", "localhost:" + zkPort
-    )));
+    ), false));
     kafkaServer.startup();
   }
 

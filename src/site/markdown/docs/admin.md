@@ -8,7 +8,7 @@ The following are required as of Oryx 2.2.0:
 - A Hadoop cluster running the following components:
     - Apache Hadoop 2.6.0 or later
     - Apache Zookeeper 3.4.5 or later
-    - Apache Kafka 0.8.2 or later (in 0.8.x line)
+    - Apache Kafka 0.9 or later
     - Apache Spark 1.6.0 or later
 
 [CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
@@ -16,8 +16,8 @@ The following are required as of Oryx 2.2.0:
 components should work fine. While the rest of the instructions will refer to a CDH 5.7+
 distribution, this is not a requirement.
 
-_Note: Oryx 2.0.x requires only Java 7, Spark 1.3.0 and CDH 5.4.x_
-_Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0 and CDH 5.5.x_
+_Note: Oryx 2.0.x requires only Java 7, Spark 1.3.0, Kafka 0.8 and CDH 5.4.x_
+_Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
@@ -391,7 +391,7 @@ designs, with batch, speed and serving layers
 
 | Oryx 1 | Oryx 2 |
 | ------ | ------ |
-| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 8, core Hadoop 2.6+ (YARN, not "MR1") Spark 1.6+, Kafka 0.8+, Zookeeper 3.4.5+ |
+| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 8, core Hadoop 2.6+ (YARN, not "MR1") Spark 1.6+, Kafka 0.9+, Zookeeper 3.4.5+ |
 | Supports local, non-Hadoop deployment  | No non-Hadoop deployment |
 | Supports MapReduce-based Hadoop deployment | Supports  only deployment with core Hadoop, YARN, Spark, Kafka |
 

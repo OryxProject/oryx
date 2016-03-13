@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +26,8 @@ import kafka.admin.AdminUtils;
 import kafka.common.TopicAndPartition;
 import kafka.common.TopicExistsException;
 import kafka.utils.ZKGroupTopicDirs;
-import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
-import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.exception.ZkNodeExistsException;
+import kafka.utils.ZkUtils$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Option;
@@ -68,18 +65,21 @@ public final class KafkaUtils {
                                       String topic,
                                       int partitions,
                                       Properties topicProperties) {
-    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
-      if (AdminUtils.topicExists(zkClient, topic)) {
+    ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
+    try {
+      if (AdminUtils.topicExists(zkUtils, topic)) {
         log.info("No need to create topic {} as it already exists", topic);
       } else {
         log.info("Creating topic {}", topic);
         try {
-          AdminUtils.createTopic(zkClient, topic, partitions, 1, topicProperties);
+          AdminUtils.createTopic(zkUtils, topic, partitions, 1, topicProperties);
           log.info("Created Zookeeper topic {}", topic);
         } catch (TopicExistsException tee) {
           log.info("Zookeeper topic {} already exists", topic);
         }
       }
+    } finally {
+      zkUtils.close();
     }
   }
 
@@ -89,8 +89,11 @@ public final class KafkaUtils {
    * @return {@code true} if and only if the given topic exists
    */
   public static boolean topicExists(String zkServers, String topic) {
-    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
-      return AdminUtils.topicExists(zkClient, topic);
+    ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
+    try {
+      return AdminUtils.topicExists(zkUtils, topic);
+    } finally {
+      zkUtils.close();
     }
   }
 
@@ -99,18 +102,17 @@ public final class KafkaUtils {
    * @param topic topic to delete, if it exists
    */
   public static void deleteTopic(String zkServers, String topic) {
-    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
-      if (AdminUtils.topicExists(zkClient, topic)) {
+    ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
+    try {
+      if (AdminUtils.topicExists(zkUtils, topic)) {
         log.info("Deleting topic {}", topic);
-        try {
-          AdminUtils.deleteTopic(zkClient, topic);
-          log.info("Deleted Zookeeper topic {}", topic);
-        } catch (ZkNodeExistsException nee) {
-          log.info("Delete was already scheduled for Zookeeper topic {}", topic);
-        }
+        AdminUtils.deleteTopic(zkUtils, topic);
+        log.info("Deleted Zookeeper topic {}", topic);
       } else {
         log.info("No need to delete topic {} as it does not exist", topic);
       }
+    } finally {
+      zkUtils.close();
     }
   }
 
@@ -125,19 +127,21 @@ public final class KafkaUtils {
                                                        String topic) {
     ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topic);
     Map<TopicAndPartition,Long> offsets = new HashMap<>();
-    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
+    ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
+    try {
       List<?> partitions = JavaConversions.seqAsJavaList(
-          ZkUtils.getPartitionsForTopics(
-            zkClient,
+          zkUtils.getPartitionsForTopics(
             JavaConversions.asScalaBuffer(Collections.singletonList(topic))).head()._2());
       partitions.forEach(partition -> {
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
-        Option<String> maybeOffset = ZkUtils.readDataMaybeNull(zkClient, partitionOffsetPath)._1();
+        Option<String> maybeOffset = zkUtils.readDataMaybeNull(partitionOffsetPath)._1();
         Long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : null;
         TopicAndPartition topicAndPartition =
             new TopicAndPartition(topic, Integer.parseInt(partition.toString()));
         offsets.put(topicAndPartition, offset);
       });
+    } finally {
+      zkUtils.close();
     }
     return offsets;
   }
@@ -150,20 +154,18 @@ public final class KafkaUtils {
   public static void setOffsets(String zkServers,
                                 String groupID,
                                 Map<TopicAndPartition,Long> offsets) {
-    try (AutoZkClient zkClient = new AutoZkClient(zkServers)) {
+    ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
+    try {
       offsets.forEach((topicAndPartition, offset) -> {
         ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topicAndPartition.topic());
         int partition = topicAndPartition.partition();
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
-        ZkUtils.updatePersistentPath(zkClient, partitionOffsetPath, Long.toString(offset));
+        zkUtils.updatePersistentPath(partitionOffsetPath,
+                                     Long.toString(offset),
+                                     ZkUtils$.MODULE$.DefaultAcls(false));
       });
-    }
-  }
-
-  // Just exists for Closeable convenience
-  private static final class AutoZkClient extends ZkClient implements Closeable {
-    AutoZkClient(String zkServers) {
-      super(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, ZKStringSerializer$.MODULE$);
+    } finally {
+      zkUtils.close();
     }
   }
 

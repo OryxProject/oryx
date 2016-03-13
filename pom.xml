@@ -512,7 +512,7 @@
     <hadoop.version>2.6.0</hadoop.version>
     <jackson.version>2.4.5</jackson.version>
     <jersey.version>2.22.2</jersey.version>
-    <kafka.version>0.8.2.2</kafka.version>
+    <kafka.version>0.9.0.1</kafka.version>
     <koloboke.version>0.6.8</koloboke.version>
     <slf4j.version>1.7.18</slf4j.version>
     <snappy.version>1.1.2.1</snappy.version>
@@ -1169,12 +1169,16 @@
   <profiles>
     <profile>
       <id>cdh57</id>
+      <activation>
+        <!-- for now, this must be active since Spark 1.6 does not work otherwise with Kafka 0.9 -->
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <properties>
         <cdh.version>5.7.0</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.6.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.8.2.0-kafka-1.4.0</kafka.version>
+        <kafka.version>0.9.0-kafka-2.0.0</kafka.version>
       </properties>
     </profile>
     <profile>
