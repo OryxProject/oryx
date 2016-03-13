@@ -21,7 +21,7 @@ import java.util.Map;
 import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.kafka.HasOffsetRanges;
 import org.apache.spark.streaming.kafka.OffsetRange;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ import com.cloudera.oryx.kafka.util.KafkaUtils;
  * @param <K> RDD element's key type (not used)
  * @param <M> RDD element's value type (not used)
  */
-public final class UpdateOffsetsFn<K,M> implements Function<JavaRDD<MessageAndMetadata<K,M>>,Void> {
+public final class UpdateOffsetsFn<K,M> implements VoidFunction<JavaRDD<MessageAndMetadata<K,M>>> {
 
   private static final Logger log = LoggerFactory.getLogger(UpdateOffsetsFn.class);
 
@@ -51,10 +51,9 @@ public final class UpdateOffsetsFn<K,M> implements Function<JavaRDD<MessageAndMe
   /**
    * @param javaRDD RDD whose underlying RDD must be an instance of {@link HasOffsetRanges},
    *  such as {@code KafkaRDD}
-   * @return null
    */
   @Override
-  public Void call(JavaRDD<MessageAndMetadata<K,M>> javaRDD) {
+  public void call(JavaRDD<MessageAndMetadata<K,M>> javaRDD) {
     OffsetRange[] ranges = ((HasOffsetRanges) javaRDD.rdd()).offsetRanges();
     Map<TopicAndPartition,Long> newOffsets = new HashMap<>(ranges.length);
     for (OffsetRange range : ranges) {
@@ -63,7 +62,6 @@ public final class UpdateOffsetsFn<K,M> implements Function<JavaRDD<MessageAndMe
     }
     log.info("Updating offsets: {}", newOffsets);
     KafkaUtils.setOffsets(inputTopicLockMaster, group, newOffsets);
-    return null;
   }
 
 }

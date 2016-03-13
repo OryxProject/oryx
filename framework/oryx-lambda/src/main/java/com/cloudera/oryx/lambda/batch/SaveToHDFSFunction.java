@@ -19,7 +19,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.streaming.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Function that saves RDDs to HDFS -- only if they're non empty, to prevent creation
  * of many small empty files if data is infrequent but the model interval is short.
  */
-final class SaveToHDFSFunction<K,M> implements Function2<JavaPairRDD<K,M>,Time,Void> {
+final class SaveToHDFSFunction<K,M> implements VoidFunction2<JavaPairRDD<K,M>,Time> {
 
   private static final Logger log = LoggerFactory.getLogger(SaveToHDFSFunction.class);
 
@@ -57,7 +57,7 @@ final class SaveToHDFSFunction<K,M> implements Function2<JavaPairRDD<K,M>,Time,V
   }
 
   @Override
-  public Void call(JavaPairRDD<K,M> rdd, Time time) {
+  public void call(JavaPairRDD<K,M> rdd, Time time) {
     if (rdd.isEmpty()) {
       log.info("RDD was empty, not saving to HDFS");
     } else {
@@ -72,6 +72,5 @@ final class SaveToHDFSFunction<K,M> implements Function2<JavaPairRDD<K,M>,Time,V
           SequenceFileOutputFormat.class,
           hadoopConf);
     }
-    return null;
   }
 }

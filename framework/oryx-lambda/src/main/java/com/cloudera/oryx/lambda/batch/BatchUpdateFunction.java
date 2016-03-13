@@ -28,7 +28,7 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.streaming.Time;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ import com.cloudera.oryx.lambda.TopicProducerImpl;
  * @param <M> type of message read from input topic
  * @param <U> type of model message written
  */
-final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Time,Void> {
+final class BatchUpdateFunction<K,M,U> implements VoidFunction2<JavaPairRDD<K,M>,Time> {
 
   private static final Logger log = LoggerFactory.getLogger(BatchUpdateFunction.class);
 
@@ -84,12 +84,12 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
   }
 
   @Override
-  public Void call(JavaPairRDD<K,M> newData, Time timestamp)
+  public void call(JavaPairRDD<K,M> newData, Time timestamp)
       throws IOException, InterruptedException {
 
     if (newData.isEmpty()) {
       log.info("No data in current generation's RDD; nothing to do");
-      return null;
+      return;
     }
 
     log.info("Beginning update at {}", timestamp);
@@ -150,8 +150,6 @@ final class BatchUpdateFunction<K,M,U> implements Function2<JavaPairRDD<K,M>,Tim
                                  producer);
       }
     }
-
-    return null;
   }
 
   /**

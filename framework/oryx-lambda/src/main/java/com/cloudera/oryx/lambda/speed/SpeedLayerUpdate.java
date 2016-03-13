@@ -18,7 +18,7 @@ package com.cloudera.oryx.lambda.speed;
 import java.io.IOException;
 
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ import com.cloudera.oryx.lambda.TopicProducerImpl;
  * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
  */
-final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
+final class SpeedLayerUpdate<K,M,U> implements VoidFunction<JavaPairRDD<K,M>> {
 
   private static final Logger log = LoggerFactory.getLogger(SpeedLayerUpdate.class);
 
@@ -49,7 +49,7 @@ final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
   }
 
   @Override
-  public Void call(JavaPairRDD<K,M> newData) throws IOException {
+  public void call(JavaPairRDD<K,M> newData) throws IOException {
     if (newData.isEmpty()) {
       log.debug("RDD was empty");
     } else {
@@ -60,7 +60,6 @@ final class SpeedLayerUpdate<K,M,U> implements Function<JavaPairRDD<K,M>,Void> {
         }
       }
     }
-    return null;
   }
 
 }

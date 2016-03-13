@@ -76,9 +76,9 @@ also accept new data and write it to Kafka where it can be seen by the Speed and
 
 ## Usage and Deployment
 
-The application is written in Java, using [Spark](http://spark.apache.org/) 1.3.x+,
-[Hadoop](http://hadoop.apache.org/) 2.6.x+, [Tomcat](http://tomcat.apache.org/) 8.x+,
-[Kafka](http://kafka.apache.org/) 0.8.2+, [Zookeeper](http://zookeeper.apache.org/) and more. Configuration uses a single
+The application is written in Java, using Apache [Spark](http://spark.apache.org/),
+[Hadoop](http://hadoop.apache.org/), [Tomcat](http://tomcat.apache.org/),
+[Kafka](http://kafka.apache.org/), [Zookeeper](http://zookeeper.apache.org/) and more. Configuration uses a single
 [Typesafe Config](https://github.com/typesafehub/config) config file, wherein
 applications configure an entire deployment of the system. This includes implementations of
 key interface classes which implement the batch, speed, and serving logic. Applications
