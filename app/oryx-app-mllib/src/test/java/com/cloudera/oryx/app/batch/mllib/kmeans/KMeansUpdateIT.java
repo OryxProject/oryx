@@ -99,7 +99,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
       ClusteringModel clusteringModel = (ClusteringModel) rootModel;
 
       // Check if Basic hyperparameters match
-      assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
+      assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters());
       assertEquals(NUM_CLUSTERS, clusteringModel.getClusters().size());
       assertEquals(NUM_FEATURES, clusteringModel.getClusteringFields().size());
       assertEquals(ComparisonMeasure.Kind.DISTANCE,
