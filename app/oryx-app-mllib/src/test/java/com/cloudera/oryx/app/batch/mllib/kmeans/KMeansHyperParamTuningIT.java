@@ -80,7 +80,7 @@ public final class KMeansHyperParamTuningIT extends AbstractKMeansIT {
     ClusteringModel clusteringModel = (ClusteringModel) rootModel;
 
     // Should have picked highest k
-    assertEquals(100, clusteringModel.getNumberOfClusters().intValue());
+    assertEquals(100, clusteringModel.getNumberOfClusters());
   }
 
 }

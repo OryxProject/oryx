@@ -74,7 +74,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     assertInstanceOf(model, ClusteringModel.class);
 
     ClusteringModel clusteringModel = (ClusteringModel) model;
-    assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
+    assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters());
     List<Cluster> clusters = clusteringModel.getClusters();
 
     Map<Integer,ClusterInfo> clusterInfos = new HashMap<>();
