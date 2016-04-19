@@ -143,6 +143,10 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     new Thread(new LoggingRunnable() {
       @Override
       public void doRun() {
+        // Possible if it shuts down immediately; just exit
+        if (modelManager == null) {
+          return;
+        }
         // Can we do better than a default Hadoop config? Nothing else provides it here
         try {
           modelManager.consume(transformed, new Configuration());
