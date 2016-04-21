@@ -47,6 +47,16 @@ to the `host:port`, like `your-zk:2181/your-chroot`. It is often `/kafka` if it 
 You can omit this if you are not using a chroot. Note: if you have multiple Zookeeper servers, 
 and a chroot, only add the chroot once, at the end: `your-zk-1:2181,your-zk-2:2181/kafka`
 
+## Java
+
+Java 8 (JRE) needs to be installed on all nodes on the cluster. Cluster processes
+need to use Java 8. Depending on the nature of your Hadoop cluster installation, this may 
+mean updating the default Java version with `update-alternatives --config java` or equivalent,
+or setting `JAVA_HOME` to point to a Java 8 installation.
+
+For CDH in particular, however, instead see 
+[Configuring a Custom Java Home Location](http://www.cloudera.com/documentation/enterprise/latest/topics/cm_ig_java_home_location.html)
+
 ## Configuring Kafka
 
 Oryx will use two Kafka topics for data transport. One carries input data to the batch and

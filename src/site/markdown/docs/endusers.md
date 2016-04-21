@@ -2,7 +2,14 @@ title: Docs: End Users
 
 # Running
 
-*Note: You must have set up and configured your cluster as shown in the [Admin docs](admin.html).*
+## Setup
+
+You must have set up and configured your cluster as shown in the [Admin docs](admin.html).
+
+In particular, you should have already installed Java 8 on your cluster. In order to make
+subsequent `oryx-run.sh` commands work, it is likely necessary to update the default Java 
+version with `update-alternatives --config java` or equivalent to select Java 8,
+and set `JAVA_HOME` to point to the Java 8 installation.
 
 Download the [latest release](https://github.com/OryxProject/oryx/releases) of the Oryx Batch, 
 Speed and Serving Layer, both `.jar` files and `.sh` scripts. Alternatively, build them 
@@ -21,6 +28,8 @@ that exist and will be accessible to the user running Oryx binaries.
 
 Copy this config file as `oryx.conf` to the same directory as binaries and script
 on each machine.
+
+## Execute
 
 Run the three Layers with:
 
