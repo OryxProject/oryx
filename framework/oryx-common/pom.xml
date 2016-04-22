@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.2.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -27,7 +27,7 @@
   <packaging>jar</packaging>
   <name>Common</name>
   <description>Common utilities and support code</description>
-  <version>2.2.0-SNAPSHOT</version>
+  <version>2.2.0</version>
 
   <dependencies>
     <dependency>
