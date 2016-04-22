@@ -57,7 +57,7 @@ supplied on the command line:
 # Updating the Site
 
 1. Using the repo above, checkout the release tag if not already: `git checkout -f tags/...`
-1. `mvn site:site site:stage`
+1. `mvn site`
 1. In another location, checkout the site branch into a new directory `oryx-gh-pages`:
 `git clone -b gh-pages https://github.com/OryxProject/oryx.git oryx-gh-pages`
 You may need to set `user.name` and `user.email` as above if it's a fresh clone.

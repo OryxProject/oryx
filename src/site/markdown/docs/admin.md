@@ -17,6 +17,7 @@ components should work fine. While the rest of the instructions will refer to a 
 distribution, this is not a requirement.
 
 _Note: Oryx 2.0.x requires only Java 7, Spark 1.3.0, Kafka 0.8 and CDH 5.4.x_
+
 _Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
@@ -311,9 +312,10 @@ and otherwise, it will resume reading from the latest offset.
 
 # Troubleshooting / FAQ
 
-## Unsupported major.minor version 51.0 / 52.0
+## Unsupported major.minor version 52.0
 
-This means you are running Java 6 / 7 somewhere. Oryx 2 requires Java 8 or later.
+This means you are running 7 or earlier somewhere. Oryx 2.2 requires Java 8 or later. 
+See section above on installing Java 8 and making it available everywhere on the cluster.
 
 ## Initial job has not accepted any resources
 
