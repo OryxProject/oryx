@@ -73,6 +73,7 @@ public final class ServingLayer implements Closeable {
   private final String password;
   private final Path keystoreFile;
   private final String keystorePassword;
+  private final String keyAlias;
   private final String contextPathURIBase;
   private final String appResourcesPackages;
   private final boolean doNotInitTopics;
@@ -99,6 +100,7 @@ public final class ServingLayer implements Closeable {
     this.keystoreFile = keystoreFileString == null ? null : Paths.get(keystoreFileString);
     this.keystorePassword =
         ConfigUtils.getOptionalString(config, "oryx.serving.api.keystore-password");
+    this.keyAlias = ConfigUtils.getOptionalString(config, "oryx.serving.api.key-alias");
     String contextPathString = config.getString("oryx.serving.api.context-path");
     if (contextPathString == null ||
         contextPathString.isEmpty() ||
@@ -214,7 +216,12 @@ public final class ServingLayer implements Closeable {
       if (keystoreFile != null) {
         connector.setAttribute("keystoreFile", keystoreFile.toAbsolutePath().toFile());
       }
-      connector.setAttribute("keystorePass", keystorePassword);
+      if (keystorePassword != null) {
+        connector.setAttribute("keystorePass", keystorePassword);
+      }
+      if (keyAlias != null) {
+        connector.setAttribute("keyAlias", keyAlias);
+      }
     }
 
     // Keep quiet about the server type
