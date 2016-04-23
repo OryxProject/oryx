@@ -85,6 +85,7 @@ public final class SecureAPIConfigIT extends AbstractServingIT {
     Map<String,Object> overlay = new HashMap<>();
     overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
     overlay.put("oryx.serving.api.keystore-password", "oryxpass");
+    overlay.put("oryx.serving.api.key-alias", "oryxtest");
     overlay.put("oryx.serving.application-resources", HelloWorld.class.getPackage().getName());
     overlay.put("oryx.serving.no-init-topics", true);
     return ConfigUtils.overlayOn(overlay, getConfig());
