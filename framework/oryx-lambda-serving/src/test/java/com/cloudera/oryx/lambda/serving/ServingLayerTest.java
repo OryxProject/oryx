@@ -45,6 +45,7 @@ public final class ServingLayerTest extends OryxTest {
     Map<String,Object> overlay = buildOverlay();
     overlay.put("oryx.serving.api.keystore-file", "\"" + keystoreFile + "\"");
     overlay.put("oryx.serving.api.keystore-password", "oryxpass");
+    overlay.put("oryx.serving.api.key-alias", "oryxtest");
     Config config = ConfigUtils.overlayOn(overlay, ConfigUtils.getDefault());
     try {
       doTestServingLayer(config);
