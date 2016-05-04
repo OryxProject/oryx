@@ -220,4 +220,5 @@ Or see one of the following examples:
 
 - [`app/conf/als-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/als-example.conf)
 - [`app/conf/kmeans-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/kmeans-example.conf)
-- [`app/conf/rdf-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/rdf-example.conf)
+- [`app/conf/rdf-classification-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/rdf-classification-example.conf)
+- [`app/conf/rdf-regression-example.conf`](https://github.com/OryxProject/oryx/blob/master/app/conf/rdf-regression-example.conf)
