@@ -166,6 +166,16 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <!-- This helps ensure the REST APIs don't change -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
   <profiles>
     <profile>
       <id>benchmark</id>
