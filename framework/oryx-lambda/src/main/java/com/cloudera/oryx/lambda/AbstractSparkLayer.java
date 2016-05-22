@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -223,32 +224,58 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
   private static void fillInLatestOffsets(Map<TopicAndPartition,Long> offsets, Map<String,String> kafkaParams) {
     if (offsets.containsValue(null)) {
-
-      Set<TopicAndPartition> needOffset = offsets.entrySet().stream().filter(entry -> entry.getValue() == null)
-          .map(Map.Entry::getKey).collect(Collectors.toSet());
-      log.info("No initial offsets for {}; reading from Kafka", needOffset);
-
       // The high price of calling private Scala stuff:
       @SuppressWarnings("unchecked")
       scala.collection.immutable.Map<String,String> kafkaParamsScalaMap =
           (scala.collection.immutable.Map<String,String>)
               scala.collection.immutable.Map$.MODULE$.apply(JavaConversions.mapAsScalaMap(kafkaParams).toSeq());
-      @SuppressWarnings("unchecked")
-      scala.collection.immutable.Set<TopicAndPartition> needOffsetScalaSet =
-          (scala.collection.immutable.Set<TopicAndPartition>)
-              scala.collection.immutable.Set$.MODULE$.apply(JavaConversions.asScalaSet(needOffset).toSeq());
-
       KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
-      Map<TopicAndPartition,?> leaderOffsets =
-          JavaConversions.mapAsJavaMap(kc.getLatestLeaderOffsets(needOffsetScalaSet).right().get());
-      leaderOffsets.forEach((tAndP, leaderOffsetsObj) -> {
-        // Can't reference LeaderOffset class, so, hack away:
-        Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetsObj.toString());
-        Preconditions.checkState(m.matches());
-        offsets.put(tAndP, Long.valueOf(m.group(1)));
+
+      // First, fill in an offset for any topic/partition with none set already
+      getLeaderOffsets(kc, offsets, entry -> entry.getValue() == null, false).forEach((tAndP, leaderOffsetsObj) -> {
+        long latestTopicOffset = readOffset(leaderOffsetsObj);
+        log.info("No initial offsets for {}; using latest offset {} from topic", tAndP, latestTopicOffset);
+        offsets.put(tAndP, latestTopicOffset);
+      });
+
+      // Then check whether existing offsets are actually >= the earliest topic offset
+      Set<TopicAndPartition> hadOffset = offsets.entrySet().stream().filter(entry -> entry.getValue() != null)
+          .map(Map.Entry::getKey).collect(Collectors.toSet());
+      getLeaderOffsets(kc, offsets, entry -> entry.getValue() != null, true).forEach((tAndP, leaderOffsetsObj) -> {
+        long earliestTopicOffset = readOffset(leaderOffsetsObj);
+        long currentOffset = offsets.get(tAndP);
+        if (currentOffset < earliestTopicOffset) {
+          log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
+                   currentOffset, tAndP, earliestTopicOffset);
+          offsets.put(tAndP, earliestTopicOffset);
+        }
       });
     }
 
+  }
+
+  private static Map<TopicAndPartition,?> getLeaderOffsets(
+      KafkaCluster kc,
+      Map<TopicAndPartition,Long> offsets,
+      Predicate<Map.Entry<TopicAndPartition,Long>> predicate,
+      boolean earliest) {
+    Set<TopicAndPartition> needOffset = offsets.entrySet().stream().filter(predicate)
+        .map(Map.Entry::getKey).collect(Collectors.toSet());
+    @SuppressWarnings("unchecked")
+    scala.collection.immutable.Set<TopicAndPartition> needOffsetScalaSet =
+        (scala.collection.immutable.Set<TopicAndPartition>)
+            scala.collection.immutable.Set$.MODULE$.apply(JavaConversions.asScalaSet(needOffset).toSeq());
+    return JavaConversions.mapAsJavaMap(
+        (earliest ?
+            kc.getEarliestLeaderOffsets(needOffsetScalaSet) :
+            kc.getLatestLeaderOffsets(needOffsetScalaSet)).right().get());
+  }
+
+  private static long readOffset(Object leaderOffsetsObj) {
+    // Can't reference LeaderOffset class, so, hack away:
+    Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetsObj.toString());
+    Preconditions.checkState(m.matches());
+    return Long.parseLong(m.group(1));
   }
 
 }
