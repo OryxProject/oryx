@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -240,37 +241,34 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   }
 
   private static void fillInLatestOffsets(Map<TopicAndPartition,Long> offsets, Map<String,String> kafkaParams) {
-    if (offsets.containsValue(null)) {
-      // The high price of calling private Scala stuff:
-      @SuppressWarnings("unchecked")
-      scala.collection.immutable.Map<String,String> kafkaParamsScalaMap =
-          (scala.collection.immutable.Map<String,String>)
-              scala.collection.immutable.Map$.MODULE$.apply(JavaConversions.mapAsScalaMap(kafkaParams).toSeq());
-      KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
+    // The high price of calling private Scala stuff:
+    @SuppressWarnings("unchecked")
+    scala.collection.immutable.Map<String,String> kafkaParamsScalaMap =
+        (scala.collection.immutable.Map<String,String>)
+            scala.collection.immutable.Map$.MODULE$.apply(JavaConversions.mapAsScalaMap(kafkaParams).toSeq());
+    KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
 
-      // First, fill in an offset for any topic/partition with none set already
-      for (Map.Entry<TopicAndPartition,?> entry : getLeaderOffsets(kc, offsets, true, false).entrySet()) {
-        TopicAndPartition tAndP = entry.getKey();
-        Object leaderOffsetsObj = entry.getValue();
-        long latestTopicOffset = readOffset(leaderOffsetsObj);
-        log.info("No initial offsets for {}; using latest offset {} from topic", tAndP, latestTopicOffset);
-        offsets.put(tAndP, latestTopicOffset);
-      }
-
-      // Then check whether existing offsets are actually >= the earliest topic offset
-      for (Map.Entry<TopicAndPartition,?> entry : getLeaderOffsets(kc, offsets, false, true).entrySet()) {
-        TopicAndPartition tAndP = entry.getKey();
-        Object leaderOffsetsObj = entry.getValue();
-        long earliestTopicOffset = readOffset(leaderOffsetsObj);
-        long currentOffset = offsets.get(tAndP);
-        if (currentOffset < earliestTopicOffset) {
-          log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
-                   currentOffset, tAndP, earliestTopicOffset);
-          offsets.put(tAndP, earliestTopicOffset);
-        }
-      }
+    // First, fill in an offset for any topic/partition with none set already
+    for (Map.Entry<TopicAndPartition,?> entry : getLeaderOffsets(kc, offsets, true, false).entrySet()) {
+      TopicAndPartition tAndP = entry.getKey();
+      Object leaderOffsetsObj = entry.getValue();
+      long latestTopicOffset = readOffset(leaderOffsetsObj);
+      log.info("No initial offsets for {}; using latest offset {} from topic", tAndP, latestTopicOffset);
+      offsets.put(tAndP, latestTopicOffset);
     }
 
+    // Then check whether existing offsets are actually >= the earliest topic offset
+    for (Map.Entry<TopicAndPartition,?> entry : getLeaderOffsets(kc, offsets, false, true).entrySet()) {
+      TopicAndPartition tAndP = entry.getKey();
+      Object leaderOffsetsObj = entry.getValue();
+      long earliestTopicOffset = readOffset(leaderOffsetsObj);
+      long currentOffset = offsets.get(tAndP);
+      if (currentOffset < earliestTopicOffset) {
+        log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
+                 currentOffset, tAndP, earliestTopicOffset);
+        offsets.put(tAndP, earliestTopicOffset);
+      }
+    }
   }
 
   private static Map<TopicAndPartition,?> getLeaderOffsets(
@@ -283,6 +281,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
       if ((entry.getValue() == null) == filterInNullValueEntry) {
         needOffset.add(entry.getKey());
       }
+    }
+    if (needOffset.isEmpty()) {
+      return Collections.emptyMap();
     }
     @SuppressWarnings("unchecked")
     scala.collection.immutable.Set<TopicAndPartition> needOffsetScalaSet =
