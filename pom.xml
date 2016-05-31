@@ -224,7 +224,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
-        <version>1.3</version>
+        <version>1.4</version>
       </dependency>
 
       <dependency>
@@ -281,23 +281,12 @@
       </dependency>
 
       <dependency>
-        <groupId>net.openhft</groupId>
-        <artifactId>koloboke-api-jdk6-7</artifactId>
-        <version>${koloboke.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.openhft</groupId>
-        <artifactId>koloboke-impl-jdk6-7</artifactId>
-        <version>${koloboke.version}</version>
-        <scope>runtime</scope>
-      </dependency>
-      <dependency>
-        <groupId>net.openhft</groupId>
+        <groupId>com.koloboke</groupId>
         <artifactId>koloboke-api-jdk8</artifactId>
         <version>${koloboke.version}</version>
       </dependency>
       <dependency>
-        <groupId>net.openhft</groupId>
+        <groupId>com.koloboke</groupId>
         <artifactId>koloboke-impl-jdk8</artifactId>
         <version>${koloboke.version}</version>
         <scope>runtime</scope>
@@ -362,7 +351,7 @@
       <dependency>
         <groupId>commons-fileupload</groupId>
         <artifactId>commons-fileupload</artifactId>
-        <version>1.3.1</version>
+        <version>1.3.2</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
@@ -513,7 +502,7 @@
     <jackson.version>2.4.5</jackson.version>
     <jersey.version>2.23</jersey.version>
     <kafka.version>0.9.0.1</kafka.version>
-    <koloboke.version>0.6.8</koloboke.version>
+    <koloboke.version>1.0.0</koloboke.version>
     <slf4j.version>1.7.21</slf4j.version>
     <snappy.version>1.1.2.4</snappy.version>
     <spark.version>1.6.1</spark.version>

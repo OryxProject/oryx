@@ -31,7 +31,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import com.koloboke.function.ObjDoubleToDoubleFunction;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;

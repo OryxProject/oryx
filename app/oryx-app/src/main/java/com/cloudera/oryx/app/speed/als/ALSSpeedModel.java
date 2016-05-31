@@ -18,8 +18,8 @@ package com.cloudera.oryx.app.speed.als;
 import java.util.Collection;
 
 import com.google.common.base.Preconditions;
-import net.openhft.koloboke.collect.set.ObjSet;
-import net.openhft.koloboke.collect.set.hash.HashObjSets;
+import com.koloboke.collect.set.ObjSet;
+import com.koloboke.collect.set.hash.HashObjSets;
 
 import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.als.FeatureVectors;

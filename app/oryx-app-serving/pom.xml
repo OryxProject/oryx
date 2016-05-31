@@ -172,6 +172,9 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <excludes>com/cloudera/oryx/app/serving/als/*/**,com/cloudera/oryx/app/serving/kmeans/*/**,com/cloudera/oryx/app/serving/rdf/*/**</excludes>
+        </configuration>
       </plugin>
     </plugins>
   </build>

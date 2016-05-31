@@ -31,7 +31,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import com.koloboke.function.ObjDoubleToDoubleFunction;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
