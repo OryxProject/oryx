@@ -18,10 +18,10 @@ package com.cloudera.oryx.app.als;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
-import net.openhft.koloboke.collect.set.ObjSet;
-import net.openhft.koloboke.collect.set.hash.HashObjSets;
+import com.koloboke.collect.map.ObjObjMap;
+import com.koloboke.collect.map.hash.HashObjObjMaps;
+import com.koloboke.collect.set.ObjSet;
+import com.koloboke.collect.set.hash.HashObjSets;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.lang.AutoLock;

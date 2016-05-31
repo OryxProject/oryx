@@ -31,13 +31,13 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import net.openhft.koloboke.collect.map.ObjIntMap;
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjIntMaps;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
-import net.openhft.koloboke.collect.set.ObjSet;
-import net.openhft.koloboke.collect.set.hash.HashObjSets;
-import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import com.koloboke.collect.map.ObjIntMap;
+import com.koloboke.collect.map.ObjObjMap;
+import com.koloboke.collect.map.hash.HashObjIntMaps;
+import com.koloboke.collect.map.hash.HashObjObjMaps;
+import com.koloboke.collect.set.ObjSet;
+import com.koloboke.collect.set.hash.HashObjSets;
+import com.koloboke.function.ObjDoubleToDoubleFunction;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.api.serving.ServingModel;

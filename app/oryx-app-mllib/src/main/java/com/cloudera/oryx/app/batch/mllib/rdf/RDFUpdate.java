@@ -30,9 +30,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
+import com.koloboke.collect.map.IntLongMap;
+import com.koloboke.collect.map.hash.HashIntLongMaps;
 import com.typesafe.config.Config;
-import net.openhft.koloboke.collect.map.IntLongMap;
-import net.openhft.koloboke.collect.map.hash.HashIntLongMaps;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;

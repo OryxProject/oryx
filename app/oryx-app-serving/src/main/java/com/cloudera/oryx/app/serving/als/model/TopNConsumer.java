@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
-import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
+import com.koloboke.function.ObjDoubleToDoubleFunction;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Pairs;
