@@ -87,6 +87,7 @@
     <!-- <module name="LocalVariableName"/> -->
     <!-- <module name="MemberName"/> -->
     <module name="MethodName"/>
+    <module name="NonEmptyAtclauseDescription"/>
     <module name="PackageName"/>
     <!-- <module name="ParameterName"/> -->
     <module name="StaticVariableName"/>
@@ -96,6 +97,7 @@
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_import.html -->
     <module name="AvoidStarImport"/>
+    <module name="AvoidStaticImport"/>
     <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
     <module name="RedundantImport"/>
     <module name="UnusedImports"/>
@@ -107,7 +109,9 @@
       <property name="max" value="120"/>
     </module>
     <module name="MethodLength"/>
-    <!-- <module name="ParameterNumber"/> -->
+    <module name="ParameterNumber">
+      <property name="max" value="10"/>
+    </module>
 
 
     <!-- Checks for whitespace                               -->
@@ -121,7 +125,7 @@
     <module name="TypecastParenPad"/>
     <!-- <module name="WhitespaceAfter"/> -->
     <!-- <module name="WhitespaceAround"/> -->
-
+    <module name="UnnecessaryParentheses"/>
 
     <!-- Modifier Checks                                    -->
     <!-- See http://checkstyle.sf.net/config_modifiers.html -->
@@ -144,14 +148,19 @@
     <!-- See http://checkstyle.sf.net/config_coding.html -->
     <!--<module name="AvoidInlineConditionals"/>-->
     <module name="EmptyStatement"/>
+    <module name="EqualsAvoidNull"/>
     <module name="EqualsHashCode"/>
     <!--<module name="HiddenField"/>-->
     <module name="IllegalInstantiation"/>
     <!-- <module name="InnerAssignment"/> -->
     <!-- <module name="MagicNumber"/> -->
     <!-- <module name="MissingSwitchDefault"/> -->
+    <module name="MissingDeprecated"/>
+    <module name="MissingOverride"/>
+    <module name="DefaultComesLast"/>
     <module name="SimplifyBooleanExpression"/>
     <module name="SimplifyBooleanReturn"/>
+    <module name="StringLiteralEquality"/>
 
     <!-- Checks for class design                         -->
     <!-- See http://checkstyle.sf.net/config_design.html -->
@@ -159,12 +168,15 @@
     <module name="FinalClass"/>
     <module name="HideUtilityClassConstructor"/>
     <module name="InterfaceIsType"/>
+    <module name="OneTopLevelClass"/>
+    <module name="SuperFinalize"/>
     <module name="VisibilityModifier"/>
 
 
     <!-- Miscellaneous other checks.                   -->
     <!-- See http://checkstyle.sf.net/config_misc.html -->
     <module name="ArrayTypeStyle"/>
+    <module name="MultipleVariableDeclarations"/>
     <!--<module name="FinalParameters"/>-->
     <!-- <module name="TodoComment"/> -->
     <module name="UpperEll"/>
