@@ -60,17 +60,11 @@ final class FileItemPart implements Part {
     return item.getSize();
   }
 
-  /**
-   * @throws UnsupportedOperationException
-   */
   @Override
   public void write(String fileName) {
     throw new UnsupportedOperationException();
   }
 
-  /**
-   * @throws UnsupportedOperationException
-   */
   @Override
   public void delete() {
     throw new UnsupportedOperationException();
