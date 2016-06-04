@@ -46,6 +46,15 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.koloboke</groupId>
+      <artifactId>koloboke-api-jdk8</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.koloboke</groupId>
+      <artifactId>koloboke-impl-jdk8</artifactId>
+      <scope>runtime</scope>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
