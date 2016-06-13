@@ -1,8 +1,8 @@
 language: java
 sudo: false
 jdk: oraclejdk8
-install: mvn ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -B -V install
-script:  mvn ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -q -B verify
+install: mvn -T 4 ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -B -V install
+script:  mvn -T 2 ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -q -B verify
 env: JACOCO=-Pjacoco CDH=-Pcdh57
 cache:
   directories:
