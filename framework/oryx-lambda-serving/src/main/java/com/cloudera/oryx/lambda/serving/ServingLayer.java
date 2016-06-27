@@ -194,7 +194,7 @@ public final class ServingLayer implements Closeable {
   }
 
   private Connector makeConnector() {
-    Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+    Connector connector = new Connector("org.apache.coyote.http11.Http11Nio2Protocol");
 
     if (keystoreFile == null && keystorePassword == null) {
       // HTTP connector
