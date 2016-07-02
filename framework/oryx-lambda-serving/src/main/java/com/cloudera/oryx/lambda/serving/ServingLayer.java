@@ -227,7 +227,6 @@ public final class ServingLayer implements Closeable {
 
     // Keep quiet about the server type
     connector.setXpoweredBy(false);
-    connector.setAttribute("server", "Oryx");
 
     // Basic tuning params:
     connector.setAttribute("maxThreads", 400);
