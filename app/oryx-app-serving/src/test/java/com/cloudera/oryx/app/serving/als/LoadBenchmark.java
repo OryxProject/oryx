@@ -64,39 +64,42 @@ public final class LoadBenchmark extends AbstractALSServingTest {
   @Test
   public void testRecommendLoad() throws Exception {
     AtomicLong count = new AtomicLong();
-    Mean meanReqTimeMS = new Mean();
-    long start = System.currentTimeMillis();
+    Mean meanReqTimeNanos = new Mean();
+    long start = System.nanoTime();
 
     int workers = LoadTestALSModelFactory.WORKERS;
     ExecUtils.doInParallel(workers, workers, true, i -> {
       RandomGenerator random = RandomManager.getRandom(Integer.toString(i).hashCode() ^ System.nanoTime());
       for (int j = 0; j < LoadTestALSModelFactory.REQS_PER_WORKER; j++) {
         String userID = "U" + random.nextInt(LoadTestALSModelFactory.USERS);
-        long callStart = System.currentTimeMillis();
+        long callStart = System.nanoTime();
         target("/recommend/" + userID).request()
             .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
-        long timeMS = System.currentTimeMillis() - callStart;
-        synchronized (meanReqTimeMS) {
-          meanReqTimeMS.increment(timeMS);
+        long timeNanos = System.nanoTime() - callStart;
+        if (j > 0) {
+          // Ignore first iteration's time as 'burn in'
+          synchronized (meanReqTimeNanos) {
+            meanReqTimeNanos.increment(timeNanos);
+          }
         }
         long currentCount = count.incrementAndGet();
         if (currentCount % 100 == 0) {
-          log(currentCount, meanReqTimeMS, start);
+          log(currentCount, meanReqTimeNanos, start);
         }
       }
     });
 
     int totalRequests = workers * LoadTestALSModelFactory.REQS_PER_WORKER;
-    log(totalRequests, meanReqTimeMS, start);
+    log(totalRequests, meanReqTimeNanos, start);
   }
 
-  private static void log(long currentCount, Mean meanReqTimeMS, long start) {
+  private static void log(long currentCount, Mean meanReqTimeNanos, long start) {
     long used = JVMUtils.getUsedMemory() / 1_000_000;
     long requestsPerSecond =
-        Math.round((1000.0 * currentCount) / (System.currentTimeMillis() - start));
+        Math.round((1_000_000_000.0 * currentCount) / (System.nanoTime() - start));
     long msPerRequest;
-    synchronized (meanReqTimeMS) {
-      msPerRequest = Math.round(meanReqTimeMS.getResult());
+    synchronized (meanReqTimeNanos) {
+      msPerRequest = Math.round(meanReqTimeNanos.getResult() / 1_000_000.0);
     }
     log.info("{} complete\t{} req/s\t~{} ms/req\t{}MB heap",
         currentCount,

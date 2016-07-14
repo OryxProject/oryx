@@ -87,7 +87,7 @@ public final class TrafficUtil {
     AtomicLong clientErrorCount = new AtomicLong();
     AtomicLong exceptionCount = new AtomicLong();
 
-    long start = System.currentTimeMillis();
+    long start = System.nanoTime();
     ExecUtils.doInParallel(numThreads, numThreads, true, i -> {
       RandomGenerator random = RandomManager.getRandom(Integer.toString(i).hashCode() ^ System.nanoTime());
       ExponentialDistribution msBetweenRequests;
@@ -112,14 +112,14 @@ public final class TrafficUtil {
             Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
             Invocation invocation = endpoint.makeInvocation(target, otherArgs, random);
 
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             Response response = invocation.invoke();
             try {
               response.readEntity(String.class);
             } finally {
               response.close();
             }
-            long elapsedMS = System.currentTimeMillis() - startTime;
+            long elapsedNanos = System.nanoTime() - startTime;
 
             int statusCode = response.getStatusInfo().getStatusCode();
             if (statusCode >= 400) {
@@ -130,12 +130,12 @@ public final class TrafficUtil {
               }
             }
 
-            endpoint.recordTiming(elapsedMS);
+            endpoint.recordTiming(elapsedNanos);
 
             if (requestCount.incrementAndGet() % 10000 == 0) {
-              long elapsed = System.currentTimeMillis() - start;
+              long elapsedOverallNanos = System.nanoTime() - start;
               log.info("{}ms:\t{} requests\t({} client errors\t{} server errors\t{} exceptions)",
-                       elapsed,
+                       Math.round(elapsedOverallNanos / 1_000_000.0),
                        requestCount.get(),
                        clientErrorCount.get(),
                        serverErrorCount.get(),
@@ -146,6 +146,7 @@ public final class TrafficUtil {
             }
 
             if (msBetweenRequests != null) {
+              long elapsedMS = Math.round(elapsedNanos / 1_000_000.0);
               int desiredElapsedMS = (int) Math.round(msBetweenRequests.sample());
               if (elapsedMS < desiredElapsedMS) {
                 Thread.sleep(desiredElapsedMS - elapsedMS);

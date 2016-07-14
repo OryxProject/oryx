@@ -30,33 +30,33 @@ public abstract class Endpoint {
 
   private final String path;
   private final double relativeProb;
-  private final Mean meanTimeMS;
-  private final StandardDeviation stdevTimeMS;
+  private final Mean meanTimeNanos;
+  private final StandardDeviation stdevTimeNanos;
 
   protected Endpoint(String path, double relativeProb) {
     Preconditions.checkArgument(relativeProb > 0.0);
     this.path = path;
     this.relativeProb = relativeProb;
-    meanTimeMS = new Mean();
-    stdevTimeMS = new StandardDeviation();
+    meanTimeNanos = new Mean();
+    stdevTimeNanos = new StandardDeviation();
   }
 
   double getRelativeProb() {
     return relativeProb;
   }
 
-  synchronized void recordTiming(long timeMS) {
-    meanTimeMS.increment(timeMS);
-    stdevTimeMS.increment(timeMS);
+  synchronized void recordTiming(long timeNanos) {
+    meanTimeNanos.increment(timeNanos);
+    stdevTimeNanos.increment(timeNanos);
   }
 
   protected abstract Invocation makeInvocation(WebTarget target, String[] otherArgs, RandomGenerator random);
 
   @Override
   public synchronized String toString() {
-    return path + "\tcount:" + meanTimeMS.getN() + "\tmean: " +
-        Math.round(meanTimeMS.getResult()) + "ms\tstdev: " +
-        Math.round(stdevTimeMS.getResult()) + "ms";
+    return path + "\tcount:" + meanTimeNanos.getN() + "\tmean: " +
+        Math.round(meanTimeNanos.getResult() / 1_000_000.0) + "ms\tstdev: " +
+        Math.round(stdevTimeNanos.getResult() / 1_000_000.0) + "ms";
   }
 
 }
