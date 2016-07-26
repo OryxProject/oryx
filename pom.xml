@@ -505,6 +505,7 @@
     <scala.complete.version>${scala.minor.version}.6</scala.complete.version>
     <hadoop.version>2.6.4</hadoop.version>
     <jackson.version>2.4.5</jackson.version>
+    <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
     <jersey.version>2.23.1</jersey.version>
     <kafka.version>0.9.0.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
@@ -621,7 +622,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.4</version>
+          <version>${javadoc.plugin.version}</version>
           <configuration>
             <javadocVersion>${java.version}</javadocVersion>
             <groups>
@@ -928,7 +929,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.2</version>
+          <version>2.3</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1086,7 +1087,7 @@
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -1114,7 +1115,7 @@
     </mailingList>
     <mailingList>
       <name>StackOverflow tag</name>
-      <archive>http://stackoverflow.com/questions/tagged/oryx</archive>
+      <archive>https://stackoverflow.com/questions/tagged/oryx</archive>
     </mailingList>
     <mailingList>
       <name>Cloudera Community: Data Science and Machine Learning</name>
