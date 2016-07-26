@@ -129,14 +129,18 @@ third-party code. With Maven, this happens with `mvn package`.
 
 ### Compiling the Word Count Example
 
-For example, to compile the example app:
+Building the entire project with `mvn ... package` per above will actually build the example. 
+The application JAR is produced at `target/example-2.1.2.jar` for example.
+
+To rebuild or repackage just the word count example:
 
 ```
 cd app/example
 mvn package
 ```
 
-The application JAR is produced at `target/example-2.1.2.jar` for example.
+Note that this won't work when building from the head of a branch (a `SNAPSHOT` version) unless
+you first `mvn ... install` the project artifacts locally.
 
 ## Customizing an Oryx App
 
