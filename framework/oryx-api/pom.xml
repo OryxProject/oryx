@@ -33,6 +33,11 @@
     <!-- These are declared compile scope so that it is inherited by modules depending on this.
       See comments in parent POM. This module itself should be 'provided'. -->
     <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>config</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.minor.version}</artifactId>
       <scope>compile</scope>
