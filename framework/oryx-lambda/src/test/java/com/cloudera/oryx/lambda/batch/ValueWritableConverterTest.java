@@ -45,4 +45,14 @@ public final class ValueWritableConverterTest extends OryxTest {
     new ValueWritableConverter<>(byte[].class, ArrayPrimitiveWritable.class);
   }
 
+  @Test(expected = NullPointerException.class)
+  public void testFromNull() {
+    new ValueWritableConverter<>(String.class, Text.class).fromWritable(null);
+  }
+
+  @Test
+  public void testToNullText() {
+    assertEquals(new Text(), new ValueWritableConverter<>(String.class, Text.class).toWritable(null));
+  }
+
 }

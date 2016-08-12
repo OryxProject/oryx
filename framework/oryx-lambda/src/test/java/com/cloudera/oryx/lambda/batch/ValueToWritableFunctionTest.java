@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.batch;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.junit.Test;
 import scala.Tuple2;
@@ -34,6 +35,18 @@ public final class ValueToWritableFunctionTest extends OryxTest {
     Tuple2<Writable,Writable> out = function.call(in);
     assertEquals(new IntWritable(3), out._1());
     assertEquals(new LongWritable(4L), out._2());
+  }
+
+  @Test
+  public void testNullKey() {
+    ValueToWritableFunction<String,String> function =
+        new ValueToWritableFunction<>(String.class, String.class, Text.class, Text.class);
+    Tuple2<Writable,Writable> keyMessage = function.call(new Tuple2<>(null, "foo"));
+    assertEquals(new Text(), keyMessage._1());
+    assertEquals(new Text("foo"), keyMessage._2());
+    keyMessage = function.call(new Tuple2<>("foo", null));
+    assertEquals(new Text("foo"), keyMessage._1());
+    assertEquals(new Text(), keyMessage._2());
   }
 
 }
