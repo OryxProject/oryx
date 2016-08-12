@@ -31,10 +31,12 @@ Install and configure the Hadoop cluster normally. The following services need t
 - YARN
 - Zookeeper
 - Kafka
-- Spark (on YARN)
+- Spark
 
 Note that for CDH, Kafka is available as a parcel from
 [Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
+The Cloudera Kafka 2.x parcel is required, because it contains a distribution of Kafka 0.9. 
+The 2.x parcel is in fact required by CDH 5.7.
 
 Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
 and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default
@@ -42,11 +44,6 @@ port here is 2181. Default ports will be used in subsequent examples.
 
 Where a Kafka broker or Zookeeper server is called for, you can and should specify a comma-separated
 list of `host:port` pairs where there are multiple hosts. Example: `your-zk-1:2181,your-zk-2:2181`.
-
-Also note whether your Zookeeper instance is using a chroot path. This is simply a path suffixed
-to the `host:port`, like `your-zk:2181/your-chroot`. It is often `/kafka` if it is set.
-You can omit this if you are not using a chroot. Note: if you have multiple Zookeeper servers, 
-and a chroot, only add the chroot once, at the end: `your-zk-1:2181,your-zk-2:2181/kafka`
 
 ## Java
 
@@ -218,6 +215,16 @@ This isn't generally suitable for production use.
 - Download and start the cluster VM
     - Give the VM at least 4 cores and 12GB of memory
     - Start the cluster in the VM; CDH Express is fine
+- Install Java 8 (if not already the default)
+    - `sudo yum install java-1.8.0-openjdk` or similar to make a Java 8 implementation available
+    - Launch Cloudera Manager, and log in to the UI (e.g. `localhost:7180`)
+    - If any CDH services are running, stop them
+    - From the "Hosts" menu, select "All Hosts"
+    - Click the "Configuration" button
+    - Under "Category" at the left, choose "Advanced"
+    - In `Java Home Directory`, enter (for example): `/usr/lib/jvm/jre-1.8.0-openjdk.x86_64/`
+    - Click "Save Changes"
+    - Restart the Cloudera Manager service from Cloudera Manager, or else just reboot the VM
 - Configure the cluster
     - In parcel settings, add the location of Kafka parcels, currently http://archive.cloudera.com/kafka/parcels/latest/
     - Distribute and activate the CDH parcel
