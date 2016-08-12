@@ -48,6 +48,7 @@ final class ValueWritableConverter<V> {
 
   private final Method fromWritableMethod;
   private final Constructor<? extends Writable> writableConstructor;
+  private final Constructor<? extends Writable> writableNoArgConstructor;
 
   /**
    * @param valueClass underlying value class, like {@link String} or {@link Integer}
@@ -78,6 +79,7 @@ final class ValueWritableConverter<V> {
 
     @SuppressWarnings("unchecked")
     Constructor<W>[] constructors = (Constructor<W>[]) writableClass.getConstructors();
+
     writableConstructor = Arrays.stream(constructors).
       filter(constructor -> constructor.getParameterTypes().length == 1).
       filter(constructor -> {
@@ -85,6 +87,10 @@ final class ValueWritableConverter<V> {
         return paramType.equals(valueClass) || paramType.equals(WRAPPER_TO_PRIMITIVE.get(valueClass));
       }).findFirst().orElse(null);
     Objects.requireNonNull(writableConstructor, writableClass + " has no constructor accepting " + valueClass);
+
+    writableNoArgConstructor = Arrays.stream(constructors).
+        filter(constructor -> constructor.getParameterTypes().length == 0).
+        findFirst().orElse(null);
   }
 
   V fromWritable(Writable writable) {
@@ -98,9 +104,12 @@ final class ValueWritableConverter<V> {
   }
 
   Writable toWritable(V value) {
-    Objects.requireNonNull(value);
     try {
-      return writableConstructor.newInstance(value);
+      if (value == null) {
+        return writableNoArgConstructor.newInstance();
+      } else {
+        return writableConstructor.newInstance(value);
+      }
     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
       throw new IllegalStateException(e);
     }
