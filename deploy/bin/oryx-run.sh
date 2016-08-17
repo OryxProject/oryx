@@ -146,6 +146,9 @@ batch|speed|serving)
     SPARK_DRIVER_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE}"
     SPARK_EXECUTOR_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE_NAME}"
     if [ -n "${JVM_ARGS}" ]; then
+      if [[ "${JVM_ARGS}" == *"-Xmx"* ]]; then
+        echo "Warning: -Xmx is set in --jvm-args, but it will be overridden by .conf file settings";
+      fi
       SPARK_DRIVER_JAVA_OPTS="${JVM_ARGS} ${SPARK_DRIVER_JAVA_OPTS}"
       SPARK_EXECUTOR_JAVA_OPTS="${JVM_ARGS} ${SPARK_EXECUTOR_JAVA_OPTS}"
     fi
