@@ -99,20 +99,24 @@ function setVarFromProperty {
   eval $__resultvar=$result
 }
 
-# Helps execute kafka-foo or kafka-foo.sh as appropriate.
-# Kind of assume we're using all one or the other
-if [ -x "$(command -v kafka-topics)" ]; then
-  KAFKA_TOPICS_SH="kafka-topics"
-  KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer"
-  KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer"
-elif [ -x "$(command -v kafka-topics.sh)" ]; then
-  KAFKA_TOPICS_SH="kafka-topics.sh"
-  KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer.sh"
-  KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer.sh"
-else
-  echo "Can't find kafka scripts like kafka-topics"
-  exit 2
-fi
+case "${COMMAND}" in
+kafka-setup|kafka-tail|kafka-input)
+  # Helps execute kafka-foo or kafka-foo.sh as appropriate.
+  # Kind of assume we're using all one or the other
+  if [ -x "$(command -v kafka-topics)" ]; then
+    KAFKA_TOPICS_SH="kafka-topics"
+    KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer"
+    KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer"
+  elif [ -x "$(command -v kafka-topics.sh)" ]; then
+    KAFKA_TOPICS_SH="kafka-topics.sh"
+    KAFKA_CONSOLE_CONSUMER_SH="kafka-console-consumer.sh"
+    KAFKA_CONSOLE_PRODUCER_SH="kafka-console-producer.sh"
+  else
+    echo "Can't find kafka scripts like kafka-topics"
+    exit 2
+  fi
+  ;;
+esac
 
 case "${COMMAND}" in
 batch|speed|serving)
