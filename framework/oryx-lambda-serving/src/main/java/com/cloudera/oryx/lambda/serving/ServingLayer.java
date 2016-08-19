@@ -281,13 +281,13 @@ public final class ServingLayer implements Closeable {
       context.addApplicationListener(ModelManagerListener.class.getName());
     }
 
+    // Better way to configure JASPIC?
+    AuthConfigFactory.setFactory(new AuthConfigFactoryImpl());
+
     boolean needHTTPS = keystoreFile != null;
     boolean needAuthentication = userName != null;
 
     if (needHTTPS || needAuthentication) {
-
-      // Better way to configure JASPIC?
-      AuthConfigFactory.setFactory(new AuthConfigFactoryImpl());
 
       SecurityCollection securityCollection = new SecurityCollection();
       securityCollection.addPattern("/*");
