@@ -50,11 +50,13 @@ function doQuery(endpoint, isGet, paramSuffixes, postBodyElement) {
     var paramPrefix = endpoint.replace("/", "");
     for (var i = 0; i < paramSuffixes.length; i++) {
         var elementValue = document.getElementById(paramPrefix + "-" + paramSuffixes[i]).value;
-        elementValue = encodeURIComponent(elementValue);
-        // Hack: we have to double-escape forward-slash so that Tomcat won't read it as a path delimiter,
-        // then un-escape again on the other end. / already becomes %2F, and so %2F becomes %252F
-        elementValue = elementValue.replace(/%2F/gi,"%252F");
-        pathElements.push(elementValue);
+        if (elementValue) {
+          elementValue = encodeURIComponent(elementValue);
+          // Hack: we have to double-escape forward-slash so that Tomcat won't read it as a path delimiter,
+          // then un-escape again on the other end. / already becomes %2F, and so %2F becomes %252F
+          elementValue = elementValue.replace(/%2F/gi,"%252F");
+          pathElements.push(elementValue);
+        }
     }
     var path = pathElements.join("/");
     var resultElement = document.getElementById("request-result");
