@@ -33,9 +33,8 @@ Choosing the number of Spark executors, cores and memory is a topic in its own r
 More executors means, naturally, more cores and memory. The number should not exceed the number of machines 
 in the cluster; it can be less. See `oryx.batch.streaming.num-executors`.
 
-More cores means potentially more parallel processing. It can usefully be up to 1/3 or 1/2of the total number of 
-tasks in a typical model building process. You can observe the number of tasks and thus inherent parallelism
-in the Spark UI of a Batch layer run. Beyond this count, more cores doesn't add much parallelism. Fewer is OK 
+More cores means potentially more parallel processing. You can observe the number of tasks and thus inherent parallelism
+in the Spark UI of a Batch layer run. Beyond this count, more cores doesn't add parallelism. Fewer is OK 
 and simply increases the run time. Of course, enough cores should be available to get the batch process completed 
 comfortably within the batch interval. The number of cores is configured by 
 `oryx.batch.streaming.executor-cores`.
