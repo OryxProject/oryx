@@ -35,6 +35,8 @@ public final class VectorMathTest extends OryxTest {
 
   private static final float[] VEC1 = { 1.0f, 0.5f, -3.5f };
   private static final float[] VEC2 = { 0.0f, -10.3f, -3.0f };
+  private static final double[] VEC1D = { 1.0, 0.5, -3.5 };
+  private static final double[] VEC2D = { 0.0, -10.3, -3.0 };
 
   @Test
   public void testDotFF() {
@@ -59,6 +61,13 @@ public final class VectorMathTest extends OryxTest {
     assertEquals(0.0, VectorMath.norm(new float[] {0.0f}), FLOAT_EPSILON);
     assertEquals(3.674234614174767, VectorMath.norm(VEC1), FLOAT_EPSILON);
     assertEquals(10.72800074571213, VectorMath.norm(VEC2), FLOAT_EPSILON);
+  }
+
+  @Test
+  public void testNormD() {
+    assertEquals(0.0, VectorMath.norm(new double[] {0.0}), DOUBLE_EPSILON);
+    assertEquals(3.674234614174767, VectorMath.norm(VEC1D), DOUBLE_EPSILON);
+    assertEquals(10.72800074571213, VectorMath.norm(VEC2D), DOUBLE_EPSILON);
   }
 
   @Test

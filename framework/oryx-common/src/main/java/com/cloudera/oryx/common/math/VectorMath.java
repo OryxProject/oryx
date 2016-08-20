@@ -33,7 +33,6 @@ public final class VectorMath {
    * @return dot product of the two given arrays
    * @param x one array
    * @param y the other array
-   * @throws IllegalArgumentException if x and y are empty or of different length
    */
   public static double dot(float[] x, float[] y) {
     int length = x.length;
@@ -47,12 +46,23 @@ public final class VectorMath {
   /**
    * @param x vector for whom norm to be calculated
    * @return the L2 norm of vector x
-   * @throws IllegalArgumentException if x is of 0 length
    */
   public static double norm(float[] x) {
     double total = 0.0;
     for (float f : x) {
       total += f * f;
+    }
+    return Math.sqrt(total);
+  }
+
+  /**
+   * @param x vector for whom norm to be calculated
+   * @return the L2 norm of vector x
+   */
+  public static double norm(double[] x) {
+    double total = 0.0;
+    for (double d : x) {
+      total += d * d;
     }
     return Math.sqrt(total);
   }

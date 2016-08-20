@@ -31,21 +31,25 @@ public final class CosineAverageFunction implements CosineDistanceSensitiveFunct
     float[] itemFeaturesVector = new float[itemFeatureVector.length];
     double vecNorm = VectorMath.norm(itemFeatureVector);
     for (int i = 0; i < itemFeatureVector.length; i++) {
-      itemFeaturesVector[i] += itemFeatureVector[i] / vecNorm;
+      itemFeaturesVector[i] = (float) (itemFeatureVector[i] / vecNorm);
     }
     this.itemFeaturesVector = itemFeaturesVector;
   }
 
   public CosineAverageFunction(float[][] itemFeatureVectors) {
-    float[] itemFeaturesVector = new float[itemFeatureVectors[0].length];
+    double[] tempVector = new double[itemFeatureVectors[0].length];
     for (float[] vec : itemFeatureVectors) {
-      double vecNorm = VectorMath.norm(vec);
       for (int i = 0; i < vec.length; i++) {
-        itemFeaturesVector[i] += vec[i] / vecNorm;
+        tempVector[i] += vec[i];
       }
     }
+    for (int i = 0; i < tempVector.length; i++) {
+      tempVector[i] /= tempVector.length;
+    }
+    float[] itemFeaturesVector = new float[tempVector.length];
+    double vecNorm = VectorMath.norm(tempVector);
     for (int i = 0; i < itemFeaturesVector.length; i++) {
-      itemFeaturesVector[i] /= itemFeatureVectors.length;
+      itemFeaturesVector[i] = (float) (tempVector[i] / vecNorm);
     }
     this.itemFeaturesVector = itemFeaturesVector;
   }
