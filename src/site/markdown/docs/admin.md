@@ -23,6 +23,25 @@ _Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
 
+## Deployment Architecture
+
+Because the Batch and Speed Layers are Spark applications, they need to run within a cluster.
+The applications themselves run the driver for these Spark applications, and these may run on
+an edge node in a cluster like any other Spark application.. That is, the binaries themselves 
+do not need to run on a node that also runs a particular service, but, it will need to run
+on a node within the cluster because both Layer application interact extensively with compute
+and storage within the cluster.
+
+The Serving Layer may be run within the cluster too, and may be run via YARN on any node. However
+it's common to consider deploying this Layer, which exposes an API to external services, on a 
+node that is not within the cluster. This is possible. The Serving Layer must be able to communicate
+with a Kafka broker, at a minimum.
+
+In some applications, the Serving Layer also needs to read large models directly from HDFS. In these
+cases, it would also have to access HDFS. This is only required in applications that must write
+large models to HDFS. This is closely related to `oryx.update-topic.message.max-size` and the
+maximum size message that Kafka can support.
+
 ## Services
 
 Install and configure the Hadoop cluster normally. The following services need to be enabled:
@@ -68,8 +87,10 @@ Batch Layer reads partitions of historical data from HDFS and from Kafka. If the
 topic has just one partition but a large amount of data arrives per interval, then the
 Kafka-based partition of the input may be relatively very large and take a long time 
 to process. A good rule of thumb may be to choose a number of topic partitions such that the
-amount of data that arrives in one batch interval is expected to be about the same as
-one HDFS block, which is 128MB by default.
+amount of data that arrives in one batch interval, per partition, is expected to be under the size
+of one HDFS block, which is 128MB by default. So if you have 1.28GB arriving per batch interval,
+at least 10 partitions is probably a good idea to make sure the data can be processed in reasonably
+sized chunks, and with enough parallelism.
 
 The provided `oryx-run.sh kafka-setup` script configures a default of 4 partitions, but
 this can be changed later. Note that there is no purpose in configuring more than 1
@@ -372,6 +393,12 @@ Then, also delete any pre-existing data in HDFS (or use a new directory). Simila
 update topic is read from the beginning, it's easiest to make a new update topic instead.
 While it's possible to reuse the existing topics by carefully managing offsets in Kafka or
 changing the instance `oryx.id` value, these are possibly more complex.
+
+## Speed Layer isn't producing updates, but is running
+
+The Speed Layer won't produce updates until it has loaded a model. Also, check if the Speed Layer's
+batches are queued up. If batches are being created faster than they're processed, then each is
+waiting longer and longer to start processing, delaying their updates.
 
 # Performance
 
