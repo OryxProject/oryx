@@ -16,16 +16,19 @@
 package com.cloudera.oryx.app.speed.als;
 
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.koloboke.collect.set.ObjSet;
 import com.koloboke.collect.set.hash.HashObjSets;
 
 import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
+import com.cloudera.oryx.app.als.SolverCache;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
-import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 
 /**
@@ -33,6 +36,9 @@ import com.cloudera.oryx.common.math.Solver;
  * ALS-based recommender.
  */
 public final class ALSSpeedModel implements SpeedModel {
+
+  private static final ExecutorService executor = Executors.newCachedThreadPool(
+      new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSSpeedModel-%d").build());
 
   /** User-feature matrix. */
   private final FeatureVectors X;
@@ -46,6 +52,8 @@ public final class ALSSpeedModel implements SpeedModel {
   private final int features;
   /** Whether model uses implicit feedback. */
   private final boolean implicit;
+  private final SolverCache cachedXTXSolver;
+  private final SolverCache cachedYTYSolver;
 
   /**
    * Creates an empty model.
@@ -63,6 +71,8 @@ public final class ALSSpeedModel implements SpeedModel {
     expectedItemIDsLock = new AutoReadWriteLock();
     this.features = features;
     this.implicit = implicit;
+    cachedXTXSolver = new SolverCache(executor, X);
+    cachedYTYSolver = new SolverCache(executor, Y);
   }
 
   public int getFeatures() {
@@ -87,6 +97,7 @@ public final class ALSSpeedModel implements SpeedModel {
     try (AutoLock al = expectedUserIDsLock.autoWriteLock()) {
       expectedUserIDs.remove(user);
     }
+    cachedXTXSolver.setDirty();
   }
 
   public void setItemVector(String item, float[] vector) {
@@ -95,6 +106,7 @@ public final class ALSSpeedModel implements SpeedModel {
     try (AutoLock al = expectedItemIDsLock.autoWriteLock()) {
       expectedItemIDs.remove(item);
     }
+    cachedYTYSolver.setDirty();
   }
 
   public void retainRecentAndUserIDs(Collection<String> users) {
@@ -116,13 +128,11 @@ public final class ALSSpeedModel implements SpeedModel {
   }
 
   public Solver getXTXSolver() {
-    // Not cached now, since the way it is used now, it is accessed once per batch of input anyway
-    return LinearSystemSolver.getSolver(X.getVTV());
+    return cachedXTXSolver.get();
   }
 
   public Solver getYTYSolver() {
-    // Not cached now, since the way it is used now, it is accessed once per batch of input anyway
-    return LinearSystemSolver.getSolver(Y.getVTV());
+    return cachedYTYSolver.get();
   }
 
   @Override

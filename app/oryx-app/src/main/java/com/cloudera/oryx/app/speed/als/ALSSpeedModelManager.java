@@ -137,6 +137,10 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
+    // Tickle the cache early so that the solver starts computing asynchronously
+    model.getXTXSolver();
+    model.getYTYSolver();
+
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
         newData.values().sortBy(MLFunctions.TO_TIMESTAMP_FN, true, newData.partitions().size());
