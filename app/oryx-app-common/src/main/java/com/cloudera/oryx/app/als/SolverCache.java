@@ -67,38 +67,49 @@ public final class SolverCache {
   }
 
   /**
+   * Proactively try to compute the solver asynchronously, if not already computed.
+   * Does not block.
+   */
+  public void compute() {
+    // Make sure only one attempts to build at one time
+    if (solverUpdating.compareAndSet(false, true)) {
+      executor.submit(() -> {
+        RealMatrix YTY = null;
+        for (FeatureVectors yPartition : vectorPartitions) {
+          RealMatrix YTYpartial = yPartition.getVTV();
+          if (YTYpartial != null) {
+            YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+          }
+        }
+        // Possible to compute this twice, but not a big deal
+        Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
+        solver.set(newYTYSolver);
+        solverUpdating.set(false);
+        // Allow any threads waiting for initial model to proceed
+        solverInitialized.countDown();
+      });
+    }
+  }
+
+  /**
    * @return a recent {@link Solver}, blocking if necessary to wait for an initial one to
    *  be computed. It does not block otherwise and returns the most recently computed one.
    */
   public Solver get() {
     if (solverDirty.getAndSet(false)) {
       // launch asynchronous update
-      executor.submit(() -> {
-        // Make sure only one attempts to build at one time
-        if (solverUpdating.compareAndSet(false, true)) {
-          RealMatrix YTY = null;
-          for (FeatureVectors yPartition : vectorPartitions) {
-            RealMatrix YTYpartial = yPartition.getVTV();
-            if (YTYpartial != null) {
-              YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
-            }
-          }
-          // Possible to compute this twice, but not a big deal
-          Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
-          solver.set(newYTYSolver);
-          solverUpdating.set(false);
-          // Allow any threads waiting for initial model to proceed
-          solverInitialized.countDown();
-        }
-      });
+      compute();
     }
     // Wait, in the case that there is no existing model already.
     // Otherwise this immediately proceeds.
-    try {
-      solverInitialized.await();
-    } catch (InterruptedException e) {
-      log.warn("Interrupted while waiting for model", e);
-      // continue, but will probably fail because this returns null
+    if (solverInitialized.getCount() > 0) { // Always 0 or 1
+      // OK if countDown() happens here; await() will return immediately
+      try {
+        solverInitialized.await();
+      } catch (InterruptedException e) {
+        log.warn("Interrupted while waiting for model", e);
+        // continue, but will probably fail because this returns null
+      }
     }
     return solver.get();
   }

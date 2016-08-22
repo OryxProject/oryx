@@ -127,6 +127,11 @@ public final class ALSSpeedModel implements SpeedModel {
     }
   }
 
+  void precomputeSolvers() {
+    cachedXTXSolver.compute();
+    cachedYTYSolver.compute();
+  }
+
   public Solver getXTXSolver() {
     return cachedXTXSolver.get();
   }

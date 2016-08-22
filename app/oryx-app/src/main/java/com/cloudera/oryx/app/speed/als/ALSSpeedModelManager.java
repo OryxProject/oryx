@@ -137,9 +137,8 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
-    // Tickle the cache early so that the solver starts computing asynchronously
-    model.getXTXSolver();
-    model.getYTYSolver();
+    // Trigger proactive computation of solvers for later use
+    model.precomputeSolvers();
 
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
