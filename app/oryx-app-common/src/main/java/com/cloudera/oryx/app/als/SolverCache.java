@@ -24,7 +24,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-§import com.cloudera.oryx.common.lang.LoggingCallable;
+import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 
