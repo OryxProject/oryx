@@ -48,7 +48,9 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
   private static final Logger log = LoggerFactory.getLogger(ALSServingModelManager.class);
 
   private ALSServingModel model;
+  private boolean triggeredSolver;
   private final double sampleRate;
+  private final double minModelLoadFraction;
   private final RescorerProvider rescorerProvider;
 
   public ALSServingModelManager(Config config) {
@@ -57,7 +59,9 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
         ConfigUtils.getOptionalString(config, "oryx.als.rescorer-provider-class");
     rescorerProvider = loadRescorerProviders(rescorerProviderClass);
     sampleRate = config.getDouble("oryx.als.sample-rate");
+    minModelLoadFraction = config.getDouble("oryx.serving.min-model-load-fraction");
     Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
+    Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
   }
 
   @Override
@@ -96,6 +100,12 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
           if (--countdownToLogModel <= 0) {
             log.info("{}", model);
             countdownToLogModel = 10000;
+            // Arbitrarily take this opportunity to see if solver can be pre-triggered
+            // to speed up first access to endpoints that need the solver
+            if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {
+              triggeredSolver = true;
+              model.precomputeSolvers();
+            }
           }
           break;
 
