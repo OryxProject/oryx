@@ -24,6 +24,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+§import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 
@@ -73,27 +74,34 @@ public final class SolverCache {
   public void compute() {
     // Make sure only one attempts to build at one time
     if (solverUpdating.compareAndSet(false, true)) {
-      executor.submit(() -> {
-        RealMatrix YTY = null;
-        for (FeatureVectors yPartition : vectorPartitions) {
-          RealMatrix YTYpartial = yPartition.getVTV();
-          if (YTYpartial != null) {
-            YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+      executor.submit(LoggingCallable.log(() -> {
+        try {
+          RealMatrix YTY = null;
+          for (FeatureVectors yPartition : vectorPartitions) {
+            RealMatrix YTYpartial = yPartition.getVTV();
+            if (YTYpartial != null) {
+              YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+            }
           }
+          Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
+          if (newYTYSolver != null) {
+            solver.set(newYTYSolver);
+          }
+          // Allow any threads waiting for initial model to proceed.
+          // It's possible the solver is still null here if there is no input.
+          solverInitialized.countDown();
+        } finally {
+          solverUpdating.set(false);
         }
-        // Possible to compute this twice, but not a big deal
-        Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
-        solver.set(newYTYSolver);
-        solverUpdating.set(false);
-        // Allow any threads waiting for initial model to proceed
-        solverInitialized.countDown();
-      });
+      }));
     }
   }
 
   /**
    * @return a recent {@link Solver}, blocking if necessary to wait for an initial one to
    *  be computed. It does not block otherwise and returns the most recently computed one.
+   *  Note that this method may return {@code null}, for instance, if no solver is computable
+   *  because there is no data.
    */
   public Solver get() {
     if (solverDirty.getAndSet(false)) {
@@ -108,7 +116,6 @@ public final class SolverCache {
         solverInitialized.await();
       } catch (InterruptedException e) {
         log.warn("Interrupted while waiting for model", e);
-        // continue, but will probably fail because this returns null
       }
     }
     return solver.get();
