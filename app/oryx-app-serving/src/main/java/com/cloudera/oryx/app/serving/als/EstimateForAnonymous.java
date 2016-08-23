@@ -24,6 +24,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
 
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.ALSUtils;
@@ -72,9 +73,10 @@ public final class EstimateForAnonymous extends AbstractALSResource {
    */
   static float[] buildTemporaryUserVector(ALSServingModel model,
                                           List<Pair<String,Double>> parsedPathSegments,
-                                          float[] Xu) {
+                                          float[] Xu) throws OryxServingException {
     boolean implicit = model.isImplicit();
     Solver solver = model.getYTYSolver();
+    check(solver != null, Response.Status.SERVICE_UNAVAILABLE, "No solver available for model yet");
     for (Pair<String,Double> itemValue : parsedPathSegments) {
       float[] Yi = model.getItemVector(itemValue.getFirst());
       // Given value is taken to be the fictitious current value of Qui = Xu * Yi^T

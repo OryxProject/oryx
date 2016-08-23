@@ -22,12 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -40,20 +37,17 @@ import com.koloboke.collect.map.hash.HashObjObjMaps;
 import com.koloboke.collect.set.ObjSet;
 import com.koloboke.collect.set.hash.HashObjSets;
 import com.koloboke.function.ObjDoubleToDoubleFunction;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
 import com.cloudera.oryx.app.als.RescorerProvider;
+import com.cloudera.oryx.app.als.SolverCache;
 import com.cloudera.oryx.app.serving.als.CosineDistanceSensitiveFunction;
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Pairs;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
 import com.cloudera.oryx.common.lang.LoggingCallable;
-import com.cloudera.oryx.common.math.LinearSystemSolver;
 import com.cloudera.oryx.common.math.Solver;
 
 /**
@@ -61,9 +55,6 @@ import com.cloudera.oryx.common.math.Solver;
  */
 public final class ALSServingModel implements ServingModel {
 
-  private static final Logger log = LoggerFactory.getLogger(ALSServingModel.class);
-
-  /** Number of partitions for items data structures. */
   private static final ExecutorService executor = Executors.newFixedThreadPool(
       Runtime.getRuntime().availableProcessors(),
       new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ALSServingModel-%d").build());
@@ -84,10 +75,7 @@ public final class ALSServingModel implements ServingModel {
   private final AutoReadWriteLock expectedUserIDsLock;
   private final ObjSet<String> expectedItemIDs;
   private final AutoReadWriteLock expectedItemIDsLock;
-  private final AtomicReference<Solver> cachedYTYSolver;
-  private final AtomicBoolean cachedYTYSolverDirty;
-  private final AtomicBoolean cachedYTYSolverUpdating;
-  private final CountDownLatch cachedYTYSolverInitialized;
+  private final SolverCache cachedYTYSolver;
   /** Number of features used in the model. */
   private final int features;
   /** Whether model uses implicit feedback. */
@@ -125,10 +113,7 @@ public final class ALSServingModel implements ServingModel {
     expectedItemIDs = HashObjSets.newMutableSet();
     expectedItemIDsLock = new AutoReadWriteLock();
 
-    cachedYTYSolver = new AtomicReference<>();
-    cachedYTYSolverDirty = new AtomicBoolean(true);
-    cachedYTYSolverUpdating = new AtomicBoolean(false);
-    cachedYTYSolverInitialized = new CountDownLatch(1);
+    cachedYTYSolver = new SolverCache(executor, Y);
 
     this.features = features;
     this.implicit = implicit;
@@ -191,7 +176,7 @@ public final class ALSServingModel implements ServingModel {
     }
     // Not clear if it's too inefficient to clear and recompute YtY solver every time any bit
     // of Y changes, but it's the most correct
-    cachedYTYSolverDirty.set(true);
+    cachedYTYSolver.setDirty();
   }
 
   /**
@@ -366,37 +351,15 @@ public final class ALSServingModel implements ServingModel {
     return allItemIDs;
   }
 
+  /**
+   * @return a {@link Solver} for use in solving systems involving YT*Y
+   */
   public Solver getYTYSolver() {
-    if (cachedYTYSolverDirty.getAndSet(false)) {
-      // launch asynchronous update
-      executor.submit(() -> {
-        // Make sure only one attempts to build at one time
-        if (cachedYTYSolverUpdating.compareAndSet(false, true)) {
-          RealMatrix YTY = null;
-          for (FeatureVectors yPartition : Y) {
-            RealMatrix YTYpartial = yPartition.getVTV();
-            if (YTYpartial != null) {
-              YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
-            }
-          }
-          // Possible to compute this twice, but not a big deal
-          Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
-          cachedYTYSolver.set(newYTYSolver);
-          cachedYTYSolverUpdating.set(false);
-          // Allow any threads waiting for initial model to proceed
-          cachedYTYSolverInitialized.countDown();
-        }
-      });
-    }
-    // Wait, in the case that there is no existing model already.
-    // Otherwise this immediately proceeds.
-    try {
-      cachedYTYSolverInitialized.await();
-    } catch (InterruptedException e) {
-      log.warn("Interrupted while waiting for model", e);
-      // continue, but will probably fail because this returns null
-    }
-    return cachedYTYSolver.get();
+    return cachedYTYSolver.get(true);
+  }
+
+  void precomputeSolvers() {
+    cachedYTYSolver.compute();
   }
 
   /**

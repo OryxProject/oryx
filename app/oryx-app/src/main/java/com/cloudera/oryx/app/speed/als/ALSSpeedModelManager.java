@@ -137,6 +137,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       return Collections.emptyList();
     }
 
+    // Trigger proactive computation of solvers for later use
+    model.precomputeSolvers();
+
     // Order by timestamp and parse as tuples
     JavaRDD<String> sortedValues =
         newData.values().sortBy(MLFunctions.TO_TIMESTAMP_FN, true, newData.partitions().size());
@@ -176,6 +179,11 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
       XTXsolver = model.getXTXSolver();
       YTYsolver = model.getYTYSolver();
     } catch (SingularMatrixSolverException smse) {
+      log.info("Not enough data for solver yet ({}); skipping inputs", smse.getMessage());
+      return Collections.emptyList();
+    }
+    if (XTXsolver == null || YTYsolver == null) {
+      log.info("No solver available yet for model; skipping inputs");
       return Collections.emptyList();
     }
 
