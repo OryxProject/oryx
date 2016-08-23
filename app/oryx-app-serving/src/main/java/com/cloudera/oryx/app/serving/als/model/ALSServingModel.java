@@ -355,7 +355,11 @@ public final class ALSServingModel implements ServingModel {
    * @return a {@link Solver} for use in solving systems involving YT*Y
    */
   public Solver getYTYSolver() {
-    return cachedYTYSolver.get();
+    return cachedYTYSolver.get(true);
+  }
+
+  void precomputeSolvers() {
+    cachedYTYSolver.compute();
   }
 
   /**

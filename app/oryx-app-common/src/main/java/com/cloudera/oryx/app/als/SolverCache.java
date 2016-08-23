@@ -98,19 +98,20 @@ public final class SolverCache {
   }
 
   /**
-   * @return a recent {@link Solver}, blocking if necessary to wait for an initial one to
+   * @param blocking whether to block waiting for a first model
+   * @return a recent {@link Solver}, optionally blocking if necessary to wait for an initial one to
    *  be computed. It does not block otherwise and returns the most recently computed one.
-   *  Note that this method may return {@code null}, for instance, if no solver is computable
-   *  because there is no data.
+   *  Note that this method may return {@code null} even when blocking , for instance,
+   *  if no solver is computable because there is no data.
    */
-  public Solver get() {
+  public Solver get(boolean blocking) {
     if (solverDirty.getAndSet(false)) {
       // launch asynchronous update
       compute();
     }
     // Wait, in the case that there is no existing model already.
     // Otherwise this immediately proceeds.
-    if (solverInitialized.getCount() > 0) { // Always 0 or 1
+    if (blocking && solverInitialized.getCount() > 0) { // Always 0 or 1
       // OK if countDown() happens here; await() will return immediately
       try {
         solverInitialized.await();

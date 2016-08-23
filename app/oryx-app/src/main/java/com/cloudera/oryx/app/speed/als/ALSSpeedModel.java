@@ -133,11 +133,11 @@ public final class ALSSpeedModel implements SpeedModel {
   }
 
   public Solver getXTXSolver() {
-    return cachedXTXSolver.get();
+    return cachedXTXSolver.get(false);
   }
 
   public Solver getYTYSolver() {
-    return cachedYTYSolver.get();
+    return cachedYTYSolver.get(false);
   }
 
   @Override
