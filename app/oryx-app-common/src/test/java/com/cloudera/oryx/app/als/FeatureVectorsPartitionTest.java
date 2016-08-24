@@ -28,11 +28,11 @@ import org.junit.Test;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.lang.ExecUtils;
 
-public final class FeatureVectorsTest extends OryxTest {
+public final class FeatureVectorsPartitionTest extends OryxTest {
 
   @Test
   public void testGetSet() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     assertEquals(0, fv.size());
     fv.setVector("foo", new float[] { 1.0f });
     assertEquals(1, fv.size());
@@ -44,7 +44,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testVTV() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     fv.setVector("foo", new float[] { 1.0f, 2.0f, 4.0f });
     fv.setVector("bar", new float[] { 1.5f, -1.0f, 0.0f });
     RealMatrix expected = new Array2DRowRealMatrix(new double[][] {
@@ -55,7 +55,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testForEach() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     fv.setVector("foo", new float[] { 1.0f, 2.0f, 4.0f });
     fv.setVector("bar", new float[] { 1.5f, -1.0f, 0.0f });
     Collection<String> out = new ArrayList<>();
@@ -67,7 +67,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testRetainRecent() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     fv.setVector("foo", new float[] { 1.0f });
     fv.retainRecentAndIDs(Collections.singleton("foo"));
     assertEquals(1, fv.size());
@@ -77,7 +77,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testAllIDs() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     fv.setVector("foo", new float[] { 1.0f });
     Collection<String> allIDs = new HashSet<>();
     fv.addAllIDsTo(allIDs);
@@ -88,7 +88,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testRecent() {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     fv.setVector("foo", new float[] { 1.0f });
     Collection<String> recentIDs = new HashSet<>();
     fv.addAllRecentTo(recentIDs);
@@ -101,7 +101,7 @@ public final class FeatureVectorsTest extends OryxTest {
 
   @Test
   public void testConcurrent() throws Exception {
-    FeatureVectors fv = new FeatureVectors();
+    FeatureVectorsPartition fv = new FeatureVectorsPartition();
     AtomicInteger counter = new AtomicInteger();
     int numWorkers = 16;
     int numIterations = 10000;
