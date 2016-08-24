@@ -17,6 +17,7 @@ package com.cloudera.oryx.lambda.speed;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import com.google.common.base.Preconditions;
@@ -105,7 +106,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(
-            "group.id", "OryxGroup-" + getLayerName() + "-" + System.currentTimeMillis(),
+            "group.id", "OryxGroup-" + getLayerName() + "-" + UUID.randomUUID(),
             "zookeeper.connect", updateTopicLockMaster,
             "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
