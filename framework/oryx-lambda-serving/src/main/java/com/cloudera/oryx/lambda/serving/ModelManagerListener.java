@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import com.google.common.base.Preconditions;
@@ -117,7 +118,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
     consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(
-            "group.id", "OryxGroup-ServingLayer-" + System.currentTimeMillis(),
+            "group.id", "OryxGroup-ServingLayer-" + UUID.randomUUID(),
             "zookeeper.connect", updateTopicLockMaster,
             "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
