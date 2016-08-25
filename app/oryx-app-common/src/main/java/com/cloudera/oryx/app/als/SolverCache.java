@@ -42,7 +42,7 @@ public final class SolverCache {
   private final AtomicBoolean solverUpdating;
   private final CountDownLatch solverInitialized;
   private final ExecutorService executor;
-  private final FeatureVectors[] vectorPartitions;
+  private final FeatureVectors vectorPartitions;
 
   /**
    * @param executor {@link ExecutorService} which should be used to asynchronously compute
@@ -50,7 +50,7 @@ public final class SolverCache {
    * @param vectorPartitions underling {@link FeatureVectors} data from which it should be
    *  computed
    */
-  public SolverCache(ExecutorService executor, FeatureVectors... vectorPartitions) {
+  public SolverCache(ExecutorService executor, FeatureVectors vectorPartitions) {
     solver = new AtomicReference<>();
     solverDirty = new AtomicBoolean(true);
     solverUpdating = new AtomicBoolean(false);
@@ -76,13 +76,7 @@ public final class SolverCache {
     if (solverUpdating.compareAndSet(false, true)) {
       executor.submit(LoggingCallable.log(() -> {
         try {
-          RealMatrix YTY = null;
-          for (FeatureVectors yPartition : vectorPartitions) {
-            RealMatrix YTYpartial = yPartition.getVTV();
-            if (YTYpartial != null) {
-              YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
-            }
-          }
+          RealMatrix YTY = vectorPartitions.getVTV();
           Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
           if (newYTYSolver != null) {
             solver.set(newYTYSolver);

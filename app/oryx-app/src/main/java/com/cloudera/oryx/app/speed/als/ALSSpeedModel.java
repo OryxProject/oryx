@@ -26,6 +26,7 @@ import com.koloboke.collect.set.hash.HashObjSets;
 
 import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
+import com.cloudera.oryx.app.als.PartitionedFeatureVectors;
 import com.cloudera.oryx.app.als.SolverCache;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -63,8 +64,9 @@ public final class ALSSpeedModel implements SpeedModel {
    */
   ALSSpeedModel(int features, boolean implicit) {
     Preconditions.checkArgument(features > 0);
-    X = new FeatureVectors();
-    Y = new FeatureVectors();
+    int numPartitions = Runtime.getRuntime().availableProcessors();
+    X = new PartitionedFeatureVectors(numPartitions, executor);
+    Y = new PartitionedFeatureVectors(numPartitions, executor);
     expectedUserIDs = HashObjSets.newMutableSet();
     expectedUserIDsLock = new AutoReadWriteLock();
     expectedItemIDs = HashObjSets.newMutableSet();
