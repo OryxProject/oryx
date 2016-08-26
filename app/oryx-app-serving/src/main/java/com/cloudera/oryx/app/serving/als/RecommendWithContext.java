@@ -71,6 +71,8 @@ public final class RecommendWithContext extends AbstractALSResource {
 
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
+    check(howMany + offset >= 0 && howMany + offset <= MAX_RESULTS,
+          "howMany + offset is too large");
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);

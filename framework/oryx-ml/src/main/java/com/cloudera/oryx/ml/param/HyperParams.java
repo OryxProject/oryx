@@ -104,8 +104,9 @@ public final class HyperParams {
           // continue
         }
         return unorderedFromValues(Collections.singletonList(stringValue));
+      default:
+        throw new IllegalArgumentException("No valid parameter range for key " + key);
     }
-    throw new IllegalArgumentException("No valid parameter range for key " + key);
   }
 
   /**

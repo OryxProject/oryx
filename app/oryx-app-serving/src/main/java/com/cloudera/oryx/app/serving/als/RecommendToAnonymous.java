@@ -70,6 +70,8 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     check(!pathSegments.isEmpty(), "Need at least 1 item to make recommendations");
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
+    check(howMany + offset >= 0 && howMany + offset <= MAX_RESULTS,
+          "howMany + offset is too large");
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);

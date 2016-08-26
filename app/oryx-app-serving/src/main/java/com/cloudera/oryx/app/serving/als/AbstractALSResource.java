@@ -30,6 +30,9 @@ import com.cloudera.oryx.common.collection.Pair;
  */
 abstract class AbstractALSResource extends AbstractOryxResource {
 
+  /** Somewhat arbitrarily cap the number of results that can be requested. */
+  static final int MAX_RESULTS = 100000;
+
   final ALSServingModel getALSServingModel() throws OryxServingException {
     return (ALSServingModel) getServingModel();
   }
