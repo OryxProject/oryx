@@ -21,21 +21,20 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.Cluster;
-import org.dmg.pmml.ClusteringField;
-import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
-import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
+import org.dmg.pmml.clustering.Cluster;
+import org.dmg.pmml.clustering.ClusteringField;
+import org.dmg.pmml.clustering.ClusteringModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
@@ -83,10 +82,10 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
 
     List<MiningField> miningFields = new ArrayList<>();
     MiningField xMF = new MiningField(FieldName.create("x"))
-        .setOpType(OpType.CONTINUOUS).setUsageType(FieldUsageType.ACTIVE);
+        .setOpType(OpType.CONTINUOUS).setFieldUsage(MiningField.FieldUsage.ACTIVE);
     miningFields.add(xMF);
     MiningField yMF = new MiningField(FieldName.create("y"))
-        .setOpType(OpType.CONTINUOUS).setUsageType(FieldUsageType.ACTIVE);
+        .setOpType(OpType.CONTINUOUS).setFieldUsage(MiningField.FieldUsage.ACTIVE);
     miningFields.add(yMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
@@ -102,7 +101,7 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
     clusters.add(new Cluster().setId("2").setSize(3).setArray(AppPMMLUtils.toArray(-1.0, 0.0)));
 
     pmml.addModels(new ClusteringModel(
-        MiningFunctionType.CLUSTERING,
+        MiningFunction.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         miningSchema,

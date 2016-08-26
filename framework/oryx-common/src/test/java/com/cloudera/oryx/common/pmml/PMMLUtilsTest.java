@@ -19,11 +19,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.Model;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
-import org.dmg.pmml.TreeModel;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -32,7 +32,7 @@ public final class PMMLUtilsTest extends OryxTest {
 
   public static PMML buildDummyModel() {
     Node node = new Node().setRecordCount(123.0);
-    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
+    TreeModel treeModel = new TreeModel(MiningFunction.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.addModels(treeModel);
     return pmml;
@@ -57,7 +57,7 @@ public final class PMMLUtilsTest extends OryxTest {
     assertInstanceOf(models.get(0), TreeModel.class);
     TreeModel treeModel = (TreeModel) models.get(0);
     assertEquals(123.0, treeModel.getNode().getRecordCount().doubleValue());
-    assertEquals(MiningFunctionType.CLASSIFICATION, treeModel.getFunctionName());
+    assertEquals(MiningFunction.CLASSIFICATION, treeModel.getMiningFunction());
   }
 
   @Test
@@ -65,7 +65,7 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model = buildDummyModel();
     model.getHeader().setTimestamp(null);
     assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
-                 "<PMML version=\"4.2.1\" xmlns=\"http://www.dmg.org/PMML-4_2\">\n" +
+                 "<PMML version=\"4.3\" xmlns=\"http://www.dmg.org/PMML-4_3\">\n" +
                  "    <Header>\n" +
                  "        <Application name=\"Oryx\"/>\n" +
                  "    </Header>\n" +
@@ -82,8 +82,8 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model2 = PMMLUtils.fromString(PMMLUtils.toString(model));
     assertEquals(model.getHeader().getApplication().getName(),
                  model2.getHeader().getApplication().getName());
-    assertEquals(model.getModels().get(0).getFunctionName(),
-                 model2.getModels().get(0).getFunctionName());
+    assertEquals(model.getModels().get(0).getMiningFunction(),
+                 model2.getModels().get(0).getMiningFunction());
   }
 
 }

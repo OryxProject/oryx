@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.DataDictionary;
-import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.clustering.ClusteringModel;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -51,7 +51,7 @@ public final class KMeansPMMLUtils {
 
     Model model = models.get(0);
     Preconditions.checkArgument(model instanceof ClusteringModel);
-    Preconditions.checkArgument(model.getFunctionName() == MiningFunctionType.CLUSTERING);
+    Preconditions.checkArgument(model.getMiningFunction() == MiningFunction.CLUSTERING);
 
     DataDictionary dictionary = pmml.getDataDictionary();
     Preconditions.checkArgument(

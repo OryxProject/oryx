@@ -21,7 +21,6 @@ import java.util.Map;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
-import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningSchema;
@@ -99,18 +98,18 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
                      miningField.getOpType());
         if (schema.isTarget(expectedFeature)) {
           assertEquals("Wrong usage type for feature " + featureName,
-                       FieldUsageType.PREDICTED,
-                       miningField.getUsageType());
+                       MiningField.FieldUsage.PREDICTED,
+                       miningField.getFieldUsage());
         } else {
           assertEquals("Wrong usage type for feature " + featureName,
-                       FieldUsageType.ACTIVE,
-                       miningField.getUsageType());
+                       MiningField.FieldUsage.ACTIVE,
+                       miningField.getFieldUsage());
           assertRange(miningField.getImportance(), 0.0, 1.0);
         }
       } else {
         assertEquals("Wrong usage type for feature " + featureName,
-                     FieldUsageType.SUPPLEMENTARY,
-                     miningField.getUsageType());
+                     MiningField.FieldUsage.SUPPLEMENTARY,
+                     miningField.getFieldUsage());
       }
 
     }

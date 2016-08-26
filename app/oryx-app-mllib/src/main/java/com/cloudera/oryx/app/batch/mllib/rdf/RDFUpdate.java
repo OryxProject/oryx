@@ -48,21 +48,19 @@ import org.apache.spark.mllib.tree.model.Split;
 import org.dmg.pmml.Array;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.MiningFunctionType;
-import org.dmg.pmml.MiningModel;
-import org.dmg.pmml.MissingValueStrategyType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.Model;
-import org.dmg.pmml.MultipleModelMethodType;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Predicate;
 import org.dmg.pmml.ScoreDistribution;
-import org.dmg.pmml.Segment;
-import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.SimplePredicate;
 import org.dmg.pmml.SimpleSetPredicate;
-import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
+import org.dmg.pmml.mining.MiningModel;
+import org.dmg.pmml.mining.Segment;
+import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
@@ -385,9 +383,9 @@ public final class RDFUpdate extends MLUpdate<String> {
     } else {
       MiningModel miningModel = new MiningModel();
       model = miningModel;
-      MultipleModelMethodType multipleModelMethodType = classificationTask ?
-          MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE :
-          MultipleModelMethodType.WEIGHTED_AVERAGE;
+      Segmentation.MultipleModelMethod multipleModelMethodType = classificationTask ?
+          Segmentation.MultipleModelMethod.WEIGHTED_MAJORITY_VOTE :
+          Segmentation.MultipleModelMethod.WEIGHTED_AVERAGE;
       List<Segment> segments = new ArrayList<>(trees.length);
       for (int treeID = 0; treeID < trees.length; treeID++) {
         TreeModel treeModel =
@@ -401,9 +399,9 @@ public final class RDFUpdate extends MLUpdate<String> {
       miningModel.setSegmentation(new Segmentation(multipleModelMethodType, segments));
     }
 
-    model.setFunctionName(classificationTask ?
-                          MiningFunctionType.CLASSIFICATION :
-                          MiningFunctionType.REGRESSION);
+    model.setMiningFunction(classificationTask ?
+                            MiningFunction.CLASSIFICATION :
+                            MiningFunction.REGRESSION);
 
     double[] importances = countsToImportances(predictorIndexCounts);
     model.setMiningSchema(AppPMMLUtils.buildMiningSchema(inputSchema, importances));
@@ -510,7 +508,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     return new TreeModel()
         .setNode(root)
         .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
-        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
+        .setMissingValueStrategy(TreeModel.MissingValueStrategy.DEFAULT_CHILD);
   }
 
   private Predicate buildPredicate(Split split,

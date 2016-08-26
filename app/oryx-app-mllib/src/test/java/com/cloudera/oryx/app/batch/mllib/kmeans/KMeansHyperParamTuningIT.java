@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.clustering.ClusteringModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.io.IOUtils;

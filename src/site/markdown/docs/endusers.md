@@ -109,7 +109,7 @@ data files in a subdirectory of `hdfs:///user/example/Oryx/model/`. For example,
 
 ```
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<PMML xmlns="http://www.dmg.org/PMML-4_2" version="4.2.1">
+<PMML xmlns="http://www.dmg.org/PMML-4_3" version="4.3">
     <Header>
         <Application name="Oryx"/>
         <Timestamp>2014-12-18T04:48:54-0800</Timestamp>

@@ -22,18 +22,16 @@ import java.util.List;
 import java.util.Map;
 
 import com.typesafe.config.Config;
-import org.dmg.pmml.MiningFunctionType;
-import org.dmg.pmml.MiningModel;
-import org.dmg.pmml.MissingValueStrategyType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.Model;
-import org.dmg.pmml.MultipleModelMethodType;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.ScoreDistribution;
-import org.dmg.pmml.Segment;
-import org.dmg.pmml.Segmentation;
-import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
+import org.dmg.pmml.mining.MiningModel;
+import org.dmg.pmml.mining.Segment;
+import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
@@ -121,10 +119,10 @@ public final class RDFUpdateIT extends AbstractRDFIT {
         MiningModel miningModel = (MiningModel) rootModel;
         Segmentation segmentation = miningModel.getSegmentation();
         if (schema.isClassification()) {
-          assertEquals(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE,
+          assertEquals(Segmentation.MultipleModelMethod.WEIGHTED_MAJORITY_VOTE,
                        segmentation.getMultipleModelMethod());
         } else {
-          assertEquals(MultipleModelMethodType.WEIGHTED_AVERAGE,
+          assertEquals(Segmentation.MultipleModelMethod.WEIGHTED_AVERAGE,
                        segmentation.getMultipleModelMethod());
         }
         List<Segment> segments = segmentation.getSegments();
@@ -144,9 +142,9 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       }
 
       if (schema.isClassification()) {
-        assertEquals(MiningFunctionType.CLASSIFICATION, rootModel.getFunctionName());
+        assertEquals(MiningFunction.CLASSIFICATION, rootModel.getMiningFunction());
       } else {
-        assertEquals(MiningFunctionType.REGRESSION, rootModel.getFunctionName());
+        assertEquals(MiningFunction.REGRESSION, rootModel.getMiningFunction());
       }
 
       checkMiningSchema(schema, rootModel.getMiningSchema());
@@ -156,7 +154,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
   private static void checkTreeModel(TreeModel treeModel) {
     assertEquals(TreeModel.SplitCharacteristic.BINARY_SPLIT, treeModel.getSplitCharacteristic());
-    assertEquals(MissingValueStrategyType.DEFAULT_CHILD, treeModel.getMissingValueStrategy());
+    assertEquals(TreeModel.MissingValueStrategy.DEFAULT_CHILD, treeModel.getMissingValueStrategy());
     checkNode(treeModel.getNode());
   }
 

@@ -31,15 +31,14 @@ import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
-import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.MiningSchema;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
-import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.Value;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
@@ -52,7 +51,7 @@ public final class AppPMMLUtilsTest extends OryxTest {
 
   private static PMML buildDummyModel() {
     Node node = new Node().setRecordCount(123.0);
-    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, null, node);
+    TreeModel treeModel = new TreeModel(MiningFunction.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.addModels(treeModel);
     return pmml;
@@ -115,10 +114,10 @@ public final class AppPMMLUtilsTest extends OryxTest {
       assertEquals(fieldNames[i], miningFields.get(i).getName().getValue());
     }
 
-    assertEquals(FieldUsageType.SUPPLEMENTARY, miningFields.get(0).getUsageType());
-    assertEquals(FieldUsageType.PREDICTED, miningFields.get(1).getUsageType());
-    assertEquals(FieldUsageType.SUPPLEMENTARY, miningFields.get(2).getUsageType());
-    assertEquals(FieldUsageType.ACTIVE, miningFields.get(3).getUsageType());
+    assertEquals(MiningField.FieldUsage.SUPPLEMENTARY, miningFields.get(0).getFieldUsage());
+    assertEquals(MiningField.FieldUsage.PREDICTED, miningFields.get(1).getFieldUsage());
+    assertEquals(MiningField.FieldUsage.SUPPLEMENTARY, miningFields.get(2).getFieldUsage());
+    assertEquals(MiningField.FieldUsage.ACTIVE, miningFields.get(3).getFieldUsage());
 
     assertEquals(OpType.CATEGORICAL, miningFields.get(1).getOpType());
     assertEquals(OpType.CONTINUOUS, miningFields.get(3).getOpType());

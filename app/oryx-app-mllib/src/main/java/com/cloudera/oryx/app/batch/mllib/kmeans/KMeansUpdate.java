@@ -29,14 +29,14 @@ import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
-import org.dmg.pmml.Cluster;
-import org.dmg.pmml.ClusteringField;
-import org.dmg.pmml.ClusteringModel;
 import org.dmg.pmml.ComparisonMeasure;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.MiningFunctionType;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.SquaredEuclidean;
+import org.dmg.pmml.clustering.Cluster;
+import org.dmg.pmml.clustering.ClusteringField;
+import org.dmg.pmml.clustering.ClusteringModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,7 +211,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
     }
 
     return new ClusteringModel(
-        MiningFunctionType.CLUSTERING,
+        MiningFunction.CLUSTERING,
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         AppPMMLUtils.buildMiningSchema(inputSchema),

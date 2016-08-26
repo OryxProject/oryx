@@ -26,24 +26,21 @@ import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
-import org.dmg.pmml.MiningFunctionType;
-import org.dmg.pmml.MiningModel;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.MiningSchema;
-import org.dmg.pmml.MissingValueStrategyType;
-import org.dmg.pmml.MultipleModelMethodType;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.ScoreDistribution;
-import org.dmg.pmml.Segment;
-import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.SimplePredicate;
 import org.dmg.pmml.SimpleSetPredicate;
-import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
 import org.dmg.pmml.Value;
+import org.dmg.pmml.mining.MiningModel;
+import org.dmg.pmml.mining.Segment;
+import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
 
 import com.cloudera.oryx.app.rdf.tree.DecisionForest;
@@ -132,12 +129,12 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("color"))
         .setOpType(OpType.CATEGORICAL)
-        .setUsageType(FieldUsageType.ACTIVE)
+        .setFieldUsage(MiningField.FieldUsage.ACTIVE)
         .setImportance(0.5);
     miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("fruit"))
         .setOpType(OpType.CATEGORICAL)
-        .setUsageType(FieldUsageType.PREDICTED);
+        .setFieldUsage(MiningField.FieldUsage.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
@@ -156,12 +153,12 @@ public final class RDFPMMLUtilsTest extends OryxTest {
 
     rootNode.addNodes(right, left);
 
-    TreeModel treeModel = new TreeModel(MiningFunctionType.CLASSIFICATION, miningSchema, rootNode)
+    TreeModel treeModel = new TreeModel(MiningFunction.CLASSIFICATION, miningSchema, rootNode)
         .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
-        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD);
+        .setMissingValueStrategy(TreeModel.MissingValueStrategy.DEFAULT_CHILD);
 
     if (numTrees > 1) {
-      MiningModel miningModel = new MiningModel(MiningFunctionType.CLASSIFICATION, miningSchema);
+      MiningModel miningModel = new MiningModel(MiningFunction.CLASSIFICATION, miningSchema);
       List<Segment> segments = new ArrayList<>();
       for (int i = 0; i < numTrees; i++) {
         segments.add(new Segment()
@@ -171,7 +168,7 @@ public final class RDFPMMLUtilsTest extends OryxTest {
             .setWeight(1.0));
       }
       miningModel.setSegmentation(
-          new Segmentation(MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE, segments));
+          new Segmentation(Segmentation.MultipleModelMethod.WEIGHTED_MAJORITY_VOTE, segments));
       pmml.addModels(miningModel);
     } else {
       pmml.addModels(treeModel);
@@ -193,12 +190,12 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("foo"))
         .setOpType(OpType.CONTINUOUS)
-        .setUsageType(FieldUsageType.ACTIVE)
+        .setFieldUsage(MiningField.FieldUsage.ACTIVE)
         .setImportance(0.5);
     miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("bar"))
         .setOpType(OpType.CONTINUOUS)
-        .setUsageType(FieldUsageType.PREDICTED);
+        .setFieldUsage(MiningField.FieldUsage.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
@@ -219,9 +216,9 @@ public final class RDFPMMLUtilsTest extends OryxTest {
 
     rootNode.addNodes(right, left);
 
-    TreeModel treeModel = new TreeModel(MiningFunctionType.REGRESSION, miningSchema, rootNode)
+    TreeModel treeModel = new TreeModel(MiningFunction.REGRESSION, miningSchema, rootNode)
         .setSplitCharacteristic(TreeModel.SplitCharacteristic.BINARY_SPLIT)
-        .setMissingValueStrategy(MissingValueStrategyType.DEFAULT_CHILD)
+        .setMissingValueStrategy(TreeModel.MissingValueStrategy.DEFAULT_CHILD)
         .setMiningSchema(miningSchema);
 
     pmml.addModels(treeModel);

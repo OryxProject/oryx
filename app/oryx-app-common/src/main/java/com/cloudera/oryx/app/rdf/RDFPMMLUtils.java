@@ -24,21 +24,20 @@ import java.util.Objects;
 import com.google.common.base.Preconditions;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.MiningField;
-import org.dmg.pmml.MiningFunctionType;
-import org.dmg.pmml.MiningModel;
+import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.Model;
-import org.dmg.pmml.MultipleModelMethodType;
-import org.dmg.pmml.Node;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Predicate;
 import org.dmg.pmml.ScoreDistribution;
-import org.dmg.pmml.Segment;
-import org.dmg.pmml.Segmentation;
 import org.dmg.pmml.SimplePredicate;
 import org.dmg.pmml.SimpleSetPredicate;
-import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
+import org.dmg.pmml.mining.MiningModel;
+import org.dmg.pmml.mining.Segment;
+import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.Node;
+import org.dmg.pmml.tree.TreeModel;
 
 import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
@@ -77,13 +76,13 @@ public final class RDFPMMLUtils {
                                 "Should have exactly one model, but had %s", models.size());
 
     Model model = models.get(0);
-    MiningFunctionType function = model.getFunctionName();
+    MiningFunction function = model.getMiningFunction();
     if (schema.isClassification()) {
-      Preconditions.checkArgument(function == MiningFunctionType.CLASSIFICATION,
+      Preconditions.checkArgument(function == MiningFunction.CLASSIFICATION,
                                   "Expected classification function type but got %s",
                                   function);
     } else {
-      Preconditions.checkArgument(function == MiningFunctionType.REGRESSION,
+      Preconditions.checkArgument(function == MiningFunction.REGRESSION,
                                   "Expected regression function type but got %s",
                                   function);
     }
@@ -131,8 +130,8 @@ public final class RDFPMMLUtils {
       MiningModel miningModel = (MiningModel) model;
       Segmentation segmentation = miningModel.getSegmentation();
       Preconditions.checkArgument(
-          segmentation.getMultipleModelMethod() == MultipleModelMethodType.WEIGHTED_AVERAGE ||
-          segmentation.getMultipleModelMethod() == MultipleModelMethodType.WEIGHTED_MAJORITY_VOTE);
+          segmentation.getMultipleModelMethod() == Segmentation.MultipleModelMethod.WEIGHTED_AVERAGE ||
+          segmentation.getMultipleModelMethod() == Segmentation.MultipleModelMethod.WEIGHTED_MAJORITY_VOTE);
       List<Segment> segments = segmentation.getSegments();
       Preconditions.checkArgument(!segments.isEmpty());
 

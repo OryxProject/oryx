@@ -40,7 +40,6 @@ import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
 import org.dmg.pmml.Extension;
 import org.dmg.pmml.FieldName;
-import org.dmg.pmml.FieldUsageType;
 import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.OpType;
@@ -147,20 +146,20 @@ public final class AppPMMLUtils {
       MiningField field = new MiningField(FieldName.create(featureName));
       if (schema.isNumeric(featureName)) {
         field.setOpType(OpType.CONTINUOUS);
-        field.setUsageType(FieldUsageType.ACTIVE);
+        field.setFieldUsage(MiningField.FieldUsage.ACTIVE);
       } else if (schema.isCategorical(featureName)) {
         field.setOpType(OpType.CATEGORICAL);
-        field.setUsageType(FieldUsageType.ACTIVE);
+        field.setFieldUsage(MiningField.FieldUsage.ACTIVE);
       } else {
         // ID, or ignored
-        field.setUsageType(FieldUsageType.SUPPLEMENTARY);
+        field.setFieldUsage(MiningField.FieldUsage.SUPPLEMENTARY);
       }
       if (schema.hasTarget() && schema.isTarget(featureName)) {
         // Override to PREDICTED
-        field.setUsageType(FieldUsageType.PREDICTED);
+        field.setFieldUsage(MiningField.FieldUsage.PREDICTED);
       }
       // Will be active if and only if it's a predictor
-      if (field.getUsageType() == FieldUsageType.ACTIVE && importances != null) {
+      if (field.getFieldUsage() == MiningField.FieldUsage.ACTIVE && importances != null) {
         int predictorIndex = schema.featureToPredictorIndex(featureIndex);
         field.setImportance(importances[predictorIndex]);
       }
@@ -180,12 +179,12 @@ public final class AppPMMLUtils {
 
   /**
    * @param miningSchema {@link MiningSchema} from a model
-   * @return index of the {@link FieldUsageType#PREDICTED} feature
+   * @return index of the {@link MiningField.FieldUsage#PREDICTED} feature
    */
   public static Integer findTargetIndex(MiningSchema miningSchema) {
     List<MiningField> miningFields = miningSchema.getMiningFields();
     for (int i = 0; i < miningFields.size(); i++) {
-      if (miningFields.get(i).getUsageType() == FieldUsageType.PREDICTED) {
+      if (miningFields.get(i).getFieldUsage() == MiningField.FieldUsage.PREDICTED) {
         return i;
       }
     }
