@@ -134,9 +134,13 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
   }
 
   public void await() {
-    Preconditions.checkState(streamingContext != null);
+    JavaStreamingContext theStreamingContext;
+    synchronized (this) {
+      theStreamingContext = streamingContext;
+      Preconditions.checkState(theStreamingContext != null);
+    }
     log.info("Spark Streaming is running");
-    streamingContext.awaitTermination();
+    theStreamingContext.awaitTermination(); // Can't do this with lock
   }
 
   @Override

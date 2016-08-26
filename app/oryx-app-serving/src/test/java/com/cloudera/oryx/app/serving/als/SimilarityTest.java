@@ -71,6 +71,11 @@ public final class SimilarityTest extends AbstractALSServingTest {
     testOffset("/similarity/I0/I2/I6", 3, -1, 0);
   }
 
+  @Test(expected = BadRequestException.class)
+  public void testTooMany() {
+    testHowMany("/similarity/I0/I2/I4", 100001, 0);
+  }
+
   @Test
   public void testRescorer() {
     List<IDValue> recs = target("similarity/I0/I4/I6")

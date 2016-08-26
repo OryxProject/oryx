@@ -80,6 +80,8 @@ public final class Recommend extends AbstractALSResource {
 
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
+    check(howMany + offset >= 0 && howMany + offset <= MAX_RESULTS,
+          "howMany + offset is too large");
 
     ALSServingModel model = getALSServingModel();
     float[] userVector = model.getUserVector(userID);

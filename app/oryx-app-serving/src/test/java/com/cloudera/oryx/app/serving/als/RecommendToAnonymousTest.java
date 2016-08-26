@@ -74,6 +74,11 @@ public final class RecommendToAnonymousTest extends AbstractALSServingTest {
   }
 
   @Test(expected = BadRequestException.class)
+  public void testTooMany() {
+    testHowMany("/recommendToAnonymous/I1", 100001, 0);
+  }
+
+  @Test(expected = BadRequestException.class)
   public void testBadOffset() {
     testOffset("/recommendToAnonymous/I1", 3, -1, 0);
   }

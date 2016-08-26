@@ -62,6 +62,11 @@ public final class RecommendToManyTest extends AbstractALSServingTest {
   }
 
   @Test(expected = BadRequestException.class)
+  public void testTooMany() {
+    testHowMany("/recommendToMany/U5", 100001, 0);
+  }
+
+  @Test(expected = BadRequestException.class)
   public void testBadOffset() {
     testOffset("/recommendToMany/U6", 3, -1, 0);
   }

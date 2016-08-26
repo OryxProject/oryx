@@ -148,7 +148,11 @@ public final class ServingLayer implements Closeable {
    * Blocks and waits until the server shuts down.
    */
   public void await() {
-    tomcat.getServer().await();
+    Server server;
+    synchronized (this) {
+      server = tomcat.getServer();
+    }
+    server.await(); // Can't do this with lock held
   }
 
   /**
