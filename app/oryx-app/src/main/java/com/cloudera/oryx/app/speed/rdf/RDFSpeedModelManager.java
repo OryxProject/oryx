@@ -86,6 +86,10 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
+
           RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
               RDFPMMLUtils.read(pmml);

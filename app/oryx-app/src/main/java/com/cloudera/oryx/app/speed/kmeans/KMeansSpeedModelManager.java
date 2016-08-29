@@ -74,6 +74,10 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
+
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
           log.info("New model loaded: {}", model);

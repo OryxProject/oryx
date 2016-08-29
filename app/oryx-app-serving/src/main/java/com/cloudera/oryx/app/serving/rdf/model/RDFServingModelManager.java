@@ -110,6 +110,9 @@ public final class RDFServingModelManager extends AbstractServingModelManager<St
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
 
           RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =

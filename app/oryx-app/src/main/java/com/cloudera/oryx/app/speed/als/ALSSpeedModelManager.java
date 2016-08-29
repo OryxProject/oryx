@@ -116,6 +116,9 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
 
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
