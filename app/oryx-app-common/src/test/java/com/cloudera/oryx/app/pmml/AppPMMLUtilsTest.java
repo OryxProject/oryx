@@ -208,6 +208,8 @@ public final class AppPMMLUtilsTest extends OryxTest {
     Files.write(pmmlPath, Collections.singleton(pmmlString));
     assertEquals(PMMLUtils.VERSION, AppPMMLUtils.readPMMLFromUpdateKeyMessage(
         "MODEL-REF", pmmlPath.toAbsolutePath().toString(), null).getVersion());
+
+    assertNull(AppPMMLUtils.readPMMLFromUpdateKeyMessage("MODEL-REF", "no-such-path", null));
   }
 
 }

@@ -82,6 +82,9 @@ public final class KMeansServingModelManager extends AbstractServingModelManager
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
 
           KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
           List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);

@@ -113,6 +113,9 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
         case "MODEL-REF":
           log.info("Loading new model");
           PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+          if (pmml == null) {
+            continue;
+          }
 
           int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
           boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
