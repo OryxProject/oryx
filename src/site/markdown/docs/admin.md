@@ -224,8 +224,8 @@ The content of this subdirectory will depend on the application, but typically c
 called `model.pmml`, and optionally supplementary files that go with the model.
 
 This directory exists to record PMML models for archiving and for use by other tools. Its content
-may be deleted if desired.
-
+may be deleted if desired. Note also that setting `oryx.batch.storage.max-age-model-hours` to a
+nonnegative value will cause models older than the given number of hours to be deleted automatically.
 
 # Cloudera Quickstart VM Setup
 

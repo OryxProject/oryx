@@ -38,17 +38,20 @@ public final class DeleteOldDataIT extends AbstractBatchIT {
   public void testDeleteOldData() throws Exception {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
+    Path modelDir = tempDir.resolve("model");
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.batch.update-class", MockBatchUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
-    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
     overlayConfig.put("oryx.batch.storage.max-age-data-hours", 0);
+    overlayConfig.put("oryx.batch.storage.max-age-model-hours", 0);
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();
     startServerProduceConsumeTopics(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
     assertEquals(0, IOUtils.listFiles(dataDir, "*").size());
+    assertEquals(0, IOUtils.listFiles(modelDir, "*").size());
   }
 
 }
