@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.pmml;
 
 import javax.xml.bind.JAXBException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +48,8 @@ import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.TypeDefinitionField;
 import org.dmg.pmml.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
 import com.cloudera.oryx.app.schema.InputSchema;
@@ -57,6 +60,8 @@ import com.cloudera.oryx.common.text.TextUtils;
  * General app tier PMML-related utility methods.
  */
 public final class AppPMMLUtils {
+
+  private static final Logger log = LoggerFactory.getLogger(AppPMMLUtils.class);
 
   private AppPMMLUtils() {}
 
@@ -270,6 +275,9 @@ public final class AppPMMLUtils {
         FileSystem fs = FileSystem.get(messagePath.toUri(), hadoopConf);
         try (InputStreamReader in = new InputStreamReader(fs.open(messagePath), StandardCharsets.UTF_8)) {
           pmmlString = CharStreams.toString(in);
+        } catch (FileNotFoundException fnfe) {
+          log.warn("Unable to load model file at {}; ignoring", messagePath);
+          return null;
         }
         break;
       default:
