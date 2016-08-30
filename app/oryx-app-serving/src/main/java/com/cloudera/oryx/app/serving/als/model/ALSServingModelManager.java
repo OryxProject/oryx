@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -33,6 +34,7 @@ import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.als.MultiRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.common.lang.RateLimitCheck;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
@@ -49,7 +51,7 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
   private final double sampleRate;
   private final double minModelLoadFraction;
   private final RescorerProvider rescorerProvider;
-  private int countdownToLogModel = 10000;
+  private final RateLimitCheck logRateLimit;
 
   public ALSServingModelManager(Config config) {
     super(config);
@@ -60,6 +62,7 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
     minModelLoadFraction = config.getDouble("oryx.serving.min-model-load-fraction");
     Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
     Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
+    logRateLimit = new RateLimitCheck(1, TimeUnit.MINUTES);
   }
 
   @Override
@@ -89,9 +92,8 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
           default:
             throw new IllegalArgumentException("Bad message: " + message);
         }
-        if (--countdownToLogModel <= 0) {
+        if (logRateLimit.test()) {
           log.info("{}", model);
-          countdownToLogModel = 10000;
           // Arbitrarily take this opportunity to see if solver can be pre-triggered
           // to speed up first access to endpoints that need the solver
           if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {

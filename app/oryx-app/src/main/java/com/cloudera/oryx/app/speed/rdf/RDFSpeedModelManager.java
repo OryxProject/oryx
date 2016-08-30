@@ -20,9 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.DoubleSummaryStatistics;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,8 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.api.speed.AbstractSpeedModelManager;
 import com.cloudera.oryx.app.classreg.example.CategoricalFeature;
 import com.cloudera.oryx.app.classreg.example.Example;
 import com.cloudera.oryx.app.classreg.example.ExampleUtils;
@@ -53,10 +50,10 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * Implementation of {@link SpeedModelManager} that maintains and updates a random decision
- * forest model in memory.
+ * Implementation of {@link com.cloudera.oryx.api.speed.SpeedModelManager} that maintains and
+ * updates a random decision forest model in memory.
  */
-public final class RDFSpeedModelManager implements SpeedModelManager<String,String,String> {
+public final class RDFSpeedModelManager extends AbstractSpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(RDFSpeedModelManager.class);
 
@@ -68,33 +65,27 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          // Nothing to do; just hearing our own updates
-          break;
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+  public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
+    switch (key) {
+      case "UP":
+        // Nothing to do; just hearing our own updates
+        break;
+      case "MODEL":
+      case "MODEL-REF":
+        log.info("Loading new model");
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+        if (pmml == null) {
+          return;
+        }
 
-          RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
-              RDFPMMLUtils.read(pmml);
-          model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
-          log.info("New model loaded: {}", model);
-          break;
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
-      }
+        RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+        Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
+            RDFPMMLUtils.read(pmml);
+        model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
+        log.info("New model loaded: {}", model);
+        break;
+      default:
+        throw new IllegalArgumentException("Bad key: " + key);
     }
   }
 

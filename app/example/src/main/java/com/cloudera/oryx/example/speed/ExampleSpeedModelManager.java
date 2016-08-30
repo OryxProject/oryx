@@ -18,7 +18,6 @@ package com.cloudera.oryx.example.speed;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,8 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.api.java.JavaPairRDD;
 
-import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.api.speed.AbstractSpeedModelManager;
 import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
 
 /**
@@ -37,30 +35,24 @@ import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
  * that the Batch Layer sees, but assumes all words seen are new and distinct, which is only
  * approximately true. Emits updates of the form "word,count".
  */
-public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
+public final class ExampleSpeedModelManager extends AbstractSpeedModelManager<String,String,String> {
 
   private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator,
-                      Configuration hadoopConf) throws IOException {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = km.getKey();
-      String message = km.getMessage();
-      switch (key) {
-        case "MODEL":
-          @SuppressWarnings("unchecked")
-          Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
-          distinctOtherWords.keySet().retainAll(model.keySet());
-          model.forEach(distinctOtherWords::put);
-          break;
-        case "UP":
-          // ignore
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown key " + key);
-      }
+  public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
+    switch (key) {
+      case "MODEL":
+        @SuppressWarnings("unchecked")
+        Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
+        distinctOtherWords.keySet().retainAll(model.keySet());
+        model.forEach(distinctOtherWords::put);
+        break;
+      case "UP":
+        // ignore
+        break;
+      default:
+        throw new IllegalArgumentException("Bad key " + key);
     }
   }
 

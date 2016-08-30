@@ -18,8 +18,6 @@ package com.cloudera.oryx.app.speed.kmeans;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.typesafe.config.Config;
@@ -30,8 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.api.speed.AbstractSpeedModelManager;
 import com.cloudera.oryx.app.common.fn.MLFunctions;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
 import com.cloudera.oryx.app.kmeans.KMeansPMMLUtils;
@@ -41,10 +38,10 @@ import com.cloudera.oryx.app.schema.InputSchema;
 import com.cloudera.oryx.common.text.TextUtils;
 
 /**
- * Implementation of {@link SpeedModelManager} that maintains and updates an k-means
- * clustering model in memory.
+ * Implementation of {@link com.cloudera.oryx.api.speed.SpeedModelManager} that maintains and
+ * updates an k-means clustering model in memory.
  */
-public final class KMeansSpeedModelManager implements SpeedModelManager<String,String,String> {
+public final class KMeansSpeedModelManager extends AbstractSpeedModelManager<String,String,String> {
 
   private static final Logger log = LoggerFactory.getLogger(KMeansSpeedModelManager.class);
 
@@ -56,33 +53,26 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String, String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          // do nothing, hearing our own updates
-          break;
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+  public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
+    switch (key) {
+      case "UP":
+        // do nothing, hearing our own updates
+        break;
+      case "MODEL":
+      case "MODEL-REF":
+        log.info("Loading new model");
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+        if (pmml == null) {
+          return;
+        }
 
-          KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
-          log.info("New model loaded: {}", model);
-          break;
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
-      }
+        KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+        model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
+        log.info("New model loaded: {}", model);
+        break;
+      default:
+        throw new IllegalArgumentException("Bad key: " + key);
     }
-
   }
 
   @Override
