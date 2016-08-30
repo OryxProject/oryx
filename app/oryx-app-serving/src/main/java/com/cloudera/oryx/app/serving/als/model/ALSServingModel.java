@@ -251,21 +251,23 @@ public final class ALSServingModel implements ServingModel {
   }
 
   void addKnownItems(String user, Collection<String> items) {
-    ObjSet<String> knownItemsForUser = doGetKnownItems(user);
+    if (!items.isEmpty()) {
+      ObjSet<String> knownItemsForUser = doGetKnownItems(user);
 
-    if (knownItemsForUser == null) {
-      try (AutoLock al = knownItemsLock.autoWriteLock()) {
-        // Check again
-        knownItemsForUser = knownItems.get(user);
-        if (knownItemsForUser == null) {
-          knownItemsForUser = HashObjSets.newMutableSet();
-          knownItems.put(user, knownItemsForUser);
+      if (knownItemsForUser == null) {
+        try (AutoLock al = knownItemsLock.autoWriteLock()) {
+          // Check again
+          knownItemsForUser = knownItems.get(user);
+          if (knownItemsForUser == null) {
+            knownItemsForUser = HashObjSets.newMutableSet();
+            knownItems.put(user, knownItemsForUser);
+          }
         }
       }
-    }
 
-    synchronized (knownItemsForUser) {
-      knownItemsForUser.addAll(items);
+      synchronized (knownItemsForUser) {
+        knownItemsForUser.addAll(items);
+      }
     }
   }
 

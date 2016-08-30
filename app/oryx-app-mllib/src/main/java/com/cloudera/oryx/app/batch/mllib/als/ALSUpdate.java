@@ -191,31 +191,28 @@ public final class ALSUpdate extends MLUpdate<String> {
                                          JavaRDD<String> pastData,
                                          Path modelParentPath,
                                          TopicProducer<String, String> modelUpdateTopic) {
+    // Send item updates first, before users. That way, user-based endpoints like /recommend
+    // may take longer to not return 404, but when they do, the result will be more complete.
+    log.info("Sending item / Y data as model updates");
+    String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
+    JavaPairRDD<String,float[]> productRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
 
-    JavaRDD<String[]> allData =
-        (pastData == null ? newData : newData.union(pastData)).map(MLFunctions.PARSE_FN);
+    String updateBroker = modelUpdateTopic.getUpdateBroker();
+    String topic = modelUpdateTopic.getTopic();
+
+    // For now, there is no use in sending known users for each item
+    productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
 
     log.info("Sending user / X data as model updates");
     String xPathString = AppPMMLUtils.getExtensionValue(pmml, "X");
     JavaPairRDD<String,float[]> userRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, xPathString));
 
-    String updateBroker = modelUpdateTopic.getUpdateBroker();
-    String topic = modelUpdateTopic.getTopic();
-
-    // Send item updates first, before users. That way, user-based endpoints like /recommend
-    // may take longer to not return 404, but when they do, the result will be more complete.
-
-    log.info("Sending item / Y data as model updates");
-    String yPathString = AppPMMLUtils.getExtensionValue(pmml, "Y");
-    JavaPairRDD<String,float[]> productRDD = readFeaturesRDD(sparkContext, new Path(modelParentPath, yPathString));
-
-    // For now, there is no use in sending known users for each item
-    productRDD.foreachPartition(new EnqueueFeatureVecsFn("Y", updateBroker, topic));
-
     if (noKnownItems) {
       userRDD.foreachPartition(new EnqueueFeatureVecsFn("X", updateBroker, topic));
     } else {
       log.info("Sending known item data with model updates");
+      JavaRDD<String[]> allData =
+          (pastData == null ? newData : newData.union(pastData)).map(MLFunctions.PARSE_FN);
       JavaPairRDD<String,Collection<String>> knownItems = knownsRDD(allData, true);
       userRDD.join(knownItems).foreachPartition(
           new EnqueueFeatureVecsAndKnownItemsFn("X", updateBroker, topic));
