@@ -16,6 +16,7 @@
 package com.cloudera.oryx.common.pmml;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
@@ -112,7 +113,10 @@ public final class PMMLUtils {
    */
   public static String toString(PMML pmml) {
     try (StringWriter out = new StringWriter()) {
-      JAXBUtil.marshalPMML(pmml, new StreamResult(out));
+      // Emulate JAXBUtil.marshalPMML but need to set compact, non-pretty output
+      Marshaller marshaller = JAXBUtil.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.FALSE);
+      marshaller.marshal(pmml, new StreamResult(out));
       return out.toString();
     } catch (JAXBException | IOException e) {
       // IOException should not be possible; JAXBException would only happen with XML
@@ -124,10 +128,14 @@ public final class PMMLUtils {
   /**
    * @param pmmlString PMML model encoded as an XML doc in a string
    * @return {@link PMML} object representing the model
-   * @throws JAXBException if XML can't be unserialized
+   * @throws IOException if XML can't be unserialized
    */
-  public static PMML fromString(String pmmlString) throws JAXBException {
-    return JAXBUtil.unmarshalPMML(new StreamSource(new StringReader(pmmlString)));
+  public static PMML fromString(String pmmlString) throws IOException {
+    try {
+      return JAXBUtil.unmarshalPMML(new StreamSource(new StringReader(pmmlString)));
+    } catch (JAXBException e) {
+      throw new IOException(e);
+    }
   }
 
 }

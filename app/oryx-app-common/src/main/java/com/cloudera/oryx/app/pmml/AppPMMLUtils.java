@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.pmml;
 
-import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -283,11 +282,7 @@ public final class AppPMMLUtils {
       default:
         throw new IllegalArgumentException("Unknown key " + key);
     }
-    try {
-      return PMMLUtils.fromString(pmmlString);
-    } catch (JAXBException e) {
-      throw new IOException(e);
-    }
+    return PMMLUtils.fromString(pmmlString);
   }
 
 }
