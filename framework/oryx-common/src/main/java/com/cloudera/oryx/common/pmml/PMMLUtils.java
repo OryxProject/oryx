@@ -16,12 +16,13 @@
 package com.cloudera.oryx.common.pmml;
 
 import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import javax.xml.bind.Marshaller;
+import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -32,7 +33,10 @@ import org.dmg.pmml.Application;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
+import org.jpmml.model.ImportFilter;
+import org.jpmml.model.JAXBUtil;
 import org.jpmml.model.PMMLUtil;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -111,9 +115,12 @@ public final class PMMLUtils {
    * @return model serialized as an XML document as a string
    */
   public static String toString(PMML pmml) {
-    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      PMMLUtil.marshal(pmml, out);
-      return new String(out.toByteArray(), StandardCharsets.UTF_8);
+    try (StringWriter out = new StringWriter()) {
+      // v JAXBUtil.marshalPMML but need to set compact, non-pretty output
+      Marshaller marshaller = JAXBUtil.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.FALSE);
+      marshaller.marshal(pmml, new StreamResult(out));
+      return out.toString();
     } catch (JAXBException | IOException e) {
       // IOException should not be possible; JAXBException would only happen with XML
       // config problems.
@@ -127,8 +134,10 @@ public final class PMMLUtils {
    * @throws IOException if XML can't be unserialized
    */
   public static PMML fromString(String pmmlString) throws IOException {
+    // Emulate PMMLUtil.unmarshal here, but need to accept a Reader
+    InputSource source = new InputSource(new StringReader(pmmlString));
     try {
-      return PMMLUtil.unmarshal(new ByteArrayInputStream(pmmlString.getBytes(StandardCharsets.UTF_8)));
+      return JAXBUtil.unmarshalPMML(ImportFilter.apply(source));
     } catch (JAXBException | SAXException e) {
       throw new IOException(e);
     }
