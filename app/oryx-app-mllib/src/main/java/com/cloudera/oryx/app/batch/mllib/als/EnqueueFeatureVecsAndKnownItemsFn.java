@@ -48,7 +48,10 @@ final class EnqueueFeatureVecsAndKnownItemsFn
           Tuple2<float[],Collection<String>> vectorAndItems = keyAndVectorAndItems._2();
           float[] vector = vectorAndItems._1();
           Collection<String> knowItemIDs = vectorAndItems._2();
-          producer.send("UP", TextUtils.joinJSON(Arrays.asList(whichMatrix, id, vector, knowItemIDs)));
+          Collection<?> data = knowItemIDs.isEmpty() ?
+              Arrays.asList(whichMatrix, id, vector) :
+              Arrays.asList(whichMatrix, id, vector, knowItemIDs);
+          producer.send("UP", TextUtils.joinJSON(data));
         });
       }
     }
