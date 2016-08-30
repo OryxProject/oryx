@@ -15,7 +15,11 @@
 
 package com.cloudera.oryx.api.serving
 
+import com.cloudera.oryx.api.KeyMessage
 import com.typesafe.config.Config
+import java.util.Objects
+import org.apache.hadoop.conf.Configuration
+import org.slf4j.LoggerFactory
 
 /**
  * Convenience implementation of [[ScalaServingModelManager]] that provides several default implementations.
@@ -25,6 +29,8 @@ import com.typesafe.config.Config
  * @since 2.0.0
  */
 abstract class AbstractScalaServingModelManager[U](private val config: Config) extends ScalaServingModelManager[U] {
+
+  import AbstractScalaServingModelManager._
 
   private val readOnly = config.getBoolean("oryx.serving.api.read-only")
 
@@ -38,4 +44,38 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
    */
   override def isReadOnly = readOnly
 
+  override def consume(updateIterator: Iterator[KeyMessage[String, U]], hadoopConf: Configuration): Unit = {
+    updateIterator.foreach { km =>
+      val key = km.getKey
+      val message = km.getMessage
+      try {
+        Objects.requireNonNull(key)
+        consumeKeyMessage(key, message, hadoopConf)
+      } catch {
+        case e: Exception =>
+          log.warn("Exception while processing message", e)
+          log.warn("Key/message were {} : {}", key, message)
+      }
+    }
+  }
+
+  /**
+   * Convenience method that is called by the default implementation of
+   * [[ScalaServingModelManager.consume()]], to process one key-message pair.
+   * It does nothing, except log the message. This should generally be overridden
+   * if and only if [[ScalaServingModelManager.consume()]] is not.
+   *
+   * @param key key to process (non-null)
+   * @param message message to process
+   * @param hadoopConf Hadoop configuration for process
+   * @since 2.3.0
+   */
+  def consumeKeyMessage(key: String, message: U, hadoopConf: Configuration): Unit = {
+    log.info("{} : {}", key, message)
+  }
+
+}
+
+object AbstractScalaServingModelManager {
+  val log = LoggerFactory.getLogger(classOf[AbstractScalaServingModelManager[_]])
 }

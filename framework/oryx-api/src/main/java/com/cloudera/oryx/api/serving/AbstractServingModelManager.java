@@ -15,7 +15,16 @@
 
 package com.cloudera.oryx.api.serving;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Objects;
+
 import com.typesafe.config.Config;
+import org.apache.hadoop.conf.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.cloudera.oryx.api.KeyMessage;
 
 /**
  * Convenience implementation of {@link ServingModelManager} that provides several default implementations.
@@ -24,6 +33,8 @@ import com.typesafe.config.Config;
  * @since 2.0.0
  */
 public abstract class AbstractServingModelManager<U> implements ServingModelManager<U> {
+
+  private static final Logger log = LoggerFactory.getLogger(AbstractServingModelManager.class);
 
   private final Config config;
   private final boolean readOnly;
@@ -45,6 +56,38 @@ public abstract class AbstractServingModelManager<U> implements ServingModelMana
   @Override
   public boolean isReadOnly() {
     return readOnly;
+  }
+
+  @Override
+  public void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException {
+    while (updateIterator.hasNext()) {
+      KeyMessage<String,U> km = updateIterator.next();
+      String key = km.getKey();
+      U message = km.getMessage();
+      try {
+        Objects.requireNonNull(key);
+        consumeKeyMessage(key, message, hadoopConf);
+      } catch (Exception e) {
+        log.warn("Exception while processing message",e);
+        log.warn("Key/message were {} : {}", key, message);
+      }
+    }
+  }
+
+  /**
+   * Convenience method that is called by the default implementation of
+   * {@link #consume(Iterator, Configuration)}, to process one key-message pair.
+   * It does nothing, except log the message. This should generally be overridden
+   * if and only if {@link #consume(Iterator, Configuration)} is not.
+   *
+   * @param key key to process (non-null)
+   * @param message message to process
+   * @param hadoopConf Hadoop configuration for process
+   * @throws IOException if an error occurs while processing the message
+   * @since 2.3.0
+   */
+  public void consumeKeyMessage(String key, U message, Configuration hadoopConf) throws IOException {
+    log.info("{} : {}", key, message);
   }
 
 }

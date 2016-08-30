@@ -16,10 +16,8 @@
 package com.cloudera.oryx.app.serving.rdf.model;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
@@ -27,7 +25,6 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.classreg.predict.CategoricalPrediction;
 import com.cloudera.oryx.app.classreg.predict.NumericPrediction;
@@ -56,70 +53,55 @@ public final class RDFServingModelManager extends AbstractServingModelManager<St
     inputSchema = new InputSchema(config);
   }
 
-  /**
-   * Called by the framework to initiate a continuous process of reading models, and reading
-   * from the input topic and updating model state in memory, and issuing updates to the
-   * update topic. This will be executed asynchronously and may block.
-   *
-   * @param updateIterator iterator to read models from
-   * @param hadoopConf Hadoop context, which may be required for reading from HDFS
-   * @throws IOException if an error occurs while reading updates
-   */
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
-    while (updateIterator.hasNext()) {
-      KeyMessage<String, String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          if (model == null) {
-            continue; // No model to interpret with yet, so skip it
-          }
+  public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
+    switch (key) {
+      case "UP":
+        if (model == null) {
+          return; // No model to interpret with yet, so skip it
+        }
 
-          DecisionForest forest = model.getForest();
-          List<?> update = TextUtils.readJSON(message, List.class);
-          int treeID = Integer.parseInt(update.get(0).toString());
-          String nodeID = update.get(1).toString();
+        DecisionForest forest = model.getForest();
+        List<?> update = TextUtils.readJSON(message, List.class);
+        int treeID = Integer.parseInt(update.get(0).toString());
+        String nodeID = update.get(1).toString();
 
-          if (inputSchema.isClassification()) {
-            TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
-            CategoricalPrediction predictionToUpdate =
-                (CategoricalPrediction) nodeToUpdate.getPrediction();
-            @SuppressWarnings("unchecked")
-            Map<String,Integer> counts = (Map<String,Integer>) update.get(2); // JSON map keys are always Strings
-            counts.forEach((encoding, count) -> predictionToUpdate.update(Integer.parseInt(encoding), count));
-          } else {
-            TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
-            NumericPrediction predictionToUpdate = (NumericPrediction) nodeToUpdate.getPrediction();
-            double mean = Double.parseDouble(update.get(2).toString());
-            int count = Integer.parseInt(update.get(3).toString());
-            predictionToUpdate.update(mean, count);
-          }
+        if (inputSchema.isClassification()) {
+          TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
+          CategoricalPrediction predictionToUpdate =
+              (CategoricalPrediction) nodeToUpdate.getPrediction();
+          @SuppressWarnings("unchecked")
+          Map<String,Integer> counts = (Map<String,Integer>) update.get(2); // JSON map keys are always Strings
+          counts.forEach((encoding, count) -> predictionToUpdate.update(Integer.parseInt(encoding), count));
+        } else {
+          TerminalNode nodeToUpdate = (TerminalNode) forest.getTrees()[treeID].findByID(nodeID);
+          NumericPrediction predictionToUpdate = (NumericPrediction) nodeToUpdate.getPrediction();
+          double mean = Double.parseDouble(update.get(2).toString());
+          int count = Integer.parseInt(update.get(3).toString());
+          predictionToUpdate.update(mean, count);
+        }
 
-          break;
+        break;
 
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+      case "MODEL":
+      case "MODEL-REF":
+        log.info("Loading new model");
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+        if (pmml == null) {
+          return;
+        }
 
-          RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
-              RDFPMMLUtils.read(pmml);
-          model = new RDFServingModel(forestAndEncodings.getFirst(),
-                                      forestAndEncodings.getSecond(),
-                                      inputSchema);
-          log.info("New model: {}", model);
-          break;
+        RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+        Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
+            RDFPMMLUtils.read(pmml);
+        model = new RDFServingModel(forestAndEncodings.getFirst(),
+                                    forestAndEncodings.getSecond(),
+                                    inputSchema);
+        log.info("New model: {}", model);
+        break;
 
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
-      }
+      default:
+        throw new IllegalArgumentException("Bad key: " + key);
     }
   }
 
