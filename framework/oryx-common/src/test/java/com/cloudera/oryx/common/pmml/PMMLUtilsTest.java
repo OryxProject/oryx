@@ -65,7 +65,7 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model = buildDummyModel();
     model.getHeader().setTimestamp(null);
     assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
-                 "<PMML version=\"4.3\" xmlns=\"http://www.dmg.org/PMML-4_3\">\n" +
+                 "<PMML xmlns=\"http://www.dmg.org/PMML-4_3\" version=\"4.3\">\n" +
                  "    <Header>\n" +
                  "        <Application name=\"Oryx\"/>\n" +
                  "    </Header>\n" +
@@ -84,6 +84,23 @@ public final class PMMLUtilsTest extends OryxTest {
                  model2.getHeader().getApplication().getName());
     assertEquals(model.getModels().get(0).getMiningFunction(),
                  model2.getModels().get(0).getMiningFunction());
+  }
+
+  @Test
+  public void testPreviousPMMLVersion() throws Exception {
+    String pmml42 =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+        "<PMML xmlns=\"http://www.dmg.org/PMML-4_2\" version=\"4.2.1\">\n" +
+        "    <Header>\n" +
+        "        <Application name=\"Oryx\"/>\n" +
+        "    </Header>\n" +
+        "    <TreeModel functionName=\"classification\">\n" +
+        "        <Node recordCount=\"123.0\"/>\n" +
+        "    </TreeModel>\n" +
+        "</PMML>\n";
+    PMML model = PMMLUtils.fromString(pmml42);
+    // Actually transforms to latest version:
+    assertEquals(PMMLUtils.VERSION, model.getVersion());
   }
 
 }

@@ -16,13 +16,12 @@
 package com.cloudera.oryx.common.pmml;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -33,7 +32,8 @@ import org.dmg.pmml.Application;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
-import org.jpmml.model.JAXBUtil;
+import org.jpmml.model.PMMLUtil;
+import org.xml.sax.SAXException;
 
 /**
  * PMML-related utility methods.
@@ -76,7 +76,7 @@ public final class PMMLUtils {
    */
   public static void write(PMML pmml, OutputStream out) throws IOException {
     try {
-      JAXBUtil.marshalPMML(pmml, new StreamResult(out));
+      PMMLUtil.marshal(pmml, out);
     } catch (JAXBException e) {
       throw new IOException(e);
     }
@@ -100,8 +100,8 @@ public final class PMMLUtils {
    */
   public static PMML read(InputStream in) throws IOException {
     try {
-      return JAXBUtil.unmarshalPMML(new StreamSource(in));
-    } catch (JAXBException e) {
+      return PMMLUtil.unmarshal(in);
+    } catch (JAXBException | SAXException e) {
       throw new IOException(e);
     }
   }
@@ -111,9 +111,9 @@ public final class PMMLUtils {
    * @return model serialized as an XML document as a string
    */
   public static String toString(PMML pmml) {
-    try (StringWriter out = new StringWriter()) {
-      JAXBUtil.marshalPMML(pmml, new StreamResult(out));
-      return out.toString();
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      PMMLUtil.marshal(pmml, out);
+      return new String(out.toByteArray(), StandardCharsets.UTF_8);
     } catch (JAXBException | IOException e) {
       // IOException should not be possible; JAXBException would only happen with XML
       // config problems.
@@ -124,10 +124,14 @@ public final class PMMLUtils {
   /**
    * @param pmmlString PMML model encoded as an XML doc in a string
    * @return {@link PMML} object representing the model
-   * @throws JAXBException if XML can't be unserialized
+   * @throws IOException if XML can't be unserialized
    */
-  public static PMML fromString(String pmmlString) throws JAXBException {
-    return JAXBUtil.unmarshalPMML(new StreamSource(new StringReader(pmmlString)));
+  public static PMML fromString(String pmmlString) throws IOException {
+    try {
+      return PMMLUtil.unmarshal(new ByteArrayInputStream(pmmlString.getBytes(StandardCharsets.UTF_8)));
+    } catch (JAXBException | SAXException e) {
+      throw new IOException(e);
+    }
   }
 
 }
