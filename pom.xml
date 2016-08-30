@@ -1193,8 +1193,8 @@
     <profile>
       <id>spark-1.6</id>
       <properties>
-        <spark.version>1.6.1</spark.version>
-        <snappy.version>1.1.2.1</snappy.version>
+        <spark.version>1.6.2</spark.version>
+        <snappy.version>1.1.2.6</snappy.version>
       </properties>
     </profile>
     <profile>
