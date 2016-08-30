@@ -69,10 +69,7 @@ public final class RecommendWithContext extends AbstractALSResource {
       @DefaultValue("false") @QueryParam("considerKnownItems") boolean considerKnownItems,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    check(howMany > 0, "howMany must be positive");
-    check(offset >= 0, "offset must be nonnegative");
-    check(howMany + offset >= 0 && howMany + offset <= MAX_RESULTS,
-          "howMany + offset is too large");
+    checkHowManyOffset(howMany, offset);
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);
