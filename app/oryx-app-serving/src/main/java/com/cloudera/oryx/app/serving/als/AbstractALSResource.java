@@ -31,10 +31,17 @@ import com.cloudera.oryx.common.collection.Pair;
 abstract class AbstractALSResource extends AbstractOryxResource {
 
   /** Somewhat arbitrarily cap the number of results that can be requested. */
-  static final int MAX_RESULTS = 100000;
+  private static final int MAX_RESULTS = 100000;
 
   final ALSServingModel getALSServingModel() throws OryxServingException {
     return (ALSServingModel) getServingModel();
+  }
+
+  static void checkHowManyOffset(int howMany, int offset) throws OryxServingException {
+    check(howMany > 0, "howMany must be positive");
+    check(offset >= 0, "offset must be nonnegative");
+    check(howMany <= MAX_RESULTS && offset <= MAX_RESULTS && howMany + offset <= MAX_RESULTS,
+          "howMany + offset is too large");
   }
 
   static List<IDValue> toIDValueResponse(Stream<Pair<String,Double>> pairs,
