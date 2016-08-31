@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2016, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,38 +13,28 @@
  * License.
  */
 
-package com.cloudera.oryx.api.serving
+package com.cloudera.oryx.api.speed
 
 import com.cloudera.oryx.api.KeyMessage
+import com.cloudera.oryx.api.serving.ScalaServingModelManager
 import com.typesafe.config.Config
 import java.util.Objects
 import org.apache.hadoop.conf.Configuration
 import org.slf4j.LoggerFactory
 
 /**
- * Convenience implementation of [[ScalaServingModelManager]] that provides several default implementations.
+ * Convenience implementation of [[ScalaSpeedModelManager]] that provides several default implementations.
  *
- * @param config  Oryx [[Config]] object
+ * @tparam K type of key read from input topic
+ * @tparam M type of message read from input topic
  * @tparam U type of update message read/written
- * @since 2.0.0
+ * @since 2.3.0
  */
-abstract class AbstractScalaServingModelManager[U](private val config: Config) extends ScalaServingModelManager[U] {
+abstract class AbstractScalaSpeedModelManager[K,M,U](private val config: Config) extends ScalaSpeedModelManager[K,M,U] {
 
-  import AbstractScalaServingModelManager._
+  import AbstractScalaSpeedModelManager._
 
-  private val readOnly = config.getBoolean("oryx.serving.api.read-only")
-
-  /**
-   * @since 2.0.0
-   */
-  override def getConfig = config
-
-  /**
-   * @since 2.0.0
-   */
-  override def isReadOnly = readOnly
-
-  override def consume(updateIterator: Iterator[KeyMessage[String, U]], hadoopConf: Configuration): Unit = {
+  override def consume(updateIterator: Iterator[KeyMessage[String,U]], hadoopConf: Configuration): Unit = {
     updateIterator.foreach { km =>
       val key = km.getKey
       val message = km.getMessage
@@ -61,7 +51,7 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
 
   /**
    * Convenience method that is called by the default implementation of
-   * [[ScalaServingModelManager.consume()]], to process one key-message pair.
+   * [[ScalaSpeedModelManager.consume()]], to process one key-message pair.
    * It does nothing, except log the message. This should generally be overridden
    * if and only if [[ScalaServingModelManager.consume()]] is not.
    *
@@ -76,6 +66,6 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
 
 }
 
-object AbstractScalaServingModelManager {
-  val log = LoggerFactory.getLogger(classOf[AbstractScalaServingModelManager[_]])
+object AbstractScalaSpeedModelManager {
+  val log = LoggerFactory.getLogger(classOf[AbstractScalaSpeedModelManager[_,_,_]])
 }

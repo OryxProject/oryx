@@ -20,9 +20,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -31,11 +30,11 @@ import org.dmg.pmml.PMML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.serving.AbstractServingModelManager;
 import com.cloudera.oryx.app.als.MultiRescorerProvider;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
+import com.cloudera.oryx.common.lang.RateLimitCheck;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
@@ -52,6 +51,7 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
   private final double sampleRate;
   private final double minModelLoadFraction;
   private final RescorerProvider rescorerProvider;
+  private final RateLimitCheck logRateLimit;
 
   public ALSServingModelManager(Config config) {
     super(config);
@@ -62,82 +62,75 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
     minModelLoadFraction = config.getDouble("oryx.serving.min-model-load-fraction");
     Preconditions.checkArgument(sampleRate > 0.0 && sampleRate <= 1.0);
     Preconditions.checkArgument(minModelLoadFraction >= 0.0 && minModelLoadFraction <= 1.0);
+    logRateLimit = new RateLimitCheck(1, TimeUnit.MINUTES);
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
-    int countdownToLogModel = 10000;
-    while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          if (model == null) {
-            continue; // No model to interpret with yet, so skip it
-          }
-          List<?> update = TextUtils.readJSON(message, List.class);
-          // Update
-          String id = update.get(1).toString();
-          float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
-          switch (update.get(0).toString()) {
-            case "X":
-              model.setUserVector(id, vector);
-              if (update.size() > 3) {
-                @SuppressWarnings("unchecked")
-                Collection<String> knownItems = (Collection<String>) update.get(3);
-                model.addKnownItems(id, knownItems);
-              }
-              break;
-            case "Y":
-              model.setItemVector(id, vector);
-              // Right now, no equivalent knownUsers
-              break;
-            default:
-              throw new IllegalArgumentException("Bad message: " + km);
-          }
-          if (--countdownToLogModel <= 0) {
-            log.info("{}", model);
-            countdownToLogModel = 10000;
-            // Arbitrarily take this opportunity to see if solver can be pre-triggered
-            // to speed up first access to endpoints that need the solver
-            if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {
-              triggeredSolver = true;
-              model.precomputeSolvers();
+  public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
+    switch (key) {
+      case "UP":
+        if (model == null) {
+          return; // No model to interpret with yet, so skip it
+        }
+        List<?> update = TextUtils.readJSON(message, List.class);
+        // Update
+        String id = update.get(1).toString();
+        float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
+        switch (update.get(0).toString()) {
+          case "X":
+            model.setUserVector(id, vector);
+            if (update.size() > 3) {
+              @SuppressWarnings("unchecked")
+              Collection<String> knownItems = (Collection<String>) update.get(3);
+              model.addKnownItems(id, knownItems);
             }
+            break;
+          case "Y":
+            model.setItemVector(id, vector);
+            // Right now, no equivalent knownUsers
+            break;
+          default:
+            throw new IllegalArgumentException("Bad message: " + message);
+        }
+        if (logRateLimit.test()) {
+          log.info("{}", model);
+          // Arbitrarily take this opportunity to see if solver can be pre-triggered
+          // to speed up first access to endpoints that need the solver
+          if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {
+            triggeredSolver = true;
+            model.precomputeSolvers();
           }
-          break;
+        }
+        break;
 
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+      case "MODEL":
+      case "MODEL-REF":
+        log.info("Loading new model");
+        PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+        if (pmml == null) {
+          return;
+        }
 
-          int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
-          boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
+        int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
+        boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
 
-          if (model == null || features != model.getFeatures()) {
-            log.warn("No previous model, or # features has changed; creating new one");
-            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
-          }
+        if (model == null || features != model.getFeatures()) {
+          log.warn("No previous model, or # features has changed; creating new one");
+          model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
+        }
 
-          log.info("Updating model");
-          // Remove users/items no longer in the model
-          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
-          model.retainRecentAndKnownItems(XIDs, YIDs);
-          model.retainRecentAndUserIDs(XIDs);
-          model.retainRecentAndItemIDs(YIDs);
-          log.info("Model updated: {}", model);
-          break;
+        log.info("Updating model");
+        // Remove users/items no longer in the model
+        Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+        Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+        model.retainRecentAndKnownItems(XIDs, YIDs);
+        model.retainRecentAndUserIDs(XIDs);
+        model.retainRecentAndItemIDs(YIDs);
+        log.info("Model updated: {}", model);
+        break;
 
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
-      }
+      default:
+        throw new IllegalArgumentException("Bad key: " + key);
     }
   }
 

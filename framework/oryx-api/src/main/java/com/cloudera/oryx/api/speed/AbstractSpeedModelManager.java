@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Cloudera, Inc. All Rights Reserved.
+ * Copyright (c) 2016, Cloudera, Inc. All Rights Reserved.
  *
  * Cloudera, Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"). You may not use this file except in
@@ -13,13 +13,12 @@
  * License.
  */
 
-package com.cloudera.oryx.api.serving;
+package com.cloudera.oryx.api.speed;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Objects;
 
-import com.typesafe.config.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,36 +26,16 @@ import org.slf4j.LoggerFactory;
 import com.cloudera.oryx.api.KeyMessage;
 
 /**
- * Convenience implementation of {@link ServingModelManager} that provides several default implementations.
+ * Convenience implementation of {@link SpeedModelManager} that provides default implementations.
  *
+ * @param <K> type of key read from input topic
+ * @param <M> type of message read from input topic
  * @param <U> type of update message read/written
- * @since 2.0.0
+ * @since 2.3.0
  */
-public abstract class AbstractServingModelManager<U> implements ServingModelManager<U> {
+public abstract class AbstractSpeedModelManager<K,M,U> implements SpeedModelManager<K,M,U> {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractServingModelManager.class);
-
-  private final Config config;
-  private final boolean readOnly;
-
-  /**
-   * @param config Oryx {@link Config} object
-   * @since 2.0.0
-   */
-  protected AbstractServingModelManager(Config config) {
-    this.config = config;
-    this.readOnly = config.getBoolean("oryx.serving.api.read-only");
-  }
-
-  @Override
-  public Config getConfig() {
-    return config;
-  }
-
-  @Override
-  public boolean isReadOnly() {
-    return readOnly;
-  }
+  private static final Logger log = LoggerFactory.getLogger(AbstractSpeedModelManager.class);
 
   @Override
   public void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException {
@@ -68,7 +47,7 @@ public abstract class AbstractServingModelManager<U> implements ServingModelMana
         Objects.requireNonNull(key);
         consumeKeyMessage(key, message, hadoopConf);
       } catch (Exception e) {
-        log.warn("Exception while processing message",e);
+        log.warn("Exception while processing message", e);
         log.warn("Key/message were {} : {}", key, message);
       }
     }

@@ -22,7 +22,6 @@ import scala.collection.{mutable, JavaConversions}
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 
-import com.cloudera.oryx.api.KeyMessage
 import com.cloudera.oryx.api.serving.{ServingModel, AbstractScalaServingModelManager}
 
 /**
@@ -35,30 +34,26 @@ class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaS
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
-  override def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration) = {
-    updateIterator.foreach(km =>
-      km.getKey match {
-        case "MODEL" =>
-          val model = JavaConversions.mapAsScalaMap(
-            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
-          distinctOtherWords.synchronized(
-            distinctOtherWords.clear()
-          )
+  override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration): Unit = {
+    key match {
+      case "MODEL" =>
+        val model = JavaConversions.mapAsScalaMap(
+          new ObjectMapper().readValue(message, classOf[java.util.Map[String,String]]))
+        distinctOtherWords.synchronized {
+          distinctOtherWords.clear()
           model.foreach { case (word, count) =>
-            distinctOtherWords.synchronized(
-              distinctOtherWords.put(word, count.toInt)
-            )
-          }
-        case "UP" =>
-          val Array(word, count) = km.getMessage.split(",")
-          distinctOtherWords.synchronized(
             distinctOtherWords.put(word, count.toInt)
-          )
-      }
-    )
+          }
+        }
+      case "UP" =>
+        val Array(word, count) = message.split(",")
+        distinctOtherWords.synchronized(
+          distinctOtherWords.put(word, count.toInt)
+        )
+    }
   }
 
-  override def getModel = new ServingModel() {
+  override def getModel: ServingModel = new ServingModel() {
     override def getFractionLoaded = 1.0f
     def getWords: Map[String,Integer] = distinctOtherWords.toMap
   }

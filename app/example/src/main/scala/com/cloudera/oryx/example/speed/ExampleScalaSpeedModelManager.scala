@@ -15,16 +15,13 @@
 
 package com.cloudera.oryx.example.speed
 
-
-import scala.collection.{JavaConversions, mutable}
-
+import scala.collection.{mutable, JavaConversions}
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
-
-import com.cloudera.oryx.api.KeyMessage
-import com.cloudera.oryx.api.speed.ScalaSpeedModelManager
+import com.cloudera.oryx.api.speed.AbstractScalaSpeedModelManager
 import com.cloudera.oryx.example.batch.ExampleScalaBatchLayerUpdate
+import com.typesafe.config.Config
 
 /**
  * Also counts and emits counts of number of distinct words that occur with words.
@@ -33,27 +30,24 @@ import com.cloudera.oryx.example.batch.ExampleScalaBatchLayerUpdate
  * that the Batch Layer sees, but assumes all words seen are new and distinct, which is only
  * approximately true. Emits updates of the form "word,count".
  */
-class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String,String] {
+class ExampleScalaSpeedModelManager(val config: Config)
+  extends AbstractScalaSpeedModelManager[String,String,String](config) {
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
-  override def consume(updateIterator: Iterator[KeyMessage[String,String]], hadoopConf: Configuration) = {
-    updateIterator.foreach(km =>
-      km.getKey match {
-        case "MODEL" =>
-          val model = JavaConversions.mapAsScalaMap(
-            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
-          distinctOtherWords.synchronized(
-            distinctOtherWords.clear()
-          )
+  override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration) = {
+    key match {
+      case "MODEL" =>
+        val model = JavaConversions.mapAsScalaMap(
+          new ObjectMapper().readValue(message, classOf[java.util.Map[String,String]]))
+        distinctOtherWords.synchronized {
+          distinctOtherWords.clear()
           model.foreach { case (word, count) =>
-            distinctOtherWords.synchronized(
-              distinctOtherWords.put(word, count.toInt)
-            )
+            distinctOtherWords.put(word, count.toInt)
           }
-        case _ => // ignore
-      }
-    )
+        }
+      case _ => // ignore
+    }
   }
 
   override def buildUpdates(newData: RDD[(String,String)]) = {
