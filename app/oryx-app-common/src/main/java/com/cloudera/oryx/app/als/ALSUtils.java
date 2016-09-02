@@ -80,25 +80,23 @@ public final class ALSUtils {
       return null;
     }
 
-    double Qui = Xu == null ? 0.0 : VectorMath.dot(Xu, Yi);
+    boolean noXu = Xu == null;
+    double Qui = noXu ? 0.0 : VectorMath.dot(Xu, Yi);
     // Qui' is the target, new value of Qui
     // 0.5 reflects a "don't know" state
-    double targetQui = computeTargetQui(implicit, value, Xu == null ? 0.5 : Qui);
+    double targetQui = computeTargetQui(implicit, value, noXu ? 0.5 : Qui);
     if (Double.isNaN(targetQui)) {
       return null;
     }
 
     double dQui = targetQui - Qui;
-    float[] dQuiYi = Yi.clone();
+    double[] dQuiYi = new double[Yi.length];
     for (int i = 0; i < dQuiYi.length; i++) {
-      dQuiYi[i] *= dQui;
+      dQuiYi[i] = Yi[i] * dQui;
     }
-    float[] dXu = solver.solveFToF(dQuiYi);
+    double[] dXu = solver.solveDToD(dQuiYi);
 
-    if (Xu == null) {
-      return dXu;
-    }
-    float[] newXu = Xu.clone();
+    float[] newXu = noXu ? new float[dXu.length] : Xu.clone();
     for (int i = 0; i < newXu.length; i++) {
       newXu[i] += dXu[i];
     }
