@@ -37,11 +37,12 @@ abstract class AbstractALSResource extends AbstractOryxResource {
     return (ALSServingModel) getServingModel();
   }
 
-  static void checkHowManyOffset(int howMany, int offset) throws OryxServingException {
+  static int checkHowManyOffset(int howMany, int offset) throws OryxServingException {
     check(howMany > 0, "howMany must be positive");
     check(offset >= 0, "offset must be nonnegative");
     check(howMany <= MAX_RESULTS && offset <= MAX_RESULTS && howMany + offset <= MAX_RESULTS,
           "howMany + offset is too large");
+    return howMany + offset;
   }
 
   static List<IDValue> toIDValueResponse(Stream<Pair<String,Double>> pairs,

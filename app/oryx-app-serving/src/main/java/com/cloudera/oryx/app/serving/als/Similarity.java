@@ -69,7 +69,7 @@ public final class Similarity extends AbstractALSResource {
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
     check(!pathSegmentsList.isEmpty(), "Need at least 1 item to determine similarity");
-    checkHowManyOffset(howMany, offset);
+    int howManyOffset = checkHowManyOffset(howMany, offset);
 
     ALSServingModel alsServingModel = getALSServingModel();
     float[][] itemFeatureVectors = new float[pathSegmentsList.size()][];
@@ -97,7 +97,7 @@ public final class Similarity extends AbstractALSResource {
     Stream<Pair<String,Double>> topIDCosines = alsServingModel.topN(
         new CosineAverageFunction(itemFeatureVectors),
         rescoreFn,
-        howMany + offset,
+        howManyOffset,
         allowedFn);
 
     return toIDValueResponse(topIDCosines, howMany, offset);

@@ -69,7 +69,7 @@ public final class RecommendWithContext extends AbstractALSResource {
       @DefaultValue("false") @QueryParam("considerKnownItems") boolean considerKnownItems,
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
-    checkHowManyOffset(howMany, offset);
+    int howManyOffset = checkHowManyOffset(howMany, offset);
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);
@@ -98,7 +98,7 @@ public final class RecommendWithContext extends AbstractALSResource {
     Stream<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(tempUserVector),
         rescoreFn,
-        howMany + offset,
+        howManyOffset,
         allowedFn);
     return toIDValueResponse(topIDDots, howMany, offset);
   }

@@ -67,7 +67,7 @@ public final class RecommendToMany extends AbstractALSResource {
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
     check(!pathSegmentsList.isEmpty(), "Need at least 1 user");
-    checkHowManyOffset(howMany, offset);
+    int howManyOffset = checkHowManyOffset(howMany, offset);
 
     ALSServingModel alsServingModel = getALSServingModel();
     float[][] userFeaturesVectors = new float[pathSegmentsList.size()][];
@@ -104,7 +104,7 @@ public final class RecommendToMany extends AbstractALSResource {
     Stream<Pair<String,Double>> topIDDots = alsServingModel.topN(
         new DotsFunction(userFeaturesVectors),
         rescoreFn,
-        howMany + offset,
+        howManyOffset,
         allowedFn);
 
     return toIDValueResponse(topIDDots, howMany, offset);
