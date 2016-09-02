@@ -43,6 +43,11 @@ public final class Solver {
     return result;
   }
 
+  public double[] solveDToD(double[] b) {
+    RealVector bVec = new ArrayRealVector(b, false);
+    return solver.solve(bVec).toArray();
+  }
+
   @Override
   public String toString() {
     return "Solver[" + solver + "]";
