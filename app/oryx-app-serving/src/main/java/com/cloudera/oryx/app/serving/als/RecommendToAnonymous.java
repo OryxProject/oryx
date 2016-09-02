@@ -68,7 +68,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
       @QueryParam("rescorerParams") List<String> rescorerParams) throws OryxServingException {
 
     check(!pathSegments.isEmpty(), "Need at least 1 item to make recommendations");
-    checkHowManyOffset(howMany, offset);
+    int howManyOffset = checkHowManyOffset(howMany, offset);
 
     ALSServingModel model = getALSServingModel();
     List<Pair<String,Double>> parsedPathSegments = EstimateForAnonymous.parsePathSegments(pathSegments);
@@ -93,7 +93,7 @@ public final class RecommendToAnonymous extends AbstractALSResource {
     Stream<Pair<String,Double>> topIDDots = model.topN(
         new DotsFunction(anonymousUserFeatures),
         rescoreFn,
-        howMany + offset,
+        howManyOffset,
         allowedFn);
     return toIDValueResponse(topIDDots, howMany, offset);
   }
