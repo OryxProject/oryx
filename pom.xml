@@ -1214,7 +1214,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <!-- Limit memory for unit tests in Travis -->
-              <argLine>-Xmx512m</argLine>
+              <argLine>@{argLine} -Xmx512m</argLine>
             </configuration>
           </plugin>
           <plugin>
@@ -1222,7 +1222,7 @@
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
               <!-- Limit memory for integration tests in Travis -->
-              <argLine>-Xmx1536m</argLine>
+              <argLine>@{argLine} -Xmx1536m</argLine>
             </configuration>
           </plugin>
           <plugin>
