@@ -29,8 +29,7 @@ public final class JVMUtils {
 
   private static final OryxShutdownHook SHUTDOWN_HOOK = new OryxShutdownHook();
 
-  private JVMUtils() {
-  }
+  private JVMUtils() {}
 
   /**
    * Adds a shutdown hook that tries to call {@link Closeable#close()} on the given argument

@@ -43,8 +43,7 @@ public final class KafkaUtils {
   private static final int ZK_TIMEOUT_MSEC =
       (int) TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
-  private KafkaUtils() {
-  }
+  private KafkaUtils() {}
 
   /**
    * @param zkServers Zookeeper server string: host1:port1[,host2:port2,...]

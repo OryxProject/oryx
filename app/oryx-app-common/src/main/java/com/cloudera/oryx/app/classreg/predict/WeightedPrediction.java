@@ -32,8 +32,7 @@ import com.cloudera.oryx.common.math.DoubleWeightedMean;
  */
 public final class WeightedPrediction {
 
-  private WeightedPrediction() {
-  }
+  private WeightedPrediction() {}
 
   /**
    * @param predictions {@link Prediction}s from individuals

@@ -26,8 +26,7 @@ import com.cloudera.oryx.app.rdf.tree.DecisionForest;
 
 final class Evaluation {
 
-  private Evaluation() {
-  }
+  private Evaluation() {}
 
   static double rmse(DecisionForest forest, JavaRDD<Example> examples) {
     double mse = examples.mapToDouble(example -> {

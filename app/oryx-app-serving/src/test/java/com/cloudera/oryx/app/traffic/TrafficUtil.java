@@ -58,8 +58,7 @@ public final class TrafficUtil {
   private static final Logger log = LoggerFactory.getLogger(TrafficUtil.class);
   private static final Pattern COMMA = Pattern.compile(",");
 
-  private TrafficUtil() {
-  }
+  private TrafficUtil() {}
 
   public static void main(String[] args) throws Exception {
     if (args.length < 3) {

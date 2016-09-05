@@ -30,8 +30,7 @@ public final class ExampleUtils {
 
   private static final Logger log = LoggerFactory.getLogger(ExampleUtils.class);
 
-  private ExampleUtils() {
-  }
+  private ExampleUtils() {}
 
   /**
    * @param data tokenized string data

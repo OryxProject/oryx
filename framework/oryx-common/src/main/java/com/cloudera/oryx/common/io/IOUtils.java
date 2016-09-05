@@ -40,8 +40,7 @@ public final class IOUtils {
 
   private static final Logger log = LoggerFactory.getLogger(IOUtils.class);
 
-  private IOUtils() {
-  }
+  private IOUtils() {}
 
   /**
    * Deletes the given path, and if it is a directory, all files and subdirectories within it.

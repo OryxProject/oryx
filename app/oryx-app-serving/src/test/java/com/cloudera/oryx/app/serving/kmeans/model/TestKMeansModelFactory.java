@@ -28,8 +28,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 
 public final class TestKMeansModelFactory {
 
-  private TestKMeansModelFactory() {
-  }
+  private TestKMeansModelFactory() {}
 
   public static KMeansServingModel buildTestModel() {
     List<ClusterInfo> clusters = new ArrayList<>();

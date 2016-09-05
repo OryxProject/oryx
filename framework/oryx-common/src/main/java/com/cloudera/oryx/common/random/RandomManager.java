@@ -34,8 +34,7 @@ public final class RandomManager {
       new SoftReference<>(new ArrayList<>());
   private static boolean useTestSeed;
 
-  private RandomManager() {
-  }
+  private RandomManager() {}
 
   private static long getTestSeed() {
     String seedString = System.getProperty("oryx.test.seed", "1234567890123456789");

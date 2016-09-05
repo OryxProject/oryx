@@ -40,8 +40,7 @@ import com.cloudera.oryx.common.random.RandomManager;
  */
 final class Evaluation {
 
-  private Evaluation() {
-  }
+  private Evaluation() {}
 
   /**
    * Computes root mean squared error of {@link Rating#rating()} versus predicted value.

@@ -28,8 +28,7 @@ import com.cloudera.oryx.common.collection.Pair;
  */
 public final class KMeansUtils {
 
-  private KMeansUtils() {
-  }
+  private KMeansUtils() {}
 
   /**
    * @param clusters all clusters
