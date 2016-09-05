@@ -25,8 +25,7 @@ import com.cloudera.oryx.lambda.speed.SpeedLayer;
  */
 public final class Main {
 
-  private Main() {
-  }
+  private Main() {}
 
   public static void main(String[] args) {
     try (SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(ConfigUtils.getDefault())) {

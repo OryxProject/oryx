@@ -43,8 +43,7 @@ public final class PMMLUtils {
 
   public static final String VERSION = "4.2.1";
 
-  private PMMLUtils() {
-  }
+  private PMMLUtils() {}
 
   /**
    * @return {@link PMML} with common {@link Header} fields like {@link Application},

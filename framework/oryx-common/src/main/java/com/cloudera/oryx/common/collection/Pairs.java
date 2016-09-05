@@ -22,8 +22,7 @@ import java.util.Comparator;
  */
 public final class Pairs {
 
-  private Pairs() {
-  }
+  private Pairs() {}
 
   /**
    * @param order whether to sort ascending or descending; {@code null} comes last

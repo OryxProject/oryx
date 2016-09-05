@@ -26,8 +26,7 @@ public final class ClassUtils {
   private static final Class<?>[] NO_TYPES = new Class<?>[0];
   private static final Object[] NO_ARGS = new Object[0];
 
-  private ClassUtils() {
-  }
+  private ClassUtils() {}
 
   /**
    * @param className fully-qualified class name, which should be known to be available

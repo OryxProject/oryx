@@ -25,8 +25,7 @@ import com.cloudera.oryx.lambda.serving.ServingLayer;
  */
 public final class Main {
 
-  private Main() {
-  }
+  private Main() {}
 
   public static void main(String[] args) throws Exception {
     try (ServingLayer servingLayer = new ServingLayer(ConfigUtils.getDefault())) {

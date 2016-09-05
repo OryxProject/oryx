@@ -26,8 +26,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  */
 public final class VectorMath {
 
-  private VectorMath() {
-  }
+  private VectorMath() {}
 
   /**
    * @return dot product of the two given arrays

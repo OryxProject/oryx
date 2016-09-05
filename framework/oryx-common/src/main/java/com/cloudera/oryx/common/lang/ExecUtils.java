@@ -31,8 +31,7 @@ import com.google.common.base.Preconditions;
  */
 public final class ExecUtils {
 
-  private ExecUtils() {
-  }
+  private ExecUtils() {}
 
   /**
    * @param numTasks how many copies of {@code task} to run; all may be run simultaneously,

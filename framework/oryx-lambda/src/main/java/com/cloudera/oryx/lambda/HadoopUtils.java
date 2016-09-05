@@ -33,8 +33,7 @@ public final class HadoopUtils {
 
   private static final OryxShutdownHook SHUTDOWN_HOOK = new OryxShutdownHook();
 
-  private HadoopUtils() {
-  }
+  private HadoopUtils() {}
 
   /**
    * Adds a shutdown hook that tries to call {@link Closeable#close()} on the given argument
