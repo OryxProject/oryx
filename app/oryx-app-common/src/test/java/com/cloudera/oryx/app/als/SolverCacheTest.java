@@ -61,7 +61,7 @@ public final class SolverCacheTest extends AbstractFeatureVectorTest {
     assertSame(solver1, cache.get(false));
 
     cache.compute();
-    Thread.sleep(100);
+    Thread.sleep(1000);
     Solver solver2 = cache.get(true);
 
     assertNotSame(solver1, solver2);
@@ -69,7 +69,7 @@ public final class SolverCacheTest extends AbstractFeatureVectorTest {
     cache.setDirty();
     assertSame(solver2, cache.get(false));
 
-    Thread.sleep(100);
+    Thread.sleep(1000);
     Solver solver3 = cache.get(true);
 
     assertNotSame(solver2, solver3);
