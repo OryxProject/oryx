@@ -121,4 +121,11 @@ public final class FeatureVectorsPartitionTest extends OryxTest {
     assertEquals(0, fv.size());
   }
 
+  @Test
+  public void testToString() {
+    FeatureVectors vectors = new FeatureVectorsPartition();
+    vectors.setVector("A", new float[]{1.0f, 3.0f, 6.0f});
+    assertEquals("FeatureVectors[size:1]", vectors.toString());
+  }
+
 }

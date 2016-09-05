@@ -46,7 +46,7 @@ public final class SolverCache {
 
   /**
    * @param executor {@link ExecutorService} which should be used to asynchronously compute
-   *  a {@link Solver}
+   *  a {@link Solver}. Important: this should be able to execute more than 1 task in parallel.
    * @param vectorPartitions underling {@link FeatureVectors} data from which it should be
    *  computed
    */
@@ -81,10 +81,10 @@ public final class SolverCache {
           if (newYTYSolver != null) {
             solver.set(newYTYSolver);
           }
+        } finally {
           // Allow any threads waiting for initial model to proceed.
           // It's possible the solver is still null here if there is no input.
           solverInitialized.countDown();
-        } finally {
           solverUpdating.set(false);
         }
       }));
