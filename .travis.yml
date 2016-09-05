@@ -1,7 +1,9 @@
 language: java
 sudo: false
 install: mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -B -V install
-script:  mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} -Ptravis -q -B verify
+script:
+  - mvn -Pjava${JAVA_VERSION} ${CDH} ${SPARK} ${SCALA} -Ptravis -q -B verify
+  - rm -r $HOME/.m2/repository/com/cloudera/oryx
 matrix:
  include:
    # Covers Java 7, Open JDK, Spark 1.5
