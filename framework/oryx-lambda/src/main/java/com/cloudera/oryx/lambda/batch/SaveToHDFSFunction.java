@@ -15,7 +15,11 @@
 
 package com.cloudera.oryx.lambda.batch;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -57,11 +61,17 @@ final class SaveToHDFSFunction<K,M> implements VoidFunction2<JavaPairRDD<K,M>,Ti
   }
 
   @Override
-  public void call(JavaPairRDD<K,M> rdd, Time time) {
+  public void call(JavaPairRDD<K,M> rdd, Time time) throws IOException {
     if (rdd.isEmpty()) {
       log.info("RDD was empty, not saving to HDFS");
     } else {
       String file = prefix + "-" + time.milliseconds() + "." + suffix;
+      Path path = new Path(file);
+      FileSystem fs = FileSystem.get(hadoopConf);
+      if (fs.exists(path)) {
+        log.warn("Saved data already existed, possibly from a failed job. Deleting {}", path);
+        fs.delete(path, true);
+      }
       log.info("Saving RDD to HDFS at {}", file);
       rdd.mapToPair(
           new ValueToWritableFunction<>(keyClass, messageClass, keyWritableClass, messageWritableClass)
