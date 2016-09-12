@@ -59,8 +59,16 @@ import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
 /**
- * A specialization of {@link MLUpdate} that creates a matrix factorization model of its
- * input, using the Alternating Least Squares algorithm.
+ * <p>A specialization of {@link MLUpdate} that creates a matrix factorization model of its
+ * input, using the Alternating Least Squares algorithm.</p>
+ *
+ * <p>The implementation is built on Spark MLlib's implementation of ALS, which is in turn
+ * based on the paper
+ * <a href="http://yifanhu.net/PUB/cf.pdf">Collaborative Filtering for Implicit Feedback Datasets</a>.
+ * The parameters used below and in the configuration follow this paper as given.</p>
+ *
+ * <p>Note that this also adds support for log transformation of strength values, as suggested
+ * in Equation 6 of the paper.</p>
  */
 public final class ALSUpdate extends MLUpdate<String> {
 
@@ -70,6 +78,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private final int iterations;
   private final boolean implicit;
+  private final boolean logStrength;
   private final List<HyperParamValues<?>> hyperParamValues;
   private final boolean noKnownItems;
   private final double decayFactor;
@@ -79,11 +88,15 @@ public final class ALSUpdate extends MLUpdate<String> {
     super(config);
     iterations = config.getInt("oryx.als.iterations");
     implicit = config.getBoolean("oryx.als.implicit");
+    logStrength = config.getBoolean("oryx.als.logStrength");
     Preconditions.checkArgument(iterations > 0);
     hyperParamValues = Arrays.asList(
         HyperParams.fromConfig(config, "oryx.als.hyperparams.features"),
         HyperParams.fromConfig(config, "oryx.als.hyperparams.lambda"),
         HyperParams.fromConfig(config, "oryx.als.hyperparams.alpha"));
+    if (logStrength) {
+      hyperParamValues.add(HyperParams.fromConfig(config, "oryx.als.hyperparams.epsilon"));
+    }
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
     decayFactor = config.getDouble("oryx.als.decay.factor");
     decayZeroThreshold = config.getDouble("oryx.als.decay.zero-threshold");
@@ -105,14 +118,21 @@ public final class ALSUpdate extends MLUpdate<String> {
     int features = (Integer) hyperParameters.get(0);
     double lambda = (Double) hyperParameters.get(1);
     double alpha = (Double) hyperParameters.get(2);
+    double epsilon = Double.NaN;
+    if (logStrength) {
+      epsilon = (Double) hyperParameters.get(3);
+    }
     Preconditions.checkArgument(features > 0);
     Preconditions.checkArgument(lambda >= 0.0);
     Preconditions.checkArgument(alpha > 0.0);
+    if (logStrength) {
+      Preconditions.checkArgument(epsilon > 0.0);
+    }
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
 
     JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD);
-    trainRatingData = aggregateScores(trainRatingData);
+    trainRatingData = aggregateScores(trainRatingData, epsilon);
     ALS als = new ALS()
         .setRank(features)
         .setIterations(iterations)
@@ -146,7 +166,9 @@ public final class ALSUpdate extends MLUpdate<String> {
                               features,
                               lambda,
                               alpha,
+                              epsilon,
                               implicit,
+                              logStrength,
                               candidatePath,
                               reverseIDLookup);
     unpersist(model);
@@ -160,7 +182,11 @@ public final class ALSUpdate extends MLUpdate<String> {
                          JavaRDD<String> testData,
                          JavaRDD<String> trainData) {
     JavaRDD<Rating> testRatingData = parsedToRatingRDD(testData.map(MLFunctions.PARSE_FN));
-    testRatingData = aggregateScores(testRatingData);
+    double epsilon = Double.NaN;
+    if (logStrength) {
+      epsilon = Double.parseDouble(AppPMMLUtils.getExtensionValue(model, "epsilon"));
+    }
+    testRatingData = aggregateScores(testRatingData, epsilon);
     MatrixFactorizationModel mfModel = pmmlToMFModel(sparkContext, model, modelParentPath);
     double eval;
     if (implicit) {
@@ -326,7 +352,7 @@ public final class ALSUpdate extends MLUpdate<String> {
    * Combines {@link Rating}s with the same user/item into one, with score as the sum of
    * all of the scores.
    */
-  private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original) {
+  private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original, double epsilon) {
     JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples =
         original.mapToPair(rating -> new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating()));
 
@@ -340,13 +366,21 @@ public final class ALSUpdate extends MLUpdate<String> {
       aggregated = tuples.foldByKey(Double.NaN, (current, next) -> next);
     }
 
-    return aggregated
-        .filter(kv -> !Double.isNaN(kv._2()))
-        .map(userProductScore -> {
-          Tuple2<Integer,Integer> userProduct = userProductScore._1();
-          return new Rating(userProduct._1(), userProduct._2(), userProductScore._2());
-        });
-      }
+    JavaPairRDD<Tuple2<Integer,Integer>,Double> noNaN =
+        aggregated.filter(kv -> !Double.isNaN(kv._2()));
+
+    if (logStrength) {
+      return noNaN.map(userProductScore -> new Rating(
+          userProductScore._1()._1(),
+          userProductScore._1()._2(),
+          Math.log1p(userProductScore._2() / epsilon)));
+    } else {
+      return noNaN.map(userProductScore -> new Rating(
+          userProductScore._1()._1(),
+          userProductScore._1()._2(),
+          userProductScore._2()));
+    }
+  }
 
   /**
    * There is no actual serialization of a massive factored matrix model into PMML.
@@ -357,7 +391,9 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     int features,
                                     double lambda,
                                     double alpha,
+                                    double epsilon,
                                     boolean implicit,
+                                    boolean logStrength,
                                     Path candidatePath,
                                     Map<Integer,String> reverseIDMapping) {
 
@@ -385,6 +421,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     AppPMMLUtils.addExtension(pmml, "implicit", implicit);
     if (implicit) {
       AppPMMLUtils.addExtension(pmml, "alpha", alpha);
+    }
+    AppPMMLUtils.addExtension(pmml, "logStrength", logStrength);
+    if (logStrength) {
+      AppPMMLUtils.addExtension(pmml, "epsilon", epsilon);
     }
     addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseIDMapping);
     addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseIDMapping);

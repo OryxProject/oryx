@@ -53,6 +53,8 @@ public final class ALSSpeedModel implements SpeedModel {
   private final int features;
   /** Whether model uses implicit feedback. */
   private final boolean implicit;
+  private final boolean logStrength;
+  private final double epsilon;
   private final SolverCache cachedXTXSolver;
   private final SolverCache cachedYTYSolver;
 
@@ -61,8 +63,10 @@ public final class ALSSpeedModel implements SpeedModel {
    *
    * @param features number of features expected for user/item feature vectors
    * @param implicit whether model implements implicit feedback
+   * @param logStrength whether input strengths are log transformed
+   * @param epsilon eps in log transform log(1 + r/eps)
    */
-  ALSSpeedModel(int features, boolean implicit) {
+  ALSSpeedModel(int features, boolean implicit, boolean logStrength, double epsilon) {
     Preconditions.checkArgument(features > 0);
     int numPartitions = Runtime.getRuntime().availableProcessors();
     X = new PartitionedFeatureVectors(numPartitions, executor);
@@ -73,6 +77,8 @@ public final class ALSSpeedModel implements SpeedModel {
     expectedItemIDsLock = new AutoReadWriteLock();
     this.features = features;
     this.implicit = implicit;
+    this.logStrength = logStrength;
+    this.epsilon = epsilon;
     cachedXTXSolver = new SolverCache(executor, X);
     cachedYTYSolver = new SolverCache(executor, Y);
   }
@@ -83,6 +89,14 @@ public final class ALSSpeedModel implements SpeedModel {
 
   public boolean isImplicit() {
     return implicit;
+  }
+
+  public boolean isLogStrength() {
+    return logStrength;
+  }
+
+  public double getEpsilon() {
+    return epsilon;
   }
 
   public float[] getUserVector(String user) {
@@ -161,6 +175,7 @@ public final class ALSSpeedModel implements SpeedModel {
   @Override
   public String toString() {
     return "ALSSpeedModel[features:" + features + ", implicit:" + implicit +
+        ", logStrength:" + logStrength + ", epsilon:" + epsilon +
         ", X:(" + X.size() + " users), Y:(" + Y.size() + " items), fractionLoaded:" +
         getFractionLoaded() + "]";
   }
