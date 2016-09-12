@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.mllib.recommendation.ALS;
@@ -116,6 +118,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     Preconditions.checkArgument(alpha > 0.0);
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
+    parsedRDD.cache();
 
     JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD);
     trainRatingData = aggregateScores(trainRatingData);
@@ -127,13 +130,16 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       als = als.setImplicitPrefs(true).setAlpha(alpha);
     }
-    MatrixFactorizationModel model = als.run(trainRatingData.rdd());
 
-    Map<Integer,String> reverseIDLookup = parsedRDD.
-        flatMapToPair(new ToReverseLookupFn()).
-        reduceByKey(Functions.<String>last()).collectAsMap();
-    // Clone, due to some serialization problems with the result of collectAsMap?
-    reverseIDLookup = new HashMap<>(reverseIDLookup);
+    RDD<Rating> trainingRatingDataRDD = trainRatingData.rdd();
+    trainingRatingDataRDD.cache();
+    MatrixFactorizationModel model = als.run(trainingRatingDataRDD);
+    trainingRatingDataRDD.unpersist(false);
+
+    Map<Integer,String> reverseUserIDMapping = buildReverseLookup(parsedRDD, true);
+    Map<Integer,String> reverseItemIDMapping = buildReverseLookup(parsedRDD, false);
+
+    parsedRDD.unpersist();
 
     PMML pmml = mfModelToPMML(model,
                               features,
@@ -141,9 +147,17 @@ public final class ALSUpdate extends MLUpdate<String> {
                               alpha,
                               implicit,
                               candidatePath,
-                              reverseIDLookup);
+                              reverseUserIDMapping,
+                              reverseItemIDMapping);
     unpersist(model);
     return pmml;
+  }
+
+  private static Map<Integer,String> buildReverseLookup(JavaRDD<String[]> parsedRDD, boolean user) {
+    Map<Integer,String> reverseIDLookup = parsedRDD.flatMapToPair(new ToReverseLookupFn(user))
+        .reduceByKey(new SortsFirstFunction()).collectAsMap();
+    // Clone, due to some serialization problems with the result of collectAsMap?
+    return new HashMap<>(reverseIDLookup);
   }
 
   @Override
@@ -300,22 +314,29 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static final class ToReverseLookupFn
       implements PairFlatMapFunction<String[],Integer,String> {
+    private final int offset;
+    ToReverseLookupFn(boolean user) {
+      this.offset = user ? 0 : 1;
+    }
     @Override
     public Iterable<Tuple2<Integer,String>> call(String[] tokens) {
-      List<Tuple2<Integer,String>> results = new ArrayList<>(2);
-      for (int i = 0; i < 2; i++) {
-        String s = tokens[i];
-        if (MOST_INTS_PATTERN.matcher(s).matches()) {
-          try {
-            Integer.parseInt(s);
-            continue;
-          } catch (NumberFormatException nfe) {
-            // continue
-          }
+      String s = tokens[offset];
+      if (MOST_INTS_PATTERN.matcher(s).matches()) {
+        try {
+          Integer.parseInt(s);
+          return Collections.emptyList(); // no need to include in mapping
+        } catch (NumberFormatException nfe) {
+          // continue
         }
-        results.add(new Tuple2<>(hash(s), s));
       }
-      return results;
+      return Collections.singletonList(new Tuple2<>(hash(s), s));
+    }
+  }
+
+  private static final class SortsFirstFunction implements Function2<String,String,String> {
+    @Override
+    public String call(String a, String b) {
+      return a.compareTo(b) < 0 ? a : b;
     }
   }
 
@@ -404,7 +425,8 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     double alpha,
                                     boolean implicit,
                                     Path candidatePath,
-                                    Map<Integer,String> reverseIDMapping) {
+                                    Map<Integer,String> reverseUserIDMapping,
+                                    Map<Integer,String> reverseItemIDMapping) {
 
     Function<double[],float[]> doubleArrayToFloats = new Function<double[],float[]>() {
       @Override
@@ -422,8 +444,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaPairRDD<Integer,float[]> itemFeaturesRDD =
         massageToIntKey(model.productFeatures()).mapValues(doubleArrayToFloats);
 
-    saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseIDMapping);
-    saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseIDMapping);
+    saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseUserIDMapping);
+    saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseItemIDMapping);
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     AppPMMLUtils.addExtension(pmml, "X", "X/");
@@ -434,8 +456,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       AppPMMLUtils.addExtension(pmml, "alpha", alpha);
     }
-    addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseIDMapping);
-    addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseIDMapping);
+    addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseUserIDMapping);
+    addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseItemIDMapping);
     return pmml;
   }
 
