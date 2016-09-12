@@ -120,6 +120,7 @@ data files in a subdirectory of `hdfs:///user/example/Oryx/model/`. For example,
     <Extension name="lambda" value="0.001"/>
     <Extension name="implicit" value="true"/>
     <Extension name="alpha" value="1.0"/>
+    <Extension name="implicit" value="false"/>
     <Extension name="XIDs">56 168 222 343 397 ...
      ...
 ```

@@ -108,10 +108,14 @@ public final class ALSSpeedModelManager extends AbstractSpeedModelManager<String
 
         int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
         boolean implicit = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
+        boolean logStrength = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "logStrength"));
+        double epsilon = logStrength ?
+            Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "epsilon")) :
+            Double.NaN;
 
         if (model == null || features != model.getFeatures()) {
           log.warn("No previous model, or # features has changed; creating new one");
-          model = new ALSSpeedModel(features, implicit);
+          model = new ALSSpeedModel(features, implicit, logStrength, epsilon);
         }
 
         log.info("Updating model");
@@ -162,13 +166,20 @@ public final class ALSSpeedModelManager extends AbstractSpeedModelManager<String
       aggregated = tuples.foldByKey(Double.NaN, (current, next) -> next);
     }
 
-    Collection<UserItemStrength> input = aggregated
-        .filter(kv -> !Double.isNaN(kv._2()))
-        .map(tuple -> {
-          Tuple2<String,String> userItem = tuple._1();
-          Double strength = tuple._2();
-          return new UserItemStrength(userItem._1(), userItem._2(), strength.floatValue());
-        }).collect();
+    JavaPairRDD<Tuple2<String,String>,Double> noNaN =
+        aggregated.filter(kv -> !Double.isNaN(kv._2()));
+
+    JavaRDD<UserItemStrength> inputRDD;
+    if (model.isLogStrength()) {
+      double epsilon = model.getEpsilon();
+      inputRDD = noNaN.map(tuple -> new UserItemStrength(tuple._1()._1(), tuple._1()._2(),
+                                                         (float) Math.log1p(tuple._2() / epsilon)));
+    } else {
+      inputRDD = noNaN.map(tuple -> new UserItemStrength(tuple._1()._1(), tuple._1()._2(),
+                                                         tuple._2().floatValue()));
+    }
+
+    Collection<UserItemStrength> input = inputRDD.collect();
 
     Solver XTXsolver;
     Solver YTYsolver;

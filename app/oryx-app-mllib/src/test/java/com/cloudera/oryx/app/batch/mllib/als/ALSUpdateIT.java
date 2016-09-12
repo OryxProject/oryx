@@ -159,11 +159,12 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
         checkHeader(pmml.getHeader());
 
-        assertEquals(7, pmml.getExtensions().size());
+        assertEquals(8, pmml.getExtensions().size());
         Map<String,Object> expected = new HashMap<>();
         expected.put("features", FEATURES);
         expected.put("lambda", LAMBDA);
         expected.put("implicit", false);
+        expected.put("logStrength", false);
         checkExtensions(pmml, expected);
 
         // See if users/item sets seen in updates match what was expected from output

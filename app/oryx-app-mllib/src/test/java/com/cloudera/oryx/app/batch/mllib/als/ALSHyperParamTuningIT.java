@@ -79,7 +79,7 @@ public final class ALSHyperParamTuningIT extends AbstractALSIT {
     assertTrue("No such model file: " + modelFile, Files.exists(modelFile));
 
     PMML pmml = PMMLUtils.read(modelFile);
-    assertEquals(8, pmml.getExtensions().size());
+    assertEquals(9, pmml.getExtensions().size());
     assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "X"));
     assertNotNull(AppPMMLUtils.getExtensionValue(pmml, "Y"));
     Map<String,Object> expected = new HashMap<>();
@@ -87,6 +87,7 @@ public final class ALSHyperParamTuningIT extends AbstractALSIT {
     expected.put("lambda", 0.001);
     expected.put("implicit", true);
     expected.put("alpha", 1.0);
+    expected.put("logStrength", false);
     checkExtensions(pmml, expected);
   }
 
