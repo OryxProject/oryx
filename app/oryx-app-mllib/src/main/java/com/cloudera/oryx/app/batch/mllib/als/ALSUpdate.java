@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -130,6 +129,7 @@ public final class ALSUpdate extends MLUpdate<String> {
     }
 
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
+    parsedRDD.cache();
 
     JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD);
     trainRatingData = aggregateScores(trainRatingData, epsilon);
@@ -141,26 +141,16 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (implicit) {
       als = als.setImplicitPrefs(true).setAlpha(alpha);
     }
-    MatrixFactorizationModel model = als.run(trainRatingData.rdd());
 
-    Map<Integer,String> reverseIDLookup = parsedRDD.flatMapToPair(tokens -> {
-        List<Tuple2<Integer,String>> results = new ArrayList<>(2);
-        for (int i = 0; i < 2; i++) {
-          String s = tokens[i];
-          if (MOST_INTS_PATTERN.matcher(s).matches()) {
-            try {
-              Integer.parseInt(s);
-              continue;
-            } catch (NumberFormatException nfe) {
-              // continue
-            }
-          }
-          results.add(new Tuple2<>(hash(s), s));
-        }
-        return results;
-      }).reduceByKey((current, next) -> next).collectAsMap();
-    // Clone, due to some serialization problems with the result of collectAsMap?
-    reverseIDLookup = new HashMap<>(reverseIDLookup);
+    RDD<Rating> trainingRatingDataRDD = trainRatingData.rdd();
+    trainingRatingDataRDD.cache();
+    MatrixFactorizationModel model = als.run(trainingRatingDataRDD);
+    trainingRatingDataRDD.unpersist(false);
+
+    Map<Integer,String> reverseUserIDMapping = buildReverseLookup(parsedRDD, true);
+    Map<Integer,String> reverseItemIDMapping = buildReverseLookup(parsedRDD, false);
+
+    parsedRDD.unpersist();
 
     PMML pmml = mfModelToPMML(model,
                               features,
@@ -170,9 +160,31 @@ public final class ALSUpdate extends MLUpdate<String> {
                               implicit,
                               logStrength,
                               candidatePath,
-                              reverseIDLookup);
+                              reverseUserIDMapping,
+                              reverseItemIDMapping);
     unpersist(model);
     return pmml;
+  }
+
+  private static Map<Integer,String> buildReverseLookup(JavaRDD<String[]> parsedRDD, boolean user) {
+    int offset = user ? 0 : 1;
+    Map<Integer,String> reverseIDLookup = parsedRDD.filter(tokens -> {
+      String s = tokens[offset];
+      if (MOST_INTS_PATTERN.matcher(s).matches()) {
+        try {
+          Integer.parseInt(s);
+          return false; // no need to include in mapping
+        } catch (NumberFormatException nfe) {
+          // continue
+        }
+      }
+      return true;
+    }).mapToPair(tokens -> {
+      String s = tokens[offset];
+      return new Tuple2<>(hash(s), s);
+    }).reduceByKey((a, b) -> a.compareTo(b) < 0 ? a : b).collectAsMap();
+    // Clone, due to some serialization problems with the result of collectAsMap?
+    return new HashMap<>(reverseIDLookup);
   }
 
   @Override
@@ -395,7 +407,8 @@ public final class ALSUpdate extends MLUpdate<String> {
                                     boolean implicit,
                                     boolean logStrength,
                                     Path candidatePath,
-                                    Map<Integer,String> reverseIDMapping) {
+                                    Map<Integer,String> reverseUserIDMapping,
+                                    Map<Integer,String> reverseItemIDMapping) {
 
     Function<double[],float[]> doubleArrayToFloats = d -> {
       float[] f = new float[d.length];
@@ -410,8 +423,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaPairRDD<Integer,float[]> itemFeaturesRDD =
         massageToIntKey(model.productFeatures()).mapValues(doubleArrayToFloats);
 
-    saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseIDMapping);
-    saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseIDMapping);
+    saveFeaturesRDD(userFeaturesRDD, new Path(candidatePath, "X"), reverseUserIDMapping);
+    saveFeaturesRDD(itemFeaturesRDD, new Path(candidatePath, "Y"), reverseItemIDMapping);
 
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     AppPMMLUtils.addExtension(pmml, "X", "X/");
@@ -426,8 +439,8 @@ public final class ALSUpdate extends MLUpdate<String> {
     if (logStrength) {
       AppPMMLUtils.addExtension(pmml, "epsilon", epsilon);
     }
-    addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseIDMapping);
-    addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseIDMapping);
+    addIDsExtension(pmml, "XIDs", userFeaturesRDD, reverseUserIDMapping);
+    addIDsExtension(pmml, "YIDs", itemFeaturesRDD, reverseItemIDMapping);
     return pmml;
   }
 
