@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.als;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -89,10 +90,10 @@ public final class ALSUpdate extends MLUpdate<String> {
     implicit = config.getBoolean("oryx.als.implicit");
     logStrength = config.getBoolean("oryx.als.logStrength");
     Preconditions.checkArgument(iterations > 0);
-    hyperParamValues = Arrays.asList(
+    hyperParamValues = new ArrayList<>(Arrays.asList(
         HyperParams.fromConfig(config, "oryx.als.hyperparams.features"),
         HyperParams.fromConfig(config, "oryx.als.hyperparams.lambda"),
-        HyperParams.fromConfig(config, "oryx.als.hyperparams.alpha"));
+        HyperParams.fromConfig(config, "oryx.als.hyperparams.alpha")));
     if (logStrength) {
       hyperParamValues.add(HyperParams.fromConfig(config, "oryx.als.hyperparams.epsilon"));
     }
