@@ -42,7 +42,6 @@ import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 import net.openhft.koloboke.function.ObjDoubleToDoubleFunction;
 import net.openhft.koloboke.function.Predicate;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
@@ -378,11 +377,22 @@ public final class ALSServingModel implements ServingModel {
     if (cached != null) {
       return cached;
     }
-    RealMatrix YTY = null;
+    double[][] YTY = null;
     for (FeatureVectors yPartition : Y) {
-      RealMatrix YTYpartial = yPartition.getVTV();
+      double[][] YTYpartial = yPartition.getVTV();
       if (YTYpartial != null) {
-        YTY = YTY == null ? YTYpartial : YTY.add(YTYpartial);
+        if (YTY == null) {
+          YTY = YTYpartial;
+        } else {
+          int dim = YTY.length;
+          for (int i = 0; i < dim; i++) {
+            double[] ai = YTY[i];
+            double[] bi = YTYpartial[i];
+            for (int j = 0; j < dim; j++) {
+              ai[j] += bi[j];
+            }
+          }
+        }
       }
     }
     // Possible to compute this twice, but not a big deal

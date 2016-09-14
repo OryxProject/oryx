@@ -56,7 +56,7 @@ public final class CosineAverageFunction implements CosineDistanceSensitiveFunct
 
   @Override
   public double applyAsDouble(float[] itemVector) {
-    return VectorMath.dot(itemFeaturesVector, itemVector) / VectorMath.norm(itemVector);
+    return VectorMath.cosineSimilarity(itemVector, itemFeaturesVector, 1.0); // normalized already
   }
 
   @Override

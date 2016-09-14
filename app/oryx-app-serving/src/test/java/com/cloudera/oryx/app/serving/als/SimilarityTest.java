@@ -37,7 +37,7 @@ public final class SimilarityTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(6, recs, false);
     Assert.assertEquals("I5", recs.get(1).getID());
-    Assert.assertEquals(0.9125433106390727, recs.get(2).getValue(), DOUBLE_EPSILON);
+    Assert.assertEquals(0.9125432970065859, recs.get(2).getValue(), DOUBLE_EPSILON);
   }
 
   @Test
@@ -78,7 +78,7 @@ public final class SimilarityTest extends AbstractALSServingTest {
         .accept(MediaType.APPLICATION_JSON_TYPE).get(LIST_ID_VALUE_TYPE);
     testTopByValue(4, recs, false);
     Assert.assertEquals("I5", recs.get(1).getID());
-    Assert.assertEquals(2.0 * 0.9125433106390727, recs.get(2).getValue(), DOUBLE_EPSILON);
+    Assert.assertEquals(2.0 * 0.9125432970065859, recs.get(2).getValue(), DOUBLE_EPSILON);
   }
 
 }

@@ -22,7 +22,6 @@ import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import net.openhft.koloboke.collect.set.ObjSet;
 import net.openhft.koloboke.collect.set.hash.HashObjSets;
 import net.openhft.koloboke.function.BiConsumer;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.collection.KeyOnlyBiPredicate;
 import com.cloudera.oryx.common.collection.NotContainsPredicate;
@@ -149,9 +148,10 @@ public final class FeatureVectors {
   }
 
   /**
-   * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V
+   * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
+   *  as a row-major 2D array
    */
-  public RealMatrix getVTV() {
+  public double[][] getVTV() {
     try (AutoLock al = lock.autoReadLock()) {
       return VectorMath.transposeTimesSelf(vectors.values());
     }

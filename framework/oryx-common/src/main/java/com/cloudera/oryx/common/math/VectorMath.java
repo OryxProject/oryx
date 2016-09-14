@@ -17,8 +17,6 @@ package com.cloudera.oryx.common.math;
 
 import java.util.Collection;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -38,7 +36,7 @@ public final class VectorMath {
     int length = x.length;
     double dot = 0.0;
     for (int i = 0; i < length; i++) {
-      dot += x[i] * y[i];
+      dot += (double) x[i] * y[i];
     }
     return dot;
   }
@@ -50,7 +48,7 @@ public final class VectorMath {
   public static double norm(float[] x) {
     double total = 0.0;
     for (float f : x) {
-      total += f * f;
+      total += (double) f * f;
     }
     return Math.sqrt(total);
   }
@@ -68,24 +66,46 @@ public final class VectorMath {
   }
 
   /**
-   * @param M tall, skinny matrix
-   * @return MT * M as a dense matrix
+   * Computes cosine similarity of values in two given arrays, when the norm of one array is
+   * known in advance, which is a not-uncommon case.
+   *
+   * @param x one array
+   * @param y the other array
+   * @param normY norm of y
+   * @return cosine similarity = dot(x,y) / (norm(x) * norm(y))
    */
-  public static RealMatrix transposeTimesSelf(Collection<float[]> M) {
+  public static double cosineSimilarity(float[] x, float[] y, double normY) {
+    int length = x.length;
+    double dot = 0.0;
+    double totalXSq = 0.0;
+    for (int i = 0; i < length; i++) {
+      double xi = x[i];
+      totalXSq += xi * xi;
+      dot += xi * y[i];
+    }
+    return dot / (Math.sqrt(totalXSq) * normY);
+  }
+
+  /**
+   * @param M tall, skinny matrix
+   * @return MT * M as a dense matrix, in row-major 2D array form
+   */
+  public static double[][] transposeTimesSelf(Collection<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }
     int features = 0;
-    RealMatrix result = null;
+    double[][] result = null;
     for (float[] vector : M) {
       if (result == null) {
         features = vector.length;
-        result = new Array2DRowRealMatrix(features, features);
+        result = new double[features][features];
       }
       for (int row = 0; row < features; row++) {
         float rowValue = vector[row];
+        double[] resultRow = result[row];
         for (int col = 0; col < features; col++) {
-          result.addToEntry(row, col, rowValue * vector[col]);
+          resultRow[col] += rowValue * vector[col];
         }
       }
     }

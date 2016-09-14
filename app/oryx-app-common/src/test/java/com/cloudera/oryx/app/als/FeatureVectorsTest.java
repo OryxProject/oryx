@@ -25,8 +25,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.openhft.koloboke.function.BiConsumer;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
@@ -51,10 +49,10 @@ public final class FeatureVectorsTest extends OryxTest {
     FeatureVectors fv = new FeatureVectors();
     fv.setVector("foo", new float[] { 1.0f, 2.0f, 4.0f });
     fv.setVector("bar", new float[] { 1.5f, -1.0f, 0.0f });
-    RealMatrix expected = new Array2DRowRealMatrix(new double[][] {
+    double[][] expected = {
         { 3.25, 0.5, 4.0 }, { 0.5, 5.0, 8.0 }, { 4.0, 8.0, 16.0 }
-    });
-    assertEquals(expected, fv.getVTV());
+    };
+    assertArrayEquals(expected, fv.getVTV());
   }
 
   @Test

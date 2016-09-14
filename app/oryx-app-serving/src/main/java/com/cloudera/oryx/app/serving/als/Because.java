@@ -95,8 +95,7 @@ public final class Because extends AbstractALSResource {
     @Override
     public Pair<String,Double> apply(Pair<String,float[]> itemIDVector) {
       float[] otherItemVector = itemIDVector.getSecond();
-      double cosineSimilarity =  VectorMath.dot(itemVector, otherItemVector) /
-          (itemVectorNorm * VectorMath.norm(otherItemVector));
+      double cosineSimilarity = VectorMath.cosineSimilarity(otherItemVector, itemVector, itemVectorNorm);
       return new Pair<>(itemIDVector.getFirst(), cosineSimilarity);
     }
   }

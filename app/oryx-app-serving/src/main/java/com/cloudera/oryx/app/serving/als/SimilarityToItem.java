@@ -62,8 +62,7 @@ public final class SimilarityToItem extends AbstractALSResource {
       if (itemFeatures == null) {
         results.add(0.0);
       } else {
-        double value = VectorMath.dot(itemFeatures, toItemFeatures) /
-            (toItemFeaturesNorm * VectorMath.norm(itemFeatures));
+        double value = VectorMath.cosineSimilarity(itemFeatures, toItemFeatures, toItemFeaturesNorm);
         Preconditions.checkState(!(Double.isInfinite(value) || Double.isNaN(value)), "Bad similarity");
         results.add(value);
       }

@@ -23,8 +23,6 @@ import java.util.Map;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.random.RandomManager;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
@@ -71,20 +69,31 @@ public final class VectorMathTest extends OryxTest {
   }
 
   @Test
+  public void testCosineSimilarity() {
+    assertEquals(0.13572757431921362, VectorMath.cosineSimilarity(VEC1, VEC2, VectorMath.norm(VEC2)));
+    assertEquals(1.0, VectorMath.cosineSimilarity(VEC1, VEC1, VectorMath.norm(VEC1)));
+    float[] bigVec = new float[1000];
+    Arrays.fill(bigVec, 3.1415926535e20f);
+    float[] smallVec = new float[1000];
+    Arrays.fill(smallVec, -3.1415926535e-20f);
+    assertEquals(-1.0, VectorMath.cosineSimilarity(bigVec, smallVec, VectorMath.norm(smallVec)));
+  }
+
+  @Test
   public void testTransposeTimesSelf() {
     Map<Integer,float[]> a = new HashMap<>();
     a.put(-1, new float[] {1.3f, -2.0f, 3.0f});
     a.put(1, new float[] {2.0f, 0.0f, 5.0f});
     a.put(3, new float[] {0.0f, -1.5f, 5.5f});
-    RealMatrix ata = VectorMath.transposeTimesSelf(a.values());
-    RealMatrix expected = new Array2DRowRealMatrix(new double[][] {
+    double[][] ata = VectorMath.transposeTimesSelf(a.values());
+    double[][] expected = {
         {5.69, -2.6, 13.9},
         {-2.6, 6.25, -14.25},
         {13.9, -14.25, 64.25}
-    });
+    };
     for (int row = 0; row < 3; row++) {
       for (int col = 0; col < 3; col++) {
-        assertEquals(expected.getEntry(row, col), ata.getEntry(row, col), FLOAT_EPSILON);
+        assertEquals(expected[row][col], ata[row][col], FLOAT_EPSILON);
       }
     }
   }
