@@ -17,8 +17,6 @@ package com.cloudera.oryx.app.als;
 
 import java.util.Collection;
 
-import org.apache.commons.math3.linear.RealMatrix;
-
 /**
  * Encapsulates a feature vectors, keyed by an ID, and associated data structures.
  * This supports the representation of user-feature and item-feature vectors in {@code ALSServingModel}
@@ -77,8 +75,9 @@ public interface FeatureVectors {
   void retainRecentAndIDs(Collection<String> newModelIDs);
 
   /**
-   * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V
+   * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
+   *  as a row-major 2D array
    */
-  RealMatrix getVTV();
+  double[][] getVTV();
 
 }

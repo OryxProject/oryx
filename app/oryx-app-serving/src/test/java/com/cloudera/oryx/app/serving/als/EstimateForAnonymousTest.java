@@ -27,14 +27,14 @@ public final class EstimateForAnonymousTest extends AbstractALSServingTest {
   public void testEstimateForAnonymous() {
     Double item = target("/estimateForAnonymous/I7/I4=1.0/I5=2.0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
-    Assert.assertEquals(0.35964763164520264, item, DOUBLE_EPSILON);
+    Assert.assertEquals(0.3596476256862573, item, DOUBLE_EPSILON);
   }
 
   @Test
   public void testEstimateForAnonymousWithUnknown() {
     Double item = target("/estimateForAnonymous/I3/foo/I4=1.0/I5=2.0").request()
         .accept(MediaType.APPLICATION_JSON_TYPE).get(Double.class);
-    Assert.assertEquals(-0.06707492843270302, item, DOUBLE_EPSILON);
+    Assert.assertEquals(-0.0670749299183302, item, DOUBLE_EPSILON);
   }
 
   @Test
@@ -48,7 +48,7 @@ public final class EstimateForAnonymousTest extends AbstractALSServingTest {
   public void testEstimateForAnonymousCSV() {
     String response = target("/estimateForAnonymous/I3/I4=1.0/I5=2.0").request()
         .get(String.class);
-    Assert.assertEquals(-0.06707492843270302, Double.parseDouble(response), DOUBLE_EPSILON);
+    Assert.assertEquals(-0.0670749299183302, Double.parseDouble(response), DOUBLE_EPSILON);
   }
 
   @Test(expected = NotFoundException.class)

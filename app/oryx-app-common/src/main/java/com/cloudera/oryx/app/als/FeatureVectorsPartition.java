@@ -22,7 +22,6 @@ import com.koloboke.collect.map.ObjObjMap;
 import com.koloboke.collect.map.hash.HashObjObjMaps;
 import com.koloboke.collect.set.ObjSet;
 import com.koloboke.collect.set.hash.HashObjSets;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -117,7 +116,7 @@ public final class FeatureVectorsPartition implements FeatureVectors {
   }
 
   @Override
-  public RealMatrix getVTV() {
+  public double[][] getVTV() {
     try (AutoLock al = lock.autoReadLock()) {
       return VectorMath.transposeTimesSelf(vectors.values());
     }
