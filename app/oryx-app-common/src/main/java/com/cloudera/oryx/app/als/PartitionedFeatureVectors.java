@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 import com.google.common.base.Preconditions;
 import com.koloboke.collect.map.ObjIntMap;
 import com.koloboke.collect.map.hash.HashObjIntMaps;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -197,9 +196,19 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
   }
 
   @Override
-  public RealMatrix getVTV() {
-    return mapPartitionsParallel(partition -> Stream.of(partition.getVTV()))
-        .reduce(RealMatrix::add)
+  public double[][] getVTV() {
+    return mapPartitionsParallel(partition -> Stream.<double[][]>of(partition.getVTV()))
+        .reduce((a, b) -> {
+          int dim = a.length;
+          for (int i = 0; i < dim; i++) {
+            double[] ai = a[i];
+            double[] bi = b[i];
+            for (int j = 0; j < dim; j++) {
+              ai[j] += bi[j];
+            }
+          }
+          return a;
+        })
         .orElse(null);
   }
 

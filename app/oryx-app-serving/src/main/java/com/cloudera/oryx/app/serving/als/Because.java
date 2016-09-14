@@ -74,8 +74,7 @@ public final class Because extends AbstractALSResource {
     double itemVectorNorm = VectorMath.norm(itemVector);
     Stream<Pair<String,Double>> idSimilarities = knownItemVectors.stream().map(itemIDVector -> {
       float[] otherItemVector = itemIDVector.getSecond();
-      double cosineSimilarity = VectorMath.dot(itemVector, otherItemVector) /
-          (itemVectorNorm * VectorMath.norm(otherItemVector));
+      double cosineSimilarity = VectorMath.cosineSimilarity(otherItemVector, itemVector, itemVectorNorm);
       return new Pair<>(itemIDVector.getFirst(), cosineSimilarity);
     });
 

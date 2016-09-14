@@ -180,7 +180,7 @@ final class LocalitySensitiveHash {
     double newNorm = VectorMath.norm(newVector);
     double sum = 0.0;
     for (int i = 0; i < numExisting; i++) {
-      sum += Math.abs(VectorMath.dot(existingVectors[i], newVector)) / VectorMath.norm(existingVectors[i]) / newNorm;
+      sum += Math.abs(VectorMath.cosineSimilarity(existingVectors[i], newVector, newNorm));
     }
     return sum;
   }

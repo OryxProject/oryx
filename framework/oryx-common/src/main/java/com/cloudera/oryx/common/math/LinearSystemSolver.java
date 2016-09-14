@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.common.math;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.DecompositionSolver;
-import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RRQRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.slf4j.Logger;
@@ -32,10 +32,11 @@ public final class LinearSystemSolver {
 
   private LinearSystemSolver() {}
 
-  public static Solver getSolver(RealMatrix M) {
-    if (M == null) {
+  public static Solver getSolver(double[][] data) {
+    if (data == null) {
       return null;
     }
+    RealMatrix M = new Array2DRowRealMatrix(data, false);
     double infNorm = M.getNorm();
     double singularityThreshold = infNorm * SINGULARITY_THRESHOLD_RATIO;
     RRQRDecomposition decomposition = new RRQRDecomposition(M, singularityThreshold);
@@ -52,14 +53,6 @@ public final class LinearSystemSolver {
              singularityThreshold,
              apparentRank);
     throw new SingularMatrixSolverException(apparentRank, "Apparent rank: " + apparentRank);
-  }  
-
-  public static boolean isNonSingular(RealMatrix M) {
-    double infNorm = M.getNorm();
-    double singularityThreshold = infNorm * SINGULARITY_THRESHOLD_RATIO;
-    QRDecomposition decomposition = new RRQRDecomposition(M, singularityThreshold);
-    DecompositionSolver solver = decomposition.getSolver();
-    return solver.isNonSingular();
-  }  
+  }
 
 }
