@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.GzipCodec;
@@ -129,14 +127,14 @@ public final class ALSUpdate extends MLUpdate<String> {
     JavaRDD<String[]> parsedRDD = trainData.map(MLFunctions.PARSE_FN);
     parsedRDD.cache();
 
-    BiMap<String,Integer> userIDIndexBiMap = buildIDIndexBiMapping(parsedRDD, true);
-    BiMap<String,Integer> itemIDIndexBiMap = buildIDIndexBiMapping(parsedRDD, false);
+    Map<String,Integer> userIDIndexMap = buildIDIndexMapping(parsedRDD, true);
+    Map<String,Integer> itemIDIndexMap = buildIDIndexMapping(parsedRDD, false);
 
     log.info("Broadcasting ID-index mappings for {} users, {} items",
-             userIDIndexBiMap.size(), itemIDIndexBiMap.size());
+             userIDIndexMap.size(), itemIDIndexMap.size());
 
-    Broadcast<Map<String,Integer>> bUserIDToIndex = sparkContext.broadcast(userIDIndexBiMap);
-    Broadcast<Map<String,Integer>> bItemIDToIndex = sparkContext.broadcast(itemIDIndexBiMap);
+    Broadcast<Map<String,Integer>> bUserIDToIndex = sparkContext.broadcast(userIDIndexMap);
+    Broadcast<Map<String,Integer>> bItemIDToIndex = sparkContext.broadcast(itemIDIndexMap);
 
     JavaRDD<Rating> trainRatingData = parsedToRatingRDD(parsedRDD, bUserIDToIndex, bItemIDToIndex);
     trainRatingData = aggregateScores(trainRatingData, epsilon);
@@ -159,8 +157,8 @@ public final class ALSUpdate extends MLUpdate<String> {
 
     parsedRDD.unpersist();
 
-    Broadcast<Map<Integer,String>> bUserIndexToID = sparkContext.broadcast(userIDIndexBiMap.inverse());
-    Broadcast<Map<Integer,String>> bItemIndexToID = sparkContext.broadcast(itemIDIndexBiMap.inverse());
+    Broadcast<Map<Integer,String>> bUserIndexToID = sparkContext.broadcast(invertMap(userIDIndexMap));
+    Broadcast<Map<Integer,String>> bItemIndexToID = sparkContext.broadcast(invertMap(itemIDIndexMap));
 
     PMML pmml = mfModelToPMML(model,
                               features,
@@ -180,14 +178,23 @@ public final class ALSUpdate extends MLUpdate<String> {
     return pmml;
   }
 
-  private static BiMap<String,Integer> buildIDIndexBiMapping(JavaRDD<String[]> parsedRDD,
-                                                             boolean user) {
+  private static Map<String,Integer> buildIDIndexMapping(JavaRDD<String[]> parsedRDD,
+                                                         boolean user) {
     int offset = user ? 0 : 1;
     Map<String,Integer> reverseIDLookup = parsedRDD.map(tokens -> tokens[offset])
         .distinct().sortBy(s -> s, true, parsedRDD.getNumPartitions())
         .zipWithIndex().mapValues(Long::intValue)
         .collectAsMap();
-    return HashBiMap.create(reverseIDLookup);
+    // Clone, due to some serialization problems with the result of collectAsMap?
+    return new HashMap<>(reverseIDLookup);
+  }
+
+  private static <K,V> Map<V,K> invertMap(Map<K,V> map) {
+    Map<V,K> inverse = new HashMap<>(map.size());
+    for (Map.Entry<K,V> entry : map.entrySet()) {
+      inverse.put(entry.getValue(), entry.getKey());
+    }
+    return inverse;
   }
 
   @Override
