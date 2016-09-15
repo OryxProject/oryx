@@ -56,18 +56,13 @@ supplied on the command line:
 
 # Updating the Site
 
-1. Using the repo above, checkout the release tag if not already: `git checkout -f tags/...`
-1. `mvn site`
-1. In another location, checkout the site branch into a new directory `oryx-gh-pages`:
-`git clone -b gh-pages https://github.com/OryxProject/oryx.git oryx-gh-pages`
-You may need to set `user.name` and `user.email` as above if it's a fresh clone.
-1. `rm -r .../oryx-gh-pages/*`
-1. `cp -r target/staging/* .../oryx-gh-pages/`
-1. `cd .../oryx-gh-pages`
-1. `git add -A .`
-1. `git reset HEAD CNAME`
-1. `git checkout -- CNAME`
+1. Checkout the release tag if not already: `git checkout -f tags/...`
+1. `mvn -DskipTests clean install`
+1. `mvn site site:stage`
+1. `git checkout master`
+1. `mvn site:deploy`
+1. From `docs/`, delete `app/`, `framework/`, `deploy/`
+1. Check diff with `git status` to confirm it's suitable
 1. `git commit -m "Update site for ..."`
-1. `git push origin gh-pages`
+1. `git push origin master`
 1. In a minute, check your work at http://oryx.io/
-1. Optionally delete the repo cloned above if no longer needed.
