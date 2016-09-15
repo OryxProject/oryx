@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -153,11 +154,23 @@ public abstract class OryxTest extends Assert {
     } else {
       assertNotNull(actual);
       assertEquals(expected.size(), actual.size());
-      assertTrue(actual + " had unexpected values not in " + expected,
-                 expected.containsAll(actual));
-      assertTrue(actual + " was missing values in " + expected,
-                 actual.containsAll(expected));
+      if (!expected.containsAll(actual)) {
+        fail("Found unexpected values " + minus(actual, expected));
+      }
+      if (!actual.containsAll(expected)) {
+        fail("Missing values " + minus(expected, actual));
+      }
     }
+  }
+
+  private static <T> Collection<T> minus(Collection<T> a, Collection<T> b) {
+    Collection<T> diff = new HashSet<>();
+    for (T t : a) {
+      if (!b.contains(t)) {
+        diff.add(t);
+      }
+    }
+    return diff;
   }
 
   public static void assertNonEmpty(Path p) throws IOException {
