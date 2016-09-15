@@ -864,6 +864,7 @@
               <exclude>**/dependency-reduced-pom.xml</exclude>
               <exclude>.travis.yml</exclude>
               <exclude>cov-int/**</exclude>
+              <exclude>docs/</exclude>
             </excludes>
           </configuration>
           <executions>
@@ -1122,7 +1123,7 @@
     <site>
       <id>oryx.website</id>
       <name>Oryx documentation</name>
-      <url>http://oryx.io/</url>
+      <url>file:docs/</url>
     </site>
   </distributionManagement>
 
