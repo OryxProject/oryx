@@ -196,16 +196,11 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
   }
 
   @Override
-  public double[][] getVTV() {
-    return mapPartitionsParallel(partition -> Stream.<double[][]>of(partition.getVTV()))
+  public double[] getVTV() {
+    return mapPartitionsParallel(partition -> Stream.of(partition.getVTV()))
         .reduce((a, b) -> {
-          int dim = a.length;
-          for (int i = 0; i < dim; i++) {
-            double[] ai = a[i];
-            double[] bi = b[i];
-            for (int j = 0; j < dim; j++) {
-              ai[j] += bi[j];
-            }
+          for (int i = 0; i < a.length; i++) {
+            a[i] += b[i];
           }
           return a;
         })

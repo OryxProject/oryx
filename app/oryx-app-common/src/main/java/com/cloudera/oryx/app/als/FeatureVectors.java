@@ -76,8 +76,8 @@ public interface FeatureVectors {
 
   /**
    * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
-   *  as a row-major 2D array
+   *  as a dense lower-triangular matrix, represented in packed row-major form
    */
-  double[][] getVTV();
+  double[] getVTV();
 
 }
