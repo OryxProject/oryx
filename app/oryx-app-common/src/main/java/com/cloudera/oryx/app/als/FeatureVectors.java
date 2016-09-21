@@ -149,9 +149,9 @@ public final class FeatureVectors {
 
   /**
    * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
-   *  as a row-major 2D array
+   *  as a dense lower-triangular matrix, represented in packed row-major form
    */
-  public double[][] getVTV() {
+  public double[] getVTV() {
     try (AutoLock al = lock.autoReadLock()) {
       return VectorMath.transposeTimesSelf(vectors.values());
     }

@@ -377,20 +377,15 @@ public final class ALSServingModel implements ServingModel {
     if (cached != null) {
       return cached;
     }
-    double[][] YTY = null;
+    double[] YTY = null;
     for (FeatureVectors yPartition : Y) {
-      double[][] YTYpartial = yPartition.getVTV();
+      double[] YTYpartial = yPartition.getVTV();
       if (YTYpartial != null) {
         if (YTY == null) {
           YTY = YTYpartial;
         } else {
-          int dim = YTY.length;
-          for (int i = 0; i < dim; i++) {
-            double[] ai = YTY[i];
-            double[] bi = YTYpartial[i];
-            for (int j = 0; j < dim; j++) {
-              ai[j] += bi[j];
-            }
+          for (int i = 0; i < YTY.length; i++) {
+            YTY[i] += YTYpartial[i];
           }
         }
       }
