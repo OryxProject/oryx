@@ -116,7 +116,7 @@ public final class FeatureVectorsPartition implements FeatureVectors {
   }
 
   @Override
-  public double[][] getVTV() {
+  public double[] getVTV() {
     try (AutoLock al = lock.autoReadLock()) {
       return VectorMath.transposeTimesSelf(vectors.values());
     }

@@ -75,8 +75,7 @@ public final class SolverCache {
     if (solverUpdating.compareAndSet(false, true)) {
       executor.submit(LoggingCallable.log(() -> {
         try {
-          double[][] YTY = vectorPartitions.getVTV();
-          Solver newYTYSolver = LinearSystemSolver.getSolver(YTY);
+          Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV());
           if (newYTYSolver != null) {
             solver.set(newYTYSolver);
           }

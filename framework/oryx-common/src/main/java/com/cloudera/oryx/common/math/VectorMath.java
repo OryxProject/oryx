@@ -87,25 +87,23 @@ public final class VectorMath {
 
   /**
    * @param M tall, skinny matrix
-   * @return MT * M as a dense matrix, in row-major 2D array form
+   * @return MT * M as a dense lower-triangular matrix, represented in packed row-major form.
    */
-  public static double[][] transposeTimesSelf(Collection<float[]> M) {
+  public static double[] transposeTimesSelf(Collection<float[]> M) {
     if (M == null || M.isEmpty()) {
       return null;
     }
-    int features = 0;
-    double[][] result = null;
+    int features = M.iterator().next().length;
+    double[] result = new double[features * (features + 1) / 2];
     for (float[] vector : M) {
-      if (result == null) {
-        features = vector.length;
-        result = new double[features][features];
-      }
+      int offset = 0;
       for (int row = 0; row < features; row++) {
         float rowValue = vector[row];
-        double[] resultRow = result[row];
-        for (int col = 0; col < features; col++) {
-          resultRow[col] += rowValue * vector[col];
+        for (int col = 0; col < row; col++) {
+          result[offset++] += rowValue * vector[col];
         }
+        // diagonal
+        result[offset++] += rowValue * rowValue;
       }
     }
     return result;
