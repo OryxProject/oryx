@@ -16,6 +16,32 @@ Since Kafka is the underlying data transport, the storage require to ingest and 
 just that of Kafka. See [Kafka performance](http://kafka.apache.org/performance.html) figures for information.
 In general, Kafka is not nearly a bottleneck and can be sized like any other usage of Kafka.
 
+# Native BLAS Acceleration
+
+Note that some parts of Spark and Oryx can use a native implementation of 
+[BLAS](http://www.netlib.org/blas/), a linear algebra library, to accelerate some operations. 
+This integration is enabled by a library called  [`netlib-java`](https://github.com/fommil/netlib-java). 
+
+Because some dependencies of `netlib-java` are licensed under an open source license that is 
+materially different from this project's license (GPL, instead of
+Apache License 2.0), this support is not built in to the Oryx distribution.
+
+It can be enabled however by building Oryx with the `-Pnetlib` flag. 
+
+If using a standard distribution of Oryx that's not built this way, it can also be enabled by
+building the support into your application. To do so, add this dependency to your application's
+`pom.xml` file, where `netlib.java.version` matches the one specified by Oryx and Spark:
+
+```XML
+<dependency>
+  <groupId>com.github.fommil.netlib</groupId>
+  <artifactId>all</artifactId>
+  <version>${netlib.java.version}</version>
+  <scope>runtime</scope>
+  <type>pom</type>
+</dependency>
+```
+
 # Batch Layer
 
 The Batch Layer's particular role is model building, and the element that is of most interest to benchmark

@@ -122,6 +122,8 @@ with 2 other distinct words.
 Compile your code and create a JAR file containing only your implementation, and any supporting
 third-party code. With Maven, this happens with `mvn package`.
 
+Note: to enable native BLAS acceleration in your app, see additional notes about BLAS in the
+[performance](performance.html) documentation.
 
 ### Compiling the Word Count Example
 

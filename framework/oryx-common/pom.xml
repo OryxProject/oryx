@@ -51,6 +51,10 @@
       <artifactId>config</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
     </dependency>
@@ -81,6 +85,27 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Enable acceleration for tests -->
+    <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>all</artifactId>
+      <scope>test</scope>
+      <type>pom</type>
+    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>netlib</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.github.fommil.netlib</groupId>
+          <artifactId>all</artifactId>
+          <scope>runtime</scope>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
