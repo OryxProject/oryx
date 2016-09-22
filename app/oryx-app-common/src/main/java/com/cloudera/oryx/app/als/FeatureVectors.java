@@ -76,7 +76,8 @@ public interface FeatureVectors {
 
   /**
    * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
-   *  as a dense lower-triangular matrix, represented in packed row-major form
+   *  as a dense lower-triangular matrix, represented in BLAS 'packed' form, which is
+   *  column-major.
    */
   double[] getVTV();
 
