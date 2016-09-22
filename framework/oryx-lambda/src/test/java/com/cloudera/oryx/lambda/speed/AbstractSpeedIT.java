@@ -22,8 +22,8 @@ import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
 import com.cloudera.oryx.kafka.util.ConsumeTopicRunnable;
@@ -36,7 +36,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractSpeedIT.class);
 
-  final List<Pair<String,String>> startServerProduceConsumeTopics(
+  final List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
       int howManyUpdate) throws IOException, InterruptedException {
@@ -47,12 +47,12 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
                                            howManyUpdate);
   }
 
-  protected final List<Pair<String,String>> startServerProduceConsumeTopics(
+  protected final List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       DatumGenerator<String,String> inputGenerator,
       DatumGenerator<String,String> updateGenerator,
       int howManyInput,
-      int howManyUpdate) throws IOException, InterruptedException {
+      int howManyUpdate) throws InterruptedException {
 
     int zkPort = getZKPort();
     int kafkaPort = getKafkaBrokerPort();
@@ -68,8 +68,8 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
                                                  howManyUpdate,
                                                  10);
 
-    List<Pair<String,String>> keyMessages;
-    try (CloseableIterator<Pair<String,String>> data =
+    List<KeyMessage<String,String>> keyMessages;
+    try (CloseableIterator<KeyMessage<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
          SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(config)) {
 

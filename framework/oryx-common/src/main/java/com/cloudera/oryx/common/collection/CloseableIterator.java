@@ -24,5 +24,7 @@ import java.util.Iterator;
  * @param <T> iterator element type
  */
 public interface CloseableIterator<T> extends Iterator<T>, Closeable {
-  // Adds nothing
+  // Adds nothing, except no IOException from close()
+  @Override
+  void close();
 }

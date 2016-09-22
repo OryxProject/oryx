@@ -24,10 +24,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.OryxResource;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.ConsumeData;
@@ -59,8 +59,8 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
         "AB,10,0",
     };
 
-    List<Pair<String,String>> keyMessages;
-    try (CloseableIterator<Pair<String,String>> data =
+    List<KeyMessage<String,String>> keyMessages;
+    try (CloseableIterator<KeyMessage<String,String>> data =
              new ConsumeData(INPUT_TOPIC, getZKPort()).iterator()) {
 
       log.info("Starting consumer thread");
@@ -78,9 +78,9 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
     }
 
     for (int i = 0; i < keyMessages.size(); i++) {
-      Pair<String,String> keyMessage = keyMessages.get(i);
-      assertNull(keyMessage.getFirst());
-      assertEquals(inputs[i], keyMessage.getSecond());
+      KeyMessage<String,String> keyMessage = keyMessages.get(i);
+      assertNull(keyMessage.getKey());
+      assertEquals(inputs[i], keyMessage.getMessage());
     }
     assertEquals(inputs.length, keyMessages.size());
 

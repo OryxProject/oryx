@@ -48,7 +48,7 @@ public final class LocalZKServer implements Closeable {
   private ZooKeeperServer zkServer;
   private FileTxnSnapLog transactionLog;
   private ServerCnxnFactory connectionFactory;
-  private boolean closed;
+  private volatile boolean closed;
 
   /**
    * Creates an instance that will run Zookeeper on the given port.
@@ -57,10 +57,6 @@ public final class LocalZKServer implements Closeable {
    */
   public LocalZKServer(int port) {
     this.port = port;
-  }
-
-  public int getPort() {
-    return port;
   }
 
   /**
@@ -115,7 +111,7 @@ public final class LocalZKServer implements Closeable {
    *
    * @throws InterruptedException if the caller thread is interrupted while waiting
    */
-  public void await() throws InterruptedException {
+  private void await() throws InterruptedException {
     connectionFactory.join();
   }
 

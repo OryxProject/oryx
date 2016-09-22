@@ -27,9 +27,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.CategoricalValueEncodings;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -54,7 +54,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
     startMessaging();
 
-    List<Pair<String,String>> updates =
+    List<KeyMessage<String,String>> updates =
         startServerProduceConsumeTopics(config,
                                         new MockRDFRegressionInputGenerator(),
                                         new MockRDFRegressionModelGenerator(),
@@ -71,12 +71,12 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     assertGreaterOrEqual(numUpdates, 3);
     assertNotEquals(0, numUpdates % 2);
     // Not testing the model much here:
-    assertEquals("MODEL", updates.get(0).getFirst());
+    assertEquals("MODEL", updates.get(0).getKey());
 
     for (int i = 1; i < numUpdates; i++) {
-      Pair<String, String> update = updates.get(i);
-      assertEquals("UP", update.getFirst());
-      List<?> fields = TextUtils.readJSON(update.getSecond(), List.class);
+      KeyMessage<String, String> update = updates.get(i);
+      assertEquals("UP", update.getKey());
+      List<?> fields = TextUtils.readJSON(update.getMessage(), List.class);
       int treeID = (Integer) fields.get(0);
       String nodeID = fields.get(1).toString();
       double mean = (Double) fields.get(2);
@@ -88,10 +88,10 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     }
 
     for (int i = 1; i < numUpdates; i += 2) {
-      Pair<String, String> update1 = updates.get(i);
-      Pair<String, String> update2 = updates.get(i + 1);
-      List<?> fields1 = TextUtils.readJSON(update1.getSecond(), List.class);
-      List<?> fields2 = TextUtils.readJSON(update2.getSecond(), List.class);
+      KeyMessage<String, String> update1 = updates.get(i);
+      KeyMessage<String, String> update2 = updates.get(i + 1);
+      List<?> fields1 = TextUtils.readJSON(update1.getMessage(), List.class);
+      List<?> fields2 = TextUtils.readJSON(update2.getMessage(), List.class);
       int count1 = (Integer) fields1.get(3);
       int count2 = (Integer) fields2.get(3);
       assertLessOrEqual(Math.abs(count1 - count2), 1);
@@ -134,7 +134,7 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
 
     startMessaging();
 
-    List<Pair<String,String>> updates =
+    List<KeyMessage<String,String>> updates =
         startServerProduceConsumeTopics(config,
                                         new MockRDFClassificationInputGenerator(),
                                         new MockRDFClassificationModelGenerator(),
@@ -151,9 +151,9 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     assertGreaterOrEqual(numUpdates, 3);
     assertNotEquals(0, numUpdates % 2);
     // Not testing the model much here:
-    assertEquals("MODEL", updates.get(0).getFirst());
+    assertEquals("MODEL", updates.get(0).getKey());
 
-    PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
+    PMML pmml = PMMLUtils.fromString(updates.get(0).getMessage());
     CategoricalValueEncodings encodings =
         AppPMMLUtils.buildCategoricalValueEncodings(pmml.getDataDictionary());
     log.info("{}", encodings);
@@ -162,9 +162,9 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
     String yellow = Integer.toString(fruitEncoding.get("yellow"));
 
     for (int i = 1; i < numUpdates; i++) {
-      Pair<String, String> update = updates.get(i);
-      assertEquals("UP", update.getFirst());
-      List<?> fields = TextUtils.readJSON(update.getSecond(), List.class);
+      KeyMessage<String, String> update = updates.get(i);
+      assertEquals("UP", update.getKey());
+      List<?> fields = TextUtils.readJSON(update.getMessage(), List.class);
       int treeID = (Integer) fields.get(0);
       String nodeID = fields.get(1).toString();
       @SuppressWarnings("unchecked")

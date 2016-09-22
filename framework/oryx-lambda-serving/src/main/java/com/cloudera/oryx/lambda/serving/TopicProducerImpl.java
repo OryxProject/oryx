@@ -62,6 +62,14 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
           "compression.codec", "gzip",
           "compressed.topics", topic,
           "request.required.acks", 1
+          // Above are for Kafka 0.8; following are for 0.9+
+          //"bootstrap.servers", updateBroker,
+          //"key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+          //"value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+          //"linger.ms", 1000, // Make configurable?
+          //"compression.type", "gzip",
+          //"acks", 1,
+          //"max.request.size", 1 << 26 // TODO
       )));
     }
     return producer;

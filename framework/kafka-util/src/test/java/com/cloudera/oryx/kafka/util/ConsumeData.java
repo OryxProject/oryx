@@ -19,14 +19,14 @@ import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.javaapi.consumer.ConsumerConnector;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * A iterator that consumes data from a Kafka topic.
  */
-public final class ConsumeData implements Iterable<Pair<String,String>> {
+public final class ConsumeData implements Iterable<KeyMessage<String,String>> {
 
   private final String topic;
   private final int maxMessageSize;
@@ -43,13 +43,18 @@ public final class ConsumeData implements Iterable<Pair<String,String>> {
   }
 
   @Override
-  public CloseableIterator<Pair<String,String>> iterator() {
+  public CloseableIterator<KeyMessage<String,String>> iterator() {
     ConsumerConnector consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(
           "group.id", "OryxGroup-ConsumeData",
           "zookeeper.connect", "localhost:" + zkPort,
           "fetch.message.max.bytes", maxMessageSize,
-          "auto.offset.reset", "smallest" // For tests, always start at the beginning
+          "auto.offset.reset", "smallest" // For tests, always start at the beginning; "earliest"
+          // Above are for Kafka 0.8; following are for 0.9+
+          //"bootstrap.servers", "localhost:" + kafkaPort,
+          //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+          //"value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+          //"max.partition.fetch.bytes", maxMessageSize
         )));
     return new ConsumeDataIterator(topic, consumer);
   }

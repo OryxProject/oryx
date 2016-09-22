@@ -110,7 +110,12 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
             "zookeeper.connect", updateTopicLockMaster,
             "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
-            "auto.offset.reset", "smallest"
+            "auto.offset.reset", "smallest" // becomes "earliest" in Kafka 0.9+
+            // Above are for Kafka 0.8; following are for 0.9+
+            //"bootstrap.servers", updateTopicBroker,
+            //"max.partition.fetch.bytes", maxMessageSize,
+            //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+            //"value.deserializer", updateDecoderClass.getName()
         )));
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),

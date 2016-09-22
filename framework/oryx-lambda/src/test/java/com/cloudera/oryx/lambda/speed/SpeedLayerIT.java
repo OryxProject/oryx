@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
@@ -43,17 +43,17 @@ public final class SpeedLayerIT extends AbstractSpeedIT {
 
     startMessaging();
 
-    List<Pair<String,String>> updates = startServerProduceConsumeTopics(config, 1000, 10);
+    List<KeyMessage<String,String>> updates = startServerProduceConsumeTopics(config, 1000, 10);
 
     int inputToUpdate = 0;
     int receivedUpdates = 0;
     int models = 0;
-    for (Pair<String,String> update : updates) {
-      String key = update.getFirst();
-      String message = update.getSecond();
+    for (KeyMessage<String,String> update : updates) {
+      String key = update.getKey();
+      String message = update.getMessage();
       if (message.contains(",")) {
         // it's an input converted to update
-        assertEquals("UP", update.getFirst());
+        assertEquals("UP", key);
         inputToUpdate++;
       } else {
         // Else should be just an int

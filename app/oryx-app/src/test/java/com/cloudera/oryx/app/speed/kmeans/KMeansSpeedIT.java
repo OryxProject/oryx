@@ -29,8 +29,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.app.kmeans.ClusterInfo;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.math.VectorMath;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -54,7 +54,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     startMessaging();
 
-    List<Pair<String,String>> updates =
+    List<KeyMessage<String,String>> updates =
         startServerProduceConsumeTopics(config,
                                         new MockKMeansInputGenerator(),
                                         new MockKMeansModelGenerator(),
@@ -67,9 +67,9 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     // Model plus at least 3 updates, 1 per cluster
     assertGreaterOrEqual(updates.size(), NUM_CLUSTERS + 1);
-    assertEquals("MODEL", updates.get(0).getFirst());
+    assertEquals("MODEL", updates.get(0).getKey());
 
-    PMML pmml = PMMLUtils.fromString(updates.get(0).getSecond());
+    PMML pmml = PMMLUtils.fromString(updates.get(0).getMessage());
     Model model = pmml.getModels().get(0);
     assertInstanceOf(model, ClusteringModel.class);
 
@@ -79,9 +79,9 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
 
     Map<Integer,ClusterInfo> clusterInfos = new HashMap<>();
     for (int i = 1; i < numUpdates; i++) {
-      Pair<String,String> update = updates.get(i);
-      assertEquals("UP", update.getFirst());
-      List<?> fields = TextUtils.readJSON(update.getSecond(), List.class);
+      KeyMessage<String,String> update = updates.get(i);
+      assertEquals("UP", update.getKey());
+      List<?> fields = TextUtils.readJSON(update.getMessage(), List.class);
       int clusterID = (Integer) fields.get(0);
       double[] updatedCenter = TextUtils.convertViaJSON(fields.get(1), double[].class);
       int updatedClusterSize = (Integer) fields.get(2);

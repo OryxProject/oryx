@@ -23,12 +23,13 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.StringDecoder;
 
+import com.cloudera.oryx.api.KeyMessage;
+import com.cloudera.oryx.api.KeyMessageImpl;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 
 final class ConsumeDataIterator
-    extends AbstractIterator<Pair<String,String>>
-    implements CloseableIterator<Pair<String,String>> {
+    extends AbstractIterator<KeyMessage<String,String>>
+    implements CloseableIterator<KeyMessage<String,String>> {
 
   private final ConsumerConnector consumer;
   private final Iterator<MessageAndMetadata<String,String>> iterator;
@@ -43,10 +44,10 @@ final class ConsumeDataIterator
   }
 
   @Override
-  protected Pair<String,String> computeNext() {
+  protected KeyMessage<String,String> computeNext() {
     if (iterator.hasNext()) {
       MessageAndMetadata<String,String> mm = iterator.next();
-      return new Pair<>(mm.key(), mm.message());
+      return new KeyMessageImpl<>(mm.key(), mm.message());
     } else {
       close();
       return endOfData();

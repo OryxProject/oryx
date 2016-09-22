@@ -36,9 +36,9 @@ import org.dmg.pmml.TreeModel;
 import org.dmg.pmml.True;
 import org.junit.Test;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
 import com.cloudera.oryx.app.schema.InputSchema;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -74,7 +74,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
     startMessaging();
 
-    List<Pair<String, String>> updates = startServerProduceConsumeTopics(
+    List<KeyMessage<String, String>> updates = startServerProduceConsumeTopics(
         config,
         new RandomCategoricalRDFDataGenerator(3),
         DATA_TO_WRITE,
@@ -93,10 +93,10 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
     InputSchema schema = new InputSchema(config);
 
-    for (Pair<String,String> km : updates) {
+    for (KeyMessage<String,String> km : updates) {
 
-      String type = km.getFirst();
-      String value = km.getSecond();
+      String type = km.getKey();
+      String value = km.getMessage();
 
       assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
       PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);

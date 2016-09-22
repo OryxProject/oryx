@@ -21,9 +21,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 
@@ -58,7 +58,7 @@ public final class ProduceConsumeIT extends OryxTest {
                                             0);
 
       List<String> keys;
-      try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
+      try (CloseableIterator<KeyMessage<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
