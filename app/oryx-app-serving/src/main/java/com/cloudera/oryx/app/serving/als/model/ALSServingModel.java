@@ -35,6 +35,8 @@ import com.koloboke.collect.map.hash.HashObjObjMaps;
 import com.koloboke.collect.set.ObjSet;
 import com.koloboke.collect.set.hash.HashObjSets;
 import com.koloboke.function.ObjDoubleToDoubleFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.serving.ServingModel;
 import com.cloudera.oryx.app.als.FeatureVectorsPartition;
@@ -52,6 +54,8 @@ import com.cloudera.oryx.common.math.Solver;
  * Contains all data structures needed to serve real-time requests for an ALS-based recommender.
  */
 public final class ALSServingModel implements ServingModel {
+
+  private static final Logger log = LoggerFactory.getLogger(ALSServingModel.class);
 
   private static final ExecutorService executor = Executors.newFixedThreadPool(
       Runtime.getRuntime().availableProcessors(),
@@ -358,7 +362,17 @@ public final class ALSServingModel implements ServingModel {
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       knownItems.values().forEach(knownItemsForUser -> {
         synchronized (knownItemsForUser) {
-          knownItemsForUser.removeIf(notKeptOrRecent);
+          try {
+            knownItemsForUser.removeIf(notKeptOrRecent);
+          } catch (ClassCastException cce) {
+            // TODO remove this temporary debugging catch block!
+            // see https://github.com/OryxProject/oryx/issues/304
+            log.warn("Caught unexpected error updating knownItemsForUser", cce);
+            for (Object o : knownItemsForUser) {
+              log.info("{} {}", o.getClass(), o);
+            }
+            throw cce;
+          }
         }
       });
     }

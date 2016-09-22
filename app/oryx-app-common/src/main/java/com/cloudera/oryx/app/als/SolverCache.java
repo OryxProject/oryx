@@ -75,8 +75,10 @@ public final class SolverCache {
     if (solverUpdating.compareAndSet(false, true)) {
       executor.submit(LoggingCallable.log(() -> {
         try {
+          log.info("Computing cached solver");
           Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV());
           if (newYTYSolver != null) {
+            log.info("Computed new solver {}", solver);
             solver.set(newYTYSolver);
           }
         } finally {
