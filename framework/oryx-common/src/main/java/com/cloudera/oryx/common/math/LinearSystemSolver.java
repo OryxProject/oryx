@@ -33,7 +33,7 @@ public final class LinearSystemSolver {
   private LinearSystemSolver() {}
 
   /**
-   * @param packed dense lower-triangular matrix A, represented in packed row-major form
+   * @param packed dense lower-triangular matrix A, represented in BLAS packed column-major form
    * @return solver for the system Ax = b
    */
   public static Solver getSolver(double[] packed) {
@@ -43,14 +43,11 @@ public final class LinearSystemSolver {
     int dim = (int) Math.round((Math.sqrt(8.0 * packed.length + 1.0) - 1.0) / 2.0);
     double[][] unpacked = new double[dim][dim];
     int offset = 0;
-    for (int row = 0; row < dim; row++) {
-      for (int col = 0; col < row; col++) {
-        double value = packed[offset++];
-        unpacked[row][col] = value;
-        unpacked[col][row] = value;
+    for (int col = 0; col < dim; col++) {
+      double[] unpackedCol = unpacked[col];
+      for (int row = col; row < dim; row++) {
+        unpacked[row][col] = unpackedCol[row] = packed[offset++];
       }
-      // diagonal
-      unpacked[row][row] = packed[offset++];
     }
     return getSolver(unpacked);
   }

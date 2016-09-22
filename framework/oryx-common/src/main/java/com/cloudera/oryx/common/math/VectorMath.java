@@ -97,13 +97,11 @@ public final class VectorMath {
     double[] result = new double[features * (features + 1) / 2];
     for (float[] vector : M) {
       int offset = 0;
-      for (int row = 0; row < features; row++) {
-        float rowValue = vector[row];
-        for (int col = 0; col < row; col++) {
-          result[offset++] += rowValue * vector[col];
+      for (int col = 0; col < features; col++) {
+        double colValue = vector[col];
+        for (int row = col; row < features; row++) {
+          result[offset++] += vector[row] * colValue;
         }
-        // diagonal
-        result[offset++] += rowValue * rowValue;
       }
     }
     return result;

@@ -56,7 +56,7 @@ public final class LinearSystemSolverTest extends OryxTest {
 
   @Test
   public void testSolveDToDPacked() {
-    double[] a = {1.3, -2.0, 3.0, 2.0, 5.0, 1.5};
+    double[] a = {1.3, -2.0, 2.0, 3.0, 5.0, 1.5};
     Solver solver = LinearSystemSolver.getSolver(a);
     assertNotNull(solver);
     double[] y = solver.solveDToD(new double[] {1.0, 2.0, 6.5});
