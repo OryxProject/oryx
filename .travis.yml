@@ -1,9 +1,9 @@
 language: java
 sudo: false
 jdk: oraclejdk8
-install: mvn -T 4 ${CDH} ${SPARK} ${SCALA} -Ptravis -DskipTests=true -B -V install
+install: mvn -T 4 ${CDH} ${SPARK} ${SCALA} -Ptravis -Pnetlib -DskipTests=true -B -V install
 script:
-  - mvn -T 2 ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -q -B verify
+  - mvn -T 2 ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Pnetlib -q -B verify
   - find $HOME/.m2/repository/com/cloudera/oryx -path "*SNAPSHOT/*" -delete
   - find $HOME/.m2/repository/com/cloudera/oryx -name "*SNAPSHOT" -type d -delete
 env: JACOCO=-Pjacoco CDH=-Pcdh58

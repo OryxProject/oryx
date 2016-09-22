@@ -17,12 +17,15 @@ package com.cloudera.oryx.common.math;
 
 import java.util.Collection;
 
+import com.github.fommil.netlib.BLAS;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Utility class with simple vector-related operations.
  */
 public final class VectorMath {
+
+  private static final BLAS blas = BLAS.getInstance();
 
   private VectorMath() {}
 
@@ -95,14 +98,13 @@ public final class VectorMath {
     }
     int features = M.iterator().next().length;
     double[] result = new double[features * (features + 1) / 2];
+    double[] vectorD = new double[features];
     for (float[] vector : M) {
-      int offset = 0;
-      for (int col = 0; col < features; col++) {
-        double colValue = vector[col];
-        for (int row = col; row < features; row++) {
-          result[offset++] += vector[row] * colValue;
-        }
+      // Unfortunately need to copy into a double[]
+      for (int i = 0; i < vector.length; i++) {
+        vectorD[i] = vector[i];
       }
+      blas.dspr("L", features, 1.0, vectorD, 1, result);
     }
     return result;
   }

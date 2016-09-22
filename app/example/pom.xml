@@ -47,11 +47,20 @@
       <scope>provided</scope>
       <version>2.3.0-SNAPSHOT</version>
     </dependency>
+    <!-- optional, but would enable some native acceleration -->
+    <dependency>
+      <groupId>com.github.fommil.netlib</groupId>
+      <artifactId>all</artifactId>
+      <version>${netlib.java.version}</version>
+      <scope>runtime</scope>
+      <type>pom</type>
+    </dependency>
   </dependencies>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.8</java.version>
+    <netlib.java.version>1.1.2</netlib.java.version>
   </properties>
 
   <build>
