@@ -34,7 +34,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
  */
 public final class LocalKafkaBroker implements Closeable {
 
-  static final int TEST_BROKER_ID = 5;
+  private static final int TEST_BROKER_ID = 5;
 
   private static final Logger log = LoggerFactory.getLogger(LocalKafkaBroker.class);
 
@@ -55,7 +55,7 @@ public final class LocalKafkaBroker implements Closeable {
     this.zkPort = zkPort;
   }
 
-  public int getPort() {
+  int getPort() {
     return port;
   }
 
@@ -75,6 +75,9 @@ public final class LocalKafkaBroker implements Closeable {
         "log.dirs", logsDir.toAbsolutePath(),
         "port", port,
         "zookeeper.connect", "localhost:" + zkPort
+        // Above are for Kafka 0.8; following are for 0.9+
+        //"message.max.bytes", 1 << 26, // TODO
+        //"replica.fetch.max.bytes", 1 << 26 // TODO
     ), false));
     kafkaServer.startup();
   }
@@ -82,7 +85,7 @@ public final class LocalKafkaBroker implements Closeable {
   /**
    * Blocks until the Kafka broker terminates.
    */
-  public void await() {
+  private void await() {
     kafkaServer.awaitShutdown();
   }
 

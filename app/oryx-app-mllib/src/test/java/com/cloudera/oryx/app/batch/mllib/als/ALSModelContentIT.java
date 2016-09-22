@@ -29,8 +29,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.text.TextUtils;
 
@@ -57,7 +57,7 @@ public final class ALSModelContentIT extends AbstractALSIT {
     startMessaging();
 
     ModelContentDataGenerator generator = new ModelContentDataGenerator();
-    List<Pair<String, String>> updates = startServerProduceConsumeTopics(
+    List<KeyMessage<String, String>> updates = startServerProduceConsumeTopics(
         config,
         generator,
         generator.getSentData().size(),
@@ -67,9 +67,9 @@ public final class ALSModelContentIT extends AbstractALSIT {
     Collection<String> modelItems = null;
     Map<String,Collection<String>> knownUsersItems = new HashMap<>();
 
-    for (Pair<String, String> km : updates) {
-      String type = km.getFirst();
-      String value = km.getSecond();
+    for (KeyMessage<String, String> km : updates) {
+      String type = km.getKey();
+      String value = km.getMessage();
       log.debug("{} = {}", type, value);
 
       if ("UP".equals(type)) {

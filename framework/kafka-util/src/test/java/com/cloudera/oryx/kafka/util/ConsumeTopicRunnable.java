@@ -23,20 +23,20 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.api.KeyMessage;
 
 public final class ConsumeTopicRunnable implements Callable<Void> {
 
-  private final Iterator<Pair<String,String>> data;
-  private final List<Pair<String,String>> keyMessages;
+  private final Iterator<KeyMessage<String,String>> data;
+  private final List<KeyMessage<String,String>> keyMessages;
   private final CountDownLatch runLatch;
   private final CountDownLatch messagesLatch;
 
-  public ConsumeTopicRunnable(Iterator<Pair<String,String>> data) {
+  public ConsumeTopicRunnable(Iterator<KeyMessage<String,String>> data) {
     this(data, 0);
   }
 
-  public ConsumeTopicRunnable(Iterator<Pair<String,String>> data, int expectedMessages) {
+  public ConsumeTopicRunnable(Iterator<KeyMessage<String,String>> data, int expectedMessages) {
     this.data = data;
     this.keyMessages = new ArrayList<>();
     this.runLatch = new CountDownLatch(1);
@@ -65,12 +65,12 @@ public final class ConsumeTopicRunnable implements Callable<Void> {
     }
   }
 
-  public List<Pair<String,String>> getKeyMessages() {
+  public List<KeyMessage<String,String>> getKeyMessages() {
     return keyMessages;
   }
 
-  public List<String> getKeys() {
-    return keyMessages.stream().map(Pair::getFirst).collect(Collectors.toList());
+  List<String> getKeys() {
+    return keyMessages.stream().map(KeyMessage::getKey).collect(Collectors.toList());
   }
 
 }

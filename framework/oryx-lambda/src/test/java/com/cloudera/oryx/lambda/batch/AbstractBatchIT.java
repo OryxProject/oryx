@@ -27,8 +27,8 @@ import org.apache.hadoop.io.Writable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.collection.CloseableIterator;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.kafka.util.ConsumeData;
@@ -42,7 +42,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractBatchIT.class);
 
-  protected List<Pair<String,String>> startServerProduceConsumeTopics(
+  protected List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
       int intervalMsec) throws IOException, InterruptedException {
@@ -52,7 +52,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                            intervalMsec);
   }
 
-  protected List<Pair<String,String>> startServerProduceConsumeTopics(
+  protected List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       DatumGenerator<String,String> datumGenerator,
       int howMany,
@@ -66,8 +66,8 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
                                           howMany,
                                           intervalMsec);
 
-    List<Pair<String,String>> keyMessages;
-    try (CloseableIterator<Pair<String,String>> data =
+    List<KeyMessage<String,String>> keyMessages;
+    try (CloseableIterator<KeyMessage<String,String>> data =
              new ConsumeData(UPDATE_TOPIC, zkPort).iterator();
          BatchLayer<?,?,?> batchLayer = new BatchLayer<>(config)) {
 

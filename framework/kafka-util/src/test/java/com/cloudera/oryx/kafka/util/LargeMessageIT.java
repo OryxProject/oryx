@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.OryxTest;
 import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.collection.Pair;
@@ -47,7 +48,6 @@ public final class LargeMessageIT extends OryxTest {
       localKafkaBroker.start();
 
       int maxMessageSize = ConfigUtils.getDefault().getInt("oryx.update-topic.message.max-size");
-      int largeMessageSize = maxMessageSize - (1 << 14); // slack for message metadata
 
       String zkHostPort = "localhost:" + zkPort;
       KafkaUtils.deleteTopic(zkHostPort, TOPIC);
@@ -55,14 +55,16 @@ public final class LargeMessageIT extends OryxTest {
           "max.message.bytes", maxMessageSize
       ));
 
+      int largeMessageSize = maxMessageSize - (1 << 14); // slack for message metadata
       ProduceData produce = new ProduceData(new BigDatumGenerator(largeMessageSize),
                                             localKafkaBroker.getPort(),
                                             TOPIC,
                                             NUM_DATA,
                                             0);
 
-      List<Pair<String,String>> keyMessages;
-      try (CloseableIterator<Pair<String,String>> data = new ConsumeData(TOPIC, maxMessageSize, zkPort).iterator()) {
+      List<KeyMessage<String,String>> keyMessages;
+      try (CloseableIterator<KeyMessage<String,String>> data =
+               new ConsumeData(TOPIC, maxMessageSize, zkPort).iterator()) {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);
@@ -80,7 +82,7 @@ public final class LargeMessageIT extends OryxTest {
       }
 
       assertEquals(1, keyMessages.size());
-      assertEquals(BigDatumGenerator.LARGE_MESSAGE, keyMessages.get(0).getSecond());
+      assertEquals(BigDatumGenerator.LARGE_MESSAGE, keyMessages.get(0).getMessage());
     }
   }
 

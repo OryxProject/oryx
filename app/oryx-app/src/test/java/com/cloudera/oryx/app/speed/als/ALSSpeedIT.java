@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.app.als.ALSUtilsTest;
 import com.cloudera.oryx.app.pmml.AppPMMLUtils;
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.common.text.TextUtils;
@@ -47,7 +47,7 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     startMessaging();
 
-    List<Pair<String,String>> updates =
+    List<KeyMessage<String,String>> updates =
         startServerProduceConsumeTopics(config,
                                         new MockALSInputGenerator(),
                                         new MockALSModelUpdateGenerator(),
@@ -59,13 +59,13 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
 
     // 10 original updates. 9 generate just 1 update since user or item is new.
     assertEquals(19, updates.size());
-    assertEquals("MODEL", updates.get(0).getFirst());
+    assertEquals("MODEL", updates.get(0).getKey());
     assertEquals(2, Integer.parseInt(AppPMMLUtils.getExtensionValue(
-        PMMLUtils.fromString(updates.get(0).getSecond()), "features")));
+        PMMLUtils.fromString(updates.get(0).getMessage()), "features")));
 
     for (int i = 1; i <= 9; i++) {
-      assertEquals("UP", updates.get(i).getFirst());
-      List<?> update = TextUtils.readJSON(updates.get(i).getSecond(), List.class);
+      assertEquals("UP", updates.get(i).getKey());
+      List<?> update = TextUtils.readJSON(updates.get(i).getMessage(), List.class);
       boolean isX = "X".equals(update.get(0).toString());
       String id = update.get(1).toString();
       float[] expected = (isX ? MockALSModelUpdateGenerator.X : MockALSModelUpdateGenerator.Y).get(id);
@@ -99,8 +99,8 @@ public final class ALSSpeedIT extends AbstractSpeedIT {
     });
 
     for (int i = 10; i <= 18; i++) {
-      assertEquals("UP", updates.get(i).getFirst());
-      List<?> update = TextUtils.readJSON(updates.get(i).getSecond(), List.class);
+      assertEquals("UP", updates.get(i).getKey());
+      List<?> update = TextUtils.readJSON(updates.get(i).getMessage(), List.class);
       boolean isX = "X".equals(update.get(0).toString());
       String id = update.get(1).toString();
       float[] expected = (isX ? X : Y).get(id);

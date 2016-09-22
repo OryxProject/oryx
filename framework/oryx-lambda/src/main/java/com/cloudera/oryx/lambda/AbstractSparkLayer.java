@@ -195,7 +195,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     String groupID = getGroupID();
     kafkaParams.put("group.id", groupID);
     // Don't re-consume old messages from input by default
-    kafkaParams.put("auto.offset.reset", "largest");
+    kafkaParams.put("auto.offset.reset", "largest"); // becomes "latest" in Kafka 0.9+
     kafkaParams.put("metadata.broker.list", inputBroker);
     // Newer version of metadata.broker.list:
     kafkaParams.put("bootstrap.servers", inputBroker);

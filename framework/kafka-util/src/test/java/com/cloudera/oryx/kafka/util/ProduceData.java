@@ -70,6 +70,14 @@ public final class ProduceData {
             "compression.codec", "gzip",
             "compressed.topics", topic,
             "request.required.acks", 1
+            // Above are for Kafka 0.8; following are for 0.9+
+            //"bootstrap.servers", "localhost:" + kafkaPort,
+            //"key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+            //"value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+            //"compression.type", "gzip",
+            //"batch.size", 0,
+            //"acks", 1,
+            //"max.request.size", 1 << 26 // TODO
         )));
     try {
       for (int i = 0; i < howMany; i++) {

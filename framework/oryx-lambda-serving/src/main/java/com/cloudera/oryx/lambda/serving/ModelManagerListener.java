@@ -65,7 +65,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   private static final Logger log = LoggerFactory.getLogger(ModelManagerListener.class);
 
   static final String MANAGER_KEY = ModelManagerListener.class.getName() + ".ModelManager";
-  static final String INPUT_PRODUCER_KEY = ModelManagerListener.class.getName() + ".InputProducer";
+  private static final String INPUT_PRODUCER_KEY =
+      ModelManagerListener.class.getName() + ".InputProducer";
 
   private Config config;
   private String updateTopic;
@@ -122,7 +123,12 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
             "zookeeper.connect", updateTopicLockMaster,
             "fetch.message.max.bytes", maxMessageSize,
             // Do start from the beginning of the update queue
-            "auto.offset.reset", "smallest"
+            "auto.offset.reset", "smallest" // becomes "earliest" in Kafka 0.9+
+            // Above are for Kafka 0.8; following are for 0.9+
+            //"bootstrap.servers", updateTopicBroker,
+            //"max.partition.fetch.bytes", maxMessageSize,
+            //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+            //"value.deserializer", updateDecoderClass.getName()
         )));
     KafkaStream<String,U> stream =
         consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
