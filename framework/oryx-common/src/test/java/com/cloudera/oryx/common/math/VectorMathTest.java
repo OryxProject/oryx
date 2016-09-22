@@ -86,7 +86,7 @@ public final class VectorMathTest extends OryxTest {
     a.put(1, new float[] {2.0f, 0.0f, 5.0f});
     a.put(3, new float[] {0.0f, -1.5f, 5.5f});
     double[] ata = VectorMath.transposeTimesSelf(a.values());
-    double[] expected = {5.69, -2.6, 6.25, 13.9, -14.25, 64.25};
+    double[] expected = {5.69, -2.6, 13.9, 6.25, -14.25, 64.25};
     assertArrayEquals(expected, ata, FLOAT_EPSILON);
   }
 
