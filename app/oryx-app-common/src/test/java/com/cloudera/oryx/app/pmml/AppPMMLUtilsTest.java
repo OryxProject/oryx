@@ -114,10 +114,10 @@ public final class AppPMMLUtilsTest extends OryxTest {
       assertEquals(fieldNames[i], miningFields.get(i).getName().getValue());
     }
 
-    assertEquals(MiningField.FieldUsage.SUPPLEMENTARY, miningFields.get(0).getFieldUsage());
-    assertEquals(MiningField.FieldUsage.PREDICTED, miningFields.get(1).getFieldUsage());
-    assertEquals(MiningField.FieldUsage.SUPPLEMENTARY, miningFields.get(2).getFieldUsage());
-    assertEquals(MiningField.FieldUsage.ACTIVE, miningFields.get(3).getFieldUsage());
+    assertEquals(MiningField.UsageType.SUPPLEMENTARY, miningFields.get(0).getUsageType());
+    assertEquals(MiningField.UsageType.PREDICTED, miningFields.get(1).getUsageType());
+    assertEquals(MiningField.UsageType.SUPPLEMENTARY, miningFields.get(2).getUsageType());
+    assertEquals(MiningField.UsageType.ACTIVE, miningFields.get(3).getUsageType());
 
     assertEquals(OpType.CATEGORICAL, miningFields.get(1).getOpType());
     assertEquals(OpType.CONTINUOUS, miningFields.get(3).getOpType());

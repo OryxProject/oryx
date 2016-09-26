@@ -150,20 +150,20 @@ public final class AppPMMLUtils {
       MiningField field = new MiningField(FieldName.create(featureName));
       if (schema.isNumeric(featureName)) {
         field.setOpType(OpType.CONTINUOUS);
-        field.setFieldUsage(MiningField.FieldUsage.ACTIVE);
+        field.setUsageType(MiningField.UsageType.ACTIVE);
       } else if (schema.isCategorical(featureName)) {
         field.setOpType(OpType.CATEGORICAL);
-        field.setFieldUsage(MiningField.FieldUsage.ACTIVE);
+        field.setUsageType(MiningField.UsageType.ACTIVE);
       } else {
         // ID, or ignored
-        field.setFieldUsage(MiningField.FieldUsage.SUPPLEMENTARY);
+        field.setUsageType(MiningField.UsageType.SUPPLEMENTARY);
       }
       if (schema.hasTarget() && schema.isTarget(featureName)) {
         // Override to PREDICTED
-        field.setFieldUsage(MiningField.FieldUsage.PREDICTED);
+        field.setUsageType(MiningField.UsageType.PREDICTED);
       }
       // Will be active if and only if it's a predictor
-      if (field.getFieldUsage() == MiningField.FieldUsage.ACTIVE && importances != null) {
+      if (field.getUsageType() == MiningField.UsageType.ACTIVE && importances != null) {
         int predictorIndex = schema.featureToPredictorIndex(featureIndex);
         field.setImportance(importances[predictorIndex]);
       }
@@ -183,12 +183,12 @@ public final class AppPMMLUtils {
 
   /**
    * @param miningSchema {@link MiningSchema} from a model
-   * @return index of the {@link MiningField.FieldUsage#PREDICTED} feature
+   * @return index of the {@link MiningField.UsageType#PREDICTED} feature
    */
   public static Integer findTargetIndex(MiningSchema miningSchema) {
     List<MiningField> miningFields = miningSchema.getMiningFields();
     for (int i = 0; i < miningFields.size(); i++) {
-      if (miningFields.get(i).getFieldUsage() == MiningField.FieldUsage.PREDICTED) {
+      if (miningFields.get(i).getUsageType() == MiningField.UsageType.PREDICTED) {
         return i;
       }
     }

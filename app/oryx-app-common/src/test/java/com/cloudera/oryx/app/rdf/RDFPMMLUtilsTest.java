@@ -129,12 +129,12 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("color"))
         .setOpType(OpType.CATEGORICAL)
-        .setFieldUsage(MiningField.FieldUsage.ACTIVE)
+        .setUsageType(MiningField.UsageType.ACTIVE)
         .setImportance(0.5);
     miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("fruit"))
         .setOpType(OpType.CATEGORICAL)
-        .setFieldUsage(MiningField.FieldUsage.PREDICTED);
+        .setUsageType(MiningField.UsageType.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
@@ -190,12 +190,12 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     List<MiningField> miningFields = new ArrayList<>();
     MiningField predictorMF = new MiningField(FieldName.create("foo"))
         .setOpType(OpType.CONTINUOUS)
-        .setFieldUsage(MiningField.FieldUsage.ACTIVE)
+        .setUsageType(MiningField.UsageType.ACTIVE)
         .setImportance(0.5);
     miningFields.add(predictorMF);
     MiningField targetMF = new MiningField(FieldName.create("bar"))
         .setOpType(OpType.CONTINUOUS)
-        .setFieldUsage(MiningField.FieldUsage.PREDICTED);
+        .setUsageType(MiningField.UsageType.PREDICTED);
     miningFields.add(targetMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 

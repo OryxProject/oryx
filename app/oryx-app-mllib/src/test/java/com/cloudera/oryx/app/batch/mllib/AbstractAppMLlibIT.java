@@ -98,18 +98,18 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
                      miningField.getOpType());
         if (schema.isTarget(expectedFeature)) {
           assertEquals("Wrong usage type for feature " + featureName,
-                       MiningField.FieldUsage.PREDICTED,
-                       miningField.getFieldUsage());
+                       MiningField.UsageType.PREDICTED,
+                       miningField.getUsageType());
         } else {
           assertEquals("Wrong usage type for feature " + featureName,
-                       MiningField.FieldUsage.ACTIVE,
-                       miningField.getFieldUsage());
+                       MiningField.UsageType.ACTIVE,
+                       miningField.getUsageType());
           assertRange(miningField.getImportance(), 0.0, 1.0);
         }
       } else {
         assertEquals("Wrong usage type for feature " + featureName,
-                     MiningField.FieldUsage.SUPPLEMENTARY,
-                     miningField.getFieldUsage());
+                     MiningField.UsageType.SUPPLEMENTARY,
+                     miningField.getUsageType());
       }
 
     }

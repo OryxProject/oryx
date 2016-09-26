@@ -82,10 +82,10 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
 
     List<MiningField> miningFields = new ArrayList<>();
     MiningField xMF = new MiningField(FieldName.create("x"))
-        .setOpType(OpType.CONTINUOUS).setFieldUsage(MiningField.FieldUsage.ACTIVE);
+        .setOpType(OpType.CONTINUOUS).setUsageType(MiningField.UsageType.ACTIVE);
     miningFields.add(xMF);
     MiningField yMF = new MiningField(FieldName.create("y"))
-        .setOpType(OpType.CONTINUOUS).setFieldUsage(MiningField.FieldUsage.ACTIVE);
+        .setOpType(OpType.CONTINUOUS).setUsageType(MiningField.UsageType.ACTIVE);
     miningFields.add(yMF);
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
