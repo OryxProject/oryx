@@ -217,7 +217,7 @@
       <dependency>
         <groupId>com.typesafe</groupId>
         <artifactId>config</artifactId>
-        <version>${typesafe.config.version}</version>
+        <version>1.3.1</version>
       </dependency>
 
       <dependency>
@@ -343,7 +343,7 @@
       <dependency>
         <groupId>javax.annotation</groupId>
         <artifactId>javax.annotation-api</artifactId>
-        <version>1.2</version>
+        <version>1.3</version>
       </dependency>
       <dependency>
         <groupId>javax.security.auth.message</groupId>
@@ -455,7 +455,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.2.RELEASE</version>
+        <version>4.3.3.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -557,7 +557,6 @@
     <spark.version>1.6.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
     <tomcat.version>8.5.5</tomcat.version>
-    <typesafe.config.version>1.3.0</typesafe.config.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -1179,7 +1178,7 @@
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.6.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.0.1</kafka.version>
+        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
       </properties>
     </profile>
     <profile>
@@ -1189,11 +1188,11 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <cdh.version>5.8.0</cdh.version>
+        <cdh.version>5.8.2</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.6.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.0.1</kafka.version>
+        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
       </properties>
     </profile>
     <profile>
