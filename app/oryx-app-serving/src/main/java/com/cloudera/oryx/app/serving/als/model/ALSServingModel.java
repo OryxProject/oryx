@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.koloboke.collect.ObjCursor;
 import com.koloboke.collect.map.ObjIntMap;
 import com.koloboke.collect.map.ObjObjMap;
 import com.koloboke.collect.map.hash.HashObjIntMaps;
@@ -362,16 +363,18 @@ public final class ALSServingModel implements ServingModel {
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       knownItems.values().forEach(knownItemsForUser -> {
         synchronized (knownItemsForUser) {
-          try {
-            knownItemsForUser.removeIf(notKeptOrRecent);
-          } catch (ClassCastException cce) {
-            // TODO remove this temporary debugging catch block!
-            // see https://github.com/OryxProject/oryx/issues/304
-            log.warn("Caught unexpected error updating knownItemsForUser", cce);
-            for (Object o : knownItemsForUser) {
-              log.info("{} {}", o.getClass(), o);
+          // knownItemsForUser.removeIf(notKeptOrRecent);
+          // TODO remove this temporary hack workaround and restore above
+          // see https://github.com/OryxProject/oryx/issues/304
+          ObjCursor<?> cursor = knownItemsForUser.cursor();
+          while (cursor.moveNext()) {
+            Object o = cursor.elem();
+            if (!(o instanceof String)) {
+              log.warn("Found non-String collection: {}", o);
+              cursor.remove();
+            } else if (notKeptOrRecent.test((String) o)) {
+              cursor.remove();
             }
-            throw cce;
           }
         }
       });
