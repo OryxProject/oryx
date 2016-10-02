@@ -16,7 +16,6 @@
 package com.cloudera.oryx.example.speed;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
  */
 public final class ExampleSpeedModelManager extends AbstractSpeedModelManager<String,String,String> {
 
-  private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
+  private final Map<String,Integer> distinctOtherWords = new HashMap<>();
 
   @Override
   public void consumeKeyMessage(String key, String message, Configuration hadoopConf) throws IOException {
@@ -45,8 +44,10 @@ public final class ExampleSpeedModelManager extends AbstractSpeedModelManager<St
       case "MODEL":
         @SuppressWarnings("unchecked")
         Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
-        distinctOtherWords.keySet().retainAll(model.keySet());
-        model.forEach(distinctOtherWords::put);
+        synchronized (distinctOtherWords) {
+          distinctOtherWords.clear();
+          model.forEach(distinctOtherWords::put);
+        }
         break;
       case "UP":
         // ignore

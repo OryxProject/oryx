@@ -44,7 +44,11 @@ public final class Distinct extends OryxResource {
   @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
   @Path("{word}")
   public int get(@PathParam("word") String word) throws OryxServingException {
-    Integer count = getModel().getWords().get(word);
+    Map<String,Integer> map = getModel().getWords();
+    Integer count;
+    synchronized (map) {
+      count = map.get(word);
+    }
     if (count == null) {
       throw new OryxServingException(Response.Status.BAD_REQUEST, "No such word");
     }

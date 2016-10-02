@@ -15,7 +15,8 @@
 
 package com.cloudera.oryx.example.speed
 
-import scala.collection.{mutable, JavaConversions}
+import scala.collection.mutable
+import scala.collection.JavaConverters._
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -38,8 +39,8 @@ class ExampleScalaSpeedModelManager(val config: Config)
   override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration) = {
     key match {
       case "MODEL" =>
-        val model = JavaConversions.mapAsScalaMap(
-          new ObjectMapper().readValue(message, classOf[java.util.Map[String,String]]))
+        val model =
+          new ObjectMapper().readValue(message, classOf[java.util.Map[String,String]]).asScala
         distinctOtherWords.synchronized {
           distinctOtherWords.clear()
           model.foreach { case (word, count) =>
