@@ -909,7 +909,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>clirr-maven-plugin</artifactId>
-          <version>2.7</version>
+          <version>2.8</version>
           <executions>
             <execution>
               <id>check-api</id>
@@ -1163,7 +1163,7 @@
     <profile>
       <id>cdh57</id>
       <properties>
-        <cdh.version>5.7.2</cdh.version>
+        <cdh.version>5.7.4</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.6.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
@@ -1172,12 +1172,22 @@
     </profile>
     <profile>
       <id>cdh58</id>
+      <properties>
+        <cdh.version>5.8.2</cdh.version>
+        <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
+        <spark.version>1.6.0-cdh${cdh.version}</spark.version>
+        <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
+        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>cdh59</id>
       <activation>
         <!-- for now, this must be active since Spark 1.6 does not work otherwise with Kafka 0.9 -->
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <cdh.version>5.8.2</cdh.version>
+        <cdh.version>5.9.0</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>1.6.0-cdh${cdh.version}</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>

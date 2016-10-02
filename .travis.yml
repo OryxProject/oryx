@@ -6,7 +6,7 @@ script:
   - mvn -T 2 ${CDH} ${SPARK} ${SCALA} ${JACOCO} -Ptravis -Pnetlib -q -B verify
   - find $HOME/.m2/repository/com/cloudera/oryx -path "*SNAPSHOT/*" -delete
   - find $HOME/.m2/repository/com/cloudera/oryx -name "*SNAPSHOT" -type d -delete
-env: JACOCO=-Pjacoco CDH=-Pcdh58
+env: JACOCO=-Pjacoco CDH=-Pcdh59
 cache:
   directories:
     - $HOME/.m2
