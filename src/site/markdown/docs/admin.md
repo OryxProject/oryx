@@ -391,8 +391,11 @@ to ensure older data in the input topic is not read.
 The simplest solution is to create a new input topic and change configuration to use it.
 Then, also delete any pre-existing data in HDFS (or use a new directory). Similarly, since the 
 update topic is read from the beginning, it's easiest to make a new update topic instead.
-While it's possible to reuse the existing topics by carefully managing offsets in Kafka or
-changing the instance `oryx.id` value, these are possibly more complex.
+
+It's possible to reuse an existing topic name, by removing all its data (difficult, not recommended)
+or simply deleting and recreating it. If recreating the topic, it's necessary to reset the consumer
+offset Oryx will use. This can be done by directly manipulating offsets stored in Zookeeper, to 
+delete them (somewhat hard, not recommended), or by simply switching `oryx.id` to another value.
 
 ## Speed Layer isn't producing updates, but is running
 
