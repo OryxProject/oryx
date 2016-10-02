@@ -269,6 +269,19 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
         offsets.put(tAndP, earliestTopicOffset);
       }
     }
+
+    // Then check whether existing offsets are actually <= the latest topic offset
+    for (Map.Entry<TopicAndPartition,?> entry : getLeaderOffsets(kc, offsets, false, false).entrySet()) {
+      TopicAndPartition tAndP = entry.getKey();
+      Object leaderOffsetsObj = entry.getValue();
+      long latestTopicOffset = readOffset(leaderOffsetsObj);
+      long currentOffset = offsets.get(tAndP);
+      if (currentOffset > latestTopicOffset) {
+        log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
+                 currentOffset, tAndP, latestTopicOffset);
+        offsets.put(tAndP, latestTopicOffset);
+      }
+    }
   }
 
   private static Map<TopicAndPartition,?> getLeaderOffsets(
