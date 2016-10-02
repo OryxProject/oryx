@@ -16,7 +16,6 @@
 package com.cloudera.oryx.example.serving;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,7 +36,7 @@ import com.cloudera.oryx.api.serving.ServingModel;
  */
 public final class ExampleServingModelManager extends AbstractServingModelManager<String> {
 
-  private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
+  private final Map<String,Integer> distinctOtherWords = new HashMap<>();
 
   public ExampleServingModelManager(Config config) {
     super(config);
@@ -53,15 +52,19 @@ public final class ExampleServingModelManager extends AbstractServingModelManage
         case "MODEL":
           @SuppressWarnings("unchecked")
           Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
-          distinctOtherWords.keySet().retainAll(model.keySet());
-          model.forEach(distinctOtherWords::put);
+          synchronized (distinctOtherWords) {
+            distinctOtherWords.clear();
+            model.forEach(distinctOtherWords::put);
+          }
           break;
         case "UP":
           String[] wordCount = message.split(",");
-          distinctOtherWords.put(wordCount[0], Integer.valueOf(wordCount[1]));
+          synchronized (distinctOtherWords) {
+            distinctOtherWords.put(wordCount[0], Integer.valueOf(wordCount[1]));
+          }
           break;
         default:
-          throw new IllegalArgumentException("Unknown key " + key);
+          throw new IllegalArgumentException("Bad key " + key);
       }
     }
   }

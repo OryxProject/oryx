@@ -15,8 +15,8 @@
 
 package com.cloudera.oryx.example.speed
 
-
-import scala.collection.{JavaConversions, mutable}
+import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
@@ -41,8 +41,8 @@ class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String
     updateIterator.foreach(km =>
       km.getKey match {
         case "MODEL" =>
-          val model = JavaConversions.mapAsScalaMap(
-            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
+          val model =
+            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]).asScala
           distinctOtherWords.synchronized(
             distinctOtherWords.clear()
           )

@@ -16,7 +16,7 @@
 package com.cloudera.oryx.app.als;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -40,16 +40,16 @@ public final class SolverCache {
   private final AtomicBoolean solverDirty;
   private final AtomicBoolean solverUpdating;
   private final CountDownLatch solverInitialized;
-  private final ExecutorService executor;
+  private final Executor executor;
   private final FeatureVectors vectorPartitions;
 
   /**
-   * @param executor {@link ExecutorService} which should be used to asynchronously compute
+   * @param executor {@link Executor} which should be used to asynchronously compute
    *  a {@link Solver}. Important: this should be able to execute more than 1 task in parallel.
    * @param vectorPartitions underling {@link FeatureVectors} data from which it should be
    *  computed
    */
-  public SolverCache(ExecutorService executor, FeatureVectors vectorPartitions) {
+  public SolverCache(Executor executor, FeatureVectors vectorPartitions) {
     solver = new AtomicReference<>();
     solverDirty = new AtomicBoolean(true);
     solverUpdating = new AtomicBoolean(false);
@@ -73,7 +73,7 @@ public final class SolverCache {
   public void compute() {
     // Make sure only one attempts to build at one time
     if (solverUpdating.compareAndSet(false, true)) {
-      executor.submit(LoggingCallable.log(() -> {
+      executor.execute(LoggingCallable.log(() -> {
         try {
           log.info("Computing cached solver");
           Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV());
@@ -87,7 +87,7 @@ public final class SolverCache {
           solverInitialized.countDown();
           solverUpdating.set(false);
         }
-      }));
+      }).asRunnable());
     }
   }
 

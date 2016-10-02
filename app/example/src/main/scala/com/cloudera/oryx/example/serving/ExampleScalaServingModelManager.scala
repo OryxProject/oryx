@@ -17,7 +17,8 @@ package com.cloudera.oryx.example.serving
 
 import com.typesafe.config.Config
 
-import scala.collection.{mutable, JavaConversions}
+import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.hadoop.conf.Configuration
@@ -31,7 +32,8 @@ import com.cloudera.oryx.api.serving.{ServingModel, AbstractScalaServingModelMan
  * Updates are "word,count" pairs representing new counts for a word. This class manages and exposes the
  * mapping to the Serving Layer applications.
  */
-class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaServingModelManager[String](config) {
+class ExampleScalaServingModelManager(val config: Config)
+    extends AbstractScalaServingModelManager[String](config) {
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
@@ -39,8 +41,8 @@ class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaS
     updateIterator.foreach(km =>
       km.getKey match {
         case "MODEL" =>
-          val model = JavaConversions.mapAsScalaMap(
-            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]))
+          val model =
+            new ObjectMapper().readValue(km.getMessage, classOf[java.util.Map[String,String]]).asScala
           distinctOtherWords.synchronized(
             distinctOtherWords.clear()
           )
@@ -58,9 +60,6 @@ class ExampleScalaServingModelManager(val config: Config) extends AbstractScalaS
     )
   }
 
-  override def getModel = new ServingModel() {
-    override def getFractionLoaded = 1.0f
-    def getWords: Map[String,Integer] = distinctOtherWords.toMap
-  }
+  override def getModel: ServingModel = new ExampleServingModel(distinctOtherWords.asJava)
 
 }

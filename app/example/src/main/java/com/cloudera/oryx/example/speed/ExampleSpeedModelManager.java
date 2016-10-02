@@ -16,7 +16,6 @@
 package com.cloudera.oryx.example.speed;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,7 +38,7 @@ import com.cloudera.oryx.example.batch.ExampleBatchLayerUpdate;
  */
 public final class ExampleSpeedModelManager implements SpeedModelManager<String,String,String> {
 
-  private final Map<String,Integer> distinctOtherWords = Collections.synchronizedMap(new HashMap<>());
+  private final Map<String,Integer> distinctOtherWords = new HashMap<>();
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator,
@@ -52,14 +51,16 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
         case "MODEL":
           @SuppressWarnings("unchecked")
           Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
-          distinctOtherWords.keySet().retainAll(model.keySet());
-          model.forEach(distinctOtherWords::put);
+          synchronized (distinctOtherWords) {
+            distinctOtherWords.clear();
+            model.forEach(distinctOtherWords::put);
+          }
           break;
         case "UP":
           // ignore
           break;
         default:
-          throw new IllegalArgumentException("Unknown key " + key);
+          throw new IllegalArgumentException("Bad key " + key);
       }
     }
   }
