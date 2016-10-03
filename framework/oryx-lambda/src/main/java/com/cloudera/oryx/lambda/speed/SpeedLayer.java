@@ -144,7 +144,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     streamingContext.start();
   }
 
-  public void await() {
+  public void await() throws InterruptedException {
     Preconditions.checkState(streamingContext != null);
     log.info("Spark Streaming is running");
     streamingContext.awaitTermination();

@@ -149,7 +149,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     streamingContext.start();
   }
 
-  public void await() {
+  public void await() throws InterruptedException {
     JavaStreamingContext theStreamingContext;
     synchronized (this) {
       theStreamingContext = streamingContext;

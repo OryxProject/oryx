@@ -27,7 +27,7 @@ public final class Main {
 
   private Main() {}
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     try (SpeedLayer<?,?,?> speedLayer = new SpeedLayer<>(ConfigUtils.getDefault())) {
       HadoopUtils.closeAtShutdown(speedLayer);
       speedLayer.start();
