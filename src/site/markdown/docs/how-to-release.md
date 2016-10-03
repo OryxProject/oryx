@@ -45,24 +45,25 @@ supplied on the command line:
 
 # Releasing Binaries
 
-1. To get the latest changes and tags post-build, `git pull --tags`
-1. Checkout the build tag for this build with `git checkout -f tags/...`
-1. `mvn -DskipTests clean package`
-1. Assembled binaries appear at `oryx-serving/target/oryx-serving-....jar` and likewise for `speed` and `batch`; also find the compiled example JAR at `app/example/target/example-...jar`
+1. Download `https://repository.cloudera.com/artifactory/cloudera-repos/com/cloudera/oryx/oryx-{batch,speed,serving}/x.y.z/oryx-{batch,speed,serving]-x.y.z.jar`
+1. Download `*.sh` from `https://github.com/OryxProject/oryx/tree/oryx-x.y.z/deploy/bin`
 1. Navigate to the Github release that was just created, at `https://github.com/OryxProject/oryx/releases/tag/...`
 1. Edit the title to something more meaningful like `Oryx x.y.z`
 1. Paste brief release notes into the description, including a link to resolved issues for the associated milestone, usually of the form `https://github.com/OryxProject/oryx/issues?q=milestone%3A...+is%3Aclosed`
-1. Attach the Batch, Speed, and Serving layer binaries, and scripts in `deploy/bin/`, and save the updated release.
+1. Attach the Batch, Speed, and Serving layer binaries, and scripts, and save the updated release.
 
 # Updating the Site
 
 1. Checkout the release tag if not already: `git checkout -f tags/...`
-1. `mvn -DskipTests clean install`
-1. `mvn site site:stage`
+1. `mvn -DskipTests package`
+1. `mvn site`
+1. `mvn site:stage site:deploy -pl .`
+1. `echo oryx.io > docs/CNAME`
+1. `git add docs`
+1. `git stash`
 1. `git checkout master`
-1. `mvn site:deploy`
-1. From `docs/`, delete `app/`, `framework/`, `deploy/`
-1. Check diff with `git status` to confirm it's suitable
-1. `git commit -m "Update site for ..."`
+1. `git stash pop`
+1. Resolve conflicts in favor of 'theirs' changes
+1. `git commit -m "Update site for x.y.z"`
 1. `git push origin master`
 1. In a minute, check your work at http://oryx.io/
