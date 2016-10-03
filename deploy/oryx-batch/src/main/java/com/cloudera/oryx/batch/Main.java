@@ -27,7 +27,7 @@ public final class Main {
 
   private Main() {}
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     try (BatchLayer<?,?,?> batchLayer = new BatchLayer<>(ConfigUtils.getDefault())) {
       HadoopUtils.closeAtShutdown(batchLayer);
       batchLayer.start();
