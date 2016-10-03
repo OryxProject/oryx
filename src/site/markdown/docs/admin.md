@@ -2,23 +2,26 @@ title: Docs: Admin
 
 # Cluster Setup
 
-The following are required as of Oryx 2.2.0:
+The following are required as of Oryx 2.3.0:
 
 - Java 8 or later (JRE only is required)
+- Scala 2.11 or later
 - A Hadoop cluster running the following components:
-    - Apache Hadoop 2.6.0 or later
+    - Apache Hadoop 2.7.0 or later
     - Apache Zookeeper 3.4.5 or later
     - Apache Kafka 0.9 or later
-    - Apache Spark 1.6.0 or later
+    - Apache Spark 2.0.0 or later
 
 [CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
-5.7.0 and later meet these requirements, although any Hadoop distribution with these
-components should work fine. While the rest of the instructions will refer to a CDH 5.7+
-distribution, this is not a requirement.
+5.9.0 and later with Kafka and Spark 2 parcels meet these requirements, although any Hadoop 
+distribution with these components should work fine. While the rest of the instructions will refer 
+to a CDH 5.9+ distribution, this is not a requirement.
 
-_Note: Oryx 2.0.x requires only Java 7, Spark 1.3.0, Kafka 0.8 and CDH 5.4.x_
+_Note: Oryx 2.0.x requires only Scala 2.10, Java 7, Spark 1.3.0, Kafka 0.8 and CDH 5.4.x_
 
-_Note: Oryx 2.1.x requires only Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
+_Note: Oryx 2.1.x requires only Scala 2.10, Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
+
+_Note: Oryx 2.2.x requires only Scala 2.10, Hadoop 2.6.0, Spark 1.6.0, and CDH 5.7.x_
 
 A single-node cluster can be sufficient, although running all of these components on one machine
 may require a reasonable amount of RAM.
@@ -50,12 +53,14 @@ Install and configure the Hadoop cluster normally. The following services need t
 - YARN
 - Zookeeper
 - Kafka
-- Spark
+- Spark 2
 
-Note that for CDH, Kafka is available as a parcel from
+Note that for CDH 5.x, Spark 2 is available as an [add on](http://www.cloudera.com/documentation/betas/spark2/latest/topics/spark2.html).
+
+Kafka is available as a parcel from
 [Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
 The Cloudera Kafka 2.x parcel is required, because it contains a distribution of Kafka 0.9. 
-The 2.x parcel is in fact required by CDH 5.7.
+The 2.x parcel is in fact required by CDH 5.7+.
 
 Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
 and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default

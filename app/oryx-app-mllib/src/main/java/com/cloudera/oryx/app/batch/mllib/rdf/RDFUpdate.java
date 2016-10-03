@@ -214,7 +214,7 @@ public final class RDFUpdate extends MLUpdate<String> {
         data.forEachRemaining(datum ->
           categoryValues.forEach((category, values) -> values.add(datum[category]))
         );
-        return Collections.singleton(categoryValues);
+        return Collections.singleton(categoryValues).iterator();
       }).reduce((v1, v2) -> {
         // Assumes both have the same key set
         v1.forEach((category, values) -> values.addAll(v2.get(category)));
@@ -288,7 +288,7 @@ public final class RDFUpdate extends MLUpdate<String> {
           }
         });
         return Collections.<List<Map<Integer,Long>>>singleton(
-            treeNodeIDCounts.stream().map(HashMap::new).collect(Collectors.toList()));
+            treeNodeIDCounts.stream().map(HashMap::new).collect(Collectors.toList())).iterator();
       }
     ).reduce((a, b) -> {
         Preconditions.checkArgument(a.size() == b.size());
@@ -326,7 +326,8 @@ public final class RDFUpdate extends MLUpdate<String> {
           }
         });
         // Clone to avoid problem with Kryo serializing Koloboke
-        return Collections.<Map<Integer,Long>>singleton(new HashMap<>(featureIndexCount));
+        return Collections.<Map<Integer,Long>>singleton(
+            new HashMap<>(featureIndexCount)).iterator();
     }).reduce(RDFUpdate::merge);
   }
 

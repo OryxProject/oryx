@@ -201,7 +201,13 @@ batch|speed|serving)
   spark-submit)
     # Launch Spark-based layer with spark-submit
 
-    SPARK_SUBMIT_CMD="spark-submit --master ${SPARK_MASTER} --name ${APP_NAME} --class ${MAIN_CLASS} \
+    if [ -x "$(command -v spark2-submit)" ]; then
+      SPARK_SUBMIT_SCRIPT="spark2-submit"
+    else
+      SPARK_SUBMIT_SCRIPT="spark-submit"
+    fi
+
+    SPARK_SUBMIT_CMD="${SPARK_SUBMIT_SCRIPT} --master ${SPARK_MASTER} --name ${APP_NAME} --class ${MAIN_CLASS} \
      --jars ${SPARK_STREAMING_JARS} --files ${CONFIG_FILE} --driver-memory ${DRIVER_MEMORY} \
      --driver-java-options \"${SPARK_DRIVER_JAVA_OPTS}\" --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
      --conf spark.executor.extraJavaOptions=\"${SPARK_EXECUTOR_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT}"

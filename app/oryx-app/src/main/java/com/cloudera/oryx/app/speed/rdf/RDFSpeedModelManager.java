@@ -110,7 +110,7 @@ public final class RDFSpeedModelManager extends AbstractSpeedModelManager<String
             String id = trees[treeID].findTerminal(example).getID();
             results.add(new Tuple2<>(new Pair<>(treeID, id), target));
           }
-          return results;
+          return results.iterator();
         }).groupByKey();
 
 

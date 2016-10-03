@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,7 +60,7 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
       Set<String> distinctTokens = new HashSet<>(Arrays.asList(line.split(" ")));
       return distinctTokens.stream().flatMap(a ->
         distinctTokens.stream().filter(b -> !a.equals(b)).map(b -> new Tuple2<>(a, b))
-      ).collect(Collectors.toList());
+      ).iterator();
     }).distinct().mapValues(a -> 1).reduceByKey((c1, c2) -> c1 + c2).collectAsMap();
   }
 

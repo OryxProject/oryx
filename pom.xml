@@ -166,7 +166,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
-        <artifactId>spark-streaming-kafka_${scala.minor.version}</artifactId>
+        <artifactId>spark-streaming-kafka-0-8_${scala.minor.version}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>
       </dependency>
@@ -532,10 +532,10 @@
     <!-- Dependency versions -->
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
-    <scala.minor.version>2.10</scala.minor.version>
-    <scala.complete.version>${scala.minor.version}.6</scala.complete.version>
-    <hadoop.version>2.6.4</hadoop.version>
-    <jackson.version>2.4.5</jackson.version>
+    <scala.minor.version>2.11</scala.minor.version>
+    <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
+    <hadoop.version>2.7.3</hadoop.version>
+    <jackson.version>2.8.3</jackson.version>
     <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
     <jersey.version>2.23.2</jersey.version>
     <kafka.version>0.9.0.1</kafka.version>
@@ -543,7 +543,7 @@
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.21</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
-    <spark.version>1.6.2</spark.version>
+    <spark.version>2.0.0</spark.version>
     <surefire.version>2.19.1</surefire.version>
     <tomcat.version>8.5.5</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
@@ -1161,44 +1161,16 @@
 
   <profiles>
     <profile>
-      <id>cdh57</id>
-      <properties>
-        <cdh.version>5.7.4</cdh.version>
-        <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>1.6.0-cdh${cdh.version}</spark.version>
-        <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
-      </properties>
-    </profile>
-    <profile>
-      <id>cdh58</id>
-      <properties>
-        <cdh.version>5.8.2</cdh.version>
-        <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>1.6.0-cdh${cdh.version}</spark.version>
-        <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
-      </properties>
-    </profile>
-    <profile>
       <id>cdh59</id>
       <activation>
-        <!-- for now, this must be active since Spark 1.6 does not work otherwise with Kafka 0.9 -->
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
         <cdh.version>5.9.0</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>1.6.0-cdh${cdh.version}</spark.version>
+        <spark.version>2.0.0.cloudera.beta1</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
         <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
-      </properties>
-    </profile>
-    <profile>
-      <id>scala-2.11</id>
-      <properties>
-        <scala.minor.version>2.11</scala.minor.version>
-        <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
       </properties>
     </profile>
     <profile>
