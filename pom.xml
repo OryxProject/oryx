@@ -828,6 +828,17 @@
                       <exclude>META-INF/*.RSA</exclude>
                     </excludes>
                   </filter>
+                  <!-- Exclude a large number of irrelevant Koloboke impls -->
+                  <filter>
+                    <artifact>com.koloboke:*</artifact>
+                    <excludes>
+                      <exclude>com/koloboke/collect/**/*Byte*.class</exclude>
+                      <exclude>com/koloboke/collect/**/*Double*.class</exclude>
+                      <exclude>com/koloboke/collect/**/*Float*.class</exclude>
+                      <exclude>com/koloboke/collect/**/*Short*.class</exclude>
+                      <!-- Keep Int, Long, Obj because some are used; Char is hard to exclude by name -->
+                    </excludes>
+                  </filter>
                 </filters>
                 <!-- Conflicts with JPMML 1.1.x in Spark, so shade -->
                 <relocations>
@@ -846,6 +857,14 @@
                     </includes>
                   </relocation>
                 </relocations>
+                <transformers>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                    <resource>reference.conf</resource>
+                  </transformer>
+                </transformers>
               </configuration>
             </execution>
           </executions>
@@ -919,14 +938,6 @@
               </goals>
             </execution>
           </executions>
-          <!-- makes it works with Java 8 -->
-          <dependencies>
-            <dependency>
-              <groupId>com.google.code.findbugs</groupId>
-              <artifactId>bcel-findbugs</artifactId>
-              <version>6.0</version>
-            </dependency>
-          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.jacoco</groupId>
@@ -967,18 +978,6 @@
               </goals>
             </execution>
           </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.4</version>
-          <configuration>
-            <threshold>Normal</threshold>
-            <effort>Max</effort>
-            <xmlOutput>true</xmlOutput>
-            <xmlOutputDirectory>target/site</xmlOutputDirectory>
-            <excludeFilterFile>src/findbugs/excludes.xml</excludeFilterFile>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>net.alchim31.maven</groupId>
