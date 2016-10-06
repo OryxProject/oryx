@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
@@ -37,15 +38,13 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
-import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 
@@ -84,7 +83,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     String group = getConfigGroup();
     this.config = config;
     String configuredID = ConfigUtils.getOptionalString(config, "oryx.id");
-    this.id = configuredID == null ? generateRandomID() : configuredID;
+    this.id = configuredID == null ? UUID.randomUUID().toString() : configuredID;
     this.streamingMaster = config.getString("oryx." + group + ".streaming.master");
     this.inputTopic = config.getString("oryx.input-topic.message.topic");
     this.inputTopicLockMaster = config.getString("oryx.input-topic.lock.master");
@@ -106,10 +105,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     );
 
     Preconditions.checkArgument(generationIntervalSec > 0);
-  }
-
-  private static String generateRandomID() {
-    return Integer.toString(RandomManager.getRandom().nextInt() & 0x7FFFFFFF);
   }
 
   /**
@@ -179,7 +174,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     return new JavaStreamingContext(jsc, new Duration(generationIntervalMS));
   }
 
-  protected final JavaPairDStream<K,M> buildInputDStream(JavaStreamingContext streamingContext) {
+  protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(
+      JavaStreamingContext streamingContext) {
 
     Preconditions.checkArgument(
         KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
@@ -223,7 +219,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
         streamClass,
         kafkaParams,
         kafkaOffsets,
-        message -> message).mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.message()));
+        message -> message);
   }
 
   // Inspired by KafkaCluster from Spark Kafka 0.8 connector:
