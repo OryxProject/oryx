@@ -16,37 +16,38 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import kafka.api.OffsetRequest$;
+import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.TopicAndPartition;
+import kafka.consumer.ConsumerConfig;
+import kafka.javaapi.OffsetRequest;
+import kafka.javaapi.OffsetResponse;
+import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Duration;
-import org.apache.spark.streaming.api.java.JavaInputDStream;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaCluster;
-import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.collection.JavaConversions;
+import scala.Tuple2;
 
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.random.RandomManager;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.KafkaUtils;
 
 /**
  * Encapsulates commonality between Spark-based layer processes,
@@ -178,20 +179,19 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     return new JavaStreamingContext(jsc, new Duration(generationIntervalMS));
   }
 
-  protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(
-      JavaStreamingContext streamingContext) {
+  protected final JavaPairDStream<K,M> buildInputDStream(JavaStreamingContext streamingContext) {
 
     Preconditions.checkArgument(
-        com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
+        KafkaUtils.topicExists(inputTopicLockMaster, inputTopic),
         "Topic %s does not exist; did you create it?", inputTopic);
     if (updateTopic != null && updateTopicLockMaster != null) {
       Preconditions.checkArgument(
-          com.cloudera.oryx.kafka.util.KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
+          KafkaUtils.topicExists(updateTopicLockMaster, updateTopic),
           "Topic %s does not exist; did you create it?", updateTopic);
     }
 
     Map<String,String> kafkaParams = new HashMap<>();
-    //kafkaParams.put("zookeeper.connect", inputTopicLockMaster);
+    kafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
     String groupID = getGroupID();
     kafkaParams.put("group.id", groupID);
     // Don't re-consume old messages from input by default
@@ -200,10 +200,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     // Newer version of metadata.broker.list:
     kafkaParams.put("bootstrap.servers", inputBroker);
 
-    Map<TopicAndPartition,Long> offsets =
-        com.cloudera.oryx.kafka.util.KafkaUtils.getOffsets(inputTopicLockMaster,
-                                                           groupID,
-                                                           inputTopic);
+    Map<Pair<String,Integer>,Long> offsets =
+        KafkaUtils.getOffsets(inputTopicLockMaster, groupID, inputTopic);
     fillInLatestOffsets(offsets, kafkaParams);
     log.info("Initial offsets: {}", offsets);
 
@@ -212,80 +210,90 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     Class<MessageAndMetadata<K,M>> streamClass =
         (Class<MessageAndMetadata<K,M>>) (Class<?>) MessageAndMetadata.class;
 
-    return KafkaUtils.createDirectStream(streamingContext,
-                                         keyClass,
-                                         messageClass,
-                                         keyDecoderClass,
-                                         messageDecoderClass,
-                                         streamClass,
-                                         kafkaParams,
-                                         offsets,
-                                         message -> message);
+    Map<TopicAndPartition,Long> kafkaOffsets = new HashMap<>(offsets.size());
+    offsets.forEach((tAndP, offset) -> kafkaOffsets.put(
+        new TopicAndPartition(tAndP.getFirst(), tAndP.getSecond()), offset));
+
+    return org.apache.spark.streaming.kafka.KafkaUtils.createDirectStream(
+        streamingContext,
+        keyClass,
+        messageClass,
+        keyDecoderClass,
+        messageDecoderClass,
+        streamClass,
+        kafkaParams,
+        kafkaOffsets,
+        message -> message).mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.message()));
   }
 
-  private static void fillInLatestOffsets(Map<TopicAndPartition,Long> offsets, Map<String,String> kafkaParams) {
-    // The high price of calling private Scala stuff:
-    @SuppressWarnings("unchecked")
-    scala.collection.immutable.Map<String,String> kafkaParamsScalaMap =
-        (scala.collection.immutable.Map<String,String>)
-            scala.collection.immutable.Map$.MODULE$.apply(JavaConversions.mapAsScalaMap(kafkaParams).toSeq());
-    KafkaCluster kc = new KafkaCluster(kafkaParamsScalaMap);
+  // Inspired by KafkaCluster from Spark Kafka 0.8 connector:
 
-    // First, fill in an offset for any topic/partition with none set already
-    getLeaderOffsets(kc, offsets, entry -> entry.getValue() == null, false).forEach((tAndP, leaderOffsetsObj) -> {
-      long latestTopicOffset = readOffset(leaderOffsetsObj);
-      log.info("No initial offsets for {}; using latest offset {} from topic", tAndP, latestTopicOffset);
-      offsets.put(tAndP, latestTopicOffset);
+  private static void fillInLatestOffsets(Map<Pair<String,Integer>,Long> offsets,
+                                          Map<String,String> kafkaParams) {
+
+    Properties props = new Properties();
+    kafkaParams.forEach(props::put);
+    ConsumerConfig config = new ConsumerConfig(props);
+
+    Map<TopicAndPartition,PartitionOffsetRequestInfo> latestRequests = new HashMap<>();
+    Map<TopicAndPartition,PartitionOffsetRequestInfo> earliestRequests = new HashMap<>();
+    offsets.keySet().forEach(topicPartition -> {
+      TopicAndPartition tAndP = new TopicAndPartition(topicPartition.getFirst(), topicPartition.getSecond());
+      latestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.LatestTime(), 1));
+      earliestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.EarliestTime(), 1));
     });
+    OffsetRequest latestRequest = new OffsetRequest(latestRequests,
+                                                    OffsetRequest$.MODULE$.CurrentVersion(),
+                                                    config.clientId());
+    OffsetRequest earliestRequest = new OffsetRequest(earliestRequests,
+                                                      OffsetRequest$.MODULE$.CurrentVersion(),
+                                                      config.clientId());
 
-    // Then check whether existing offsets are actually >= the earliest topic offset
-    getLeaderOffsets(kc, offsets, entry -> entry.getValue() != null, true).forEach((tAndP, leaderOffsetsObj) -> {
-      long earliestTopicOffset = readOffset(leaderOffsetsObj);
-      long currentOffset = offsets.get(tAndP);
-      if (currentOffset < earliestTopicOffset) {
-        log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
-                 currentOffset, tAndP, earliestTopicOffset);
-        offsets.put(tAndP, earliestTopicOffset);
+    SimpleConsumer consumer = null;
+    for (String hostPort : kafkaParams.get("bootstrap.servers").split(",")) {
+      log.info("Connecting to broker {}", hostPort);
+      String[] hp = hostPort.split(":");
+      String host = hp[0];
+      int port = Integer.parseInt(hp[1]);
+      try {
+        consumer = new SimpleConsumer(host, port,
+                                      config.socketTimeoutMs(),
+                                      config.socketReceiveBufferBytes(),
+                                      config.clientId());
+        break;
+      } catch (Exception e) {
+        log.warn("Error while connecting to broker {}:{}", host, port, e);
       }
-    });
-
-    // Then check whether existing offsets are actually <= the latest topic offset
-    getLeaderOffsets(kc, offsets, entry -> entry.getValue() != null, false).forEach((tAndP, leaderOffsetsObj) -> {
-      long latestTopicOffset = readOffset(leaderOffsetsObj);
-      long currentOffset = offsets.get(tAndP);
-      if (currentOffset > latestTopicOffset) {
-        log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
-                 currentOffset, tAndP, latestTopicOffset);
-        offsets.put(tAndP, latestTopicOffset);
-      }
-    });
-  }
-
-  private static Map<TopicAndPartition,?> getLeaderOffsets(
-      KafkaCluster kc,
-      Map<TopicAndPartition,Long> offsets,
-      Predicate<Map.Entry<TopicAndPartition,Long>> predicate,
-      boolean earliest) {
-    Set<TopicAndPartition> needOffset = offsets.entrySet().stream().filter(predicate)
-        .map(Map.Entry::getKey).collect(Collectors.toSet());
-    if (needOffset.isEmpty()) {
-      return Collections.emptyMap();
     }
-    @SuppressWarnings("unchecked")
-    scala.collection.immutable.Set<TopicAndPartition> needOffsetScalaSet =
-        (scala.collection.immutable.Set<TopicAndPartition>)
-            scala.collection.immutable.Set$.MODULE$.apply(JavaConversions.asScalaSet(needOffset).toSeq());
-    return JavaConversions.mapAsJavaMap(
-        (earliest ?
-            kc.getEarliestLeaderOffsets(needOffsetScalaSet) :
-            kc.getLatestLeaderOffsets(needOffsetScalaSet)).right().get());
-  }
+    Objects.requireNonNull(consumer, "No available brokers");
 
-  private static long readOffset(Object leaderOffsetsObj) {
-    // Can't reference LeaderOffset class, so, hack away:
-    Matcher m = Pattern.compile("LeaderOffset\\([^,]+,[^,]+,([^)]+)\\)").matcher(leaderOffsetsObj.toString());
-    Preconditions.checkState(m.matches());
-    return Long.parseLong(m.group(1));
+    try {
+      OffsetResponse latestResponse = consumer.getOffsetsBefore(latestRequest);
+      OffsetResponse earliestResponse = consumer.getOffsetsBefore(earliestRequest);
+      offsets.keySet().forEach(topicPartition -> {
+        String topic = topicPartition.getFirst();
+        int partition = topicPartition.getSecond();
+        long latestTopicOffset = latestResponse.offsets(topic, partition)[0];
+        long earliestTopicOffset = earliestResponse.offsets(topic, partition)[0];
+        Long currentOffset = offsets.get(topicPartition);
+        if (currentOffset == null) {
+          log.info("No initial offsets for {}; using latest offset {} from topic",
+                   topicPartition, latestTopicOffset);
+          offsets.put(topicPartition, latestTopicOffset);
+        } else if (currentOffset > latestTopicOffset) {
+          log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
+                   currentOffset, topicPartition, latestTopicOffset);
+          offsets.put(topicPartition, latestTopicOffset);
+        } else if (currentOffset < earliestTopicOffset) {
+          log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
+                   currentOffset, topicPartition, earliestTopicOffset);
+          offsets.put(topicPartition, earliestTopicOffset);
+        }
+      });
+    } finally {
+      consumer.close();
+    }
+
   }
 
 }

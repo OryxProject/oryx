@@ -26,16 +26,13 @@ import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
-import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.api.KeyMessageImpl;
@@ -99,10 +96,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     streamingContext = buildStreamingContext();
     log.info("Creating message stream from topic");
-
-    JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
-
-    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(km -> new Tuple2<>(km.key(), km.message()));
+    JavaPairDStream<K,M> pairDStream = buildInputDStream(streamingContext);
 
     consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
         ConfigUtils.keyValueToProperties(
@@ -137,7 +131,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     pairDStream.foreachRDD(new SpeedLayerUpdate<>(modelManager, updateBroker, updateTopic));
 
-    dStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
+    pairDStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
 
     log.info("Starting Spark Streaming");
 

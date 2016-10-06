@@ -19,17 +19,14 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
@@ -102,9 +99,7 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     sparkContext.setCheckpointDir(checkpointPath.toString());
 
     log.info("Creating message stream from topic");
-    JavaInputDStream<MessageAndMetadata<K,M>> dStream = buildInputDStream(streamingContext);
-
-    JavaPairDStream<K,M> pairDStream = dStream.mapToPair(km -> new Tuple2<>(km.key(), km.message()));
+    JavaPairDStream<K,M> pairDStream = buildInputDStream(streamingContext);
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();
@@ -129,19 +124,19 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         messageWritableClass,
         hadoopConf));
 
-    dStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
+    pairDStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
 
     if (maxDataAgeHours != NO_MAX_AGE) {
-      dStream.foreachRDD(new DeleteOldDataFn<>(hadoopConf,
-                                               dataDirString,
-                                               Pattern.compile("-(\\d+)\\."),
-                                               maxDataAgeHours));
+      pairDStream.foreachRDD(new DeleteOldDataFn<>(hadoopConf,
+                                                   dataDirString,
+                                                   Pattern.compile("-(\\d+)\\."),
+                                                   maxDataAgeHours));
     }
     if (maxModelAgeHours != NO_MAX_AGE) {
-      dStream.foreachRDD(new DeleteOldDataFn<>(hadoopConf,
-                                               modelDirString,
-                                               Pattern.compile("(\\d+)"),
-                                               maxModelAgeHours));
+      pairDStream.foreachRDD(new DeleteOldDataFn<>(hadoopConf,
+                                                   modelDirString,
+                                                   Pattern.compile("(\\d+)"),
+                                                   maxModelAgeHours));
     }
 
     log.info("Starting Spark Streaming");
