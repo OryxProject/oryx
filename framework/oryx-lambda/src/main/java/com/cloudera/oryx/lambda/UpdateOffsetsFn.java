@@ -18,7 +18,7 @@ package com.cloudera.oryx.lambda;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.kafka.HasOffsetRanges;
 import org.apache.spark.streaming.kafka.OffsetRange;
@@ -32,10 +32,9 @@ import com.cloudera.oryx.kafka.util.KafkaUtils;
  * Function that reads offset range from latest RDD in a streaming job, and updates
  * Zookeeper/Kafka with the latest offset consumed.
  *
- * @param <K> RDD element's key type (not used)
- * @param <M> RDD element's value type (not used)
+ * @param <T> unused
  */
-public final class UpdateOffsetsFn<K,M> implements VoidFunction<JavaPairRDD<K,M>> {
+public final class UpdateOffsetsFn<T> implements VoidFunction<JavaRDD<T>> {
 
   private static final Logger log = LoggerFactory.getLogger(UpdateOffsetsFn.class);
 
@@ -52,7 +51,7 @@ public final class UpdateOffsetsFn<K,M> implements VoidFunction<JavaPairRDD<K,M>
    *  such as {@code KafkaRDD}
    */
   @Override
-  public void call(JavaPairRDD<K,M> javaRDD) {
+  public void call(JavaRDD<T> javaRDD) {
     OffsetRange[] ranges = ((HasOffsetRanges) javaRDD.rdd()).offsetRanges();
     Map<Pair<String,Integer>,Long> newOffsets = new HashMap<>(ranges.length);
     for (OffsetRange range : ranges) {

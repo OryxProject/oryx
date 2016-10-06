@@ -19,14 +19,17 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
+import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 import com.cloudera.oryx.api.batch.ScalaBatchLayerUpdate;
@@ -99,7 +102,9 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     sparkContext.setCheckpointDir(checkpointPath.toString());
 
     log.info("Creating message stream from topic");
-    JavaPairDStream<K,M> pairDStream = buildInputDStream(streamingContext);
+    JavaInputDStream<MessageAndMetadata<K,M>> kafkaDStream = buildInputDStream(streamingContext);
+    JavaPairDStream<K,M> pairDStream =
+        kafkaDStream.mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.message()));
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();
@@ -124,7 +129,8 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         messageWritableClass,
         hadoopConf));
 
-    pairDStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
+    // Must use the raw Kafka stream to get offsets
+    kafkaDStream.foreachRDD(new UpdateOffsetsFn<>(getGroupID(), getInputTopicLockMaster()));
 
     if (maxDataAgeHours != NO_MAX_AGE) {
       pairDStream.foreachRDD(new DeleteOldDataFn<>(hadoopConf,
