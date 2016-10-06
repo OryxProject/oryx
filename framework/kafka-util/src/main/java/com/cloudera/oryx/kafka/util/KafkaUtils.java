@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import kafka.admin.AdminUtils;
-import kafka.common.TopicAndPartition;
 import kafka.common.TopicExistsException;
 import kafka.utils.ZKGroupTopicDirs;
 import kafka.utils.ZkUtils;
@@ -32,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Option;
 import scala.collection.JavaConversions;
+
+import com.cloudera.oryx.common.collection.Pair;
 
 /**
  * Kafka-related utility methods.
@@ -121,11 +122,11 @@ public final class KafkaUtils {
    * @param topic topic to get offsets for
    * @return mapping of (topic and) partition to offset
    */
-  public static Map<TopicAndPartition,Long> getOffsets(String zkServers,
-                                                       String groupID,
-                                                       String topic) {
+  public static Map<Pair<String,Integer>,Long> getOffsets(String zkServers,
+                                                          String groupID,
+                                                          String topic) {
     ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topic);
-    Map<TopicAndPartition,Long> offsets = new HashMap<>();
+    Map<Pair<String,Integer>,Long> offsets = new HashMap<>();
     ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
     try {
       List<?> partitions = JavaConversions.seqAsJavaList(
@@ -135,9 +136,7 @@ public final class KafkaUtils {
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         Option<String> maybeOffset = zkUtils.readDataMaybeNull(partitionOffsetPath)._1();
         Long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : null;
-        TopicAndPartition topicAndPartition =
-            new TopicAndPartition(topic, Integer.parseInt(partition.toString()));
-        offsets.put(topicAndPartition, offset);
+        offsets.put(new Pair<>(topic, Integer.parseInt(partition.toString())), offset);
       });
     } finally {
       zkUtils.close();
@@ -152,12 +151,12 @@ public final class KafkaUtils {
    */
   public static void setOffsets(String zkServers,
                                 String groupID,
-                                Map<TopicAndPartition,Long> offsets) {
+                                Map<Pair<String,Integer>,Long> offsets) {
     ZkUtils zkUtils = ZkUtils.apply(zkServers, ZK_TIMEOUT_MSEC, ZK_TIMEOUT_MSEC, false);
     try {
       offsets.forEach((topicAndPartition, offset) -> {
-        ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topicAndPartition.topic());
-        int partition = topicAndPartition.partition();
+        ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topicAndPartition.getFirst());
+        int partition = topicAndPartition.getSecond();
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         zkUtils.updatePersistentPath(partitionOffsetPath,
                                      Long.toString(offset),

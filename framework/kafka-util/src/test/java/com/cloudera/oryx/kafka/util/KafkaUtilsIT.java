@@ -18,11 +18,11 @@ package com.cloudera.oryx.kafka.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import kafka.common.TopicAndPartition;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cloudera.oryx.common.OryxTest;
+import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.io.IOUtils;
 
 public final class KafkaUtilsIT extends OryxTest {
@@ -46,19 +46,19 @@ public final class KafkaUtilsIT extends OryxTest {
       Thread.sleep(2000L);
 
       try {
-        Map<TopicAndPartition,Long> initialOffsets = KafkaUtils.getOffsets(zkHostPort, GROUP, TOPIC);
+        Map<Pair<String,Integer>,Long> initialOffsets = KafkaUtils.getOffsets(zkHostPort, GROUP, TOPIC);
         assertEquals(2, initialOffsets.size());
         initialOffsets.values().forEach(Assert::assertNull);
 
-        Map<TopicAndPartition,Long> updatedOffsets = new HashMap<>(2);
-        updatedOffsets.put(new TopicAndPartition(TOPIC, 0), 123L);
-        updatedOffsets.put(new TopicAndPartition(TOPIC, 1), 456L);
+        Map<Pair<String,Integer>,Long> updatedOffsets = new HashMap<>(2);
+        updatedOffsets.put(new Pair<>(TOPIC, 0), 123L);
+        updatedOffsets.put(new Pair<>(TOPIC, 1), 456L);
         KafkaUtils.setOffsets(zkHostPort, GROUP, updatedOffsets);
 
-        Map<TopicAndPartition,Long> newOffsets = KafkaUtils.getOffsets(zkHostPort, GROUP, TOPIC);
+        Map<Pair<String,Integer>,Long> newOffsets = KafkaUtils.getOffsets(zkHostPort, GROUP, TOPIC);
         assertEquals(2, newOffsets.size());
-        assertEquals(123L, newOffsets.get(new TopicAndPartition(TOPIC, 0)).longValue());
-        assertEquals(456L, newOffsets.get(new TopicAndPartition(TOPIC, 1)).longValue());
+        assertEquals(123L, newOffsets.get(new Pair<>(TOPIC, 0)).longValue());
+        assertEquals(456L, newOffsets.get(new Pair<>(TOPIC, 1)).longValue());
 
       } finally {
         KafkaUtils.deleteTopic(zkHostPort, TOPIC);

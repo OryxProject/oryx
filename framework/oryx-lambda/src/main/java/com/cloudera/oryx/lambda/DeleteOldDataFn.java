@@ -25,7 +25,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> unused
  */
-public final class DeleteOldDataFn<T> implements VoidFunction<JavaRDD<T>> {
+public final class DeleteOldDataFn<T> implements VoidFunction<T> {
 
   private static final Logger log = LoggerFactory.getLogger(DeleteOldDataFn.class);
 
@@ -55,7 +54,7 @@ public final class DeleteOldDataFn<T> implements VoidFunction<JavaRDD<T>> {
   }
 
   @Override
-  public void call(JavaRDD<T> ignored) throws IOException {
+  public void call(T ignored) throws IOException {
     Path dataDirPath = new Path(dataDirString + "/*");
     FileSystem fs = FileSystem.get(dataDirPath.toUri(), hadoopConf);
     FileStatus[] inputPathStatuses = fs.globStatus(dataDirPath);
