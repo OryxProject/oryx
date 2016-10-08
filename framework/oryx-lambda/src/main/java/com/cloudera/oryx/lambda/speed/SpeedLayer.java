@@ -30,6 +30,7 @@ import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -125,9 +126,10 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
         .iterator();
 
     modelManager = loadManagerInstance();
+    Configuration hadoopConf = streamingContext.sparkContext().hadoopConfiguration();
     new Thread(LoggingCallable.log(() -> {
       try {
-        modelManager.consume(transformed, streamingContext.sparkContext().hadoopConfiguration());
+        modelManager.consume(transformed, hadoopConf);
       } catch (Throwable t) {
         log.error("Error while consuming updates", t);
         close();
