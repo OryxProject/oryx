@@ -39,7 +39,8 @@ public interface SpeedModelManager<K,M,U> extends Closeable {
   /**
    * Called by the framework to initiate a continuous process of reading models, and reading
    * from the input topic and updating model state in memory, and issuing updates to the
-   * update topic. This will be executed asynchronously and may block.
+   * update topic. This will be executed asynchronously and may block. Note that an exception
+   * or error thrown from this method is fatal and shuts down processing.
    *
    * @param updateIterator iterator to read models from
    * @param hadoopConf Hadoop context, which may be required for reading from HDFS

@@ -145,8 +145,9 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
         return;
       }
       // Can we do better than a default Hadoop config? Nothing else provides it here
+      Configuration hadoopConf = new Configuration();
       try {
-        modelManager.consume(transformed, new Configuration());
+        modelManager.consume(transformed, hadoopConf);
       } catch (Throwable t) {
         log.error("Error while consuming updates", t);
         // Ideally we would shut down ServingLayer, but not clear how to plumb that through

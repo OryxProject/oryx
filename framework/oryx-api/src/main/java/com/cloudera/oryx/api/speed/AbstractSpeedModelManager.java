@@ -40,15 +40,14 @@ public abstract class AbstractSpeedModelManager<K,M,U> implements SpeedModelMana
   @Override
   public void consume(Iterator<KeyMessage<String,U>> updateIterator, Configuration hadoopConf) throws IOException {
     while (updateIterator.hasNext()) {
-      KeyMessage<String,U> km = updateIterator.next();
-      String key = km.getKey();
-      U message = km.getMessage();
       try {
+        KeyMessage<String,U> km = updateIterator.next();
+        String key = km.getKey();
+        U message = km.getMessage();
         Objects.requireNonNull(key);
         consumeKeyMessage(key, message, hadoopConf);
       } catch (Exception e) {
-        log.warn("Exception while processing message", e);
-        log.warn("Key/message were {} : {}", key, message);
+        log.warn("Exception while processing message; continuing", e);
       }
     }
   }
