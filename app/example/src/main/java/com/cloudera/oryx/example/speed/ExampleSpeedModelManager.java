@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.example.speed;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,25 +41,29 @@ public final class ExampleSpeedModelManager implements SpeedModelManager<String,
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator,
-                      Configuration hadoopConf) throws IOException {
+                      Configuration hadoopConf) {
     while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = km.getKey();
-      String message = km.getMessage();
-      switch (key) {
-        case "MODEL":
-          @SuppressWarnings("unchecked")
-          Map<String,Integer> model = (Map<String,Integer>) new ObjectMapper().readValue(message, Map.class);
-          synchronized (distinctOtherWords) {
-            distinctOtherWords.clear();
-            model.forEach(distinctOtherWords::put);
-          }
-          break;
-        case "UP":
-          // ignore
-          break;
-        default:
-          throw new IllegalArgumentException("Bad key " + key);
+      try {
+        KeyMessage<String, String> km = updateIterator.next();
+        String key = km.getKey();
+        String message = km.getMessage();
+        switch (key) {
+          case "MODEL":
+            @SuppressWarnings("unchecked")
+            Map<String, Integer> model = (Map<String, Integer>) new ObjectMapper().readValue(message, Map.class);
+            synchronized (distinctOtherWords) {
+              distinctOtherWords.clear();
+              model.forEach(distinctOtherWords::put);
+            }
+            break;
+          case "UP":
+            // ignore
+            break;
+          default:
+            throw new IllegalArgumentException("Bad key " + key);
+        }
+      } catch (Throwable t) {
+        // log warning and continue
       }
     }
   }

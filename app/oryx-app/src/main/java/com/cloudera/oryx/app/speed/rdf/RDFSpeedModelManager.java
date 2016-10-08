@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.speed.rdf;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,32 +67,36 @@ public final class RDFSpeedModelManager implements SpeedModelManager<String,Stri
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator,
+                      Configuration hadoopConf) {
     while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          // Nothing to do; just hearing our own updates
-          break;
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+      try {
+        KeyMessage<String,String> km = updateIterator.next();
+        String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
+        String message = km.getMessage();
+        switch (key) {
+          case "UP":
+            // Nothing to do; just hearing our own updates
+            break;
+          case "MODEL":
+          case "MODEL-REF":
+            log.info("Loading new model");
+            PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+            if (pmml == null) {
+              continue;
+            }
 
-          RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
-              RDFPMMLUtils.read(pmml);
-          model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
-          log.info("New model loaded: {}", model);
-          break;
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
+            RDFPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+            Pair<DecisionForest,CategoricalValueEncodings> forestAndEncodings =
+                RDFPMMLUtils.read(pmml);
+            model = new RDFSpeedModel(forestAndEncodings.getFirst(), forestAndEncodings.getSecond());
+            log.info("New model loaded: {}", model);
+            break;
+          default:
+            throw new IllegalArgumentException("Bad message: " + km);
+        }
+      } catch (Throwable t) {
+        log.warn("Error while processing message; continuing", t);
       }
     }
   }

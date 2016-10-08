@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.kmeans.model;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -50,50 +49,46 @@ public final class KMeansServingModelManager extends AbstractServingModelManager
     inputSchema = new InputSchema(config);
   }
 
-  /**
-   * Called by the framework to initiate a continuous process of reading models, and reading
-   * from the input topic and updating model state in memory, and issuing updates to the
-   * update topic. This will be executed asynchronously and may block.
-   *
-   * @param updateIterator iterator to read models from
-   * @throws IOException if an error occurs while reading updates
-   */
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator,
+                      Configuration hadoopConf) {
     while (updateIterator.hasNext()) {
-      KeyMessage<String, String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          if (model == null) {
-            continue; // No model to interpret with yet, so skip it
-          }
-          List<?> update = TextUtils.readJSON(message, List.class);
-          // Update
-          int id = Integer.parseInt(update.get(0).toString());
-          double[] center = TextUtils.convertViaJSON(update.get(1), double[].class);
-          long count = Long.parseLong(update.get(2).toString());
-          model.update(id, center, count);
-          break;
+      try {
+        KeyMessage<String,String> km = updateIterator.next();
+        String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
+        String message = km.getMessage();
+        switch (key) {
+          case "UP":
+            if (model == null) {
+              continue; // No model to interpret with yet, so skip it
+            }
+            List<?> update = TextUtils.readJSON(message, List.class);
+            // Update
+            int id = Integer.parseInt(update.get(0).toString());
+            double[] center = TextUtils.convertViaJSON(update.get(1), double[].class);
+            long count = Long.parseLong(update.get(2).toString());
+            model.update(id, center, count);
+            break;
 
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+          case "MODEL":
+          case "MODEL-REF":
+            log.info("Loading new model");
+            PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+            if (pmml == null) {
+              continue;
+            }
 
-          KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);
-          model = new KMeansServingModel(clusters, inputSchema);
-          log.info("New model: {}", model);
-          break;
+            KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+            List<ClusterInfo> clusters = KMeansPMMLUtils.read(pmml);
+            model = new KMeansServingModel(clusters, inputSchema);
+            log.info("New model: {}", model);
+            break;
 
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
+          default:
+            throw new IllegalArgumentException("Bad message: " + km);
+        }
+      } catch (Throwable t) {
+        log.warn("Error while processing message; continuing", t);
       }
     }
   }

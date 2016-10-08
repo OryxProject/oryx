@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.serving.als.model;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -65,78 +64,82 @@ public final class ALSServingModelManager extends AbstractServingModelManager<St
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String,String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
+  public void consume(Iterator<KeyMessage<String,String>> updateIterator,
+                      Configuration hadoopConf) {
     int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          if (model == null) {
-            continue; // No model to interpret with yet, so skip it
-          }
-          List<?> update = TextUtils.readJSON(message, List.class);
-          // Update
-          String id = update.get(1).toString();
-          float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
-          switch (update.get(0).toString()) {
-            case "X":
-              model.setUserVector(id, vector);
-              if (update.size() > 3) {
-                @SuppressWarnings("unchecked")
-                Collection<String> knownItems = (Collection<String>) update.get(3);
-                model.addKnownItems(id, knownItems);
-              }
-              break;
-            case "Y":
-              model.setItemVector(id, vector);
-              // Right now, no equivalent knownUsers
-              break;
-            default:
-              throw new IllegalArgumentException("Bad message: " + km);
-          }
-          if (--countdownToLogModel <= 0) {
-            log.info("{}", model);
-            countdownToLogModel = 10000;
-            // Arbitrarily take this opportunity to see if solver can be pre-triggered
-            // to speed up first access to endpoints that need the solver
-            if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {
-              triggeredSolver = true;
-              model.precomputeSolvers();
+      try {
+        KeyMessage<String,String> km = updateIterator.next();
+        String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
+        String message = km.getMessage();
+        switch (key) {
+          case "UP":
+            if (model == null) {
+              continue; // No model to interpret with yet, so skip it
             }
-          }
-          break;
+            List<?> update = TextUtils.readJSON(message, List.class);
+            // Update
+            String id = update.get(1).toString();
+            float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
+            switch (update.get(0).toString()) {
+              case "X":
+                model.setUserVector(id, vector);
+                if (update.size() > 3) {
+                  @SuppressWarnings("unchecked")
+                  Collection<String> knownItems = (Collection<String>) update.get(3);
+                  model.addKnownItems(id, knownItems);
+                }
+                break;
+              case "Y":
+                model.setItemVector(id, vector);
+                // Right now, no equivalent knownUsers
+                break;
+              default:
+                throw new IllegalArgumentException("Bad message: " + km);
+            }
+            if (--countdownToLogModel <= 0) {
+              log.info("{}", model);
+              countdownToLogModel = 10000;
+              // Arbitrarily take this opportunity to see if solver can be pre-triggered
+              // to speed up first access to endpoints that need the solver
+              if (!triggeredSolver && model.getFractionLoaded() >= minModelLoadFraction) {
+                triggeredSolver = true;
+                model.precomputeSolvers();
+              }
+            }
+            break;
 
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+          case "MODEL":
+          case "MODEL-REF":
+            log.info("Loading new model");
+            PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+            if (pmml == null) {
+              continue;
+            }
 
-          int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
-          boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
+            int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
+            boolean implicit = Boolean.valueOf(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
 
-          if (model == null || features != model.getFeatures()) {
-            log.warn("No previous model, or # features has changed; creating new one");
-            model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
-          }
+            if (model == null || features != model.getFeatures()) {
+              log.warn("No previous model, or # features has changed; creating new one");
+              model = new ALSServingModel(features, implicit, sampleRate, rescorerProvider);
+            }
 
-          log.info("Updating model");
-          // Remove users/items no longer in the model
-          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
-          model.retainRecentAndKnownItems(XIDs, YIDs);
-          model.retainRecentAndUserIDs(XIDs);
-          model.retainRecentAndItemIDs(YIDs);
-          log.info("Model updated: {}", model);
-          break;
+            log.info("Updating model");
+            // Remove users/items no longer in the model
+            Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+            Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainRecentAndKnownItems(XIDs, YIDs);
+            model.retainRecentAndUserIDs(XIDs);
+            model.retainRecentAndItemIDs(YIDs);
+            log.info("Model updated: {}", model);
+            break;
 
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
+          default:
+            throw new IllegalArgumentException("Bad message: " + km);
+        }
+      } catch (Throwable t) {
+        log.warn("Error while processing message; continuing", t);
       }
     }
   }

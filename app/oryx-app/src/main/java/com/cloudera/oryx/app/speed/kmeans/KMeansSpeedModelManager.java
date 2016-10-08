@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.speed.kmeans;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -56,30 +55,34 @@ public final class KMeansSpeedModelManager implements SpeedModelManager<String,S
   }
 
   @Override
-  public void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf)
-      throws IOException {
+  public void consume(Iterator<KeyMessage<String, String>> updateIterator,
+                      Configuration hadoopConf) {
     while (updateIterator.hasNext()) {
-      KeyMessage<String, String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          // do nothing, hearing our own updates
-          break;
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+      try {
+        KeyMessage<String,String> km = updateIterator.next();
+        String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
+        String message = km.getMessage();
+        switch (key) {
+          case "UP":
+            // do nothing, hearing our own updates
+            break;
+          case "MODEL":
+          case "MODEL-REF":
+            log.info("Loading new model");
+            PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+            if (pmml == null) {
+              continue;
+            }
 
-          KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
-          model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
-          log.info("New model loaded: {}", model);
-          break;
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
+            KMeansPMMLUtils.validatePMMLVsSchema(pmml, inputSchema);
+            model = new KMeansSpeedModel(KMeansPMMLUtils.read(pmml));
+            log.info("New model loaded: {}", model);
+            break;
+          default:
+            throw new IllegalArgumentException("Bad message: " + km);
+        }
+      } catch (Throwable t) {
+        log.warn("Error while processing message; continuing", t);
       }
     }
 

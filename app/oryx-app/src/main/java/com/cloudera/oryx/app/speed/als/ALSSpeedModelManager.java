@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.app.speed.als;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,76 +63,80 @@ public final class ALSSpeedModelManager implements SpeedModelManager<String,Stri
 
   @Override
   public void consume(Iterator<KeyMessage<String,String>> updateIterator,
-                      Configuration hadoopConf) throws IOException {
+                      Configuration hadoopConf) {
     int countdownToLogModel = 10000;
     while (updateIterator.hasNext()) {
-      KeyMessage<String,String> km = updateIterator.next();
-      String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
-      String message = km.getMessage();
-      switch (key) {
-        case "UP":
-          if (model == null) {
-            continue; // No model to interpret with yet, so skip it
-          }
-          // Note that here, the speed layer is actually listening for updates from
-          // two sources. First is the batch layer. This is somewhat unusual, because
-          // the batch layer usually only makes MODELs. The ALS model is too large
-          // to send in one file, so is sent as a skeleton model plus a series of updates.
-          // However it is also, neatly, listening for the same updates it produces below
-          // in response to new data, and applying them to the in-memory representation.
-          // ALS continues to be a somewhat special case here, in that it does benefit from
-          // real-time updates to even the speed layer reference model.
-          List<?> update = TextUtils.readJSON(message, List.class);
-          // Update
-          String id = update.get(1).toString();
-          float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
-          switch (update.get(0).toString()) {
-            case "X":
-              model.setUserVector(id, vector);
-              break;
-            case "Y":
-              model.setItemVector(id, vector);
-              break;
-            default:
-              throw new IllegalArgumentException("Bad message: " + km);
-          }
-          if (--countdownToLogModel <= 0) {
-            log.info("{}", model);
-            countdownToLogModel = 10000;
-          }
-          break;
+      try {
+        KeyMessage<String,String> km = updateIterator.next();
+        String key = Objects.requireNonNull(km.getKey(), "Bad message: " + km);
+        String message = km.getMessage();
+        switch (key) {
+          case "UP":
+            if (model == null) {
+              continue; // No model to interpret with yet, so skip it
+            }
+            // Note that here, the speed layer is actually listening for updates from
+            // two sources. First is the batch layer. This is somewhat unusual, because
+            // the batch layer usually only makes MODELs. The ALS model is too large
+            // to send in one file, so is sent as a skeleton model plus a series of updates.
+            // However it is also, neatly, listening for the same updates it produces below
+            // in response to new data, and applying them to the in-memory representation.
+            // ALS continues to be a somewhat special case here, in that it does benefit from
+            // real-time updates to even the speed layer reference model.
+            List<?> update = TextUtils.readJSON(message, List.class);
+            // Update
+            String id = update.get(1).toString();
+            float[] vector = TextUtils.convertViaJSON(update.get(2), float[].class);
+            switch (update.get(0).toString()) {
+              case "X":
+                model.setUserVector(id, vector);
+                break;
+              case "Y":
+                model.setItemVector(id, vector);
+                break;
+              default:
+                throw new IllegalArgumentException("Bad message: " + km);
+            }
+            if (--countdownToLogModel <= 0) {
+              log.info("{}", model);
+              countdownToLogModel = 10000;
+            }
+            break;
 
-        case "MODEL":
-        case "MODEL-REF":
-          log.info("Loading new model");
-          PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
-          if (pmml == null) {
-            continue;
-          }
+          case "MODEL":
+          case "MODEL-REF":
+            log.info("Loading new model");
+            PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(key, message, hadoopConf);
+            if (pmml == null) {
+              continue;
+            }
 
-        int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
-        boolean implicit = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
-        boolean logStrength = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "logStrength"));
-        double epsilon = logStrength ?
-            Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "epsilon")) :
-            Double.NaN;
+            int features = Integer.parseInt(AppPMMLUtils.getExtensionValue(pmml, "features"));
+            boolean implicit = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "implicit"));
+            boolean logStrength = Boolean.parseBoolean(AppPMMLUtils.getExtensionValue(pmml, "logStrength"));
+            double epsilon = logStrength ?
+                Double.parseDouble(AppPMMLUtils.getExtensionValue(pmml, "epsilon")) :
+                Double.NaN;
 
-        if (model == null || features != model.getFeatures()) {
-          log.warn("No previous model, or # features has changed; creating new one");
-          model = new ALSSpeedModel(features, implicit, logStrength, epsilon);
+            if (model == null || features != model.getFeatures()) {
+              log.warn("No previous model, or # features has changed; creating new one");
+              model = new ALSSpeedModel(features, implicit, logStrength, epsilon);
+            }
+
+            log.info("Updating model");
+            // Remove users/items no longer in the model
+            Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
+            Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
+            model.retainRecentAndUserIDs(XIDs);
+            model.retainRecentAndItemIDs(YIDs);
+            log.info("Model updated: {}", model);
+            break;
+
+          default:
+            throw new IllegalArgumentException("Bad message: " + km);
         }
-
-          log.info("Updating model");
-          // Remove users/items no longer in the model
-          Collection<String> XIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "XIDs"));
-          Collection<String> YIDs = new HashSet<>(AppPMMLUtils.getExtensionContent(pmml, "YIDs"));
-          model.retainRecentAndUserIDs(XIDs);
-          model.retainRecentAndItemIDs(YIDs);
-          log.info("Model updated: {}", model);
-          break;
-
-        default:
-          throw new IllegalArgumentException("Bad message: " + km);
+      } catch (Throwable t) {
+        log.warn("Error while processing message; continuing", t);
       }
     }
   }
