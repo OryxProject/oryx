@@ -16,21 +16,14 @@
 package com.cloudera.oryx.lambda.speed;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
-import kafka.serializer.Decoder;
-import kafka.serializer.StringDecoder;
-import kafka.utils.VerifiableProperties;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -39,12 +32,13 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.KeyMessageImpl;
 import com.cloudera.oryx.api.speed.ScalaSpeedModelManager;
 import com.cloudera.oryx.api.speed.SpeedModelManager;
+import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.ConsumeDataIterator;
 import com.cloudera.oryx.lambda.AbstractSparkLayer;
 import com.cloudera.oryx.lambda.UpdateOffsetsFn;
 
@@ -62,11 +56,11 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
   private final String updateBroker;
   private final String updateTopic;
   private final int maxMessageSize;
-  private final String updateTopicLockMaster;
+  private final String updateTopicBroker;
   private final String modelManagerClassName;
-  private final Class<? extends Decoder<U>> updateDecoderClass;
+  private final Class<? extends Deserializer<U>> updateDecoderClass;
   private JavaStreamingContext streamingContext;
-  private ConsumerConnector consumer;
+  private CloseableIterator<KeyMessage<String,U>> consumerIterator;
   private SpeedModelManager<K,M,U> modelManager;
 
   @SuppressWarnings("unchecked")
@@ -75,10 +69,10 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     this.updateBroker = config.getString("oryx.update-topic.broker");
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
-    this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
+    this.updateTopicBroker = config.getString("oryx.update-topic.broker");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
-    this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    this.updateDecoderClass = (Class<? extends Deserializer<U>>) ClassUtils.loadClass(
+        config.getString("oryx.update-topic.message.decoder-class"), Deserializer.class);
     Preconditions.checkArgument(maxMessageSize > 0);
   }
 
@@ -100,36 +94,28 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     streamingContext = buildStreamingContext();
     log.info("Creating message stream from topic");
-    JavaInputDStream<MessageAndMetadata<K,M>> kafkaDStream = buildInputDStream(streamingContext);
+    JavaInputDStream<ConsumerRecord<K,M>> kafkaDStream = buildInputDStream(streamingContext);
     JavaPairDStream<K,M> pairDStream =
-        kafkaDStream.mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.message()));
+        kafkaDStream.mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.value()));
 
-    consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+    KafkaConsumer<String,U> consumer = new KafkaConsumer<>(
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-" + getLayerName() + "-" + UUID.randomUUID(),
-            "zookeeper.connect", updateTopicLockMaster,
-            "fetch.message.max.bytes", maxMessageSize,
+            "bootstrap.servers", updateTopicBroker,
+            "max.partition.fetch.bytes", maxMessageSize,
+            "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+            "value.deserializer", updateDecoderClass.getName(),
             // Do start from the beginning of the update queue
-            "auto.offset.reset", "smallest" // becomes "earliest" in Kafka 0.9+
-            // Above are for Kafka 0.8; following are for 0.9+
-            //"bootstrap.servers", updateTopicBroker,
-            //"max.partition.fetch.bytes", maxMessageSize,
-            //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
-            //"value.deserializer", updateDecoderClass.getName()
-        )));
-    KafkaStream<String,U> stream =
-        consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
-                                      new StringDecoder(null),
-                                      loadDecoderInstance()).get(updateTopic).get(0);
-    Iterator<KeyMessage<String,U>> transformed = StreamSupport.stream(stream.spliterator(), false)
-        .map(input -> (KeyMessage<String,U>) new KeyMessageImpl<>(input.key(), input.message()))
-        .iterator();
+            "auto.offset.reset", "earliest"
+        ));
+    consumer.subscribe(Collections.singletonList(updateTopic));
+    consumerIterator = new ConsumeDataIterator<>(consumer);
 
     modelManager = loadManagerInstance();
     Configuration hadoopConf = streamingContext.sparkContext().hadoopConfiguration();
     new Thread(LoggingCallable.log(() -> {
       try {
-        modelManager.consume(transformed, hadoopConf);
+        modelManager.consume(consumerIterator, hadoopConf);
       } catch (Throwable t) {
         log.error("Error while consuming updates", t);
         close();
@@ -159,11 +145,10 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
       modelManager.close();
       modelManager = null;
     }
-    if (consumer != null) {
+    if (consumerIterator != null) {
       log.info("Shutting down consumer");
-      consumer.commitOffsets();
-      consumer.shutdown();
-      consumer = null;
+      consumerIterator.close();
+      consumerIterator = null;
     }
     if (streamingContext != null) {
       log.info("Shutting down Spark Streaming; this may take some time");
@@ -203,18 +188,6 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     } else {
       throw new IllegalArgumentException("Bad manager class: " + managerClass);
-    }
-  }
-
-  private Decoder<U> loadDecoderInstance() {
-    try {
-      return ClassUtils.loadInstanceOf(updateDecoderClass);
-    } catch (IllegalArgumentException iae) {
-      // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
-      return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
-                                       updateDecoderClass,
-                                       new Class<?>[] { VerifiableProperties.class },
-                                       new Object[] { null });
     }
   }
 

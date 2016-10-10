@@ -15,9 +15,9 @@
 
 package com.cloudera.oryx.kafka.util;
 
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.javaapi.consumer.ConsumerConnector;
+import java.util.Collections;
+
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import com.cloudera.oryx.api.KeyMessage;
 import com.cloudera.oryx.common.collection.CloseableIterator;
@@ -30,33 +30,31 @@ public final class ConsumeData implements Iterable<KeyMessage<String,String>> {
 
   private final String topic;
   private final int maxMessageSize;
-  private final int zkPort;
+  private final int kafkaPort;
 
-  public ConsumeData(String topic, int zkPort) {
-    this(topic, 1 << 16, zkPort);
+  public ConsumeData(String topic, int kafkaPort) {
+    this(topic, 1 << 16, kafkaPort);
   }
 
-  public ConsumeData(String topic, int maxMessageSize, int zkPort) {
+  ConsumeData(String topic, int maxMessageSize, int kafkaPort) {
     this.topic = topic;
     this.maxMessageSize = maxMessageSize;
-    this.zkPort = zkPort;
+    this.kafkaPort = kafkaPort;
   }
 
   @Override
   public CloseableIterator<KeyMessage<String,String>> iterator() {
-    ConsumerConnector consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+    KafkaConsumer<String,String> consumer = new KafkaConsumer<>(
         ConfigUtils.keyValueToProperties(
           "group.id", "OryxGroup-ConsumeData",
-          "zookeeper.connect", "localhost:" + zkPort,
-          "fetch.message.max.bytes", maxMessageSize,
-          "auto.offset.reset", "smallest" // For tests, always start at the beginning; "earliest"
-          // Above are for Kafka 0.8; following are for 0.9+
-          //"bootstrap.servers", "localhost:" + kafkaPort,
-          //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
-          //"value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
-          //"max.partition.fetch.bytes", maxMessageSize
-        )));
-    return new ConsumeDataIterator(topic, consumer);
+          "bootstrap.servers", "localhost:" + kafkaPort,
+          "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+          "value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+          "max.partition.fetch.bytes", maxMessageSize,
+          "auto.offset.reset", "earliest" // For tests, always start at the beginning
+        ));
+    consumer.subscribe(Collections.singletonList(topic));
+    return new ConsumeDataIterator<>(consumer);
   }
 
 }

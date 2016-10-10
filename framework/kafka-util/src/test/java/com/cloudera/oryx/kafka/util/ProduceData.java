@@ -16,12 +16,13 @@
 package com.cloudera.oryx.kafka.util;
 
 import java.util.Objects;
+import java.util.Properties;
 
 import com.google.common.base.Preconditions;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,35 +64,26 @@ public final class ProduceData {
   public void start() throws InterruptedException {
     RandomGenerator random = RandomManager.getRandom();
 
-    Producer<String,String> producer =
-        new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
-            "metadata.broker.list", "localhost:" + kafkaPort,
-            "serializer.class", "kafka.serializer.StringEncoder",
-            "compression.codec", "gzip",
-            "compressed.topics", topic,
-            "request.required.acks", 1
-            // Above are for Kafka 0.8; following are for 0.9+
-            //"bootstrap.servers", "localhost:" + kafkaPort,
-            //"key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
-            //"value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
-            //"compression.type", "gzip",
-            //"batch.size", 0,
-            //"acks", 1,
-            //"max.request.size", 1 << 26 // TODO
-        )));
-    try {
+    Properties props = ConfigUtils.keyValueToProperties(
+        "bootstrap.servers", "localhost:" + kafkaPort,
+        "key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+        "value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+        "compression.type", "gzip",
+        "batch.size", 0,
+        "acks", 1,
+        "max.request.size", 1 << 26 // TODO
+    );
+    try (Producer<String,String> producer = new KafkaProducer<>(props)) {
       for (int i = 0; i < howMany; i++) {
         Pair<String,String> datum = datumGenerator.generate(i, random);
-        KeyedMessage<String,String> keyedMessage =
-            new KeyedMessage<>(topic, datum.getFirst(), datum.getSecond());
-        producer.send(keyedMessage);
-        log.debug("Sent datum {} = {}", keyedMessage.key(), keyedMessage.message());
+        ProducerRecord<String,String> record =
+            new ProducerRecord<>(topic, datum.getFirst(), datum.getSecond());
+        producer.send(record);
+        log.debug("Sent datum {} = {}", record.key(), record.value());
         if (intervalMsec > 0) {
           Thread.sleep(intervalMsec);
         }
       }
-    } finally {
-      producer.close();
     }
   }
 

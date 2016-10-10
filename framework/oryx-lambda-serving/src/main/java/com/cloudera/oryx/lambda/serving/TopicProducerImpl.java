@@ -15,10 +15,9 @@
 
 package com.cloudera.oryx.lambda.serving;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-import kafka.serializer.StringEncoder;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.common.settings.ConfigUtils;
@@ -53,31 +52,22 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
   private synchronized Producer<K,M> getProducer() {
     // Lazy init
     if (producer == null) {
-      producer = new Producer<>(new ProducerConfig(ConfigUtils.keyValueToProperties(
-          "metadata.broker.list", updateBroker,
-          "serializer.class", StringEncoder.class.getName(),
-          "producer.type", "async",
-          "queue.buffering.max.ms", 1000, // Make configurable?
-          "batch.num.messages", 100,
-          "compression.codec", "gzip",
-          "compressed.topics", topic,
-          "request.required.acks", 1
-          // Above are for Kafka 0.8; following are for 0.9+
-          //"bootstrap.servers", updateBroker,
-          //"key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
-          //"value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
-          //"linger.ms", 1000, // Make configurable?
-          //"compression.type", "gzip",
-          //"acks", 1,
-          //"max.request.size", 1 << 26 // TODO
-      )));
+      producer = new KafkaProducer<>(ConfigUtils.keyValueToProperties(
+          "bootstrap.servers", updateBroker,
+          "key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+          "value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
+          "linger.ms", 1000, // Make configurable?
+          "compression.type", "gzip",
+          "acks", 1,
+          "max.request.size", 1 << 26 // TODO
+      ));
     }
     return producer;
   }
 
   @Override
   public void send(K key, M message) {
-    getProducer().send(new KeyedMessage<>(topic, key, message));
+    getProducer().send(new ProducerRecord<>(topic, key, message));
   }
 
   @Override

@@ -24,11 +24,11 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.api.OffsetRequest$;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
-import kafka.common.TopicExistsException;
 import kafka.consumer.ConsumerConfig;
 import kafka.javaapi.OffsetRequest;
 import kafka.javaapi.OffsetResponse;
@@ -81,10 +81,17 @@ public final class KafkaUtils {
       } else {
         log.info("Creating topic {}", topic);
         try {
-          AdminUtils.createTopic(zkUtils, topic, partitions, 1, topicProperties);
+          AdminUtils.createTopic(
+              zkUtils, topic, partitions, 1, topicProperties, RackAwareMode.Enforced$.MODULE$);
           log.info("Created Zookeeper topic {}", topic);
-        } catch (TopicExistsException tee) {
-          log.info("Zookeeper topic {} already exists", topic);
+        } catch (RuntimeException re) {
+          // Hack to deal with the fact that kafka.common.TopicExistsException became
+          // org.apache.kafka.common.errors.TopicExistsException from 0.10.0 to 0.10.1
+          if ("TopicExistsException".equals(re.getClass().getSimpleName())) {
+            log.info("Zookeeper topic {} already exists", topic);
+          } else {
+            throw re;
+          }
         }
       }
     } finally {

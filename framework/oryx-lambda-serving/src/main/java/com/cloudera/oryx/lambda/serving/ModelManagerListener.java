@@ -23,32 +23,26 @@ import javax.servlet.annotation.WebListener;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.serializer.Decoder;
-import kafka.serializer.StringDecoder;
-import kafka.utils.VerifiableProperties;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.oryx.api.KeyMessage;
-import com.cloudera.oryx.api.KeyMessageImpl;
 import com.cloudera.oryx.api.TopicProducer;
 import com.cloudera.oryx.api.serving.ScalaServingModelManager;
 import com.cloudera.oryx.api.serving.ServingModelManager;
+import com.cloudera.oryx.common.collection.CloseableIterator;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.lang.LoggingCallable;
 import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.cloudera.oryx.kafka.util.ConsumeDataIterator;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
 
 /**
@@ -72,13 +66,14 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
   private String updateTopic;
   private int maxMessageSize;
   private String updateTopicLockMaster;
+  private String updateTopicBroker;
   private boolean readOnly;
   private String inputTopic;
   private String inputTopicLockMaster;
   private String inputTopicBroker;
   private String modelManagerClassName;
-  private Class<? extends Decoder<U>> updateDecoderClass;
-  private ConsumerConnector consumer;
+  private Class<? extends Deserializer<U>> updateDecoderClass;
+  private CloseableIterator<KeyMessage<String,U>> consumerIterator;
   private ServingModelManager<U> modelManager;
   private TopicProducer<K,M> inputProducer;
 
@@ -90,6 +85,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     this.updateTopicLockMaster = config.getString("oryx.update-topic.lock.master");
+    this.updateTopicBroker = config.getString("oryx.update-topic.broker");
     this.readOnly = config.getBoolean("oryx.serving.api.read-only");
     if (!readOnly) {
       this.inputTopic = config.getString("oryx.input-topic.message.topic");
@@ -97,8 +93,8 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       this.inputTopicBroker = config.getString("oryx.input-topic.broker");
     }
     this.modelManagerClassName = config.getString("oryx.serving.model-manager-class");
-    this.updateDecoderClass = (Class<? extends Decoder<U>>) ClassUtils.loadClass(
-        config.getString("oryx.update-topic.message.decoder-class"), Decoder.class);
+    this.updateDecoderClass = (Class<? extends Deserializer<U>>) ClassUtils.loadClass(
+        config.getString("oryx.update-topic.message.decoder-class"), Deserializer.class);
     Preconditions.checkArgument(maxMessageSize > 0);
   }
 
@@ -117,26 +113,18 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       context.setAttribute(INPUT_PRODUCER_KEY, inputProducer);
     }
 
-    consumer = Consumer.createJavaConsumerConnector(new ConsumerConfig(
+    KafkaConsumer<String,U> consumer = new KafkaConsumer<>(
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-ServingLayer-" + UUID.randomUUID(),
-            "zookeeper.connect", updateTopicLockMaster,
-            "fetch.message.max.bytes", maxMessageSize,
+            "bootstrap.servers", updateTopicBroker,
+            "max.partition.fetch.bytes", maxMessageSize,
+            "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
+            "value.deserializer", updateDecoderClass.getName(),
             // Do start from the beginning of the update queue
-            "auto.offset.reset", "smallest" // becomes "earliest" in Kafka 0.9+
-            // Above are for Kafka 0.8; following are for 0.9+
-            //"bootstrap.servers", updateTopicBroker,
-            //"max.partition.fetch.bytes", maxMessageSize,
-            //"key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
-            //"value.deserializer", updateDecoderClass.getName()
-        )));
-    KafkaStream<String,U> stream =
-        consumer.createMessageStreams(Collections.singletonMap(updateTopic, 1),
-                                      new StringDecoder(null),
-                                      loadDecoderInstance()).get(updateTopic).get(0);
-    Iterator<KeyMessage<String,U>> transformed = StreamSupport.stream(stream.spliterator(), false)
-        .map(input -> (KeyMessage<String,U>) new KeyMessageImpl<>(input.key(), input.message()))
-        .iterator();
+            "auto.offset.reset", "earliest"
+        ));
+    consumer.subscribe(Collections.singletonList(updateTopic));
+    consumerIterator = new ConsumeDataIterator<>(consumer);
 
     modelManager = loadManagerInstance();
     new Thread(LoggingCallable.log(() -> {
@@ -147,7 +135,7 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       // Can we do better than a default Hadoop config? Nothing else provides it here
       Configuration hadoopConf = new Configuration();
       try {
-        modelManager.consume(transformed, hadoopConf);
+        modelManager.consume(consumerIterator, hadoopConf);
       } catch (Throwable t) {
         log.error("Error while consuming updates", t);
         // Ideally we would shut down ServingLayer, but not clear how to plumb that through
@@ -193,11 +181,10 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
       inputProducer.close();
       inputProducer = null;
     }
-    if (consumer != null) {
+    if (consumerIterator != null) {
       log.info("Shutting down consumer");
-      consumer.commitOffsets();
-      consumer.shutdown();
-      consumer = null;
+      consumerIterator.close();
+      consumerIterator = null;
     }
   }
 
@@ -232,18 +219,6 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
 
     } else {
       throw new IllegalArgumentException("Bad manager class: " + managerClass);
-    }
-  }
-
-  private Decoder<U> loadDecoderInstance() {
-    try {
-      return ClassUtils.loadInstanceOf(updateDecoderClass);
-    } catch (IllegalArgumentException iae) {
-      // special case the Kafka decoder, which wants an optional nullable parameter unfortunately
-      return ClassUtils.loadInstanceOf(updateDecoderClass.getName(),
-                                       updateDecoderClass,
-                                       new Class<?>[] { VerifiableProperties.class },
-                                       new Object[] { null });
     }
   }
 

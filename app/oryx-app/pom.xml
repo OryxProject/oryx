@@ -72,7 +72,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-streaming-kafka-0-8_${scala.minor.version}</artifactId>
+      <artifactId>spark-streaming-kafka-0-10_${scala.minor.version}</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

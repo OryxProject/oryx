@@ -73,11 +73,11 @@ public final class LocalKafkaBroker implements Closeable {
     kafkaServer = new KafkaServerStartable(new KafkaConfig(ConfigUtils.keyValueToProperties(
         "broker.id", TEST_BROKER_ID,
         "log.dirs", logsDir.toAbsolutePath(),
-        "port", port,
-        "zookeeper.connect", "localhost:" + zkPort
+        "listeners", "PLAINTEXT://:" + port,
+        "zookeeper.connect", "localhost:" + zkPort,
         // Above are for Kafka 0.8; following are for 0.9+
-        //"message.max.bytes", 1 << 26, // TODO
-        //"replica.fetch.max.bytes", 1 << 26 // TODO
+        "message.max.bytes", 1 << 26,
+        "replica.fetch.max.bytes", 1 << 26
     ), false));
     kafkaServer.startup();
   }

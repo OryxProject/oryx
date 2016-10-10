@@ -64,7 +64,7 @@ public final class LargeMessageIT extends OryxTest {
 
       List<KeyMessage<String,String>> keyMessages;
       try (CloseableIterator<KeyMessage<String,String>> data =
-               new ConsumeData(TOPIC, maxMessageSize, zkPort).iterator()) {
+               new ConsumeData(TOPIC, maxMessageSize, kafkaBrokerPort).iterator()) {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);

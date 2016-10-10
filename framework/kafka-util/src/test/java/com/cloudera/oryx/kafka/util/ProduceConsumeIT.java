@@ -58,7 +58,7 @@ public final class ProduceConsumeIT extends OryxTest {
                                             0);
 
       List<String> keys;
-      try (CloseableIterator<KeyMessage<String,String>> data = new ConsumeData(TOPIC, zkPort).iterator()) {
+      try (CloseableIterator<KeyMessage<String,String>> data = new ConsumeData(TOPIC, kafkaBrokerPort).iterator()) {
 
         log.info("Starting consumer thread");
         ConsumeTopicRunnable consumeTopic = new ConsumeTopicRunnable(data, NUM_DATA);

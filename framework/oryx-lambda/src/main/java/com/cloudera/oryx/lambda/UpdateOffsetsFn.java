@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.VoidFunction;
-import org.apache.spark.streaming.kafka.HasOffsetRanges;
-import org.apache.spark.streaming.kafka.OffsetRange;
+import org.apache.spark.streaming.kafka010.HasOffsetRanges;
+import org.apache.spark.streaming.kafka010.OffsetRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

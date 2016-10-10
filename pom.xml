@@ -166,7 +166,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
-        <artifactId>spark-streaming-kafka-0-8_${scala.minor.version}</artifactId>
+        <artifactId>spark-streaming-kafka-0-10_${scala.minor.version}</artifactId>
         <version>${spark.version}</version>
         <scope>provided</scope>
       </dependency>
@@ -189,6 +189,11 @@
             <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>${kafka.version}</version>
       </dependency>
 
       <!-- Harmonized with Spark, Kafka to be sure -->
@@ -538,12 +543,12 @@
     <jackson.version>2.8.7</jackson.version>
     <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
     <jersey.version>2.25.1</jersey.version>
-    <kafka.version>0.9.0.1</kafka.version>
+    <kafka.version>0.10.1.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.24</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
-    <spark.version>2.0.2</spark.version>
+    <spark.version>2.1.0</spark.version>
     <surefire.version>2.19.1</surefire.version>
     <tomcat.version>8.5.11</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
@@ -1103,17 +1108,15 @@
   </repositories>
 
   <profiles>
+    <!-- this profile can't work until Spark Streaming + Kafka 0.10 support is in CDH -->
     <profile>
       <id>cdh510</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <properties>
         <cdh.version>5.10.1</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>2.0.0.cloudera2</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
+        <kafka.version>0.9.0-kafka-2.1.0</kafka.version>
       </properties>
     </profile>
     <profile>

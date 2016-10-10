@@ -61,7 +61,7 @@ public final class ALSServingInputProducerIT extends AbstractServingIT {
 
     List<KeyMessage<String,String>> keyMessages;
     try (CloseableIterator<KeyMessage<String,String>> data =
-             new ConsumeData(INPUT_TOPIC, getZKPort()).iterator()) {
+             new ConsumeData(INPUT_TOPIC, getKafkaBrokerPort()).iterator()) {
 
       log.info("Starting consumer thread");
       ConsumeTopicRunnable consumeInput = new ConsumeTopicRunnable(data, inputs.length);

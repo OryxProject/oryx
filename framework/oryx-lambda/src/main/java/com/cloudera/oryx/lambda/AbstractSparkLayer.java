@@ -16,6 +16,7 @@
 package com.cloudera.oryx.lambda;
 
 import java.io.Closeable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,15 +25,19 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.common.TopicAndPartition;
-import kafka.message.MessageAndMetadata;
-import kafka.serializer.Decoder;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.ConsumerStrategy;
+import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.apache.spark.streaming.kafka010.LocationStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +68,8 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   private final String updateTopicLockMaster;
   private final Class<K> keyClass;
   private final Class<M> messageClass;
-  private final Class<? extends Decoder<K>> keyDecoderClass;
-  private final Class<? extends Decoder<M>> messageDecoderClass;
+  private final Class<? extends Deserializer<K>> keyDecoderClass;
+  private final Class<? extends Deserializer<M>> messageDecoderClass;
   private final int generationIntervalSec;
   private final Map<String,Object> extraSparkConfig;
 
@@ -86,10 +91,10 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     this.keyClass = ClassUtils.loadClass(config.getString("oryx.input-topic.message.key-class"));
     this.messageClass =
         ClassUtils.loadClass(config.getString("oryx.input-topic.message.message-class"));
-    this.keyDecoderClass = (Class<? extends Decoder<K>>) ClassUtils.loadClass(
-        config.getString("oryx.input-topic.message.key-decoder-class"), Decoder.class);
-    this.messageDecoderClass = (Class<? extends Decoder<M>>) ClassUtils.loadClass(
-        config.getString("oryx.input-topic.message.message-decoder-class"), Decoder.class);
+    this.keyDecoderClass = (Class<? extends Deserializer<K>>) ClassUtils.loadClass(
+        config.getString("oryx.input-topic.message.key-decoder-class"), Deserializer.class);
+    this.messageDecoderClass = (Class<? extends Deserializer<M>>) ClassUtils.loadClass(
+        config.getString("oryx.input-topic.message.message-decoder-class"), Deserializer.class);
     this.generationIntervalSec = config.getInt("oryx." + group + ".streaming.generation-interval-sec");
 
     this.extraSparkConfig = new HashMap<>();
@@ -167,7 +172,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     return new JavaStreamingContext(jsc, new Duration(generationIntervalMS));
   }
 
-  protected final JavaInputDStream<MessageAndMetadata<K,M>> buildInputDStream(
+  protected final JavaInputDStream<ConsumerRecord<K,M>> buildInputDStream(
       JavaStreamingContext streamingContext) {
 
     Preconditions.checkArgument(
@@ -179,40 +184,43 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
           "Topic %s does not exist; did you create it?", updateTopic);
     }
 
-    Map<String,String> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
     String groupID = getGroupID();
+
+    // TODO can we get rid of use of the old API in fillInLatestOffsets?
+    Map<String,String> oldKafkaParams = new HashMap<>();
+    oldKafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
+    oldKafkaParams.put("group.id", groupID);
+    // Don't re-consume old messages from input by default
+    oldKafkaParams.put("auto.offset.reset", "largest"); // becomes "latest" in Kafka 0.9+
+    oldKafkaParams.put("metadata.broker.list", inputBroker);
+    // Newer version of metadata.broker.list:
+    oldKafkaParams.put("bootstrap.servers", inputBroker);
+
+    Map<String,Object> kafkaParams = new HashMap<>();
+    kafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
     kafkaParams.put("group.id", groupID);
     // Don't re-consume old messages from input by default
-    kafkaParams.put("auto.offset.reset", "largest"); // becomes "latest" in Kafka 0.9+
-    kafkaParams.put("metadata.broker.list", inputBroker);
-    // Newer version of metadata.broker.list:
+    kafkaParams.put("auto.offset.reset", "latest");
     kafkaParams.put("bootstrap.servers", inputBroker);
+    kafkaParams.put("key.deserializer", keyDecoderClass.getName());
+    kafkaParams.put("value.deserializer", messageDecoderClass.getName());
 
     Map<Pair<String,Integer>,Long> offsets =
         KafkaUtils.getOffsets(inputTopicLockMaster, groupID, inputTopic);
-    KafkaUtils.fillInLatestOffsets(offsets, kafkaParams);
+    KafkaUtils.fillInLatestOffsets(offsets, oldKafkaParams);
     log.info("Initial offsets: {}", offsets);
 
-    // Ugly compiler-pleasing acrobatics:
-    @SuppressWarnings("unchecked")
-    Class<MessageAndMetadata<K,M>> streamClass =
-        (Class<MessageAndMetadata<K,M>>) (Class<?>) MessageAndMetadata.class;
-
-    Map<TopicAndPartition,Long> kafkaOffsets = new HashMap<>(offsets.size());
+    Map<TopicPartition,Long> kafkaOffsets = new HashMap<>(offsets.size());
     offsets.forEach((tAndP, offset) -> kafkaOffsets.put(
-        new TopicAndPartition(tAndP.getFirst(), tAndP.getSecond()), offset));
+        new TopicPartition(tAndP.getFirst(), tAndP.getSecond()), offset));
 
-    return org.apache.spark.streaming.kafka.KafkaUtils.createDirectStream(
+    LocationStrategy locationStrategy = LocationStrategies.PreferConsistent();
+    ConsumerStrategy<K,M> consumerStrategy = ConsumerStrategies.Subscribe(
+        Collections.singleton(inputTopic), kafkaParams, kafkaOffsets);
+    return org.apache.spark.streaming.kafka010.KafkaUtils.createDirectStream(
         streamingContext,
-        keyClass,
-        messageClass,
-        keyDecoderClass,
-        messageDecoderClass,
-        streamClass,
-        kafkaParams,
-        kafkaOffsets,
-        message -> message);
+        locationStrategy,
+        consumerStrategy);
   }
 
 }

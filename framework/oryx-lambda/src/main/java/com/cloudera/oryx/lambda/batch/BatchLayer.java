@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.message.MessageAndMetadata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
@@ -102,9 +102,9 @@ public final class BatchLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     sparkContext.setCheckpointDir(checkpointPath.toString());
 
     log.info("Creating message stream from topic");
-    JavaInputDStream<MessageAndMetadata<K,M>> kafkaDStream = buildInputDStream(streamingContext);
+    JavaInputDStream<ConsumerRecord<K,M>> kafkaDStream = buildInputDStream(streamingContext);
     JavaPairDStream<K,M> pairDStream =
-        kafkaDStream.mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.message()));
+        kafkaDStream.mapToPair(mAndM -> new Tuple2<>(mAndM.key(), mAndM.value()));
 
     Class<K> keyClass = getKeyClass();
     Class<M> messageClass = getMessageClass();

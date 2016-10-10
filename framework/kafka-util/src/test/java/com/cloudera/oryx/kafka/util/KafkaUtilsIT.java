@@ -83,12 +83,12 @@ public final class KafkaUtilsIT extends OryxTest {
 
       String kafkaBrokerHostPort = "localhost:" + kafkaBrokerPort;
 
-      Map<String, String> kafkaParams = new HashMap<>();
-      kafkaParams.put("zookeeper.connect", zkHostPort); // needed for SimpleConsumer later
-      kafkaParams.put("group.id", GROUP);
-      kafkaParams.put("metadata.broker.list", kafkaBrokerHostPort);
+      Map<String,String> oldKafkaParams = new HashMap<>();
+      oldKafkaParams.put("zookeeper.connect", zkHostPort); // needed for SimpleConsumer later
+      oldKafkaParams.put("group.id", GROUP);
+      oldKafkaParams.put("metadata.broker.list", kafkaBrokerHostPort);
       // Newer version of metadata.broker.list:
-      kafkaParams.put("bootstrap.servers", kafkaBrokerHostPort);
+      oldKafkaParams.put("bootstrap.servers", kafkaBrokerHostPort);
 
       Thread.sleep(2000L);
 
@@ -100,7 +100,7 @@ public final class KafkaUtilsIT extends OryxTest {
         offsets.put(topic0, 0L);
         offsets.put(topic1, null);
 
-        KafkaUtils.fillInLatestOffsets(offsets, kafkaParams);
+        KafkaUtils.fillInLatestOffsets(offsets, oldKafkaParams);
 
         assertEquals(0L, offsets.get(topic0).longValue());
         assertEquals(0L, offsets.get(topic1).longValue());
@@ -109,7 +109,7 @@ public final class KafkaUtilsIT extends OryxTest {
         offsets.put(topic0, 1000L);
         offsets.put(topic1, -1000L);
 
-        KafkaUtils.fillInLatestOffsets(offsets, kafkaParams);
+        KafkaUtils.fillInLatestOffsets(offsets, oldKafkaParams);
 
         assertEquals(0L, offsets.get(topic0).longValue());
         assertEquals(0L, offsets.get(topic1).longValue());
