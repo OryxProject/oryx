@@ -35,7 +35,7 @@ public final class KMeansUtilsTest extends OryxTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testNoClusters() {
-    KMeansUtils.closestCluster(Collections.<ClusterInfo>emptyList(), DISTANCE_FN, new double[] { 1.0 });
+    KMeansUtils.closestCluster(Collections.emptyList(), DISTANCE_FN, new double[] { 1.0 });
   }
 
   @Test

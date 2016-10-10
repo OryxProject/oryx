@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -164,13 +163,7 @@ public abstract class OryxTest extends Assert {
   }
 
   private static <T> Collection<T> minus(Collection<T> a, Collection<T> b) {
-    Collection<T> diff = new HashSet<>();
-    for (T t : a) {
-      if (!b.contains(t)) {
-        diff.add(t);
-      }
-    }
-    return diff;
+    return a.stream().filter(t -> !b.contains(t)).collect(Collectors.toList());
   }
 
   public static void assertNonEmpty(Path p) throws IOException {
