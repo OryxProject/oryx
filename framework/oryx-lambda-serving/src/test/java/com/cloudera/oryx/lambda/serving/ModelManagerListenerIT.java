@@ -42,17 +42,18 @@ public final class ModelManagerListenerIT extends AbstractLambdaIT {
 
     startMessaging();
 
-    ModelManagerListener<?,?,?> listener = new ModelManagerListener<>();
-    listener.init(mockContext);
-    try {
-      listener.contextInitialized(new ServletContextEvent(mockContext));
-      ServingModelManager<?> manager =
-          (ServingModelManager<?>) mockContext.getAttribute(ModelManagerListener.MANAGER_KEY);
-      assertNotNull(manager);
-      assertFalse(manager.isReadOnly());
-      assertNotNull(manager.getConfig());
-    } finally {
-      listener.contextDestroyed(new ServletContextEvent(mockContext));
+    try (ModelManagerListener<?,?,?> listener = new ModelManagerListener<>()) {
+      listener.init(mockContext);
+      try {
+        listener.contextInitialized(new ServletContextEvent(mockContext));
+        ServingModelManager<?> manager =
+            (ServingModelManager<?>) mockContext.getAttribute(ModelManagerListener.MANAGER_KEY);
+        assertNotNull(manager);
+        assertFalse(manager.isReadOnly());
+        assertNotNull(manager.getConfig());
+      } finally {
+        listener.contextDestroyed(new ServletContextEvent(mockContext));
+      }
     }
   }
 

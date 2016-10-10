@@ -434,7 +434,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     modelNodes.add(root);
 
     Queue<Pair<org.apache.spark.mllib.tree.model.Node,Split>> treeNodes = new ArrayDeque<>();
-    treeNodes.add(new Pair<>(dtModel.topNode(), (Split) null));
+    treeNodes.add(new Pair<>(dtModel.topNode(), null));
 
     while (!treeNodes.isEmpty()) {
 
@@ -500,7 +500,7 @@ public final class RDFUpdate extends MLUpdate<String> {
         modelNodes.add(positiveModelNode);
         modelNodes.add(negativeModelNode);
         treeNodes.add(new Pair<>(rightTreeNode, split));
-        treeNodes.add(new Pair<>(leftTreeNode, (Split) null));
+        treeNodes.add(new Pair<>(leftTreeNode, null));
 
       }
 

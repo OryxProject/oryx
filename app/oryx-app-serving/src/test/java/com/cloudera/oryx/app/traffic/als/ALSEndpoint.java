@@ -28,7 +28,7 @@ import com.cloudera.oryx.app.traffic.Endpoint;
  */
 public abstract class ALSEndpoint extends Endpoint {
 
-  private ALSEndpoint(String path, double relativeProb) {
+  ALSEndpoint(String path, double relativeProb) {
     super(path, relativeProb);
   }
 

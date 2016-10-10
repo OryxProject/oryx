@@ -578,8 +578,8 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static <K,V> JavaPairRDD<K,V> fromRDD(RDD<Tuple2<K,V>> rdd) {
     return JavaPairRDD.fromRDD(rdd,
-                               ClassTag$.MODULE$.<K>apply(Object.class),
-                               ClassTag$.MODULE$.<V>apply(Object.class));
+                               ClassTag$.MODULE$.apply(Object.class),
+                               ClassTag$.MODULE$.apply(Object.class));
   }
 
 }
