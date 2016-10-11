@@ -264,13 +264,10 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     Objects.requireNonNull(consumer, "No available brokers");
 
     try {
-      OffsetResponse latestResponse = consumer.getOffsetsBefore(latestRequest);
-      OffsetResponse earliestResponse = consumer.getOffsetsBefore(earliestRequest);
+      OffsetResponse latestResponse = requestOffsets(consumer, latestRequest);
+      OffsetResponse earliestResponse = requestOffsets(consumer, earliestRequest);
       offsets.keySet().forEach(topicPartition -> {
-        String topic = topicPartition.getFirst();
-        int partition = topicPartition.getSecond();
-        long latestTopicOffset = latestResponse.offsets(topic, partition)[0];
-        long earliestTopicOffset = earliestResponse.offsets(topic, partition)[0];
+        long latestTopicOffset = getOffset(latestResponse, topicPartition);
         Long currentOffset = offsets.get(topicPartition);
         if (currentOffset == null) {
           log.info("No initial offsets for {}; using latest offset {} from topic",
@@ -280,16 +277,32 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
           log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
                    currentOffset, topicPartition, latestTopicOffset);
           offsets.put(topicPartition, latestTopicOffset);
-        } else if (currentOffset < earliestTopicOffset) {
-          log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
-                   currentOffset, topicPartition, earliestTopicOffset);
-          offsets.put(topicPartition, earliestTopicOffset);
+        } else {
+          long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
+          if (currentOffset < earliestTopicOffset) {
+            log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
+                     currentOffset, topicPartition, earliestTopicOffset);
+            offsets.put(topicPartition, earliestTopicOffset);
+          }
         }
       });
     } finally {
       consumer.close();
     }
 
+  }
+
+  private static long getOffset(OffsetResponse response, Pair<String,Integer> topicPartition) {
+    long[] offsets = response.offsets(topicPartition.getFirst(), topicPartition.getSecond());
+    return offsets.length == 0 ? 0L : offsets[0];
+  }
+
+  private static OffsetResponse requestOffsets(SimpleConsumer consumer, OffsetRequest request) {
+    OffsetResponse response = consumer.getOffsetsBefore(request);
+    if (response.hasError()) {
+      throw new IllegalStateException("Error getting offsets: " + response);
+    }
+    return response;
   }
 
 }
