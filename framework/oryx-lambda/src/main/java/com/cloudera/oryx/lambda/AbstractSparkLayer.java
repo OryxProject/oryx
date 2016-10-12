@@ -19,19 +19,12 @@ import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import kafka.api.OffsetRequest$;
-import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.TopicAndPartition;
-import kafka.consumer.ConsumerConfig;
-import kafka.javaapi.OffsetRequest;
-import kafka.javaapi.OffsetResponse;
-import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.Decoder;
 import org.apache.spark.SparkConf;
@@ -198,7 +191,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     Map<Pair<String,Integer>,Long> offsets =
         KafkaUtils.getOffsets(inputTopicLockMaster, groupID, inputTopic);
-    fillInLatestOffsets(offsets, kafkaParams);
+    KafkaUtils.fillInLatestOffsets(offsets, kafkaParams);
     log.info("Initial offsets: {}", offsets);
 
     // Ugly compiler-pleasing acrobatics:
@@ -220,89 +213,6 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
         kafkaParams,
         kafkaOffsets,
         message -> message);
-  }
-
-  // Inspired by KafkaCluster from Spark Kafka 0.8 connector:
-
-  private static void fillInLatestOffsets(Map<Pair<String,Integer>,Long> offsets,
-                                          Map<String,String> kafkaParams) {
-
-    Properties props = new Properties();
-    kafkaParams.forEach(props::put);
-    ConsumerConfig config = new ConsumerConfig(props);
-
-    Map<TopicAndPartition,PartitionOffsetRequestInfo> latestRequests = new HashMap<>();
-    Map<TopicAndPartition,PartitionOffsetRequestInfo> earliestRequests = new HashMap<>();
-    offsets.keySet().forEach(topicPartition -> {
-      TopicAndPartition tAndP = new TopicAndPartition(topicPartition.getFirst(), topicPartition.getSecond());
-      latestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.LatestTime(), 1));
-      earliestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.EarliestTime(), 1));
-    });
-    OffsetRequest latestRequest = new OffsetRequest(latestRequests,
-                                                    OffsetRequest$.MODULE$.CurrentVersion(),
-                                                    config.clientId());
-    OffsetRequest earliestRequest = new OffsetRequest(earliestRequests,
-                                                      OffsetRequest$.MODULE$.CurrentVersion(),
-                                                      config.clientId());
-
-    SimpleConsumer consumer = null;
-    for (String hostPort : kafkaParams.get("bootstrap.servers").split(",")) {
-      log.info("Connecting to broker {}", hostPort);
-      String[] hp = hostPort.split(":");
-      String host = hp[0];
-      int port = Integer.parseInt(hp[1]);
-      try {
-        consumer = new SimpleConsumer(host, port,
-                                      config.socketTimeoutMs(),
-                                      config.socketReceiveBufferBytes(),
-                                      config.clientId());
-        break;
-      } catch (Exception e) {
-        log.warn("Error while connecting to broker {}:{}", host, port, e);
-      }
-    }
-    Objects.requireNonNull(consumer, "No available brokers");
-
-    try {
-      OffsetResponse latestResponse = requestOffsets(consumer, latestRequest);
-      OffsetResponse earliestResponse = requestOffsets(consumer, earliestRequest);
-      offsets.keySet().forEach(topicPartition -> {
-        long latestTopicOffset = getOffset(latestResponse, topicPartition);
-        Long currentOffset = offsets.get(topicPartition);
-        if (currentOffset == null) {
-          log.info("No initial offsets for {}; using latest offset {} from topic",
-                   topicPartition, latestTopicOffset);
-          offsets.put(topicPartition, latestTopicOffset);
-        } else if (currentOffset > latestTopicOffset) {
-          log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
-                   currentOffset, topicPartition, latestTopicOffset);
-          offsets.put(topicPartition, latestTopicOffset);
-        } else {
-          long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
-          if (currentOffset < earliestTopicOffset) {
-            log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
-                     currentOffset, topicPartition, earliestTopicOffset);
-            offsets.put(topicPartition, earliestTopicOffset);
-          }
-        }
-      });
-    } finally {
-      consumer.close();
-    }
-
-  }
-
-  private static long getOffset(OffsetResponse response, Pair<String,Integer> topicPartition) {
-    long[] offsets = response.offsets(topicPartition.getFirst(), topicPartition.getSecond());
-    return offsets.length == 0 ? 0L : offsets[0];
-  }
-
-  private static OffsetResponse requestOffsets(SimpleConsumer consumer, OffsetRequest request) {
-    OffsetResponse response = consumer.getOffsetsBefore(request);
-    if (response.hasError()) {
-      throw new IllegalStateException("Error getting offsets: " + response);
-    }
-    return response;
   }
 
 }
