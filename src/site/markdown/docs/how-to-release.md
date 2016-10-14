@@ -45,7 +45,7 @@ supplied on the command line:
 
 # Releasing Binaries
 
-1. Download `https://repository.cloudera.com/artifactory/cloudera-repos/com/cloudera/oryx/oryx-{batch,speed,serving}/x.y.z/oryx-{batch,speed,serving]-x.y.z.jar`
+1. Download `https://repo1.maven.org/maven2/com/cloudera/oryx/oryx-{batch,speed,serving}/x.y.z/oryx-{batch,speed,serving]-x.y.z.jar`
 1. Download `*.sh` from `https://github.com/OryxProject/oryx/tree/oryx-x.y.z/deploy/bin`
 1. Navigate to the Github release that was just created, at `https://github.com/OryxProject/oryx/releases/tag/...`
 1. Edit the title to something more meaningful like `Oryx x.y.z`
