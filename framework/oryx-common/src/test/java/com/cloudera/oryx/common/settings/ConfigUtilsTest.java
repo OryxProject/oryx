@@ -18,6 +18,7 @@ package com.cloudera.oryx.common.settings;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -50,12 +51,23 @@ public final class ConfigUtilsTest extends OryxTest {
 
   @Test
   public void testOptionalString() {
-    assertNull(ConfigUtils.getOptionalString(ConfigUtils.getDefault(), "nonexistent"));
+    Config config = ConfigUtils.overlayOn(Collections.singletonMap("nonexistent", "null"),
+                                          ConfigUtils.getDefault());
+    assertNull(ConfigUtils.getOptionalString(config, "nonexistent"));
   }
 
   @Test
   public void testOptionalStringList() {
-    assertNull(ConfigUtils.getOptionalStringList(ConfigUtils.getDefault(), "nonexistent"));
+    Config config = ConfigUtils.overlayOn(Collections.singletonMap("nonexistent", "null"),
+                                          ConfigUtils.getDefault());
+    assertNull(ConfigUtils.getOptionalStringList(config, "nonexistent"));
+  }
+
+  @Test
+  public void testOptionalDouble() {
+    Config config = ConfigUtils.overlayOn(Collections.singletonMap("nonexistent", "null"),
+                                          ConfigUtils.getDefault());
+    assertNull(ConfigUtils.getOptionalDouble(config, "nonexistent"));
   }
 
   @Test
