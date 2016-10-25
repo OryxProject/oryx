@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -185,6 +186,22 @@ public abstract class OryxTest extends Assert {
         log.warn("Interrupted while sleeping; continuing");
       }
     }
+  }
+
+  /**
+   * Asserts that the probability of sampling a value as or more extreme than the given value,
+   * from the given discrete distribution, is at least 0.001.
+   *
+   * @param value sample value
+   * @param dist discrete distribution
+   */
+  public static void checkDiscreteProbability(int value, IntegerDistribution dist) {
+    double probAsExtreme = value <= dist.getNumericalMean() ?
+        dist.cumulativeProbability(value) :
+        (1.0 - dist.cumulativeProbability(value - 1));
+    assertTrue(value + " is not likely (" + probAsExtreme + " ) to differ from expected value " +
+               dist.getNumericalMean() + " by chance",
+               probAsExtreme >= 0.001);
   }
 
 }

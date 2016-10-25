@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.ml;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.typesafe.config.Config;
@@ -35,12 +36,17 @@ public final class MockMLUpdate extends MLUpdate<String> {
 
   private static final Logger log = LoggerFactory.getLogger(MockMLUpdate.class);
 
-  private static List<Integer> trainCounts;
-  private static List<Integer> testCounts;
+  private static final List<Integer> trainCounts = new ArrayList<>();
+  private static final List<Integer> testCounts = new ArrayList<>();
 
-  static void setCountHolders(List<Integer> trainCounts, List<Integer> testCounts) {
-    MockMLUpdate.trainCounts = trainCounts;
-    MockMLUpdate.testCounts = testCounts;
+  static List<Integer> getResetTrainCounts() {
+    trainCounts.clear();
+    return trainCounts;
+  }
+
+  static List<Integer> getResetTestCounts() {
+    testCounts.clear();
+    return testCounts;
   }
 
   public MockMLUpdate(Config config) {

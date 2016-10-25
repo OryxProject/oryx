@@ -16,7 +16,6 @@
 package com.cloudera.oryx.ml;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,21 +48,19 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
   public void testMLUpdate() throws Exception {
     Path tempDir = getTempDir();
     Path dataDir = tempDir.resolve("data");
-    Path modelDir = tempDir.resolve("model");
     Map<String,Object> overlayConfig = new HashMap<>();
     overlayConfig.put("oryx.batch.update-class", MockMLUpdate.class.getName());
     ConfigUtils.set(overlayConfig, "oryx.batch.storage.data-dir", dataDir);
-    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", modelDir);
+    ConfigUtils.set(overlayConfig, "oryx.batch.storage.model-dir", tempDir.resolve("model"));
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.ml.eval.test-fraction", TEST_FRACTION);
+    overlayConfig.put("oryx.ml.eval.threshold", DATA_TO_WRITE / 2); // Should easily pass threshold
     Config config = ConfigUtils.overlayOn(overlayConfig, getConfig());
 
     startMessaging();
 
-    List<Integer> trainCounts = new ArrayList<>();
-    List<Integer> testCounts = new ArrayList<>();
-
-    MockMLUpdate.setCountHolders(trainCounts, testCounts);
+    List<Integer> trainCounts = MockMLUpdate.getResetTrainCounts();
+    List<Integer> testCounts = MockMLUpdate.getResetTestCounts();
 
     startServerProduceConsumeTopics(config, DATA_TO_WRITE, WRITE_INTERVAL_MSEC);
 
@@ -96,15 +93,7 @@ public final class SimpleMLUpdateIT extends AbstractBatchIT {
       int totalNew = testCount + newTrainInGen;
 
       IntegerDistribution dist = new BinomialDistribution(random, totalNew, TEST_FRACTION);
-      double probability;
-      if (testCount < dist.getNumericalMean()) {
-        probability = dist.cumulativeProbability(testCount);
-      } else {
-        probability = 1.0 - dist.cumulativeProbability(testCount);
-      }
-      log.info("Probability of observing {} as {} sample of {}: {}",
-               testCount, TEST_FRACTION, totalNew, probability);
-      assertGreaterOrEqual(probability, 0.001);
+      checkDiscreteProbability(testCount, dist);
     }
 
   }

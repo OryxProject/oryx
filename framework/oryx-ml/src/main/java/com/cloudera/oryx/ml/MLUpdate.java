@@ -43,6 +43,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ExecUtils;
 import com.cloudera.oryx.common.pmml.PMMLUtils;
 import com.cloudera.oryx.common.random.RandomManager;
+import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.ml.param.HyperParamValues;
 import com.cloudera.oryx.ml.param.HyperParams;
 
@@ -65,12 +66,14 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
   private final double testFraction;
   private final int candidates;
   private final int evalParallelism;
+  private final Double threshold;
   private final int maxMessageSize;
 
   protected MLUpdate(Config config) {
     this.testFraction = config.getDouble("oryx.ml.eval.test-fraction");
     int candidates = config.getInt("oryx.ml.eval.candidates");
     this.evalParallelism = config.getInt("oryx.ml.eval.parallelism");
+    this.threshold = ConfigUtils.getOptionalDouble(config, "oryx.ml.eval.threshold");
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
     Preconditions.checkArgument(testFraction >= 0.0 && testFraction <= 1.0);
     Preconditions.checkArgument(candidates > 0);
@@ -283,6 +286,11 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
           bestCandidatePath = path;
         }
       } // else can't do anything; no model at all
+    }
+    if (threshold != null && bestEval < threshold) {
+      log.info("Best model at {} had eval {}, but did not exceed threshold {}; discarding model",
+               bestCandidatePath, bestEval, threshold);
+      bestCandidatePath = null;
     }
     return bestCandidatePath;
   }

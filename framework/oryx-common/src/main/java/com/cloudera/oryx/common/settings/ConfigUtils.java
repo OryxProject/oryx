@@ -80,7 +80,7 @@ public final class ConfigUtils {
    * @return value for given key, or {@code null} if none exists
    */
   public static String getOptionalString(Config config, String key) {
-    return config.hasPath(key) ? config.getString(key) : null;
+    return config.getIsNull(key) ? null : config.getString(key);
   }
 
   /**
@@ -89,7 +89,16 @@ public final class ConfigUtils {
    * @return value for given key, or {@code null} if none exists
    */
   public static List<String> getOptionalStringList(Config config, String key) {
-    return config.hasPath(key) ? config.getStringList(key) : null;
+    return config.getIsNull(key) ? null : config.getStringList(key);
+  }
+
+  /**
+   * @param config configuration to query for value
+   * @param key configuration path key
+   * @return value for given key, or {@code null} if none exists
+   */
+  public static Double getOptionalDouble(Config config, String key) {
+    return config.getIsNull(key) ? null : config.getDouble(key);
   }
 
   /**

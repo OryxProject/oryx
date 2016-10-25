@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.typesafe.config.Config;
 import org.apache.commons.math3.distribution.BinomialDistribution;
+import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.dmg.pmml.PMML;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -171,31 +172,20 @@ public final class RDFSpeedIT extends AbstractSpeedIT {
       Map<String,Integer> countMap = (Map<String,Integer>) fields.get(2);
       assertEquals(0, treeID);
       assertContains(Arrays.asList("r-", "r+"), nodeID);
-      int yellowCount = countMap.containsKey(yellow) ? countMap.get(yellow) : 0;
-      int redCount = countMap.containsKey(red) ? countMap.get(red) : 0;
+      int yellowCount = countMap.getOrDefault(yellow, 0);
+      int redCount = countMap.getOrDefault(red, 0);
       int count = yellowCount + redCount;
       assertGreater(count, 0);
-      BinomialDistribution dist = new BinomialDistribution(RandomManager.getRandom(), count, 0.9);
+      IntegerDistribution dist = new BinomialDistribution(RandomManager.getRandom(), count, 0.9);
       if ("r+".equals(nodeID)) {
         // Should be about 9x more yellow
-        checkProbability(yellowCount, count, dist);
+        checkDiscreteProbability(yellowCount, dist);
       } else {
         // Should be about 9x more red
-        checkProbability(redCount, count, dist);
+        checkDiscreteProbability(redCount, dist);
       }
     }
 
-  }
-
-  private static void checkProbability(int majorityCount,
-                                       int count,
-                                       BinomialDistribution dist) {
-    double expected = 0.9 * count;
-    double probAsExtreme = majorityCount <= expected ?
-        dist.cumulativeProbability(majorityCount) :
-        (1.0 - dist.cumulativeProbability(majorityCount)) + dist.probability(majorityCount);
-    assertTrue(majorityCount + " should be about " + expected + " (~90% of " + count + ")",
-               probAsExtreme >= 0.001);
   }
 
 }
