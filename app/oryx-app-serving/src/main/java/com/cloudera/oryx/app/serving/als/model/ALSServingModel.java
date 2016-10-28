@@ -274,7 +274,8 @@ public final class ALSServingModel implements ServingModel {
           partition.forEach(consumer);
           return consumer.getTopN();
         },
-        candidateIndices);
+        candidateIndices,
+        false);
     return stream.sorted(Pairs.orderBySecond(Pairs.SortOrder.DESCENDING)).limit(howMany);
   }
 
