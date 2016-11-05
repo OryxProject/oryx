@@ -81,12 +81,14 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
     return total;
   }
 
-  public <T> Stream<T> mapPartitionsParallel(Function<FeatureVectorsPartition,Stream<T>> fn) {
-    return mapPartitionsParallel(fn, null);
+  public <T> Stream<T> mapPartitionsParallel(Function<FeatureVectorsPartition,Stream<T>> fn,
+                                             boolean background) {
+    return mapPartitionsParallel(fn, null, background);
   }
 
   public <T> Stream<T> mapPartitionsParallel(Function<FeatureVectorsPartition,Stream<T>> fn,
-                                             int[] candidateIndices) {
+                                             int[] candidateIndices,
+                                             boolean background) {
 
     List<Callable<Stream<T>>> tasks;
     if (candidateIndices == null) {
@@ -117,6 +119,15 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
       } catch (Exception e) {
         throw new IllegalStateException(e);
       }
+    } else if (background) {
+      // Run locally
+      stream = tasks.stream().map(task -> {
+        try {
+          return task.call();
+        } catch (Exception e) {
+          throw new IllegalStateException(e);
+        }
+      }).reduce(Stream::concat).orElse(null);
     } else {
       try {
         stream = executor.invokeAll(tasks).stream().map(future -> {
@@ -196,8 +207,8 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
   }
 
   @Override
-  public double[] getVTV() {
-    return mapPartitionsParallel(partition -> Stream.of(partition.getVTV()))
+  public double[] getVTV(boolean background) {
+    return mapPartitionsParallel(partition -> Stream.of(partition.getVTV(background)), background)
         .reduce((a, b) -> {
           for (int i = 0; i < a.length; i++) {
             a[i] += b[i];
