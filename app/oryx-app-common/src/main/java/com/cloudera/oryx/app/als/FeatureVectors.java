@@ -75,10 +75,12 @@ public interface FeatureVectors {
   void retainRecentAndIDs(Collection<String> newModelIDs);
 
   /**
+   * @param background if true, a hint that this potentially expensive computation may be
+   *  deprioritized and need not use all available resources to compute
    * @return considering the feature vectors as the rows of a matrix V, this computes V^T * V,
    *  as a dense lower-triangular matrix, represented in BLAS 'packed' form, which is
    *  column-major.
    */
-  double[] getVTV();
+  double[] getVTV(boolean background);
 
 }

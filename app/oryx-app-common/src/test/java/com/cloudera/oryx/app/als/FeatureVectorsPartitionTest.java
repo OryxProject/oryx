@@ -46,7 +46,8 @@ public final class FeatureVectorsPartitionTest extends OryxTest {
     fv.setVector("foo", new float[] { 1.0f, 2.0f, 4.0f });
     fv.setVector("bar", new float[] { 1.5f, -1.0f, 0.0f });
     double[] expected = { 3.25, 0.5, 4.0, 5.0, 8.0, 16.0 };
-    assertArrayEquals(expected, fv.getVTV());
+    assertArrayEquals(expected, fv.getVTV(false));
+    assertArrayEquals(expected, fv.getVTV(true));
   }
 
   @Test

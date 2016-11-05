@@ -76,7 +76,9 @@ public final class SolverCache {
       executor.execute(LoggingCallable.log(() -> {
         try {
           log.info("Computing cached solver");
-          Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV());
+          // Not as much hurry if one already exists
+          boolean lowPriority = solver.get() != null;
+          Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV(lowPriority));
           if (newYTYSolver != null) {
             log.info("Computed new solver {}", solver);
             solver.set(newYTYSolver);
