@@ -50,7 +50,7 @@ public final class ScalaBatchLayerUpdateAdapter<K,M,U> implements BatchLayerUpda
     scalaUpdate.configureUpdate(sparkContext.sc(),
                                 timestamp,
                                 newData.rdd(),
-                                pastData.rdd(),
+                                pastData == null ? null : pastData.rdd(),
                                 modelDirString,
                                 modelUpdateTopic);
   }
