@@ -150,7 +150,6 @@ public final class HyperParamsTest extends OryxTest {
     assertEquals(0, combos.get(0).size());
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testConfig() {
     Map<String,Object> overlay = new HashMap<>();

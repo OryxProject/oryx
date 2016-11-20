@@ -56,7 +56,7 @@ class ExampleScalaSpeedModelManager extends ScalaSpeedModelManager[String,String
     )
   }
 
-  override def buildUpdates(newData: RDD[(String,String)]) = {
+  override def buildUpdates(newData: RDD[(String,String)]): Seq[String] = {
     ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData).map { case (word, count) =>
       distinctOtherWords.synchronized {
         val newCount = distinctOtherWords(word) + 1

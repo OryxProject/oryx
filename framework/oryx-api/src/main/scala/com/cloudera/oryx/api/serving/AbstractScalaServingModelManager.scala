@@ -31,11 +31,11 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
   /**
    * @since 2.0.0
    */
-  override def getConfig = config
+  override def getConfig: Config = config
 
   /**
    * @since 2.0.0
    */
-  override def isReadOnly = readOnly
+  override def isReadOnly: Boolean = readOnly
 
 }

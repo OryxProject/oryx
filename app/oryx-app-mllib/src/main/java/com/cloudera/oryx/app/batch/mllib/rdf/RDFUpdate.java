@@ -551,7 +551,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private double[] countsToImportances(Map<Integer,Long> predictorIndexCounts) {
     double[] importances = new double[inputSchema.getNumPredictors()];
-    long total = predictorIndexCounts.values().stream().collect(Collectors.summingLong(l -> l));
+    long total = predictorIndexCounts.values().stream().mapToLong(l -> l).sum();
     Preconditions.checkArgument(total > 0);
     predictorIndexCounts.forEach((k, count) -> importances[k] = (double) count / total);
     return importances;
