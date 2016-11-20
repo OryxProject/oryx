@@ -455,7 +455,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.3.RELEASE</version>
+        <version>4.3.4.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -556,7 +556,7 @@
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>1.6.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.5.6</tomcat.version>
+    <tomcat.version>8.5.8</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -748,7 +748,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
