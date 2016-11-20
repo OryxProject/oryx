@@ -19,7 +19,7 @@ import com.cloudera.oryx.api.KeyMessage
 import com.typesafe.config.Config
 import java.util.Objects
 import org.apache.hadoop.conf.Configuration
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory, Logger}
 
 /**
  * Convenience implementation of [[ScalaServingModelManager]] that provides several default implementations.
@@ -37,12 +37,12 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
   /**
    * @since 2.0.0
    */
-  override def getConfig = config
+  override def getConfig: Config = config
 
   /**
    * @since 2.0.0
    */
-  override def isReadOnly = readOnly
+  override def isReadOnly: Boolean = readOnly
 
   override def consume(updateIterator: Iterator[KeyMessage[String, U]], hadoopConf: Configuration): Unit = {
     updateIterator.foreach { km =>
@@ -77,5 +77,5 @@ abstract class AbstractScalaServingModelManager[U](private val config: Config) e
 }
 
 object AbstractScalaServingModelManager {
-  val log = LoggerFactory.getLogger(classOf[AbstractScalaServingModelManager[_]])
+  val log: Logger = LoggerFactory.getLogger(classOf[AbstractScalaServingModelManager[_]])
 }

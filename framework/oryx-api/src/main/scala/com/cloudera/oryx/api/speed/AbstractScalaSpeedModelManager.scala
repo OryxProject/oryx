@@ -20,7 +20,7 @@ import com.cloudera.oryx.api.serving.ScalaServingModelManager
 import com.typesafe.config.Config
 import java.util.Objects
 import org.apache.hadoop.conf.Configuration
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory, Logger}
 
 /**
  * Convenience implementation of [[ScalaSpeedModelManager]] that provides several default implementations.
@@ -67,5 +67,5 @@ abstract class AbstractScalaSpeedModelManager[K,M,U](private val config: Config)
 }
 
 object AbstractScalaSpeedModelManager {
-  val log = LoggerFactory.getLogger(classOf[AbstractScalaSpeedModelManager[_,_,_]])
+  val log: Logger = LoggerFactory.getLogger(classOf[AbstractScalaSpeedModelManager[_,_,_]])
 }

@@ -16,6 +16,7 @@
 package com.cloudera.oryx.example.batch
 
 import scala.collection.JavaConverters._
+import scala.collection.Map
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.spark.SparkContext
@@ -37,7 +38,7 @@ class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,S
                                newData: RDD[(String,String)],
                                pastData: RDD[(String,String)],
                                modelDirString: String,
-                               modelUpdateTopic: TopicProducer[String,String]) = {
+                               modelUpdateTopic: TopicProducer[String,String]): Unit = {
     val modelString = new ObjectMapper().writeValueAsString(
         ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData.union(pastData)).asJava)
     modelUpdateTopic.send("MODEL", modelString)
@@ -47,7 +48,7 @@ class ExampleScalaBatchLayerUpdate extends ScalaBatchLayerUpdate[String,String,S
 
 object ExampleScalaBatchLayerUpdate {
 
-  def countDistinctOtherWords(data: RDD[(String,String)]) = {
+  def countDistinctOtherWords(data: RDD[(String,String)]): Map[String, Int] = {
     data.values.flatMap { line =>
       val tokens = line.split(" ").distinct
       for (a <- tokens; b <- tokens if a != b) yield (a, b)

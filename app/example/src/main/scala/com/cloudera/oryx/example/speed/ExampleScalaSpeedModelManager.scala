@@ -36,7 +36,7 @@ class ExampleScalaSpeedModelManager(val config: Config)
 
   private val distinctOtherWords = mutable.Map[String,Integer]()
 
-  override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration) = {
+  override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration): Unit = {
     key match {
       case "MODEL" =>
         val model =
@@ -51,7 +51,7 @@ class ExampleScalaSpeedModelManager(val config: Config)
     }
   }
 
-  override def buildUpdates(newData: RDD[(String,String)]) = {
+  override def buildUpdates(newData: RDD[(String,String)]): Seq[String] = {
     ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData).map { case (word, count) =>
       distinctOtherWords.synchronized {
         val newCount = distinctOtherWords(word) + 1
