@@ -444,7 +444,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.3.RELEASE</version>
+        <version>4.3.4.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -535,7 +535,7 @@
     <scala.minor.version>2.11</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
     <hadoop.version>2.7.3</hadoop.version>
-    <jackson.version>2.8.3</jackson.version>
+    <jackson.version>2.8.4</jackson.version>
     <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
     <jersey.version>2.24</jersey.version>
     <kafka.version>0.9.0.1</kafka.version>
@@ -543,9 +543,9 @@
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.21</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
-    <spark.version>2.0.1</spark.version>
+    <spark.version>2.0.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.5.6</tomcat.version>
+    <tomcat.version>8.5.8</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -737,7 +737,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
