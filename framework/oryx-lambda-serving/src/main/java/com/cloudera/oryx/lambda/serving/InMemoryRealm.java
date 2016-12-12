@@ -66,7 +66,11 @@ public final class InMemoryRealm extends RealmBase {
     principals.put(username, new GenericPrincipal(username, password, Collections.singletonList(AUTH_ROLE)));
   }
 
+  /**
+   * @deprecated because superclass method is deprecated
+   */
   @Override
+  @Deprecated
   protected String getName() {
     return NAME;
   }

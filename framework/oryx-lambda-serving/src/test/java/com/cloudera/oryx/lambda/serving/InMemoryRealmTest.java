@@ -33,7 +33,6 @@ public final class InMemoryRealmTest extends OryxTest {
     realm.start();
 
     realm.addUser("foo", "bar");
-    assertNotNull(realm.getName());
     Principal authPrincipal = realm.authenticate("foo", "bar");
     assertNotNull(authPrincipal);
     assertEquals("foo", authPrincipal.getName());
