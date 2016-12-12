@@ -180,7 +180,6 @@ public final class ServingLayer implements Closeable {
   private void configureTomcat(Tomcat tomcat, Connector connector) {
     tomcat.setBaseDir(noSuchBaseDir.toAbsolutePath().toString());
     tomcat.setConnector(connector);
-    tomcat.getService().addConnector(connector);
   }
 
   private void configureEngine(Engine engine) {

@@ -556,7 +556,7 @@
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>1.6.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.5.8</tomcat.version>
+    <tomcat.version>8.5.9</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
