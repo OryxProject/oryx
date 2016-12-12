@@ -524,14 +524,14 @@
     <hadoop.version>2.6.4</hadoop.version>
     <jackson.version>2.4.5</jackson.version>
     <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
-    <jersey.version>2.23.2</jersey.version>
+    <jersey.version>2.25</jersey.version>
     <kafka.version>0.8.2.2</kafka.version>
     <koloboke.version>0.6.8</koloboke.version>
     <slf4j.version>1.7.21</slf4j.version>
     <snappy.version>1.1.1.7</snappy.version>
     <spark.version>1.5.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.0.37</tomcat.version>
+    <tomcat.version>8.0.39</tomcat.version>
     <typesafe.config.version>1.2.1</typesafe.config.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
@@ -789,7 +789,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>3.0.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -966,7 +966,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.7.201606060606</version>
+          <version>0.7.8</version>
           <executions>
             <execution>
               <id>jacoco-prepare-agent</id>
