@@ -16,7 +16,7 @@ It consists of three _tiers_, each of which builds on the one below:
 specific to machine learning
 1. A specialization on top providing ML abstractions for hyperparameter selection, etc.
 1. An end-to-end implementation of the same standard ML algorithms as an application
-  ([ALS](http://labs.yahoo.com/files/HuKorenVolinsky-ICDM08.pdf),
+  ([ALS](http://yifanhu.net/PUB/cf.pdf),
 [random decision forests](http://en.wikipedia.org/wiki/Random_forest),
 [k-means](http://en.wikipedia.org/wiki/K-means_clustering)) on top
 
