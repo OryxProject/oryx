@@ -15,7 +15,6 @@
 
 package com.cloudera.oryx.lambda.speed;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.typesafe.config.Config;
@@ -39,7 +38,7 @@ public abstract class AbstractSpeedIT extends AbstractLambdaIT {
   final List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
-      int howManyUpdate) throws IOException, InterruptedException {
+      int howManyUpdate) throws InterruptedException {
     return startServerProduceConsumeTopics(config,
                                            new DefaultCSVDatumGenerator(),
                                            new MockModelGenerator(),
