@@ -44,14 +44,8 @@ public final class CategoricalFeature implements Feature {
    */
   public static CategoricalFeature forEncoding(int encoding) {
     Preconditions.checkArgument(encoding >= 0);
-    Integer encodingKey = encoding;
-    CategoricalFeature feature = FEATURE_CACHE.get(encodingKey);
     // Not important if several threads get here
-    if (feature == null) {
-      feature = new CategoricalFeature(encoding);
-      FEATURE_CACHE.put(encodingKey, feature);
-    }
-    return feature;
+    return FEATURE_CACHE.computeIfAbsent(encoding, k -> new CategoricalFeature(encoding));
   }
 
   /**

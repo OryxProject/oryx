@@ -45,7 +45,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
   protected List<KeyMessage<String,String>> startServerProduceConsumeTopics(
       Config config,
       int howMany,
-      int intervalMsec) throws IOException, InterruptedException {
+      int intervalMsec) throws InterruptedException {
     return startServerProduceConsumeTopics(config,
                                            new DefaultCSVDatumGenerator(),
                                            howMany,
@@ -56,7 +56,7 @@ public abstract class AbstractBatchIT extends AbstractLambdaIT {
       Config config,
       DatumGenerator<String,String> datumGenerator,
       int howMany,
-      int intervalMsec) throws IOException, InterruptedException {
+      int intervalMsec) throws InterruptedException {
 
     int zkPort = getZKPort();
 

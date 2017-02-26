@@ -43,7 +43,7 @@ public final class CategoricalValueEncodings implements Serializable {
   }
 
   private static <T> BiMap<T,Integer> mapDistinctValues(Collection<T> distinct) {
-    BiMap<T,Integer> mapping = HashBiMap.create();
+    BiMap<T,Integer> mapping = HashBiMap.create(distinct.size());
     int encoding = 0;
     for (T t : distinct) {
       mapping.put(t, encoding);
