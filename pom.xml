@@ -182,6 +182,13 @@
         <artifactId>kafka_${scala.minor.version}</artifactId>
         <version>${kafka.version}</version>
         <scope>provided</scope>
+        <exclusions>
+          <!-- later Kafka versions bring this in -->
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Harmonized with Spark, Kafka to be sure -->
@@ -444,7 +451,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.6.RELEASE</version>
+        <version>4.3.7.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -457,14 +464,7 @@
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.10</version>
-        <exclusions>
-          <!-- Exclude because it's LGPL licensed -->
-          <exclusion>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>annotations</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>0.9.11</version>
       </dependency>
 
       <dependency>
@@ -1104,14 +1104,14 @@
 
   <profiles>
     <profile>
-      <id>cdh59</id>
+      <id>cdh510</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <cdh.version>5.9.1</cdh.version>
+        <cdh.version>5.10.1</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>2.0.0.cloudera1</spark.version>
+        <spark.version>2.0.0.cloudera2</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
         <kafka.version>0.9.0-kafka-2.0.2</kafka.version>
       </properties>
