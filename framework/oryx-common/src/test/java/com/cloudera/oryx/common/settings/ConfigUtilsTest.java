@@ -36,7 +36,7 @@ public final class ConfigUtilsTest extends OryxTest {
   @Test
   public void testDefaultConfig() {
     Config config = ConfigUtils.getDefault();
-    assertEquals("yarn-client", config.getString("oryx.batch.streaming.master"));
+    assertEquals("yarn", config.getString("oryx.batch.streaming.master"));
   }
 
   @Test
@@ -94,7 +94,7 @@ public final class ConfigUtilsTest extends OryxTest {
     // Spot checks:
     assertContains(pretty, "oryx {");
     assertContains(pretty, "batch {");
-    assertContains(pretty, "master=yarn-client");
+    assertContains(pretty, "master=yarn");
     assertContains(pretty, "password=*****");
     assertContains(pretty, "keystore-password=*****");
   }

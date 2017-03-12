@@ -242,40 +242,6 @@ This directory exists to record PMML models for archiving and for use by other t
 may be deleted if desired. Note also that setting `oryx.batch.storage.max-age-model-hours` to a
 nonnegative value will cause models older than the given number of hours to be deleted automatically.
 
-# Cloudera Quickstart VM Setup
-
-For quick testing and evaluation, it may be useful to run a single-node cluster in a VM, like the
-[Cloudera Quickstart VM](http://www.cloudera.com/content/www/en-us/downloads/quickstart_vms.html).
-This isn't generally suitable for production use.
-
-- Download and start the cluster VM
-    - Give the VM at least 4 cores and 12GB of memory
-    - Start the cluster in the VM; CDH Express is fine
-- Install Java 8 (if not already the default)
-    - `sudo yum install java-1.8.0-openjdk` or similar to make a Java 8 implementation available
-    - Launch Cloudera Manager, and log in to the UI (e.g. `localhost:7180`)
-    - If any CDH services are running, stop them
-    - From the "Hosts" menu, select "All Hosts"
-    - Click the "Configuration" button
-    - Under "Category" at the left, choose "Advanced"
-    - In `Java Home Directory`, enter (for example): `/usr/lib/jvm/jre-1.8.0-openjdk.x86_64/`
-    - Click "Save Changes"
-    - Restart the Cloudera Manager service from Cloudera Manager, or else just reboot the VM
-- Configure the cluster
-    - In parcel settings, add the location of Kafka parcels, currently http://archive.cloudera.com/kafka/parcels/latest/
-    - Distribute and activate the CDH parcel
-    - Distribute and activate the Kafka parcel
-    - Add Kafka as a service
-    - Start services HDFS, Hue, Kafka, Spark, YARN, Zookeeper
-	  - In the Spark service, choose to add Spark user dir, and Spark app history dir
--	Download the app files
-	  - Download the batch layer JAR, oryx-run.sh, compute-classpath.sh and example JAR file from the latest release at https://github.com/OryxProject/oryx/releases
-	  - Download the word count example config file from https://github.com/OryxProject/oryx/blob/master/app/conf/wordcount-example.conf 
-- Run the batch layer
-    - Use `./oryx-run.sh kafka-setup --conf wordcount-example.conf` to set up topics
-	  - Use `./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-....jar` to start the batch layer
-- Run other services as desired
-
 
 # Handling Failure
 
@@ -360,6 +326,10 @@ and otherwise, it will resume reading from the latest offset.
 This means you are running 7 or earlier somewhere. Oryx 2.2 requires Java 8 or later. 
 See section above on installing Java 8 and making it available everywhere on the cluster.
 
+If you believe that Java 8 is installed, then try setting `JAVA_HOME` explicitly to the location
+of the Java 8 JRE/JDK home directory before running the Oryx daemons. On CDH, it's simpler to 
+`export BIGTOP_JAVA_MAJOR=8` in order to force choice of Java 8 over earlier versions.
+
 ## Initial job has not accepted any resources
 
 The error usually means that your YARN cluster can't allocate the resources (memory, cores) 
@@ -421,89 +391,3 @@ waiting longer and longer to start processing, delaying their updates.
 # Performance
 
 See [the performance doc](performance.html).
-
-# Differences from Oryx 1
-
-Design goals for Oryx 2 were:
-
-- Provide a more reusable platform for [lambda-architecture](http://lambda-architecture.net/)-style
-designs, with batch, speed and serving layers
-- Make each layer usable independently
-- Better support for common machine learning needs
-  - Test/train set split and evaluation
-  - Parallel model build
-  - Hyper-parameter selection
-- Use newer technologies like Spark and Streaming in order to simplify:
-  - Remove separate in-core implementations for scale-down
-  - Remove custom data transport implementation in favor of [Apache Kafka](http://kafka.apache.org/)
-  - Use a 'real' streaming framework instead of reimplementing a simple one
-  - Remove complex MapReduce-based implementations in favor of
-  [Apache Spark](http://spark.apache.org/)-based implementations
-- Support more input (i.e. not just [CSV](http://en.wikipedia.org/wiki/Comma-separated_values))
-
-## Architecture Differences
-
-| Oryx 1 | Oryx 2 |
-| ------ | ------ |
-| One monolithic "tier" for lambda architecture and apps | Three tiers: lambda,  ML, apps |
-| No app-level extensibility | Platform for building other lambda- and ML-based apps |
-| Two layers: Computation and Serving | Three layers: Batch, Speed and Serving |
-| Based on Crunch, MapReduce, HDFS, Tomcat | Based on HDFS, YARN, Spark (+ Streaming, MLlib), Kafka, Zookeeper, Tomcat |
-| 32K lines production code / 3K test | 19K lines production code / 9K test: simpler, better tested |
-
-## Deployment Differences
-
-| Oryx 1 | Oryx 2 |
-| ------ | ------ |
-| Requires Java 6, optionally core Hadoop 2.2+ (including "MR1") | Requires Java 8, core Hadoop 2.6+ (YARN, not "MR1") Spark 1.6+, Kafka 0.9+, Zookeeper 3.4.5+ |
-| Supports local, non-Hadoop deployment  | No non-Hadoop deployment |
-| Supports MapReduce-based Hadoop deployment | Supports  only deployment with core Hadoop, YARN, Spark, Kafka |
-
-## Scale and Reliability Differences
-
-| Oryx 1 | Oryx 2 |
-| ------ | ------ |
-| Memory-efficient | Fast, memory-hungry |
-| Custom, best-effort data transport between layers | Reliable data transport via Kafka |
-| Custom MapReduce-based algorithm implementations in Computation Layer | Spark Streaming-based batch layer framework and Spark MLlib-based algorithm implementations |
-| Custom in-core incremental model update ("speed layer") | Spark Streaming-based distributed model update |
-
-## Migration
-
-The bad news is that no direct migration is possible between Oryx 1 and Oryx 2; they have 
-very different implementations. However, differences in the user- and developer-facing aspects 
-are by design similar or identical.
-
-### REST API
-
-Oryx 2 contains the same set of end-to-end ML applications as Oryx 1, and exposes virtually 
-the same REST API, unchanged. The only significant difference is that there is no longer 
-a `/refresh` endpoint, because it is unnecessary.
-
-### Configuration
-
-Both implementations use a single configuration file parsed by Typesafe Config.
-The property namespaces are different but there are some similarities. Compare the 
-[Oryx 1 configuration](https://github.com/cloudera/oryx/blob/master/common/src/main/resources/reference.conf) 
-to the 
-[Oryx 2 configuration](https://github.com/OryxProject/oryx/blob/master/framework/oryx-common/src/main/resources/reference.conf) 
-to understand some of the correspondence and difference.
-
-### Data Storage and Transport
-
-In Oryx 1, all data was stored in a series of directories in HDFS. In Oryx 2, data is transported 
-via Kafka (which ultimately stores data in HDFS) and in HDFS as managed by a Spark Streaming 
-process. Although it is still possible to side-load data files via HDFS in Oryx 2, it is not 
-supported and is discouraged, in favor of sending data directly to a Kafka queue.
-
-### Data Formats
-
-In theory, the framework is agnostic to data types and encodings passed between layers. 
-In practice, the provided applications consume the same CSV-encoded data format as Oryx 1.
-
-### Deployment
-
-The deployment requirements are the most different. Although all layers are still distributed 
-as Java `.jar` binaries, now, a Hadoop cluster is required, including HDFS, YARN, Kafka, Spark, 
-and Zookeeper services. Your environment or cluster must be updated to include these services 
-before you can use Oryx 2.

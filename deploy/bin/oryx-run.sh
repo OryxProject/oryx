@@ -13,8 +13,6 @@
 # the specific language governing permissions and limitations under the
 # License.
 
-# The file compute-classpath.sh must be in the same directory as this file.
-
 function usageAndExit {
   echo "$1"
   echo "usage: oryx-run.sh command [--option value] ..."
@@ -128,25 +126,12 @@ batch|speed|serving)
     APP_JAR_NAME=`basename ${APP_JAR}`
   fi
 
-  COMPUTE_CLASSPATH="compute-classpath.sh"
-  if [ ! -x "$COMPUTE_CLASSPATH" ]; then
-    usageAndExit "$COMPUTE_CLASSPATH script does not exist or isn't executable"
-  fi
-  BASE_CLASSPATH=`bash ${COMPUTE_CLASSPATH} | paste -s -d: -`
-
   MAIN_CLASS="com.cloudera.oryx.${COMMAND}.Main"
 
   setVarFromProperty "APP_ID" "oryx\.id"
 
   case "${COMMAND}" in
   batch|speed)
-    # Need to ship examples JAR with app as it conveniently contains right Kafka, in Spark
-    SPARK_EXAMPLES_JAR=`bash ${COMPUTE_CLASSPATH} | grep spark-examples`
-
-    SPARK_STREAMING_JARS="${SPARK_EXAMPLES_JAR}"
-    if [ -n "${APP_JAR}" ]; then
-      SPARK_STREAMING_JARS="${APP_JAR},${SPARK_STREAMING_JARS}"
-    fi
     SPARK_DRIVER_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE}"
     SPARK_EXECUTOR_JAVA_OPTS="-Dconfig.file=${CONFIG_FILE_NAME}"
     if [ -n "${JVM_ARGS}" ]; then
@@ -169,6 +154,7 @@ batch|speed|serving)
     esac
 
     setVarFromProperty "SPARK_MASTER" "oryx\.${COMMAND}\.streaming\.master"
+    setVarFromProperty "SPARK_DEPLOY_MODE" "oryx\.${COMMAND}\.streaming\.deploy-mode"
     setVarFromProperty "DRIVER_MEMORY" "oryx\.${COMMAND}\.streaming\.driver-memory"
     setVarFromProperty "EXECUTOR_MEMORY" "oryx\.${COMMAND}\.streaming\.executor-memory"
     setVarFromProperty "EXECUTOR_CORES" "oryx\.${COMMAND}\.streaming\.executor-cores"
@@ -179,6 +165,13 @@ batch|speed|serving)
     ;;
 
   serving)
+    # The file compute-classpath.sh must be in the same directory as this file.
+    COMPUTE_CLASSPATH="compute-classpath.sh"
+    if [ ! -x "$COMPUTE_CLASSPATH" ]; then
+      usageAndExit "$COMPUTE_CLASSPATH script does not exist or isn't executable"
+    fi
+    BASE_CLASSPATH=`bash ${COMPUTE_CLASSPATH} | paste -s -d: -`
+  
     setVarFromProperty "MEMORY_MB" "oryx\.serving\.memory"
     MEMORY_MB=`echo ${MEMORY_MB} | grep -oE "[0-9]+"`
     # Only for Serving Layer now
@@ -206,10 +199,16 @@ batch|speed|serving)
     else
       SPARK_SUBMIT_SCRIPT="spark-submit"
     fi
+    
+    JARS_ARG=""
+    if [ -n "${APP_JAR}" ]; then
+      JARS_ARG="--jars ${APP_JAR}"
+    fi
 
-    SPARK_SUBMIT_CMD="${SPARK_SUBMIT_SCRIPT} --master ${SPARK_MASTER} --name ${APP_NAME} --class ${MAIN_CLASS} \
-     --jars ${SPARK_STREAMING_JARS} --files ${CONFIG_FILE} --driver-memory ${DRIVER_MEMORY} \
-     --driver-java-options \"${SPARK_DRIVER_JAVA_OPTS}\" --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
+    SPARK_SUBMIT_CMD="${SPARK_SUBMIT_SCRIPT} --master ${SPARK_MASTER} --deploy-mode ${SPARK_DEPLOY_MODE} \
+     --name ${APP_NAME} --class ${MAIN_CLASS} ${JARS_ARG} --files ${CONFIG_FILE} \
+     --driver-memory ${DRIVER_MEMORY} --driver-java-options \"${SPARK_DRIVER_JAVA_OPTS}\" \
+     --executor-memory ${EXECUTOR_MEMORY} --executor-cores ${EXECUTOR_CORES} \
      --conf spark.executor.extraJavaOptions=\"${SPARK_EXECUTOR_JAVA_OPTS}\" --conf spark.ui.port=${SPARK_UI_PORT}"
     for SPARK_KEY_VALUE_CONF in ${SPARK_EXTRA_CONFIG}; do
       SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --conf ${SPARK_KEY_VALUE_CONF}"
