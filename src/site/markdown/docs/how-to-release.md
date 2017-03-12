@@ -4,20 +4,20 @@ This will only be of interest to the project's maintainers!
 
 # Prerequisites
 
-This process requires that you have created a file called, for example, `private-settings.xml` which contains authentication credentials for pushing to the distribution repository. Example:
+This process requires that you have created a file called, for example, `maven-settings.xml` which contains authentication credentials for pushing to the distribution repository. Example:
 
 ```
 <?xml version="1.0"?>
 <settings>
   <servers>
     <server>
-      <id>oryx.repo</id>
-      <username>snapshots</username>
+      <id>sonatype-nexus-snapshots</id>
+      <username>user</username>
       <password>...</password>
     </server>
     <server>
-      <id>oryx.snapshots.repo</id>
-      <username>snapshots</username>
+      <id>sonatype-nexus-staging</id>
+      <username>user</username>
       <password>...</password>
     </server>
   </servers>
