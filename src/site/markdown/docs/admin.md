@@ -2,15 +2,15 @@ title: Docs: Admin
 
 # Cluster Setup
 
-The following are required as of Oryx 2.3.0:
+The following are required as of Oryx 2.4.0:
 
 - Java 8 or later (JRE only is required)
 - Scala 2.11 or later
 - A Hadoop cluster running the following components:
     - Apache Hadoop 2.7.0 or later
     - Apache Zookeeper 3.4.5 or later
-    - Apache Kafka 0.9 or later
-    - Apache Spark 2.0.0 or later
+    - Apache Kafka 0.10 or later
+    - Apache Spark 2.1.0 or later
 
 However, differences between versions of Kafka and Spark Streaming, and differences in their integration
 strategies, as well as packaging choices in 

@@ -22,9 +22,9 @@ mvn -DskipTests package
 
 This will build the following binaries:
 
-- Batch Layer: `deploy/oryx-batch/target/oryx-batch-2.3.0.jar`
-- Speed Layer: `deploy/oryx-speed/target/oryx-speed-2.3.0.jar`
-- Serving Layer: `deploy/oryx-serving/target/oryx-serving-2.3.0.jar`
+- Batch Layer: `deploy/oryx-batch/target/oryx-batch-2.4.0.jar`
+- Speed Layer: `deploy/oryx-speed/target/oryx-speed-2.4.0.jar`
+- Serving Layer: `deploy/oryx-serving/target/oryx-serving-2.4.0.jar`
 
 Note that if you are interested in developing on Oryx, you should probably 
 [fork this repository](https://help.github.com/articles/fork-a-repo) and then work on 
@@ -96,7 +96,7 @@ In Maven, this would mean adding a dependency like:
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx-api</artifactId>
     <scope>provided</scope>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
   </dependency>
 </dependencies>
 ```
@@ -115,7 +115,7 @@ Note: to enable native BLAS acceleration in your app, see additional notes about
 ### Compiling the Word Count Example
 
 Building the entire project with `mvn ... package` per above will actually build the example. 
-The application JAR is produced at `target/example-2.3.0.jar` for example.
+The application JAR is produced at `target/example-2.4.0.jar` for example.
 
 To rebuild or repackage just the word count example:
 
@@ -142,7 +142,7 @@ here for stand-alone applications.
     <groupId>com.cloudera.oryx</groupId>
     <artifactId>oryx-app-api</artifactId>
     <scope>provided</scope>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
   </dependency>
 </dependencies>
 ```
@@ -165,7 +165,7 @@ copying and adapting the provided [`wordcount-example.conf`](https://github.com/
 configuration file:
 
 ```
-./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-2.3.0.jar
+./oryx-run.sh batch --conf wordcount-example.conf --app-jar example-2.4.0.jar
 ```
 
 ... and similarly for the speed and serving layers. Feed lines of input and then observe counts:
