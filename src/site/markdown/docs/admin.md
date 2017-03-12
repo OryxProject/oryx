@@ -12,19 +12,28 @@ The following are required as of Oryx 2.3.0:
     - Apache Kafka 0.9 or later
     - Apache Spark 2.0.0 or later
 
-[CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html)
-5.9.0 and later with Kafka and Spark 2 parcels meet these requirements, although any Hadoop 
-distribution with these components should work fine. While the rest of the instructions will refer 
-to a CDH 5.9+ distribution, this is not a requirement.
+However, differences between versions of Kafka and Spark Streaming, and differences in their integration
+strategies, as well as packaging choices in 
+[CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html), 
+mean that it is quite difficult to maintain compatibility with
+both a current CDH release and corresponding versions of upstream components. At the moment, effectively, 
+the requirements are:
 
-_Note: Oryx 2.0.x requires only Scala 2.10, Java 7, Spark 1.3.0, Kafka 0.8 and CDH 5.4.x_
+- Java 8
+- CDH 5.10.x or later
+- Cloudera distribution of Kafka 2.0.x
 
-_Note: Oryx 2.1.x requires only Scala 2.10, Java 7, Spark 1.5.0, Kafka 0.8 and CDH 5.5.x_
+## Requirements Matrix Summary
 
-_Note: Oryx 2.2.x requires only Scala 2.10, Hadoop 2.6.0, Spark 1.6.0, and CDH 5.7.x_
+This table summarizes the version of several key components targeted by each version.
 
-A single-node cluster can be sufficient, although running all of these components on one machine
-may require a reasonable amount of RAM.
+| Oryx  | Java | Scala | Spark | Kafka   | CDH   |
+| ----- | ---- | ----- | ----- | ------- | ----- | 
+| 2.4.x | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11+ |
+| 2.3.x | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10  |
+| 2.2.x | 8    | 2.10  | 1.6.x | 0.9.x   | 5.7   |
+| 2.1.x | 7    | 2.10  | 1.5.x | 0.8.x   | 5.5   |
+| 2.0.x | 7    | 2.10  | 1.3.x | 0.8.x   | 5.4   |
 
 ## Deployment Architecture
 
@@ -55,11 +64,12 @@ Install and configure the Hadoop cluster normally. The following services need t
 - Kafka
 - Spark 2
 
-Note that for CDH 5.x, Spark 2 is available as an [add on](http://www.cloudera.com/documentation/betas/spark2/latest/topics/spark2.html).
+Note that for CDH 5.x, Spark 2 is available as an 
+[add on](https://www.cloudera.com/documentation/spark2/latest/topics/spark2.html).
 
 Kafka is available as a parcel from
 [Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
-The Cloudera Kafka 2.x parcel is required, because it contains a distribution of Kafka 0.9. 
+The Cloudera Kafka 2.0.x parcel is required, because it contains a distribution of Kafka 0.9. 
 The 2.x parcel is in fact required by CDH 5.7+.
 
 Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
