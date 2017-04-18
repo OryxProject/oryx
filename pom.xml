@@ -267,6 +267,11 @@
       <!-- This is used directly: -->
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.version}</version>
       </dependency>
@@ -533,7 +538,6 @@
     <!-- Maven settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.version.min>3.2.1</maven.version.min>
     <!-- Dependency versions -->
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
@@ -546,11 +550,11 @@
     <kafka.version>0.10.1.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
     <netlib.java.version>1.1.2</netlib.java.version>
-    <slf4j.version>1.7.24</slf4j.version>
+    <slf4j.version>1.7.25</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.1.0</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.5.11</tomcat.version>
+    <tomcat.version>8.5.13</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -608,7 +612,7 @@
                   <requireModuleConvergence />
                   <requirePluginVersions />
                   <requireMavenVersion>
-                    <version>${maven.version.min}</version>
+                    <version>3.2.5</version>
                   </requireMavenVersion>
                   <requireJavaVersion>
                     <version>${java.version}</version>
@@ -1078,10 +1082,6 @@
     <tag>HEAD</tag>
   </scm>
 
-  <prerequisites>
-    <maven>${maven.version.min}</maven>
-  </prerequisites>
-
   <distributionManagement>
     <repository>
       <id>sonatype-nexus-staging</id>
@@ -1108,15 +1108,14 @@
   </repositories>
 
   <profiles>
-    <!-- this profile can't work until Spark Streaming + Kafka 0.10 support is in CDH -->
     <profile>
-      <id>cdh510</id>
+      <id>cdh511</id>
       <properties>
-        <cdh.version>5.10.1</cdh.version>
+        <cdh.version>5.11.0</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>2.0.0.cloudera2</spark.version>
+        <spark.version>2.1.0.cloudera1</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.9.0-kafka-2.1.0</kafka.version>
+        <kafka.version>0.10.0-kafka-2.1.1</kafka.version>
       </properties>
     </profile>
     <profile>
