@@ -262,6 +262,11 @@
       <!-- This is used directly: -->
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.version}</version>
       </dependency>
@@ -528,7 +533,6 @@
     <!-- Maven settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.version.min>3.2.1</maven.version.min>
     <!-- Dependency versions -->
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
@@ -541,11 +545,11 @@
     <kafka.version>0.9.0.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
     <netlib.java.version>1.1.2</netlib.java.version>
-    <slf4j.version>1.7.24</slf4j.version>
+    <slf4j.version>1.7.25</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.0.2</spark.version>
     <surefire.version>2.19.1</surefire.version>
-    <tomcat.version>8.5.11</tomcat.version>
+    <tomcat.version>8.5.13</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -603,7 +607,7 @@
                   <requireModuleConvergence />
                   <requirePluginVersions />
                   <requireMavenVersion>
-                    <version>${maven.version.min}</version>
+                    <version>3.2.5</version>
                   </requireMavenVersion>
                   <requireJavaVersion>
                     <version>${java.version}</version>
@@ -1072,10 +1076,6 @@
     <url>https://github.com/OryxProject/oryx</url>
     <tag>HEAD</tag>
   </scm>
-
-  <prerequisites>
-    <maven>${maven.version.min}</maven>
-  </prerequisites>
 
   <distributionManagement>
     <repository>
