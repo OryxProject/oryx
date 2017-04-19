@@ -408,6 +408,12 @@
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-common</artifactId>
+        <version>${jersey.version}</version>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
         <scope>runtime</scope>
@@ -438,6 +444,12 @@
       <dependency>
         <groupId>org.glassfish.jersey.test-framework.providers</groupId>
         <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+        <version>${jersey.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet</artifactId>
         <version>${jersey.version}</version>
         <scope>test</scope>
       </dependency>
@@ -553,7 +565,7 @@
     <slf4j.version>1.7.25</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.1.0</spark.version>
-    <surefire.version>2.19.1</surefire.version>
+    <surefire.version>2.20</surefire.version>
     <tomcat.version>8.5.13</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
