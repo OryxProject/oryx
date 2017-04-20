@@ -67,7 +67,7 @@ final class SaveToHDFSFunction<K,M> implements VoidFunction2<JavaPairRDD<K,M>,Ti
     } else {
       String file = prefix + "-" + time.milliseconds() + "." + suffix;
       Path path = new Path(file);
-      FileSystem fs = FileSystem.get(hadoopConf);
+      FileSystem fs = FileSystem.get(path.toUri(), hadoopConf);
       if (fs.exists(path)) {
         log.warn("Saved data already existed, possibly from a failed job. Deleting {}", path);
         fs.delete(path, true);
