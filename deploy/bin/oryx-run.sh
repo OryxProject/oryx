@@ -64,6 +64,9 @@ while (($#)); do
   shift
 done
 
+# Forces Java 8 on CDH
+export BIGTOP_JAVA_MAJOR=8
+
 if [ -z "${LAYER_JAR}" ]; then
   case "${COMMAND}" in
   batch|speed|serving)
