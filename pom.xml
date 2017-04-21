@@ -468,7 +468,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.7.RELEASE</version>
+        <version>4.3.8.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -569,7 +569,7 @@
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.0.2</spark.version>
     <surefire.version>2.20</surefire.version>
-    <tomcat.version>8.5.13</tomcat.version>
+    <tomcat.version>8.5.14</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
