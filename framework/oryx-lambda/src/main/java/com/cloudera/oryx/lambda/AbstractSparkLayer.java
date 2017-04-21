@@ -200,7 +200,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     kafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
     kafkaParams.put("group.id", groupID);
     // Don't re-consume old messages from input by default
-    kafkaParams.put("auto.offset.reset", "latest");
+    kafkaParams.put("auto.offset.reset", "latest"); // Ignored by Kafka 0.10 Spark integration
     kafkaParams.put("bootstrap.servers", inputBroker);
     kafkaParams.put("key.deserializer", keyDecoderClass.getName());
     kafkaParams.put("value.deserializer", messageDecoderClass.getName());

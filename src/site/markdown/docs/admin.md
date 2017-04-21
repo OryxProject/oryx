@@ -64,13 +64,12 @@ Install and configure the Hadoop cluster normally. The following services need t
 - Kafka
 - Spark 2
 
-Note that for CDH 5.x, Spark 2 is available as an 
-[add on](https://www.cloudera.com/documentation/spark2/latest/topics/spark2.html).
+Note that for CDH 5.x, Spark 2.1 is available as an 
+[add on](https://www.cloudera.com/downloads/spark2/2-1.html).
 
 Kafka is available as a parcel from
-[Cloudera Labs](http://www.cloudera.com/content/cloudera/en/developers/home/cloudera-labs/apache-kafka.html).
-The Cloudera Kafka 2.0.x parcel is required, because it contains a distribution of Kafka 0.9. 
-The 2.x parcel is in fact required by CDH 5.7+.
+[Cloudera](https://www.cloudera.com/documentation/kafka/latest/topics/kafka_packaging.html).
+The Cloudera Kafka 2.1.x parcel is required, because it contains a distribution of Kafka 0.10. 
 
 Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
 and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default
@@ -323,12 +322,11 @@ and otherwise, it will resume reading from the latest offset.
 
 ## Unsupported major.minor version 52.0
 
-This means you are running 7 or earlier somewhere. Oryx 2.2 requires Java 8 or later. 
+This means you are running 7 or earlier somewhere. Oryx requires Java 8 or later. 
 See section above on installing Java 8 and making it available everywhere on the cluster.
 
 If you believe that Java 8 is installed, then try setting `JAVA_HOME` explicitly to the location
-of the Java 8 JRE/JDK home directory before running the Oryx daemons. On CDH, it's simpler to 
-`export BIGTOP_JAVA_MAJOR=8` in order to force choice of Java 8 over earlier versions.
+of the Java 8 JRE/JDK home directory before running the Oryx daemons.
 
 ## Initial job has not accepted any resources
 

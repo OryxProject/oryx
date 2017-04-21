@@ -151,8 +151,8 @@ public final class KafkaUtils {
       partitions.forEach(partition -> {
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
         Option<String> maybeOffset = zkUtils.readDataMaybeNull(partitionOffsetPath)._1();
-        Long offset = maybeOffset.isDefined() ? Long.parseLong(maybeOffset.get()) : null;
-        offsets.put(new Pair<>(topic, Integer.parseInt(partition.toString())), offset);
+        Long offset = maybeOffset.isDefined() ? Long.valueOf(maybeOffset.get()) : null;
+        offsets.put(new Pair<>(topic, Integer.valueOf(partition.toString())), offset);
       });
     } finally {
       zkUtils.close();
@@ -228,21 +228,27 @@ public final class KafkaUtils {
       OffsetResponse latestResponse = requestOffsets(consumer, latestRequest);
       OffsetResponse earliestResponse = requestOffsets(consumer, earliestRequest);
       offsets.keySet().forEach(topicPartition -> {
-        long latestTopicOffset = getOffset(latestResponse, topicPartition);
+        Long latestTopicOffset = getOffset(latestResponse, topicPartition);
         Long currentOffset = offsets.get(topicPartition);
         if (currentOffset == null) {
-          log.info("No initial offsets for {}; using latest offset {} from topic",
-                   topicPartition, latestTopicOffset);
-          offsets.put(topicPartition, latestTopicOffset);
-        } else if (currentOffset > latestTopicOffset) {
+          if (latestTopicOffset == null) {
+            log.info("No initial offset for {}, no latest offset from topic; ignoring");
+          } else {
+            log.info("No initial offset for {}; using latest offset {} from topic",
+                topicPartition, latestTopicOffset);
+            offsets.put(topicPartition, latestTopicOffset);
+          }
+        } else if (latestTopicOffset != null && currentOffset > latestTopicOffset) {
           log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
                    currentOffset, topicPartition, latestTopicOffset);
+          log.warn("Are you using a stale or incorrect oryx.id?");
           offsets.put(topicPartition, latestTopicOffset);
         } else {
-          long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
-          if (currentOffset < earliestTopicOffset) {
+          Long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
+          if (earliestTopicOffset != null && currentOffset < earliestTopicOffset) {
             log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
                      currentOffset, topicPartition, earliestTopicOffset);
+            log.warn("Are you using a stale or incorrect oryx.id?");
             offsets.put(topicPartition, earliestTopicOffset);
           }
         }
@@ -250,10 +256,11 @@ public final class KafkaUtils {
     } finally {
       consumer.close();
     }
-
+    
+    offsets.values().removeIf(Objects::isNull);
   }
 
-  private static long getOffset(OffsetResponse response, Pair<String,Integer> topicPartition) {
+  private static Long getOffset(OffsetResponse response, Pair<String,Integer> topicPartition) {
     String topic = topicPartition.getFirst();
     int partition = topicPartition.getSecond();
     long[] offsets = response.offsets(topic, partition);
@@ -262,7 +269,8 @@ public final class KafkaUtils {
     }
     short errorCode = response.errorCode(topic, partition);
     if (errorCode == ErrorMapping.UnknownTopicOrPartitionCode()) {
-      return 0;
+      log.info("Unknown topic or partition {} {}", topic, partition);
+      return null;
     }
     throw new IllegalStateException(
         "Error reading offset for " + topic + " / " + partition + ": " +
