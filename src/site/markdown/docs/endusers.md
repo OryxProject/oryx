@@ -58,7 +58,7 @@ That's all!
 If you've used the configuration above, you are running an instance of the ALS-based
 recommender application.
 
-Obtain the [GroupLens 100K](http://grouplens.org/datasets/movielens/) data set and find the
+Obtain the [GroupLens 100K](https://grouplens.org/datasets/movielens/) data set and find the
 `u.data` file within. This needs to be converted to csv:
 
 ```bash

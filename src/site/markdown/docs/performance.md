@@ -13,7 +13,7 @@ In both cases, there is nothing different about sizing these from any other Kafk
 # Data Transport
 
 Since Kafka is the underlying data transport, the storage require to ingest and store messages is
-just that of Kafka. See [Kafka performance](http://kafka.apache.org/performance.html) figures for information.
+just that of Kafka. See [Kafka performance](https://kafka.apache.org/performance.html) figures for information.
 In general, Kafka is not nearly a bottleneck and can be sized like any other usage of Kafka.
 
 # Native BLAS Acceleration

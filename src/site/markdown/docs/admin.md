@@ -7,21 +7,10 @@ The following are required as of Oryx 2.4.0:
 - Java 8 or later (JRE only is required)
 - Scala 2.11 or later
 - A Hadoop cluster running the following components:
-    - Apache Hadoop 2.7.0 or later
-    - Apache Zookeeper 3.4.5 or later
-    - Apache Kafka 0.10 or later
-    - Apache Spark 2.1.0 or later
-
-However, differences between versions of Kafka and Spark Streaming, and differences in their integration
-strategies, as well as packaging choices in 
-[CDH](http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html), 
-mean that it is quite difficult to maintain compatibility with
-both a current CDH release and corresponding versions of upstream components. At the moment, effectively, 
-the requirements are:
-
-- Java 8
-- CDH 5.10.x or later
-- Cloudera distribution of Kafka 2.0.x
+    - [Apache Hadoop](https://hadoop.apache.org/) 2.7.0 or later
+    - [Apache Zookeeper](https://zookeeper.apache.org/) 3.4.5 or later
+    - [Apache Kafka](https://kafka.apache.org/) 0.10 or later
+    - [Apache Spark](https://spark.apache.org/) 2.1.0 or later
 
 ## Requirements Matrix Summary
 
@@ -86,7 +75,7 @@ mean updating the default Java version with `update-alternatives --config java` 
 or setting `JAVA_HOME` to point to a Java 8 installation.
 
 For CDH in particular, however, instead see 
-[Configuring a Custom Java Home Location](http://www.cloudera.com/documentation/enterprise/latest/topics/cm_ig_java_home_location.html)
+[Configuring a Custom Java Home Location](https://www.cloudera.com/documentation/enterprise/latest/topics/cm_ig_java_home_location.html)
 
 ## Configuring Kafka
 
@@ -136,7 +125,7 @@ file's location on HDFS instead. See setting `oryx.update-topic.message.max-size
 
 The Kafka broker's `message.max.bytes` (note the different name!) property also controls 
 this, but setting it affects all topics managed by the broker, which may be undesirable.
-See [Performance and Resource Considerations](http://www.cloudera.com/content/cloudera/en/documentation/cloudera-kafka/latest/topics/kafka_performance.html)
+See [Performance and Resource Considerations](https://www.cloudera.com/documentation/kafka/latest/topics/kafka_performance.html)
 for a more complete discussion. In particular, note that `replica.fetch.max.bytes` would
 have to be set in the broker in order to _replicate_ any very large messages. There is no
 per-topic equivalent to this.
