@@ -80,7 +80,7 @@ public final class SolverCache {
           boolean lowPriority = solver.get() != null;
           Solver newYTYSolver = LinearSystemSolver.getSolver(vectorPartitions.getVTV(lowPriority));
           if (newYTYSolver != null) {
-            log.info("Computed new solver {}", solver);
+            log.info("Computed new solver {}", newYTYSolver);
             solver.set(newYTYSolver);
           }
         } finally {
