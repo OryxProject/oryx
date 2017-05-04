@@ -219,11 +219,7 @@ public final class ALSServingModel implements ServingModel {
       if (knownItemsForUser == null) {
         try (AutoLock al = knownItemsLock.autoWriteLock()) {
           // Check again
-          knownItemsForUser = knownItems.get(user);
-          if (knownItemsForUser == null) {
-            knownItemsForUser = HashObjSets.newMutableSet();
-            knownItems.put(user, knownItemsForUser);
-          }
+          knownItemsForUser = knownItems.computeIfAbsent(user, k -> HashObjSets.newMutableSet());
         }
       }
 

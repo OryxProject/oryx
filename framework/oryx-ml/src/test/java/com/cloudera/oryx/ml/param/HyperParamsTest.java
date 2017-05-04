@@ -15,9 +15,7 @@
 
 package com.cloudera.oryx.ml.param;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -118,39 +116,6 @@ public final class HyperParamsTest extends OryxTest {
   }
 
   @Test
-  public void testCombos() {
-    Collection<HyperParamValues<?>> hyperParams = new ArrayList<>();
-    hyperParams.add(HyperParams.fixed(1.0));
-    hyperParams.add(HyperParams.range(2, 10));
-    hyperParams.add(HyperParams.around(5.0, 0.5));
-    List<List<?>> combos = HyperParams.chooseHyperParameterCombos(hyperParams, 50, 2);
-    assertEquals(4, combos.size());
-    assertContains(combos, Arrays.<Number>asList(1.0, 2, 4.75));
-    assertContains(combos, Arrays.<Number>asList(1.0, 10, 4.75));
-    assertContains(combos, Arrays.<Number>asList(1.0, 2, 5.25));
-    assertContains(combos, Arrays.<Number>asList(1.0, 10, 5.25));
-  }
-
-  @Test
-  public void testCombos2() {
-    Collection<HyperParamValues<?>> hyperParams = new ArrayList<>();
-    hyperParams.add(HyperParams.fixed(1.0));
-    hyperParams.add(HyperParams.range(2, 10));
-    hyperParams.add(HyperParams.around(5.0, 0.5));
-    List<List<?>> combos = HyperParams.chooseHyperParameterCombos(hyperParams, 2, 2);
-    assertEquals(2, combos.size());
-    assertContains(combos, Arrays.<Number>asList(1.0, 10, 4.75));
-    assertContains(combos, Arrays.<Number>asList(1.0, 2, 4.75));
-  }
-
-  @Test
-  public void testNoCombos() {
-    List<List<?>> combos = HyperParams.chooseHyperParameterCombos(Collections.emptyList(), 1, 0);
-    assertEquals(1, combos.size());
-    assertEquals(0, combos.get(0).size());
-  }
-
-  @Test
   public void testConfig() {
     Map<String,Object> overlay = new HashMap<>();
     overlay.put("a", 1);
@@ -162,19 +127,6 @@ public final class HyperParamsTest extends OryxTest {
     doTest(HyperParams.fromConfig(config, "b"), 1, Collections.singletonList(2.7));
     doTest(HyperParams.fromConfig(config, "c"), 2, Arrays.asList(3, 4));
     doTest(HyperParams.fromConfig(config, "d"), 2, Arrays.asList(5.3, 6.6));
-  }
-
-  @Test
-  public void testChooseValues() {
-    assertEquals(0, HyperParams.chooseValuesPerHyperParam(0, 1));
-    assertEquals(1, HyperParams.chooseValuesPerHyperParam(1, 1));
-    assertEquals(3, HyperParams.chooseValuesPerHyperParam(1, 3));
-    assertEquals(1, HyperParams.chooseValuesPerHyperParam(2, 1));
-    assertEquals(2, HyperParams.chooseValuesPerHyperParam(2, 2));
-    assertEquals(2, HyperParams.chooseValuesPerHyperParam(2, 4));
-    assertEquals(1, HyperParams.chooseValuesPerHyperParam(3, 1));
-    assertEquals(2, HyperParams.chooseValuesPerHyperParam(3, 7));
-    assertEquals(2, HyperParams.chooseValuesPerHyperParam(3, 8));
   }
 
   private static void doTest(HyperParamValues<?> hyperParams, int howMany, List<?> expected) {
