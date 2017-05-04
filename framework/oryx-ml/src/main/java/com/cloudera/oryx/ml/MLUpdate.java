@@ -65,6 +65,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 
   private final double testFraction;
   private final int candidates;
+  private final String hyperParamSearch;
   private final int evalParallelism;
   private final Double threshold;
   private final int maxMessageSize;
@@ -86,6 +87,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       }
     }
     this.candidates = candidates;
+    this.hyperParamSearch = config.getString("oryx.ml.eval.hyperparam-search");
   }
 
   protected final double getTestFraction() {
@@ -183,14 +185,8 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
       pastData.foreachPartition(p -> {});
     }
 
-    List<HyperParamValues<?>> hyperParamValues = getHyperParameterValues();
-    int valuesPerHyperParam =
-        HyperParams.chooseValuesPerHyperParam(hyperParamValues.size(), candidates);
-    List<List<?>> hyperParameterCombos =
-        HyperParams.chooseHyperParameterCombos(hyperParamValues,
-                                               candidates,
-                                               valuesPerHyperParam);
-
+    List<List<?>> hyperParameterCombos = HyperParams.chooseHyperParameterCombos(
+        getHyperParameterValues(), hyperParamSearch, candidates);
 
     Path modelDir = new Path(modelDirString);
     Path tempModelPath = new Path(modelDir, ".temporary");

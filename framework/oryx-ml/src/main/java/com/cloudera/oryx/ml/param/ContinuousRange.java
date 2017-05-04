@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.math3.random.RandomDataGenerator;
 
 final class ContinuousRange implements HyperParamValues<Double>, Serializable {
 
@@ -54,6 +55,26 @@ final class ContinuousRange implements HyperParamValues<Double>, Serializable {
     }
     values.add(max);
     return values;
+  }
+
+  /**
+   * @param rdg random number generator to use
+   * @return a hyperparameter value chosen uniformly at random from the range
+   */
+  @Override
+  public Double getRandomValue(RandomDataGenerator rdg) {
+    if (max == min) {
+      return min;
+    }
+    return rdg.nextUniform(min, max, true);
+  }
+
+  /**
+   * @return {@code Long.MIN_VALUE}
+   */
+  @Override
+  public long getNumDistinctValues() {
+    return Long.MAX_VALUE;
   }
 
   @Override

@@ -15,6 +15,8 @@
 
 package com.cloudera.oryx.ml.param;
 
+import org.apache.commons.math3.random.RandomDataGenerator;
+
 import java.util.List;
 
 /**
@@ -23,7 +25,6 @@ import java.util.List;
  *
  * @param <T> hyperparameter value type (e.g. {@link Integer})
  */
-@FunctionalInterface
 public interface HyperParamValues<T> {
 
   /**
@@ -31,5 +32,17 @@ public interface HyperParamValues<T> {
    * @return a {@link List} of possible values to try, maybe fewer than {@code num}
    */
   List<T> getTrialValues(int num);
+
+  /**
+   * @param rdg random number generator to use
+   * @return a hyperparameter value chosen at random, according to some distribution, from the range
+   */
+  T getRandomValue(RandomDataGenerator rdg);
+
+  /**
+   * @return the number of distinct values this range can take on, or {@code Long.MAX_VALUE} 
+   *  if effectively infinite
+   */
+  long getNumDistinctValues();
 
 }

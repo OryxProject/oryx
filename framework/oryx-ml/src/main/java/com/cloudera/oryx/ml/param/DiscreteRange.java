@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.math3.random.RandomDataGenerator;
 
 final class DiscreteRange implements HyperParamValues<Integer>, Serializable {
 
@@ -62,6 +63,26 @@ final class DiscreteRange implements HyperParamValues<Integer>, Serializable {
       values.add(max);
     }
     return values;
+  }
+
+  /**
+   * @param rdg random number generator to use
+   * @return a hyperparameter value chosen uniformly at random from the range
+   */
+  @Override
+  public Integer getRandomValue(RandomDataGenerator rdg) {
+    if (max == min) {
+      return min;
+    }
+    return rdg.nextInt(min, max);
+  }
+
+  /**
+   * @return max - min + 1
+   */
+  @Override
+  public long getNumDistinctValues() {
+    return (long) max - min + 1;
   }
 
   @Override

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.math3.random.RandomDataGenerator;
 
 final class DiscreteAround implements HyperParamValues<Integer>, Serializable {
 
@@ -46,6 +47,23 @@ final class DiscreteAround implements HyperParamValues<Integer>, Serializable {
       value += step;
     }
     return values;
+  }
+
+  /**
+   * @param rdg random number generator to use
+   * @return a hyperparameter value chosen from Normal(around, step) and rounded to the nearest integer
+   */
+  @Override
+  public Integer getRandomValue(RandomDataGenerator rdg) {
+    return (int) Math.round(rdg.nextGaussian(around, step));
+  }
+
+  /**
+   * @return {@code Long.MIN_VALUE}
+   */
+  @Override
+  public long getNumDistinctValues() {
+    return Long.MAX_VALUE;
   }
 
   @Override
