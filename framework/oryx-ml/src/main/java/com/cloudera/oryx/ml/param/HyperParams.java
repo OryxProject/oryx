@@ -15,23 +15,16 @@
 
 package com.cloudera.oryx.ml.param;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
-import org.apache.commons.math3.random.RandomDataGenerator;
-
-import com.cloudera.oryx.common.random.RandomManager;
 
 /**
  * Utility methods related to expressing and selecting hyperparameter values.
  */
 public final class HyperParams {
-
-  private static final int MAX_COMBOS = 65536;
 
   private HyperParams() {}
 
@@ -109,88 +102,16 @@ public final class HyperParams {
     }
   }
 
-  /**
-   * @param ranges ranges of hyperparameters to try, one per hyperparameters
-   * @param howMany how many combinations of hyperparameters to return
-   * @param perParam how many different hyperparameter values to try per hyperparameter
-   * @return combinations of concrete hyperparameter values. For example, for 5 parameters each
-   *  with 3 values to try, the total number of combinations returned could be up to pow(3,5)
-   *  or 243. The number could be less if the ranges do not actually have that many distinct
-   *  values. If {@code howMany} is smaller than the total number of combinations, a random
-   *  subset of all combinations are returned. The order is shuffled randomly. If no parameters
-   *  are specified or {@code perParam} is 0, a single empty combination is returned.
-   */
   public static List<List<?>> chooseHyperParameterCombos(
-      Collection<HyperParamValues<?>> ranges,
-      int howMany,
-      int perParam) {
-    Preconditions.checkArgument(howMany > 0);
-    Preconditions.checkArgument(perParam >= 0);
-
-    int numParams = ranges.size();
-    if (numParams == 0 || perParam == 0) {
-      return Collections.singletonList(Collections.emptyList());
+      List<HyperParamValues<?>> ranges, String hyperParamSearch, int howMany) {
+    switch (hyperParamSearch) {
+      case "grid":
+        return GridSearch.chooseHyperParameterCombos(ranges, howMany);
+      case "random":
+        return RandomSearch.chooseHyperParameterCombos(ranges, howMany);
+      default:
+        throw new IllegalArgumentException("Unknown hyperparam search type: " + hyperParamSearch);
     }
-
-    // Put some reasonable upper limit on the number of combos
-    Preconditions.checkArgument(Math.pow(perParam, numParams) <= MAX_COMBOS);
-
-    int howManyCombos = 1;
-    List<List<?>> paramRanges = new ArrayList<>(numParams);
-    for (HyperParamValues<?> range : ranges) {
-      List<?> values = range.getTrialValues(perParam);
-      paramRanges.add(values);
-      howManyCombos *= values.size();
-    }
-
-    List<List<?>> allCombinations = new ArrayList<>(howManyCombos);
-    for (int combo = 0; combo < howManyCombos; combo++) {
-      List<Object> combination = new ArrayList<>(numParams);
-      for (int param = 0; param < numParams; param++) {
-        int whichValueToTry = combo;
-        for (int i = 0; i < param; i++) {
-          whichValueToTry /= paramRanges.get(i).size();
-        }
-        whichValueToTry %= paramRanges.get(param).size();
-        combination.add(paramRanges.get(param).get(whichValueToTry));
-      }
-      allCombinations.add(combination);
-    }
-
-    if (howMany >= howManyCombos) {
-      Collections.shuffle(allCombinations);
-      return allCombinations;
-    }
-    RandomDataGenerator rdg = new RandomDataGenerator(RandomManager.getRandom());
-    int[] indices = rdg.nextPermutation(howManyCombos, howMany);
-    List<List<?>> result = new ArrayList<>(indices.length);
-    for (int i = 0; i < indices.length; i++) {
-      result.add(allCombinations.get(i));
-    }
-    Collections.shuffle(result);
-    return result;
-  }
-
-  /**
-   * @param numParams number of different hyperparameters
-   * @param candidates minimum number of candidates to be built
-   * @return smallest value such that pow(value, numParams) is at least the number of candidates
-   *  requested to build. Returns 0 if numParams is less than 1.
-   */
-  public static int chooseValuesPerHyperParam(int numParams, int candidates) {
-    if (numParams < 1) {
-      return 0;
-    }
-    int valuesPerHyperParam = 0;
-    int total;
-    do {
-      valuesPerHyperParam++;
-      total = 1;
-      for (int i = 0; i < numParams; i++) {
-        total *= valuesPerHyperParam;
-      }
-    } while (total < candidates);
-    return valuesPerHyperParam;
   }
 
 }
