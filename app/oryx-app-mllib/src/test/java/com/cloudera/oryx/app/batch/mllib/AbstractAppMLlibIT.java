@@ -15,9 +15,13 @@
 
 package com.cloudera.oryx.app.batch.mllib;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.cloudera.oryx.common.settings.ConfigUtils;
+import com.typesafe.config.Config;
 import org.dmg.pmml.DataDictionary;
 import org.dmg.pmml.DataField;
 import org.dmg.pmml.DataType;
@@ -37,6 +41,13 @@ import com.cloudera.oryx.lambda.batch.AbstractBatchIT;
 public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
 
   protected static final int GEN_INTERVAL_SEC = 10;
+
+  protected Config getConfig() throws IOException {
+    Map<String,Object> overlay = new HashMap<>();
+    // Need this to be non-random in general for tests
+    overlay.put("oryx.ml.eval.hyperparam-search", "grid");
+    return ConfigUtils.overlayOn(overlay, super.getConfig());
+  }
 
   protected static void checkHeader(Header header) {
     assertNotNull(header);
