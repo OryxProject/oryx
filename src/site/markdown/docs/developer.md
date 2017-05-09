@@ -75,7 +75,7 @@ These interfaces/traits are found in the `oryx-api` module within the project.
 
 |         | Java    | Scala   |
 | -------:|:------- |:------- |
-| Batch   | [`batch.BatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/batch/BatchLayerUpdate.java) | [`batch.ScalaBatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-lambda/src/main/scala/com/cloudera/oryx/lambda/batch/ScalaBatchLayerUpdateAdapter.scala) |
+| Batch   | [`batch.BatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/batch/BatchLayerUpdate.java) | [`batch.ScalaBatchLayerUpdate`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/batch/ScalaBatchLayerUpdate.scala) |
 | Speed   | [`speed.SpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/speed/SpeedModelManager.java) | [`speed.ScalaSpeedModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/speed/ScalaSpeedModelManager.scala) |
 | Serving | [`serving.ServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/java/com/cloudera/oryx/api/serving/ServingModelManager.java) | [`serving.ScalaServingModelManager`](https://github.com/OryxProject/oryx/blob/master/framework/oryx-api/src/main/scala/com/cloudera/oryx/api/serving/ScalaServingModelManager.scala) |
 
