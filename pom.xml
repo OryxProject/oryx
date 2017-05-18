@@ -241,7 +241,6 @@
         <groupId>com.github.fommil.netlib</groupId>
         <artifactId>all</artifactId>
         <version>${netlib.java.version}</version>
-        <scope>runtime</scope>
         <type>pom</type>
       </dependency>
 

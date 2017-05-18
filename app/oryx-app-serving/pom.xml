@@ -225,6 +225,16 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>netlib</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.github.fommil.netlib</groupId>
+          <artifactId>all</artifactId>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
 </project>
