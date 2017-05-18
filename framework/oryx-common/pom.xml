@@ -105,7 +105,6 @@
         <dependency>
           <groupId>com.github.fommil.netlib</groupId>
           <artifactId>all</artifactId>
-          <scope>runtime</scope>
           <type>pom</type>
         </dependency>
       </dependencies>

@@ -36,9 +36,16 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 
 /**
  * <p>This can be run from the top level of the project with
- * {@code mvn -Dtest=com.cloudera.oryx.app.serving.als.LoadBenchmark \
- *  -DargLine="-Xmx... " \
- *  surefire:test -pl app/oryx-app-serving}</p>
+ * {@code 
+ * mvn -Pbenchmark -Pnetlib \
+ *   -Doryx.test.als.benchmark.users=1000000 \
+ *   -Doryx.test.als.benchmark.items=5000000 \
+ *   -Doryx.test.als.benchmark.features=250 \
+ *   -Doryx.test.als.benchmark.lshSampleRate=0.3 \
+ *   -Doryx.test.als.benchmark.workers=2 \
+ *   integration-test \
+ *   -pl app/oryx-app-serving
+ *  }</p>
  *
  * <p>Additional parameters defined in {@link LoadTestALSModelFactory} like
  * {@link LoadTestALSModelFactory#USERS} can be set by adding args like

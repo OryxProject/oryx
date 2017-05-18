@@ -57,7 +57,6 @@
       <groupId>com.github.fommil.netlib</groupId>
       <artifactId>all</artifactId>
       <version>1.1.2</version>
-      <scope>runtime</scope>
       <type>pom</type>
     </dependency>
   </dependencies>
