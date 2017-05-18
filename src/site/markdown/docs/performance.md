@@ -37,7 +37,6 @@ building the support into your application. To do so, add this dependency to you
   <groupId>com.github.fommil.netlib</groupId>
   <artifactId>all</artifactId>
   <version>${netlib.java.version}</version>
-  <scope>runtime</scope>
   <type>pom</type>
 </dependency>
 ```
@@ -89,16 +88,15 @@ this app is the most challenging to scale. General rules of thumb follow below.
 To run similar benchmarks, use `LoadBenchmark`, which has some configuration parameters:
 
 ```
-mvn -DskipTests clean install
-cd app/oryx-app-serving
-...
-mvn -Pbenchmark \
+mvn -DskipTests -Pnetlib clean install
+mvn -Pbenchmark -Pnetlib \
  -Doryx.test.als.benchmark.users=1000000 \
  -Doryx.test.als.benchmark.items=5000000 \
  -Doryx.test.als.benchmark.features=250 \
  -Doryx.test.als.benchmark.lshSampleRate=0.3 \
  -Doryx.test.als.benchmark.workers=2 \
- integration-test
+ integration-test \
+ -pl app/oryx-app-serving
 ```
 
 ### Memory
