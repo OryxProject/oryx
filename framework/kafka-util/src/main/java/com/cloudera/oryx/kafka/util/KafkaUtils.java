@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.kafka.util;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
@@ -32,6 +34,10 @@ import kafka.common.TopicAndPartition;
 import kafka.consumer.ConsumerConfig;
 import kafka.javaapi.OffsetRequest;
 import kafka.javaapi.OffsetResponse;
+import kafka.javaapi.PartitionMetadata;
+import kafka.javaapi.TopicMetadata;
+import kafka.javaapi.TopicMetadataRequest;
+import kafka.javaapi.TopicMetadataResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.utils.ZKGroupTopicDirs;
 import kafka.utils.ZkUtils;
@@ -192,20 +198,82 @@ public final class KafkaUtils {
     kafkaParams.forEach(props::put);
     ConsumerConfig config = new ConsumerConfig(props);
 
-    Map<TopicAndPartition,PartitionOffsetRequestInfo> latestRequests = new HashMap<>();
-    Map<TopicAndPartition,PartitionOffsetRequestInfo> earliestRequests = new HashMap<>();
-    offsets.keySet().forEach(topicPartition -> {
-      TopicAndPartition tAndP = new TopicAndPartition(topicPartition.getFirst(), topicPartition.getSecond());
-      latestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.LatestTime(), 1));
-      earliestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.EarliestTime(), 1));
-    });
-    OffsetRequest latestRequest = new OffsetRequest(latestRequests,
-                                                    OffsetRequest$.MODULE$.CurrentVersion(),
-                                                    config.clientId());
-    OffsetRequest earliestRequest = new OffsetRequest(earliestRequests,
-                                                      OffsetRequest$.MODULE$.CurrentVersion(),
-                                                      config.clientId());
+    Map<Pair<String, Integer>, List<TopicAndPartition>> leaderHostPortToTopicPartition =
+        getLeadersForTopicPartitions(offsets, kafkaParams, config);
+    
+    for (Map.Entry<Pair<String,Integer>,List<TopicAndPartition>> entry : leaderHostPortToTopicPartition.entrySet()) {
+      // Connect to leader
+      String leaderHost = entry.getKey().getFirst();
+      int leaderPort = entry.getKey().getSecond();
+      log.info("Connecting to broker {}:{}", leaderHost, leaderPort);
+      SimpleConsumer consumer = new SimpleConsumer(
+          leaderHost, leaderPort,
+          config.socketTimeoutMs(),
+          config.socketReceiveBufferBytes(),
+          config.clientId());
 
+      try {
+        List<TopicAndPartition> topicAndPartitions = entry.getValue();
+
+        // Construct request for latest topic/offsets for each that this leader knows about.
+        Map<TopicAndPartition,PartitionOffsetRequestInfo> latestRequests = new HashMap<>();
+        Map<TopicAndPartition,PartitionOffsetRequestInfo> earliestRequests = new HashMap<>();
+        topicAndPartitions.forEach(tAndP -> {
+          latestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.LatestTime(), 1));
+          earliestRequests.put(tAndP, new PartitionOffsetRequestInfo(OffsetRequest$.MODULE$.EarliestTime(), 1));
+        });
+        OffsetRequest latestRequest = new OffsetRequest(latestRequests,
+            OffsetRequest$.MODULE$.CurrentVersion(),
+            config.clientId());
+        OffsetRequest earliestRequest = new OffsetRequest(earliestRequests,
+            OffsetRequest$.MODULE$.CurrentVersion(),
+            config.clientId());
+        
+        OffsetResponse latestResponse = requestOffsets(consumer, latestRequest);
+        OffsetResponse earliestResponse = requestOffsets(consumer, earliestRequest);
+
+        // For each topic/partition update, parse and use the values
+        topicAndPartitions.forEach(topicPartition -> {
+          Long latestTopicOffset = getOffset(latestResponse, topicPartition);
+          Pair<String,Integer> topicPartitionKey = new Pair<>(topicPartition.topic(), topicPartition.partition());
+          Long currentOffset = offsets.get(topicPartitionKey);
+          if (currentOffset == null) {
+            if (latestTopicOffset == null) {
+              log.info("No initial offset for {}, no latest offset from topic; ignoring");
+            } else {
+              log.info("No initial offset for {}; using latest offset {} from topic",
+                  topicPartition, latestTopicOffset);
+              offsets.put(topicPartitionKey, latestTopicOffset);
+            }
+          } else if (latestTopicOffset != null && currentOffset > latestTopicOffset) {
+            log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
+                currentOffset, topicPartition, latestTopicOffset);
+            log.warn("Are you using a stale or incorrect oryx.id?");
+            offsets.put(topicPartitionKey, latestTopicOffset);
+          } else {
+            Long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
+            if (earliestTopicOffset != null && currentOffset < earliestTopicOffset) {
+              log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
+                  currentOffset, topicPartition, earliestTopicOffset);
+              log.warn("Are you using a stale or incorrect oryx.id?");
+              offsets.put(topicPartitionKey, earliestTopicOffset);
+            }
+          }
+        });
+
+      } finally {
+        consumer.close();
+      }
+    }
+
+    
+    offsets.values().removeIf(Objects::isNull);
+  }
+
+  private static Map<Pair<String,Integer>,List<TopicAndPartition>> getLeadersForTopicPartitions(
+      Map<Pair<String,Integer>,Long> offsets, Map<String,String> kafkaParams, ConsumerConfig config) {
+
+    // Connect to any leader
     SimpleConsumer consumer = null;
     for (String hostPort : kafkaParams.get("bootstrap.servers").split(",")) {
       log.info("Connecting to broker {}", hostPort);
@@ -213,10 +281,11 @@ public final class KafkaUtils {
       String host = hp[0];
       int port = Integer.parseInt(hp[1]);
       try {
-        consumer = new SimpleConsumer(host, port,
-                                      config.socketTimeoutMs(),
-                                      config.socketReceiveBufferBytes(),
-                                      config.clientId());
+        consumer = new SimpleConsumer(
+            host, port,
+            config.socketTimeoutMs(),
+            config.socketReceiveBufferBytes(),
+            config.clientId());
         break;
       } catch (Exception e) {
         log.warn("Error while connecting to broker {}:{}", host, port, e);
@@ -224,45 +293,37 @@ public final class KafkaUtils {
     }
     Objects.requireNonNull(consumer, "No available brokers");
 
+    // Construct a map from broker (host, port) pairs, to the (topic, partition) pairs for which the broker
+    // is a leader
+    Map<Pair<String,Integer>,List<TopicAndPartition>> leaderHostPortToTopicPartition = new HashMap<>();
     try {
-      OffsetResponse latestResponse = requestOffsets(consumer, latestRequest);
-      OffsetResponse earliestResponse = requestOffsets(consumer, earliestRequest);
-      offsets.keySet().forEach(topicPartition -> {
-        Long latestTopicOffset = getOffset(latestResponse, topicPartition);
-        Long currentOffset = offsets.get(topicPartition);
-        if (currentOffset == null) {
-          if (latestTopicOffset == null) {
-            log.info("No initial offset for {}, no latest offset from topic; ignoring");
-          } else {
-            log.info("No initial offset for {}; using latest offset {} from topic",
-                topicPartition, latestTopicOffset);
-            offsets.put(topicPartition, latestTopicOffset);
-          }
-        } else if (latestTopicOffset != null && currentOffset > latestTopicOffset) {
-          log.warn("Initial offset {} for {} after latest offset {} from topic! using topic offset",
-                   currentOffset, topicPartition, latestTopicOffset);
-          log.warn("Are you using a stale or incorrect oryx.id?");
-          offsets.put(topicPartition, latestTopicOffset);
-        } else {
-          Long earliestTopicOffset = getOffset(earliestResponse, topicPartition);
-          if (earliestTopicOffset != null && currentOffset < earliestTopicOffset) {
-            log.warn("Initial offset {} for {} before earliest offset {} from topic! using topic offset",
-                     currentOffset, topicPartition, earliestTopicOffset);
-            log.warn("Are you using a stale or incorrect oryx.id?");
-            offsets.put(topicPartition, earliestTopicOffset);
-          }
+      List<String> allTopics = offsets.keySet().stream().map(Pair::getFirst).collect(Collectors.toList());
+      TopicMetadataRequest topicMetadataRequest = new TopicMetadataRequest(
+          OffsetRequest$.MODULE$.CurrentVersion(),
+          0,
+          config.clientId(),
+          allTopics);
+      TopicMetadataResponse topicMetadataResponse = consumer.send(topicMetadataRequest);
+      for (TopicMetadata topicsMetadata : topicMetadataResponse.topicsMetadata()) {
+        String topic = topicsMetadata.topic();
+        for (PartitionMetadata partitionMetadata : topicsMetadata.partitionsMetadata()) {
+          int partition = partitionMetadata.partitionId();
+          String host = partitionMetadata.leader().host();
+          int port = partitionMetadata.leader().port();
+          leaderHostPortToTopicPartition.computeIfAbsent(new Pair<>(host, port), k -> new ArrayList<>())
+              .add(new TopicAndPartition(topic, partition));
         }
-      });
+      }
     } finally {
       consumer.close();
     }
-    
-    offsets.values().removeIf(Objects::isNull);
+
+    return leaderHostPortToTopicPartition;
   }
 
-  private static Long getOffset(OffsetResponse response, Pair<String,Integer> topicPartition) {
-    String topic = topicPartition.getFirst();
-    int partition = topicPartition.getSecond();
+  private static Long getOffset(OffsetResponse response, TopicAndPartition topicPartition) {
+    String topic = topicPartition.topic();
+    int partition = topicPartition.partition();
     long[] offsets = response.offsets(topic, partition);
     if (offsets.length > 0) {
       return offsets[0];
