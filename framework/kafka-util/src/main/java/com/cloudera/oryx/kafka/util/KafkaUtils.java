@@ -171,6 +171,7 @@ public final class KafkaUtils {
    * @param groupID consumer group to update
    * @param offsets mapping of (topic and) partition to offset to push to Zookeeper
    */
+  @SuppressWarnings("deprecation")
   public static void setOffsets(String zkServers,
                                 String groupID,
                                 Map<Pair<String,Integer>,Long> offsets) {
@@ -180,6 +181,7 @@ public final class KafkaUtils {
         ZKGroupTopicDirs topicDirs = new ZKGroupTopicDirs(groupID, topicAndPartition.getFirst());
         int partition = topicAndPartition.getSecond();
         String partitionOffsetPath = topicDirs.consumerOffsetDir() + "/" + partition;
+        // TODO replace call below with defaultAcls(false, "") when < 0.10.2 is supported
         zkUtils.updatePersistentPath(partitionOffsetPath,
                                      Long.toString(offset),
                                      ZkUtils$.MODULE$.DefaultAcls(false));
