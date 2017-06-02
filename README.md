@@ -24,6 +24,12 @@ to learn how to create a new application.
 <img src="http://oryx.io/img/Architecture.png"/>
 
 ------
+by modules in details:
+
+![oryx 2 OverView](./oryx2_en.png)
+
+
+------
 
 [![Build Status](https://travis-ci.org/OryxProject/oryx.svg?branch=master)](https://travis-ci.org/OryxProject/oryx)
 [![Coverity](https://scan.coverity.com/projects/2697/badge.svg)](https://scan.coverity.com/projects/2697)
