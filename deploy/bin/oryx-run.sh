@@ -68,10 +68,10 @@ export BIGTOP_JAVA_MAJOR=8
 if [ -z "${LAYER_JAR}" ]; then
   case "${COMMAND}" in
   batch|speed|serving)
-    LAYER_JAR=`ls -1 oryx-${COMMAND}-*.jar 2> /dev/null`
+    LAYER_JAR=$(ls -1 oryx-${COMMAND}-*.jar 2> /dev/null)
     ;;
   *)
-    LAYER_JAR=`ls -1 oryx-batch-*.jar oryx-speed-*.jar oryx-serving-*.jar 2> /dev/null | head -1`
+    LAYER_JAR=$(ls -1 oryx-batch-*.jar oryx-speed-*.jar oryx-serving-*.jar 2> /dev/null | head -1)
     ;;
   esac
 fi
@@ -85,7 +85,7 @@ if [ ! -f "${CONFIG_FILE}" ]; then
   usageAndExit "Config file ${CONFIG_FILE} does not exist"
 fi
 
-CONFIG_PROPS=`java -cp ${LAYER_JAR} -Dconfig.file=${CONFIG_FILE} com.cloudera.oryx.common.settings.ConfigToProperties`
+CONFIG_PROPS=$(java -cp ${LAYER_JAR} -Dconfig.file=${CONFIG_FILE} com.cloudera.oryx.common.settings.ConfigToProperties)
 if [ -z "${CONFIG_PROPS}" ]; then
   usageAndExit "Config file ${CONFIG_FILE} could not be parsed"
 fi
@@ -96,7 +96,7 @@ fi
 function setVarFromProperty {
   local __resultvar=$1
   local property=$2
-  local result=`echo "${CONFIG_PROPS}" | grep -E "^${property}=.+$" | grep -oE "[^=]+$"`
+  local result=$(echo "${CONFIG_PROPS}" | grep -E "^${property}=.+$" | grep -oE "[^=]+$")
   eval $__resultvar=$result
 }
 
@@ -124,9 +124,9 @@ batch|speed|serving)
 
   # Main Layer handling script
 
-  CONFIG_FILE_NAME=`basename ${CONFIG_FILE}`
+  CONFIG_FILE_NAME=$(basename ${CONFIG_FILE})
   if [ -n "${APP_JAR}" ]; then
-    APP_JAR_NAME=`basename ${APP_JAR}`
+    APP_JAR_NAME=$(basename ${APP_JAR})
   fi
 
   MAIN_CLASS="com.cloudera.oryx.${COMMAND}.Main"
@@ -164,7 +164,7 @@ batch|speed|serving)
     setVarFromProperty "NUM_EXECUTORS" "oryx\.${COMMAND}\.streaming\.num-executors"
     setVarFromProperty "DYNAMIC_ALLOCATION" "oryx\.${COMMAND}\.streaming\.dynamic-allocation"
     setVarFromProperty "SPARK_UI_PORT" "oryx\.${COMMAND}\.ui\.port"
-    SPARK_EXTRA_CONFIG=`echo "${CONFIG_PROPS}" | grep -E "^oryx\.${COMMAND}\.streaming\.config\..+=.+$" | grep -oE "spark.+$"`
+    SPARK_EXTRA_CONFIG=$(echo "${CONFIG_PROPS}" | grep -E "^oryx\.${COMMAND}\.streaming\.config\..+=.+$" | grep -oE "spark.+$")
     ;;
 
   serving)
@@ -173,17 +173,17 @@ batch|speed|serving)
     if [ ! -x "$COMPUTE_CLASSPATH" ]; then
       usageAndExit "$COMPUTE_CLASSPATH script does not exist or isn't executable"
     fi
-    BASE_CLASSPATH=`bash ${COMPUTE_CLASSPATH} | paste -s -d: -`
+    BASE_CLASSPATH=$(bash ${COMPUTE_CLASSPATH} | paste -s -d: -)
   
     setVarFromProperty "MEMORY_MB" "oryx\.serving\.memory"
-    MEMORY_MB=`echo ${MEMORY_MB} | grep -oE "[0-9]+"`
+    MEMORY_MB=$(echo ${MEMORY_MB} | grep -oE "[0-9]+")
     # Only for Serving Layer now
     case "${DEPLOYMENT}" in
     yarn)
       setVarFromProperty "YARN_CORES" "oryx\.serving\.yarn\.cores"
       setVarFromProperty "YARN_INSTANCES" "oryx\.serving\.yarn\.instances"
       APP_NAME="OryxServingLayer-${APP_ID}"
-      JVM_HEAP_MB=`echo "${MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+"`
+      JVM_HEAP_MB=$(echo "${MEMORY_MB} * 0.9" | bc | grep -oE "^[0-9]+")
       ;;
     *)
       JVM_HEAP_MB=${MEMORY_MB}
@@ -235,7 +235,7 @@ batch|speed|serving)
   yarn)
     # Launch layer in YARN
 
-    LAYER_JAR_NAME=`basename ${LAYER_JAR}`
+    LAYER_JAR_NAME=$(basename ${LAYER_JAR})
     FINAL_CLASSPATH="${LAYER_JAR_NAME}:${BASE_CLASSPATH}"
     if [ -n "${APP_JAR_NAME}" ]; then
       FINAL_CLASSPATH="${APP_JAR_NAME}:${FINAL_CLASSPATH}"
@@ -269,11 +269,11 @@ batch|speed|serving)
     echo "log4j.logger.org.apache.hadoop.yarn.applications.distributedshell=WARN" >> ${YARN_LOG4J}
 
     # Need absolute path
-    OWNER=`hdfs dfs -stat '%u' ${HDFS_APP_DIR}`
+    OWNER=$(hdfs dfs -stat '%u' ${HDFS_APP_DIR})
     echo "hdfs dfs -get /user/${OWNER}/${HDFS_APP_DIR}/* ." >> ${LOCAL_SCRIPT}
     echo "java ${JVM_ARGS} ${EXTRA_PROPS} -Dconfig.file=${CONFIG_FILE_NAME} -cp ${FINAL_CLASSPATH} ${MAIN_CLASS}" >> ${LOCAL_SCRIPT}
 
-    YARN_DIST_SHELL_JAR=`bash ${COMPUTE_CLASSPATH} | grep distributedshell`
+    YARN_DIST_SHELL_JAR=$(bash ${COMPUTE_CLASSPATH} | grep distributedshell)
 
     echo "Running ${YARN_INSTANCES} ${APP_NAME} (${YARN_CORES} cores / ${MEMORY_MB}MB)"
     echo "Note that you will need to find the Application Master in YARN to find the Serving Layer"
@@ -332,12 +332,12 @@ kafka-setup|kafka-tail|kafka-input)
 
   case "${COMMAND}" in
   kafka-setup)
-    ALL_TOPICS=`${KAFKA_TOPICS_SH} --list --zookeeper ${INPUT_ZK}`
+    ALL_TOPICS=$(${KAFKA_TOPICS_SH} --list --zookeeper ${INPUT_ZK})
     echo "All available topics:"
     echo "${ALL_TOPICS}"
     echo
 
-    if [ -z `echo "${ALL_TOPICS}" | grep ${INPUT_TOPIC}` ]; then
+    if [ -z $(echo "${ALL_TOPICS}" | grep ${INPUT_TOPIC}) ]; then
       read -p "Input topic ${INPUT_TOPIC} does not exist. Create it? " CREATE
       case "${CREATE}" in
         y|Y)
@@ -350,7 +350,7 @@ kafka-setup|kafka-tail|kafka-input)
     ${KAFKA_TOPICS_SH} --zookeeper ${INPUT_ZK} --describe --topic ${INPUT_TOPIC}
     echo
 
-    if [ -z `echo "${ALL_TOPICS}" | grep ${UPDATE_TOPIC}` ]; then
+    if [ -z $(echo "${ALL_TOPICS}" | grep ${UPDATE_TOPIC}) ]; then
       read -p "Update topic ${UPDATE_TOPIC} does not exist. Create it? " CREATE
       case "${CREATE}" in
         y|Y)
