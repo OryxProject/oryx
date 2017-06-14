@@ -80,11 +80,9 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     Preconditions.checkArgument(candidates > 0);
     Preconditions.checkArgument(evalParallelism > 0);
     Preconditions.checkArgument(maxMessageSize > 0);
-    if (testFraction == 0.0) {
-      if (candidates > 1) {
-        log.info("Eval is disabled (test fraction = 0) so candidates is overridden to 1");
-        candidates = 1;
-      }
+    if (testFraction == 0.0 && candidates > 1) {
+      log.info("Eval is disabled (test fraction = 0) so candidates is overridden to 1");
+      candidates = 1;
     }
     this.candidates = candidates;
     this.hyperParamSearch = config.getString("oryx.ml.eval.hyperparam-search");
