@@ -32,7 +32,7 @@ import com.cloudera.oryx.api.batch.BatchLayerUpdate;
 
 /**
  * Input keys are ignored. Values are treated as lines of space-separated text. The job
- * counts, for each word, the number of distinct other words that co-occur in some line
+ * counts, for each word, the number of distinct other words that co-occur in the same line
  * of text in the input. These are written as a "MODEL" update, where the word-count mapping
  * is written as a JSON string.
  */
