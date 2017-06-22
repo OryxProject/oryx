@@ -114,7 +114,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
                                   Path candidatePath);
 
   /**
-   * @return {@code true} iff additional updates must be published along with the model; if
+   * @return {@code true} if additional updates must be published along with the model; if
    *  {@link #publishAdditionalModelData(JavaSparkContext, PMML, JavaRDD, JavaRDD, Path, TopicProducer)} must
    *  be called. This is only applicable for special model types.
    */
