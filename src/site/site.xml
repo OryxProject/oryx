@@ -47,6 +47,7 @@
       <item name="Docs: Admin" href="docs/admin.html"/>
       <item name="Performance" href="docs/performance.html"/>
       <item name="Javadoc" href="apidocs/index.html"/>
+      <item name="GitHub" href="https://github.com/OryxProject/oryx"/>
       <item name="Download" href="https://github.com/OryxProject/oryx/releases"/>
     </links>
   </body>

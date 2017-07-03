@@ -39,7 +39,7 @@ supplied on the command line:
 `mvn -Darguments="-DskipTests" -DreleaseVersion=... -DdevelopmentVersion=... release:prepare`
 1. Now perform the release. This will require the `gpg` passphrase for the GPG signing key specified in `pom.xml`:
 `mvn -s maven-settings.xml -Darguments="-DskipTests -Dgpg.passphrase=..." release:perform`
-1. Go to http://oss.sonatype.org and Close the Staging Repo, then Release it (and Drop it automatically)
+1. Go to https://oss.sonatype.org and Close the Staging Repo, then Release it (and Drop it automatically)
 
 # Releasing Binaries
 
