@@ -9,8 +9,8 @@ The following are required as of Oryx 2.5.0:
 - A Hadoop cluster running the following components:
     - [Apache Hadoop](https://hadoop.apache.org/) 2.7.0 or later
     - [Apache Zookeeper](https://zookeeper.apache.org/) 3.4.5 or later
-    - [Apache Kafka](https://kafka.apache.org/) 0.10 or later
-    - [Apache Spark](https://spark.apache.org/) 2.1.0 or later
+    - [Apache Kafka](https://kafka.apache.org/) 0.10.2 or later
+    - [Apache Spark](https://spark.apache.org/) 2.2.0 or later
 
 ## Requirements Matrix Summary
 
@@ -18,8 +18,8 @@ This table summarizes the version of several key components targeted by each ver
 
 | Oryx  | Java | Scala | Spark | Kafka   | CDH   |
 | ----- | ---- | ----- | ----- | ------- | ----- | 
-| 2.5.x | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11+ |
-| 2.4.x | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11+ |
+| 2.5.x | 8    | 2.11  | 2.2.x | 0.10.2+ | 5.12+ |
+| 2.4.x | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11  |
 | 2.3.x | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10  |
 | 2.2.x | 8    | 2.10  | 1.6.x | 0.9.x   | 5.7   |
 | 2.1.x | 7    | 2.10  | 1.5.x | 0.8.x   | 5.5   |
@@ -54,12 +54,12 @@ Install and configure the Hadoop cluster normally. The following services need t
 - Kafka
 - Spark 2
 
-Note that for CDH 5.x, Spark 2.1 is available as an 
-[add on](https://www.cloudera.com/downloads/spark2/2-1.html).
+Note that for CDH 5.x, Spark 2.2 is available as an 
+[add on](https://www.cloudera.com/documentation/spark2/latest/topics/spark2.html).
 
 Kafka is available as a parcel from
 [Cloudera](https://www.cloudera.com/documentation/kafka/latest/topics/kafka_packaging.html).
-The Cloudera Kafka 2.1.x parcel is required, because it contains a distribution of Kafka 0.10. 
+The Cloudera Kafka 2.2.x parcel is required, because it contains a distribution of Kafka 0.10.2. 
 
 Determine the (possibly several) Kafka brokers that are configured in the cluster, under Instances,
 and note their hosts and port. The port is typically 9092. Same for the Zookeeper servers; the default
