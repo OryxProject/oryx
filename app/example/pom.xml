@@ -96,6 +96,48 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- This shade plugin is only required if your app extends the MLUpdate class.
+        This works around https://github.com/OryxProject/oryx/issues/336 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <!-- Replace the groupId below with your application's groupId -->
+                  <include>com.cloudera.oryx:*</include>
+                </includes>
+              </artifactSet>
+              <!-- relocations should match those defined in the parent pom.xml -->
+              <relocations>
+                <relocation>
+                  <pattern>org.jpmml</pattern>
+                  <shadedPattern>oryx.org.jpmml</shadedPattern>
+                  <includes>
+                    <include>org.jpmml.**</include>
+                  </includes>
+                </relocation>
+                <relocation>
+                  <pattern>org.dmg</pattern>
+                  <shadedPattern>oryx.org.dmg</shadedPattern>
+                  <includes>
+                    <include>org.dmg.**</include>
+                  </includes>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
