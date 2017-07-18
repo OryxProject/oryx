@@ -68,6 +68,13 @@ port here is 2181. Default ports will be used in subsequent examples.
 Where a Kafka broker or Zookeeper server is called for, you can and should specify a comma-separated
 list of `host:port` pairs where there are multiple hosts. Example: `your-zk-1:2181,your-zk-2:2181`.
 
+Also note whether your Zookeeper instance is using a chroot path. This is simply a path suffixed to the host:port, 
+like `your-zk:2181/your-chroot`. It is often `/kafka` if it is set, and this is the default on Cloudera's distribution,
+in some versions. You can omit this if you are not using a chroot. 
+
+Note: if you have multiple Zookeeper servers, and a chroot, only add the chroot once, at the end:
+`your-zk-1:2181,your-zk-2:2181/kafka`
+
 ## Java
 
 Java 8 (JRE) needs to be installed on all nodes on the cluster. Cluster processes
