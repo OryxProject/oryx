@@ -14,16 +14,17 @@ The following are required as of Oryx 2.5.0:
 
 ## Requirements Matrix Summary
 
-This table summarizes the version of several key components targeted by each version.
+This table summarizes the version of several key components targeted by each version,
+including older versions that are no longer maintained (EOL).
 
-| Oryx  | Java | Scala | Spark | Kafka   | CDH   |
-| ----- | ---- | ----- | ----- | ------- | ----- | 
-| 2.5.x | 8    | 2.11  | 2.2.x | 0.10.2+ | 5.12+ |
-| 2.4.x | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11  |
-| 2.3.x | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10  |
-| 2.2.x | 8    | 2.10  | 1.6.x | 0.9.x   | 5.7   |
-| 2.1.x | 7    | 2.10  | 1.5.x | 0.8.x   | 5.5   |
-| 2.0.x | 7    | 2.10  | 1.3.x | 0.8.x   | 5.4   |
+| Oryx        | Java | Scala | Spark | Kafka   | CDH   |
+| ----------- | ---- | ----- | ----- | ------- | ----- |
+| 2.5.x       | 8    | 2.11  | 2.2.x | 0.10.2+ | 5.12+ |
+| 2.4.x       | 8    | 2.11  | 2.1.x | 0.10.x  | 5.11  |
+| 2.3.x (EOL) | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10  |
+| 2.2.x (EOL) | 8    | 2.10  | 1.6.x | 0.9.x   | 5.7   |
+| 2.1.x (EOL) | 7    | 2.10  | 1.5.x | 0.8.x   | 5.5   |
+| 2.0.x (EOL) | 7    | 2.10  | 1.3.x | 0.8.x   | 5.4   |
 
 ## Deployment Architecture
 
