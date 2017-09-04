@@ -253,7 +253,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
-        <version>1.4</version>
+        <version>1.5</version>
       </dependency>
 
       <dependency>
@@ -472,7 +472,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>4.3.9.RELEASE</version>
+        <version>4.3.10.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -562,9 +562,9 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.11</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
-    <hadoop.version>2.7.3</hadoop.version>
+    <hadoop.version>2.7.4</hadoop.version>
     <jackson.version>2.8.7</jackson.version>
-    <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
+    <javadoc.plugin.version>3.0.0-M1</javadoc.plugin.version>
     <jersey.version>2.25.1</jersey.version>
     <kafka.version>0.10.2.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
@@ -573,7 +573,7 @@
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.2.0</spark.version>
     <surefire.version>2.20</surefire.version>
-    <tomcat.version>8.5.16</tomcat.version>
+    <tomcat.version>8.5.20</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
   </properties>
 
@@ -622,7 +622,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
+          <version>3.0.0-M1</version>
           <executions>
             <execution>
               <id>enforce</id>
@@ -647,7 +647,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.6.1</version>
+          <version>3.6.2</version>
           <configuration>
             <optimize>true</optimize>
             <showDeprecation>true</showDeprecation>
@@ -747,7 +747,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -820,7 +820,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>3.1.0</version>
           <executions>
             <execution>
               <id>shade</id>
