@@ -76,7 +76,7 @@
         <executions>
           <execution>
             <id>shade</id>
-            <phase>package</phase>
+            <phase>${shadePhase}</phase>
             <goals>
               <goal>shade</goal>
             </goals>
