@@ -582,6 +582,9 @@
     <surefire.version>2.20</surefire.version>
     <tomcat.version>8.5.14</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
+    <!-- Build flags -->
+    <!-- Set to 'none' for Travis -->
+    <shadePhase>package</shadePhase>
   </properties>
 
   <build>
@@ -831,7 +834,7 @@
           <executions>
             <execution>
               <id>shade</id>
-              <phase>package</phase>
+              <phase>${shadePhase}</phase>
               <goals>
                 <goal>shade</goal>
               </goals>
@@ -1245,6 +1248,8 @@
       <properties>
         <!-- dummy to make @{argLine} evaluate when not set by jacoco -->
         <argLine/>
+        <!-- Disables creation of shaded binary in Travis to avoid memory problem -->
+        <shadePhase>none</shadePhase>
       </properties>
       <build>
         <plugins>
