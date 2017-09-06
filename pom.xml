@@ -1165,7 +1165,6 @@
             </executions>
             <configuration>
               <keyname>Sean Owen (Cloudera) &lt;sowen@cloudera.com&gt;</keyname>
-              <executable>gpg2</executable>
             </configuration>
           </plugin>
         </plugins>
