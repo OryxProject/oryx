@@ -31,10 +31,9 @@
 
   <dependencies>
     <dependency>
-    <groupId>org.apache.kafka</groupId>
-    <artifactId>kafka_${scala.minor.version}</artifactId>
-    <version>${kafka.version}</version>
-  </dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_${scala.minor.version}</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
