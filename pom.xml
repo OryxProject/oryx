@@ -1141,6 +1141,18 @@
       </properties>
     </profile>
     <profile>
+      <id>cp322</id>
+      <properties>
+        <kafka.version>0.10.2.1-cp2</kafka.version>
+      </properties>
+      <repositories>
+        <repository>
+          <id>confluent</id>
+          <url>http://packages.confluent.io/maven/</url>
+        </repository>
+      </repositories>
+    </profile>
+    <profile>
       <id>release-sign-artifacts</id>
       <activation>
         <property>
