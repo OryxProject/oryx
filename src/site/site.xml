@@ -32,7 +32,7 @@
       <toc offsetTop="800">side</toc>
       <brand>
         <name>Oryx 2</name>
-        <href>index.html</href>
+        <href>/</href>
       </brand>
       <theme>bootswatch-united</theme>
       <toc>sidebar</toc>
@@ -41,7 +41,7 @@
 
   <body>
     <links>
-      <item name="Overview" href="index.html"/>
+      <item name="Overview" href="/"/>
       <item name="Docs: End Users" href="docs/endusers.html"/>
       <item name="Docs: Dev" href="docs/developer.html"/>
       <item name="Docs: Admin" href="docs/admin.html"/>
