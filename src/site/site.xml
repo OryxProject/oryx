@@ -41,7 +41,7 @@
 
   <body>
     <links>
-      <item name="Overview" href="index.html"/>
+      <item name="Overview" href="/"/>
       <item name="Docs: End Users" href="docs/endusers.html"/>
       <item name="Docs: Dev" href="docs/developer.html"/>
       <item name="Docs: Admin" href="docs/admin.html"/>
