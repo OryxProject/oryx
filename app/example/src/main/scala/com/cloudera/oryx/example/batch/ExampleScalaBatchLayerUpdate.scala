@@ -52,7 +52,7 @@ object ExampleScalaBatchLayerUpdate {
     data.values.flatMap { line =>
       val tokens = line.split(" ").distinct
       for (a <- tokens; b <- tokens if a != b) yield (a, b)
-    }.distinct().groupByKey().mapValues(_.size).collectAsMap()
+    }.distinct().mapValues(_ => 1).reduceByKey(_ + _).collectAsMap()
   }
 
 }

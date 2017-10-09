@@ -64,8 +64,7 @@ public final class ExampleSpeedModelManager extends AbstractSpeedModelManager<St
       int count = entry.getValue();
       int newCount;
       synchronized (distinctOtherWords) {
-        Integer oldCount = distinctOtherWords.get(word);
-        newCount = oldCount == null ? count : oldCount + count;
+        newCount = count + distinctOtherWords.getOrDefault(word, 0);
         distinctOtherWords.put(word, newCount);
       }
       return word + "," + newCount;

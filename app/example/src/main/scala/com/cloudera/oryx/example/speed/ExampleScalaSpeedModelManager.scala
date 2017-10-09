@@ -34,7 +34,7 @@ import com.typesafe.config.Config
 class ExampleScalaSpeedModelManager(val config: Config)
   extends AbstractScalaSpeedModelManager[String,String,String](config) {
 
-  private val distinctOtherWords = mutable.Map[String,Integer]()
+  private val distinctOtherWords = mutable.Map[String,Int]()
 
   override def consumeKeyMessage(key: String, message: String, hadoopConf: Configuration): Unit = {
     key match {
@@ -54,7 +54,7 @@ class ExampleScalaSpeedModelManager(val config: Config)
   override def buildUpdates(newData: RDD[(String,String)]): Seq[String] = {
     ExampleScalaBatchLayerUpdate.countDistinctOtherWords(newData).map { case (word, count) =>
       distinctOtherWords.synchronized {
-        val newCount = distinctOtherWords(word) + 1
+        val newCount = count + distinctOtherWords(word)
         distinctOtherWords(word) = newCount
         word + "," + newCount
       }
