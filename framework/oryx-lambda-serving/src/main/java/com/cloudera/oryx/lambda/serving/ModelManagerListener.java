@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
@@ -127,22 +129,27 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
     consumerIterator = new ConsumeDataIterator<>(consumer);
 
     modelManager = loadManagerInstance();
+    CountDownLatch threadStartLatch = new CountDownLatch(1);
     new Thread(LoggingCallable.log(() -> {
-      // Possible if it shuts down immediately; just exit
-      if (modelManager == null) {
-        return;
-      }
-      // Can we do better than a default Hadoop config? Nothing else provides it here
-      Configuration hadoopConf = new Configuration();
       try {
+        // Can we do better than a default Hadoop config? Nothing else provides it here
+        Configuration hadoopConf = new Configuration();
+        threadStartLatch.countDown();
         modelManager.consume(consumerIterator, hadoopConf);
       } catch (Throwable t) {
         log.error("Error while consuming updates", t);
+      } finally {
         // Ideally we would shut down ServingLayer, but not clear how to plumb that through
         // without assuming this has been run from ServingLayer and not a web app deployment
         close();
       }
     }).asRunnable(), "OryxServingLayerUpdateConsumerThread").start();
+
+    try {
+      threadStartLatch.await(10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      log.warn("Failed to wait for OryxServingLayerUpdateConsumerThread; continue");
+    }
 
     // Set the Model Manager in the Application scope
     context.setAttribute(MANAGER_KEY, modelManager);
