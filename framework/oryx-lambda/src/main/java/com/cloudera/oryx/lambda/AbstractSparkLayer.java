@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Preconditions;
 import com.typesafe.config.Config;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
@@ -41,7 +40,6 @@ import org.apache.spark.streaming.kafka010.LocationStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.lang.ClassUtils;
 import com.cloudera.oryx.common.settings.ConfigUtils;
 import com.cloudera.oryx.kafka.util.KafkaUtils;
@@ -186,18 +184,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
 
     String groupID = getGroupID();
 
-    // TODO can we get rid of use of the old API in fillInLatestOffsets?
-    Map<String,String> oldKafkaParams = new HashMap<>();
-    oldKafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
-    oldKafkaParams.put("group.id", groupID);
-    // Don't re-consume old messages from input by default
-    oldKafkaParams.put("auto.offset.reset", "largest"); // becomes "latest" in Kafka 0.9+
-    oldKafkaParams.put("metadata.broker.list", inputBroker);
-    // Newer version of metadata.broker.list:
-    oldKafkaParams.put("bootstrap.servers", inputBroker);
-
     Map<String,Object> kafkaParams = new HashMap<>();
-    kafkaParams.put("zookeeper.connect", inputTopicLockMaster); // needed for SimpleConsumer later
     kafkaParams.put("group.id", groupID);
     // Don't re-consume old messages from input by default
     kafkaParams.put("auto.offset.reset", "latest"); // Ignored by Kafka 0.10 Spark integration
@@ -205,18 +192,9 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     kafkaParams.put("key.deserializer", keyDecoderClass.getName());
     kafkaParams.put("value.deserializer", messageDecoderClass.getName());
 
-    Map<Pair<String,Integer>,Long> offsets =
-        KafkaUtils.getOffsets(inputTopicLockMaster, groupID, inputTopic);
-    KafkaUtils.fillInLatestOffsets(offsets, oldKafkaParams);
-    log.info("Initial offsets: {}", offsets);
-
-    Map<TopicPartition,Long> kafkaOffsets = new HashMap<>(offsets.size());
-    offsets.forEach((tAndP, offset) -> kafkaOffsets.put(
-        new TopicPartition(tAndP.getFirst(), tAndP.getSecond()), offset));
-
     LocationStrategy locationStrategy = LocationStrategies.PreferConsistent();
     ConsumerStrategy<K,M> consumerStrategy = ConsumerStrategies.Subscribe(
-        Collections.singleton(inputTopic), kafkaParams, kafkaOffsets);
+        Collections.singleton(inputTopic), kafkaParams, Collections.emptyMap());
     return org.apache.spark.streaming.kafka010.KafkaUtils.createDirectStream(
         streamingContext,
         locationStrategy,

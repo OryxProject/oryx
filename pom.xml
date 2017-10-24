@@ -566,7 +566,7 @@
     <jackson.version>2.8.7</jackson.version>
     <javadoc.plugin.version>3.0.0-M1</javadoc.plugin.version>
     <jersey.version>2.25.1</jersey.version>
-    <kafka.version>0.10.2.1</kafka.version>
+    <kafka.version>0.11.0.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.25</slf4j.version>
@@ -1133,19 +1133,19 @@
 
   <profiles>
     <profile>
-      <id>cdh512</id>
+      <id>cdh513</id>
       <properties>
-        <cdh.version>5.12.0</cdh.version>
+        <cdh.version>5.13.0</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
         <spark.version>2.2.0.cloudera1</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>0.10.2-kafka-2.2.0</kafka.version>
+        <kafka.version>0.11.0-kafka-3.0.0</kafka.version>
       </properties>
     </profile>
     <profile>
-      <id>cp322</id>
+      <id>cp33</id>
       <properties>
-        <kafka.version>0.10.2.1-cp2</kafka.version>
+        <kafka.version>0.11.0.0-cp1</kafka.version>
       </properties>
       <repositories>
         <repository>

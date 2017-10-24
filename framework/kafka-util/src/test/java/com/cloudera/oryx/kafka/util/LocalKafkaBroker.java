@@ -75,9 +75,9 @@ public final class LocalKafkaBroker implements Closeable {
         "log.dirs", logsDir.toAbsolutePath(),
         "listeners", "PLAINTEXT://:" + port,
         "zookeeper.connect", "localhost:" + zkPort,
-        // Above are for Kafka 0.8; following are for 0.9+
         "message.max.bytes", 1 << 26,
-        "replica.fetch.max.bytes", 1 << 26
+        "replica.fetch.max.bytes", 1 << 26,
+        "offsets.topic.replication.factor", 1
     ), false));
     kafkaServer.startup();
   }
