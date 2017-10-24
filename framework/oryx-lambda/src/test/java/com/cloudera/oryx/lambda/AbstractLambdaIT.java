@@ -66,6 +66,12 @@ public abstract class AbstractLambdaIT extends OryxTest {
     KafkaUtils.deleteTopic(zkHostPort, UPDATE_TOPIC);
     KafkaUtils.maybeCreateTopic(zkHostPort, INPUT_TOPIC, 1);
     KafkaUtils.maybeCreateTopic(zkHostPort, UPDATE_TOPIC, 1);
+    // Give topics a little time to elect leader
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException ie) {
+      // continue
+    }
   }
 
   @After

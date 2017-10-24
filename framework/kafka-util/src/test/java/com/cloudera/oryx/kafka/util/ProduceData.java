@@ -69,6 +69,7 @@ public final class ProduceData {
         "key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
         "value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
         "compression.type", "gzip",
+        "linger.ms", 0,
         "batch.size", 0,
         "acks", 1,
         "max.request.size", 1 << 26 // TODO

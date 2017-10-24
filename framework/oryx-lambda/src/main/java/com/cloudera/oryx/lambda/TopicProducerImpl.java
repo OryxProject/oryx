@@ -59,7 +59,7 @@ public final class TopicProducerImpl<K,M> implements TopicProducer<K,M> {
           "bootstrap.servers", updateBroker,
           "key.serializer", "org.apache.kafka.common.serialization.StringSerializer",
           "value.serializer", "org.apache.kafka.common.serialization.StringSerializer",
-          "linger.ms", 1000, // Make configurable?
+          "linger.ms", async ? 1000 : 0, // Make configurable?
           "batch.size", async ? 1 << 14 : 0,
           "compression.type", "gzip",
           "acks", 1,
