@@ -27,9 +27,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -41,8 +39,6 @@ import org.slf4j.LoggerFactory;
 public final class IOUtils {
 
   private static final Logger log = LoggerFactory.getLogger(IOUtils.class);
-  // Set of ports that were recently bound, to avoid picking again in tests.
-  private static final Set<Integer> recentlyAssignedPorts = new HashSet<>();
 
   private IOUtils() {}
 
@@ -138,16 +134,16 @@ public final class IOUtils {
    * @throws IOException if an error occurs while binding to a port
    */
   public static int chooseFreePort() throws IOException {
-    int attemptsLeft = 10; // to put some upper bound on retries
     int port;
-    do {
-      try (ServerSocket socket = new ServerSocket(0, 0)) {
-        port = socket.getLocalPort();
-      }
-      attemptsLeft--;
-    } while (recentlyAssignedPorts.contains(port) && attemptsLeft > 0);
-    // If ran out of attempts, just continue anyway; might be a valid port
-    recentlyAssignedPorts.add(port);
+    try (ServerSocket socket = new ServerSocket(0, 0)) {
+      port = socket.getLocalPort();
+    }
+    try {
+      // Sleep short time to let port become avialable again (?)
+      Thread.sleep(200);
+    } catch (InterruptedException ie) {
+      // continue
+    }
     return port;
   }
 
