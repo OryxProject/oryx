@@ -41,6 +41,7 @@ import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.ServletDeploymentContext;
+import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.junit.Assert;
@@ -86,6 +87,7 @@ public abstract class AbstractServingTest extends JerseyTest {
   protected void configureProperties() {
     //enable(TestProperties.LOG_TRAFFIC);
     //enable(TestProperties.DUMP_ENTITY);
+    set(TestProperties.CONTAINER_PORT, 0);
   }
 
   @Override

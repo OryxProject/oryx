@@ -134,17 +134,9 @@ public final class IOUtils {
    * @throws IOException if an error occurs while binding to a port
    */
   public static int chooseFreePort() throws IOException {
-    int port;
     try (ServerSocket socket = new ServerSocket(0, 0)) {
-      port = socket.getLocalPort();
+      return socket.getLocalPort();
     }
-    try {
-      // Sleep short time to let port become avialable again (?)
-      Thread.sleep(200);
-    } catch (InterruptedException ie) {
-      // continue
-    }
-    return port;
   }
 
 }
