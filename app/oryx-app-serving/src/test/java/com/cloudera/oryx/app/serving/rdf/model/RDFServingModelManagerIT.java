@@ -58,7 +58,7 @@ public final class RDFServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockRDFClassificationModelGenerator(), 5);
 
     // Let updates finish
-    sleepSeconds(1);
+    sleepSeconds(5);
 
     RDFServingModelManager manager = (RDFServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
@@ -68,6 +68,7 @@ public final class RDFServingModelManagerIT extends AbstractServingIT {
     RDFServingModel model = manager.getModel();
     log.debug("{}", model);
 
+    assertNotNull(model);
     CategoricalValueEncodings encodings = model.getEncodings();
     assertEquals(2, encodings.getValueCount(0));
     assertEquals(2, encodings.getValueCount(1));

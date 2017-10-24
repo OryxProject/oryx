@@ -45,7 +45,7 @@ public final class ALSServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockALSModelUpdateGenerator(), 10);
 
     // Let updates finish
-    sleepSeconds(1);
+    sleepSeconds(5);
 
     ALSServingModelManager manager = (ALSServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
