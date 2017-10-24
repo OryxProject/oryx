@@ -725,6 +725,7 @@
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
               <log4j.configuration>log4j.test.properties</log4j.configuration>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
           </configuration>
         </plugin>
         <plugin>
@@ -744,6 +745,7 @@
               <sun.io.serialization.extendedDebugInfo>true</sun.io.serialization.extendedDebugInfo>
               <log4j.configuration>log4j.test.properties</log4j.configuration>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
             <reuseForks>false</reuseForks>
           </configuration>
         </plugin>
