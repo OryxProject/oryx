@@ -51,7 +51,7 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
     startUpdateTopics(new MockKMeansModelGenerator(), 10);
 
     // Let updates finish
-    sleepSeconds(1);
+    sleepSeconds(5);
 
     KMeansServingModelManager manager = (KMeansServingModelManager)
         getServingLayer().getContext().getServletContext().getAttribute(OryxResource.MODEL_MANAGER_KEY);
@@ -61,6 +61,7 @@ public final class KMeansServingModelManagerIT extends AbstractServingIT {
     KMeansServingModel model = manager.getModel();
     log.debug("{}", model);
 
+    assertNotNull(model);
     assertEquals(3, model.getNumClusters());
     assertCluster(model.getCluster(0), 0, new double[] { 9.0, 9.0 }, 9);
     assertCluster(model.getCluster(1), 1, new double[] { 7.0, 7.0 }, 7);
