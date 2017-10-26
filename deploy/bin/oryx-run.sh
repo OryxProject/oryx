@@ -223,7 +223,8 @@ batch|speed|serving)
        --conf spark.dynamicAllocation.executorIdleTimeout=60 --conf spark.shuffle.service.enabled=true"
       ;;
     *)
-      SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --num-executors=${NUM_EXECUTORS}"
+      SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} --conf spark.dynamicAllocation.enabled=false \
+       --num-executors=${NUM_EXECUTORS}"
       ;;
     esac
     SPARK_SUBMIT_CMD="${SPARK_SUBMIT_CMD} ${LAYER_JAR}"
