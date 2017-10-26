@@ -117,6 +117,7 @@ public final class KafkaUtils {
    * @param groupID consumer group to update
    * @param offsets mapping of (topic and) partition to offset to push to Zookeeper
    */
+  @SuppressWarnings("deprecation")
   public static void setOffsets(String zkServers,
                                 String groupID,
                                 Map<Pair<String,Integer>,Long> offsets) {
@@ -126,9 +127,11 @@ public final class KafkaUtils {
         String topic = topicAndPartition.getFirst();
         int partition = topicAndPartition.getSecond();
         String partitionOffsetPath = "/consumers/" + groupID + "/offsets/" + topic + "/" + partition;
+        // TODO replace call below with defaultAcls(false, "") when available in all supported
+        // versions; seems to still not exist in CDH 0.11 distro (?)
         zkUtils.updatePersistentPath(partitionOffsetPath,
                                      Long.toString(offset),
-                                     ZkUtils$.MODULE$.defaultAcls(false, ""));
+                                     ZkUtils$.MODULE$.DefaultAcls(false));
       });
     } finally {
       zkUtils.close();
