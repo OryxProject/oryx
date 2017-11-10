@@ -56,7 +56,6 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
   private final String updateBroker;
   private final String updateTopic;
   private final int maxMessageSize;
-  private final String updateTopicBroker;
   private final String modelManagerClassName;
   private final Class<? extends Deserializer<U>> updateDecoderClass;
   private JavaStreamingContext streamingContext;
@@ -69,7 +68,6 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     this.updateBroker = config.getString("oryx.update-topic.broker");
     this.updateTopic = config.getString("oryx.update-topic.message.topic");
     this.maxMessageSize = config.getInt("oryx.update-topic.message.max-size");
-    this.updateTopicBroker = config.getString("oryx.update-topic.broker");
     this.modelManagerClassName = config.getString("oryx.speed.model-manager-class");
     this.updateDecoderClass = (Class<? extends Deserializer<U>>) ClassUtils.loadClass(
         config.getString("oryx.update-topic.message.decoder-class"), Deserializer.class);
@@ -101,7 +99,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
     KafkaConsumer<String,U> consumer = new KafkaConsumer<>(
         ConfigUtils.keyValueToProperties(
             "group.id", "OryxGroup-" + getLayerName() + "-" + UUID.randomUUID(),
-            "bootstrap.servers", updateTopicBroker,
+            "bootstrap.servers", updateBroker,
             "max.partition.fetch.bytes", maxMessageSize,
             "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
             "value.deserializer", updateDecoderClass.getName(),
