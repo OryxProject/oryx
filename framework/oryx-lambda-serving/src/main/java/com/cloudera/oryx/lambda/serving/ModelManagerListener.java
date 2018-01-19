@@ -123,7 +123,10 @@ public final class ModelManagerListener<K,M,U> implements ServletContextListener
             "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",
             "value.deserializer", updateDecoderClass.getName(),
             // Do start from the beginning of the update queue
-            "auto.offset.reset", "earliest"
+            "auto.offset.reset", "earliest",
+            // Be gentler on hosts that aren't connecting:
+            "reconnect.backoff.ms", "1000",
+            "reconnect.backoff.max.ms", "10000"
         ));
     consumer.subscribe(Collections.singletonList(updateTopic));
     consumerIterator = new ConsumeDataIterator<>(consumer);
