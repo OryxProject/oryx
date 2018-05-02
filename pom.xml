@@ -229,7 +229,7 @@
       <dependency>
         <groupId>com.typesafe</groupId>
         <artifactId>config</artifactId>
-        <version>1.3.2</version>
+        <version>1.3.3</version>
       </dependency>
 
       <dependency>
@@ -318,7 +318,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.3.8</version>
+        <version>1.3.9</version>
       </dependency>
 
       <dependency>
@@ -479,7 +479,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>5.0.2.RELEASE</version>
+        <version>5.0.5.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -571,7 +571,7 @@
     <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
     <hadoop.version>2.7.5</hadoop.version>
     <jackson.version>2.8.7</jackson.version>
-    <javadoc.plugin.version>3.0.0-M1</javadoc.plugin.version>
+    <javadoc.plugin.version>3.0.0</javadoc.plugin.version>
     <jersey.version>2.26</jersey.version>
     <kafka.version>0.11.0.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
@@ -580,7 +580,7 @@
     <snappy.version>1.1.2.6</snappy.version>
     <spark.version>2.2.1</spark.version>
     <surefire.version>2.20.1</surefire.version>
-    <tomcat.version>9.0.2</tomcat.version>
+    <tomcat.version>9.0.7</tomcat.version>
     <zookeeper.version>3.4.8</zookeeper.version>
     <!-- Build flags -->
     <!-- Set to 'none' for Travis -->
@@ -901,7 +901,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.17</version>
+          <version>3.0.0</version>
           <configuration>
             <configLocation>src/checkstyle/checkstyle.xml</configLocation>
           </configuration>
@@ -1205,7 +1205,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.7.9</version>
+            <version>0.8.0</version>
             <executions>
               <execution>
                 <id>jacoco-prepare-agent</id>
