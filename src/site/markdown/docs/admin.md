@@ -16,10 +16,10 @@ The following are required as of Oryx 2.7.0:
 
 This table summarizes the version of several key components targeted by each version.
 
-| Oryx        | Kafka   | CDH   |
-| ----------- | ------- | ----- |
-| 2.7.x       | 0.11.0+ | 5.13+ |
-| 2.6.x       | 0.11.0+ | 5.13+ |
+| Oryx        | Spark | Kafka   | CDH   |
+| ----------- | ----- | ------- | ----- |
+| 2.7.x       | 2.3.x | 0.11.0+ | 5.13+ |
+| 2.6.x       | 2.2.x | 0.11.0+ | 5.13+ |
 
 Previous versions supported older versions, though are no longer maintained:
 
