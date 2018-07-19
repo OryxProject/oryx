@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
@@ -218,6 +219,7 @@ public final class AppPMMLUtils {
       }
       DataField field = new DataField(FieldName.create(featureName), opType, dataType);
       if (schema.isCategorical(featureName)) {
+        Objects.requireNonNull(categoricalValueEncodings);
         categoricalValueEncodings.getEncodingValueMap(featureIndex).entrySet().stream().
             sorted(Comparator.comparing(Map.Entry::getKey)).
             map(Map.Entry::getValue).
