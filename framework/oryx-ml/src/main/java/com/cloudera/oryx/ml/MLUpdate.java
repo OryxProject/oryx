@@ -262,24 +262,26 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     double bestEval = Double.NEGATIVE_INFINITY;
     for (Map.Entry<Path,Double> pathEval : pathToEval.entrySet()) {
       Path path = pathEval.getKey();
-      if (fs == null) {
-        fs = FileSystem.get(path.toUri(), sparkContext.hadoopConfiguration());
-      }
-      if (path != null && fs.exists(path)) {
-        Double eval = pathEval.getValue();
-        if (!Double.isNaN(eval)) {
-          // Valid evaluation; if it's the best so far, keep it
-          if (eval > bestEval) {
-            log.info("Best eval / model path is now {} / {}", eval, path);
-            bestEval = eval;
+      if (path != null) {
+        if (fs == null) {
+          fs = FileSystem.get(path.toUri(), sparkContext.hadoopConfiguration());
+        }
+        if (fs.exists(path)) {
+          Double eval = pathEval.getValue();
+          if (!Double.isNaN(eval)) {
+            // Valid evaluation; if it's the best so far, keep it
+            if (eval > bestEval) {
+              log.info("Best eval / model path is now {} / {}", eval, path);
+              bestEval = eval;
+              bestCandidatePath = path;
+            }
+          } else if (bestCandidatePath == null && testFraction == 0.0) {
+            // Normal case when eval is disabled; no eval is possible, but keep the one model
+            // that was built
             bestCandidatePath = path;
           }
-        } else if (bestCandidatePath == null && testFraction == 0.0) {
-          // Normal case when eval is disabled; no eval is possible, but keep the one model
-          // that was built
-          bestCandidatePath = path;
-        }
-      } // else can't do anything; no model at all
+        } // else can't do anything; no model at all
+      }
     }
     if (threshold != null && bestEval < threshold) {
       log.info("Best model at {} had eval {}, but did not exceed threshold {}; discarding model",
@@ -305,7 +307,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
     JavaRDD<M> allTrainData = trainTestData.getFirst();
     JavaRDD<M> testData = trainTestData.getSecond();
 
-    Double eval = Double.NaN;
+    double eval = Double.NaN;
     if (empty(allTrainData)) {
       log.info("No train data to build a model");
     } else {

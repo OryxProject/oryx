@@ -154,7 +154,7 @@ public final class ConfigUtils {
   public static Properties keyValueToProperties(Object... keyValues) {
     Preconditions.checkArgument(keyValues.length % 2 == 0);
     Properties properties = new Properties();
-    for (int i = 0; i < keyValues.length; i += 2) {
+    for (int i = 0; i < keyValues.length - 1; i += 2) { // length must be even
       properties.setProperty(keyValues[i].toString(), keyValues[i+1].toString());
     }
     return properties;

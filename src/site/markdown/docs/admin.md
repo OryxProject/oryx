@@ -19,12 +19,12 @@ This table summarizes the version of several key components targeted by each ver
 | Oryx        | Kafka   | CDH   |
 | ----------- | ------- | ----- |
 | 2.6.x       | 0.11.0+ | 5.13+ |
-| 2.5.x       | 0.10.2+ | 5.12  |
 
 Previous versions supported older versions, though are no longer maintained:
 
 | Oryx  | Java | Scala | Spark | Kafka   | CDH  |
 | ----- | ---- | ----- | ----- | ------- | ---- |
+| 2.5.x | 8    | 2.11  | 2.1.x | 0.10.2  | 5.12 |
 | 2.4.x | 8    | 2.11  | 2.1.x | 0.10.0  | 5.11 |
 | 2.3.x | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10 |
 | 2.2.x | 8    | 2.10  | 1.6.x | 0.9.x   | 5.7  |
