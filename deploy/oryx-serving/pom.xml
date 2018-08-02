@@ -45,6 +45,11 @@
       <groupId>com.cloudera.oryx</groupId>
       <artifactId>oryx-lambda-serving</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <scope>compile</scope> <!-- force compile scope because Spark won't provide it -->
+    </dependency>
     <!-- See app-tier profile below for more dependencies -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>

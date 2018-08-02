@@ -206,7 +206,7 @@
         <groupId>org.scala-lang</groupId>
         <artifactId>scala-library</artifactId>
         <version>${scala.complete.version}</version>
-        <scope>provided</scope>
+        <scope>provided</scope> <!-- typically provided by Spark -->
       </dependency>
       <!-- Make sure this version is harmonized -->
       <dependency>
