@@ -10,7 +10,7 @@ The following are required as of Oryx 2.7.0:
     - [Apache Hadoop](https://hadoop.apache.org/) 2.7.0 or later
     - [Apache Zookeeper](https://zookeeper.apache.org/) 3.4.5 or later
     - [Apache Kafka](https://kafka.apache.org/) 0.11.0 or later
-    - [Apache Spark](https://spark.apache.org/) 2.2.0 or later
+    - [Apache Spark](https://spark.apache.org/) 2.3.0 or later
 
 ## Requirements Matrix Summary
 
@@ -19,12 +19,12 @@ This table summarizes the version of several key components targeted by each ver
 | Oryx        | Spark | Kafka   | CDH   |
 | ----------- | ----- | ------- | ----- |
 | 2.7.x       | 2.3.x | 0.11.0+ | 5.13+ |
-| 2.6.x       | 2.2.x | 0.11.0+ | 5.13+ |
 
 Previous versions supported older versions, though are no longer maintained:
 
 | Oryx  | Java | Scala | Spark | Kafka   | CDH  |
 | ----- | ---- | ----- | ----- | ------- | ---- |
+| 2.6.x | 8    | 2.11  | 2.2.x | 0.11.x  | 5.12 |
 | 2.5.x | 8    | 2.11  | 2.1.x | 0.10.2  | 5.12 |
 | 2.4.x | 8    | 2.11  | 2.1.x | 0.10.0  | 5.11 |
 | 2.3.x | 8    | 2.11  | 2.0.x | 0.9.x   | 5.10 |
@@ -61,7 +61,7 @@ Install and configure the Hadoop cluster normally. The following services need t
 - Kafka
 - Spark 2
 
-Note that for CDH 5.x, Spark 2.2 is available as an 
+Note that for CDH 5.x, Spark 2.3 is available as an 
 [add on](https://www.cloudera.com/documentation/spark2/latest/topics/spark2.html).
 
 Kafka is available as a parcel from
