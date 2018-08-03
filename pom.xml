@@ -1146,11 +1146,11 @@
 
   <profiles>
     <profile>
-      <id>cdh513</id>
+      <id>cdh515</id>
       <properties>
-        <cdh.version>5.13.1</cdh.version>
+        <cdh.version>5.15.1</cdh.version>
         <hadoop.version>2.6.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>2.2.0.cloudera1</spark.version>
+        <spark.version>2.3.0.cloudera3</spark.version>
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
         <kafka.version>0.11.0-kafka-3.0.0</kafka.version>
       </properties>
