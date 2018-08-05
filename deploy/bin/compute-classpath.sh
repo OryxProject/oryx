@@ -24,8 +24,8 @@ function printLatest() {
 }
 
 # This only supports the Serving Layer, which needs Hadoop, Kafka, and ZK dependencies
-printLatest "SPARK2/lib/spark2/jars/scala-library-*.jar"
-printLatest "SPARK2/lib/spark2/jars/scala-parser-*.jar"
+#printLatest "SPARK2/lib/spark2/jars/scala-library-*.jar"
+#printLatest "SPARK2/lib/spark2/jars/scala-parser-*.jar"
 printLatest "KAFKA/lib/kafka/libs/kafka_*.jar" 
 printLatest "KAFKA/lib/kafka/libs/kafka-clients*.jar" 
 printLatest "KAFKA/lib/kafka/libs/metrics-core*.jar" 
