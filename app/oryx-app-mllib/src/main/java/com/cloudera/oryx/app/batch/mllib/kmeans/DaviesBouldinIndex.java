@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.spark.api.java.JavaRDD;
@@ -26,7 +26,7 @@ import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DaviesBouldinIndex extends AbstractKMeansEvaluation {
 
-  DaviesBouldinIndex(List<ClusterInfo> clusters) {
+  DaviesBouldinIndex(Collection<ClusterInfo> clusters) {
     super(clusters);
   }
 

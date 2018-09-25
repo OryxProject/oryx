@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.math3.random.RandomDataGenerator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +33,7 @@ final class RandomSearch {
    * @param howMany how many combinations of hyperparameters to return
    * @return combinations of concrete hyperparameter values
    */
-  static List<List<?>> chooseHyperParameterCombos(List<HyperParamValues<?>> ranges, int howMany) {
+  static List<List<?>> chooseHyperParameterCombos(Collection<? extends HyperParamValues<?>> ranges, int howMany) {
     Preconditions.checkArgument(howMany > 0);
 
     int numParams = ranges.size();

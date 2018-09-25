@@ -264,7 +264,7 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  per tree in the model
    * @see #predictorExampleCounts(JavaRDD,RandomForestModel)
    */
-  private static List<Map<Integer,Long>> treeNodeExampleCounts(JavaRDD<LabeledPoint> trainPointData,
+  private static List<Map<Integer,Long>> treeNodeExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
                                                                RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         DecisionTreeModel[] trees = model.trees();
@@ -307,7 +307,7 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  features, since there are fewer predictors than features. That is, the index will
    *  match the one used in the {@link RandomForestModel}.
    */
-  private static Map<Integer,Long> predictorExampleCounts(JavaRDD<LabeledPoint> trainPointData,
+  private static Map<Integer,Long> predictorExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
                                                           RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         IntLongMap featureIndexCount = HashIntLongMaps.newMutableMap();
@@ -370,7 +370,7 @@ public final class RDFUpdate extends MLUpdate<String> {
                               int maxDepth,
                               int maxSplitCandidates,
                               String impurity,
-                              List<Map<Integer,Long>> nodeIDCounts,
+                              List<? extends Map<Integer,Long>> nodeIDCounts,
                               Map<Integer,Long> predictorIndexCounts) {
 
     boolean classificationTask = rfModel.algo().equals(Algo.Classification());

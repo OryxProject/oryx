@@ -29,6 +29,8 @@ import java.util.List;
  */
 public final class MultiRescorerProvider extends AbstractRescorerProvider {
 
+  private static final RescorerProvider[] EMPTY_PROVIDER_ARRAY = new RescorerProvider[0];
+
   private final RescorerProvider[] providers;
 
   private MultiRescorerProvider(RescorerProvider... providers) {
@@ -54,7 +56,7 @@ public final class MultiRescorerProvider extends AbstractRescorerProvider {
         expandedProviders.add(provider);
       }
     }
-    return new MultiRescorerProvider(expandedProviders.toArray(new RescorerProvider[expandedProviders.size()]));
+    return new MultiRescorerProvider(expandedProviders.toArray(EMPTY_PROVIDER_ARRAY));
   }
 
   RescorerProvider[] getProviders() {

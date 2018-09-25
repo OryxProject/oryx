@@ -163,7 +163,7 @@ public abstract class OryxTest extends Assert {
     }
   }
 
-  private static <T> Collection<T> minus(Collection<T> a, Collection<T> b) {
+  private static <T> Collection<T> minus(Collection<? extends T> a, Collection<T> b) {
     return a.stream().filter(t -> !b.contains(t)).collect(Collectors.toList());
   }
 
