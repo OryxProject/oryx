@@ -156,7 +156,7 @@ public final class ALSUpdateIT extends AbstractALSIT {
 
         assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
         PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
-
+        assertNotNull(pmml);
         checkHeader(pmml.getHeader());
 
         assertEquals(8, pmml.getExtensions().size());

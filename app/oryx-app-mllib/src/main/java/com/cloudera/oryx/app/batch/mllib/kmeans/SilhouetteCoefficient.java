@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
 
   private static final long MAX_SAMPLE_SIZE = 100000;
 
-  SilhouetteCoefficient(List<ClusterInfo> clusters) {
+  SilhouetteCoefficient(Collection<ClusterInfo> clusters) {
     super(clusters);
   }
 
@@ -77,15 +78,14 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
   }
 
   static JavaRDD<Vector> fetchSampleData(JavaRDD<Vector> evalData) {
-    JavaRDD<Vector> data = evalData;
     long count = evalData.count();
     if (count > MAX_SAMPLE_SIZE) {
-      data = evalData.sample(false, (double) MAX_SAMPLE_SIZE / count);
+      return evalData.sample(false, (double) MAX_SAMPLE_SIZE / count);
     }
-    return data;
+    return evalData;
   }
 
-  private JavaPairRDD<Integer, Iterable<double[]>> fetchClusteredPoints(JavaRDD<Vector> evalData) {
+  private JavaPairRDD<Integer, Iterable<double[]>> fetchClusteredPoints(JavaRDD<? extends Vector> evalData) {
     return evalData.mapToPair(vector -> {
       double closestDist = Double.POSITIVE_INFINITY;
       int minClusterID = Integer.MIN_VALUE;

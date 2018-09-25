@@ -30,6 +30,8 @@ import java.util.List;
  */
 public final class MultiRescorer implements Rescorer {
 
+  private static final Rescorer[] EMPTY_RESCORER_ARRAY = new Rescorer[0];
+
   private final Rescorer[] rescorers;
 
   private MultiRescorer(Rescorer... rescorers) {
@@ -59,7 +61,7 @@ public final class MultiRescorer implements Rescorer {
         expandedRescorers.add(rescorer);
       }
     }
-    return new MultiRescorer(expandedRescorers.toArray(new Rescorer[expandedRescorers.size()]));
+    return new MultiRescorer(expandedRescorers.toArray(EMPTY_RESCORER_ARRAY));
   }
 
   Rescorer[] getRescorers() {

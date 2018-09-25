@@ -15,7 +15,7 @@
 
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.linalg.Vector;
@@ -24,7 +24,7 @@ import com.cloudera.oryx.app.kmeans.ClusterInfo;
 
 final class SumSquaredError extends AbstractKMeansEvaluation {
 
-  SumSquaredError(List<ClusterInfo> clusters) {
+  SumSquaredError(Collection<ClusterInfo> clusters) {
     super(clusters);
   }
 

@@ -92,7 +92,7 @@ final class GridSearch {
    * @return smallest value such that picking that many values from each hyperparameter would result
    *  in at least the requested minimum number of candidate combinations
    */
-  private static int chooseValuesPerHyperParam(List<HyperParamValues<?>> ranges, int candidates) {
+  private static int chooseValuesPerHyperParam(List<? extends HyperParamValues<?>> ranges, int candidates) {
     if (ranges.isEmpty()) {
       return 0;
     }

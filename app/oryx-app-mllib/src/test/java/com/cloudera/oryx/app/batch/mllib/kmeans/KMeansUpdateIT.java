@@ -89,7 +89,7 @@ public final class KMeansUpdateIT extends AbstractKMeansIT {
 
       assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
       PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
-
+      assertNotNull(pmml);
       checkHeader(pmml.getHeader());
 
       checkDataDictionary(schema, pmml.getDataDictionary());

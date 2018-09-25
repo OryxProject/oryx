@@ -45,7 +45,7 @@ public final class ExampleUtils {
       Feature[] features = new Feature[data.length];
       Feature target = null;
       for (int featureIndex = 0; featureIndex < data.length; featureIndex++) {
-        Feature feature = null;
+        Feature feature;
         String dataAtIndex = data[featureIndex];
         boolean isTarget = inputSchema.isTarget(featureIndex);
         if (isTarget && dataAtIndex.isEmpty()) {
@@ -55,6 +55,8 @@ public final class ExampleUtils {
         } else if (inputSchema.isCategorical(featureIndex)) {
           int encoding = valueEncodings.getValueEncodingMap(featureIndex).get(dataAtIndex);
           feature = CategoricalFeature.forEncoding(encoding);
+        } else {
+          feature = null;
         }
         if (isTarget) {
           target = feature;

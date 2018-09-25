@@ -17,10 +17,10 @@ package com.cloudera.oryx.app.rdf.tree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -37,7 +37,7 @@ public final class TreePathTest extends OryxTest {
   public void testEquals() {
     assertEquals(LRL, TreePath.EMPTY.extendLeft().extendRight().extendLeft());
     assertNotEquals(TreePath.EMPTY, LRL);
-    Set<TreePath> paths = new HashSet<>();
+    Collection<TreePath> paths = new HashSet<>();
     paths.add(LRL);
     paths.add(LRR);
     paths.add(LRR);
@@ -53,8 +53,7 @@ public final class TreePathTest extends OryxTest {
 
   @Test
   public void testOrder() {
-    List<TreePath> paths = new ArrayList<>();
-    paths.addAll(Arrays.asList(LRL, R, LR, LRR));
+    List<TreePath> paths = new ArrayList<>(Arrays.asList(LRL, R, LR, LRR));
     Collections.sort(paths);
     assertEquals(Arrays.asList(LRL, LR, LRR, R), paths);
   }

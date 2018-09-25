@@ -111,16 +111,14 @@ public final class TrafficUtil {
             Endpoint endpoint = alsEndpoints.chooseEndpoint(random);
             Invocation invocation = endpoint.makeInvocation(target, otherArgs, random);
 
+            int statusCode;
             long startTime = System.nanoTime();
-            Response response = invocation.invoke();
-            try {
+            try (Response response = invocation.invoke()) {
               response.readEntity(String.class);
-            } finally {
-              response.close();
+              statusCode = response.getStatusInfo().getStatusCode();
             }
             long elapsedNanos = System.nanoTime() - startTime;
 
-            int statusCode = response.getStatusInfo().getStatusCode();
             if (statusCode >= 400) {
               if (statusCode >= 500) {
                 serverErrorCount.incrementAndGet();

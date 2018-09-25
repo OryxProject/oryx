@@ -124,7 +124,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
    * @param model trained KMeans Model
    * @return map of ClusterId, count of points associated with the clusterId
    */
-  private static Map<Integer,Long> fetchClusterCountsFromModel(JavaRDD<Vector> trainPointData,
+  private static Map<Integer,Long> fetchClusterCountsFromModel(JavaRDD<? extends Vector> trainPointData,
                                                                KMeansModel model) {
      return trainPointData.map(model::predict).countByValue();
   }

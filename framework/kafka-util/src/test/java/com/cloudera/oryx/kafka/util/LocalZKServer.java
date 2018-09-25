@@ -149,7 +149,7 @@ public final class LocalZKServer implements Closeable {
 
   public static void main(String[] args) throws Exception {
     int port = args.length > 0 ? Integer.parseInt(args[0]) : IOUtils.chooseFreePort();
-    try (final LocalZKServer zkServer = new LocalZKServer(port)) {
+    try (LocalZKServer zkServer = new LocalZKServer(port)) {
       JVMUtils.closeAtShutdown(zkServer);
       zkServer.start();
       zkServer.await();

@@ -347,8 +347,8 @@ public final class ALSUpdate extends MLUpdate<String> {
    * @return {@link Rating}s ordered by timestamp
    */
   private JavaRDD<Rating> parsedToRatingRDD(JavaRDD<String[]> parsedRDD,
-                                            Broadcast<Map<String,Integer>> bUserIDToIndex,
-                                            Broadcast<Map<String,Integer>> bItemIDToIndex) {
+                                            Broadcast<? extends Map<String,Integer>> bUserIDToIndex,
+                                            Broadcast<? extends Map<String,Integer>> bItemIDToIndex) {
     JavaPairRDD<Long,Rating> timestampRatingRDD = parsedRDD.mapToPair(tokens -> {
       try {
         return new Tuple2<>(
@@ -392,7 +392,7 @@ public final class ALSUpdate extends MLUpdate<String> {
    * Combines {@link Rating}s with the same user/item into one, with score as the sum of
    * all of the scores.
    */
-  private JavaRDD<Rating> aggregateScores(JavaRDD<Rating> original, double epsilon) {
+  private JavaRDD<Rating> aggregateScores(JavaRDD<? extends Rating> original, double epsilon) {
     JavaPairRDD<Tuple2<Integer,Integer>,Double> tuples =
         original.mapToPair(rating -> new Tuple2<>(new Tuple2<>(rating.user(), rating.product()), rating.rating()));
 
@@ -489,7 +489,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static void saveFeaturesRDD(JavaPairRDD<Integer,float[]> features,
                                       Path path,
-                                      Broadcast<Map<Integer,String>> bIndexToID) {
+                                      Broadcast<? extends Map<Integer,String>> bIndexToID) {
     log.info("Saving features RDD to {}", path);
     features.map(keyAndVector -> {
       String id = bIndexToID.value().get(keyAndVector._1());
@@ -516,7 +516,7 @@ public final class ALSUpdate extends MLUpdate<String> {
 
   private static RDD<Tuple2<Object,double[]>> readAndConvertFeatureRDD(
       JavaPairRDD<String,float[]> javaRDD,
-      Broadcast<Map<String,Integer>> bIdToIndex) {
+      Broadcast<? extends Map<String,Integer>> bIdToIndex) {
 
     RDD<Tuple2<Integer,double[]>> scalaRDD = javaRDD.mapToPair(t ->
         new Tuple2<>(bIdToIndex.value().get(t._1()), t._2())

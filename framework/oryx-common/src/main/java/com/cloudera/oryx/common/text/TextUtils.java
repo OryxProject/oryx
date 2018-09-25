@@ -43,6 +43,7 @@ public final class TextUtils {
   private static final String[] EMPTY_STRING = { "" };
   private static final Pattern TWO_DOUBLE_QUOTE_ESC = Pattern.compile("\"\"", Pattern.LITERAL);
   private static final String SLASH_QUOTE_ESC = Matcher.quoteReplacement("\\\"");
+  private static final String[] EMPTY_STR_ARRAY = new String[0];
 
   private TextUtils() {}
 
@@ -71,7 +72,7 @@ public final class TextUtils {
         resultList.add(raw);
       }
     }
-    return resultList.toArray(new String[resultList.size()]);
+    return resultList.toArray(EMPTY_STR_ARRAY);
   }
 
   private static String[] doParseDelimited(String delimited, CSVFormat format) {

@@ -293,7 +293,7 @@ public abstract class MLUpdate<M> implements BatchLayerUpdate<Object,M,String> {
 
 
   private Pair<Path,Double> buildAndEval(int i,
-                                         List<List<?>> hyperParameterCombos,
+                                         List<? extends List<?>> hyperParameterCombos,
                                          JavaSparkContext sparkContext,
                                          JavaRDD<M> newData,
                                          JavaRDD<M> pastData,

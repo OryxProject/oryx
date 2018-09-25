@@ -98,7 +98,7 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
       assertContains(Arrays.asList("MODEL", "MODEL-REF"), type);
       PMML pmml = AppPMMLUtils.readPMMLFromUpdateKeyMessage(type, value, null);
-
+      assertNotNull(pmml);
       checkHeader(pmml.getHeader());
 
       assertEquals(3, pmml.getExtensions().size());

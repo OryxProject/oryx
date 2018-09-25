@@ -16,6 +16,7 @@
 package com.cloudera.oryx.app.batch.mllib.kmeans;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
@@ -26,7 +27,7 @@ import com.cloudera.oryx.app.kmeans.DistanceFn;
 
 final class DunnIndex extends AbstractKMeansEvaluation {
 
-  DunnIndex(List<ClusterInfo> clusters) {
+  DunnIndex(Collection<ClusterInfo> clusters) {
     super(clusters);
   }
 
