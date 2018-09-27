@@ -22,27 +22,26 @@ import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
-import com.koloboke.function.ObjDoubleToDoubleFunction;
-
 import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Pairs;
+import com.cloudera.oryx.common.lang.ToDoubleObjDoubleBiFunction;
 
 final class TopNConsumer implements BiConsumer<String,float[]> {
 
   private static final Predicate<String> ALWAYS_ALLOWED = key -> true;
-  private static final ObjDoubleToDoubleFunction<String> NO_RESCORE = (key, value) -> value;
+  private static final ToDoubleObjDoubleBiFunction<String> NO_RESCORE = (key, value) -> value;
 
   private final Queue<Pair<String, Double>> topN;
   private final int howMany;
   private final ToDoubleFunction<float[]> scoreFn;
-  private final ObjDoubleToDoubleFunction<String> rescoreFn;
+  private final ToDoubleObjDoubleBiFunction<String> rescoreFn;
   private final Predicate<String> allowedPredicate;
   /** Local copy of lower bound of min score in the priority queue, to avoid polling. */
   private double topScoreLowerBound;
 
   TopNConsumer(int howMany,
                ToDoubleFunction<float[]> scoreFn,
-               ObjDoubleToDoubleFunction<String> rescoreFn,
+               ToDoubleObjDoubleBiFunction<String> rescoreFn,
                Predicate<String> allowedPredicate) {
     this.topN = new PriorityQueue<>(howMany, Pairs.orderBySecond(Pairs.SortOrder.ASCENDING));
     this.howMany = howMany;

@@ -321,15 +321,14 @@
       </dependency>
 
       <dependency>
-        <groupId>com.koloboke</groupId>
-        <artifactId>koloboke-api-jdk8</artifactId>
-        <version>${koloboke.version}</version>
+        <groupId>org.eclipse.collections</groupId>
+        <artifactId>eclipse-collections-api</artifactId>
+        <version>${ec.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.koloboke</groupId>
-        <artifactId>koloboke-impl-jdk8</artifactId>
-        <version>${koloboke.version}</version>
-        <scope>runtime</scope>
+        <groupId>org.eclipse.collections</groupId>
+        <artifactId>eclipse-collections</artifactId>
+        <version>${ec.version}</version>
       </dependency>
 
       <dependency>
@@ -568,12 +567,12 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.11</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.12</scala.complete.version>
+    <ec.version>9.2.0</ec.version>
     <hadoop.version>2.7.5</hadoop.version>
     <jackson.version>2.8.7</jackson.version>
     <javadoc.plugin.version>3.0.1</javadoc.plugin.version>
     <jersey.version>2.27</jersey.version>
     <kafka.version>0.11.0.1</kafka.version>
-    <koloboke.version>1.0.0</koloboke.version>
     <maven.scm.version>1.11.1</maven.scm.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.25</slf4j.version>
@@ -639,7 +638,6 @@
               <configuration>
                 <rules>
                   <requireModuleConvergence />
-                  <requirePluginVersions />
                   <requireMavenVersion>
                     <version>3.2.5</version>
                   </requireMavenVersion>
@@ -853,17 +851,6 @@
                       <exclude>META-INF/*.SF</exclude>
                       <exclude>META-INF/*.DSA</exclude>
                       <exclude>META-INF/*.RSA</exclude>
-                    </excludes>
-                  </filter>
-                  <!-- Exclude a large number of irrelevant Koloboke impls -->
-                  <filter>
-                    <artifact>com.koloboke:*</artifact>
-                    <excludes>
-                      <exclude>com/koloboke/collect/**/*Byte*.class</exclude>
-                      <exclude>com/koloboke/collect/**/*Double*.class</exclude>
-                      <exclude>com/koloboke/collect/**/*Float*.class</exclude>
-                      <exclude>com/koloboke/collect/**/*Short*.class</exclude>
-                      <!-- Keep Int, Long, Obj because some are used; Char is hard to exclude by name -->
                     </excludes>
                   </filter>
                   <filter>
