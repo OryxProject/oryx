@@ -976,7 +976,8 @@
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
-          <version>3.3.3</version>
+          <!-- 3.3.3+ requires Maven 3.5.3+ -->
+          <version>3.3.2</version>
           <configuration>
             <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
             <args>
