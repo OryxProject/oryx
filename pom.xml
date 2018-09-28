@@ -302,16 +302,16 @@
         <version>2.3.0</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.persistence</groupId>
-        <artifactId>org.eclipse.persistence.moxy</artifactId>
-        <version>2.7.2</version>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>2.3.0</version>
         <scope>runtime</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-          </exclusion>
-        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+        <version>1.1.1</version>
+        <scope>runtime</scope>
       </dependency>
 
       <dependency>
@@ -567,13 +567,14 @@
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.11</scala.minor.version>
-    <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
+    <scala.complete.version>${scala.minor.version}.12</scala.complete.version>
     <hadoop.version>2.7.5</hadoop.version>
     <jackson.version>2.8.7</jackson.version>
     <javadoc.plugin.version>3.0.1</javadoc.plugin.version>
     <jersey.version>2.27</jersey.version>
     <kafka.version>0.11.0.1</kafka.version>
     <koloboke.version>1.0.0</koloboke.version>
+    <maven.scm.version>1.11.1</maven.scm.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.25</slf4j.version>
     <snappy.version>1.1.2.6</snappy.version>
@@ -656,7 +657,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.7.0</version>
+          <version>3.8.0</version>
           <configuration>
             <optimize>true</optimize>
             <showDeprecation>true</showDeprecation>
@@ -713,12 +714,12 @@
             <dependency>
               <groupId>org.apache.maven.scm</groupId>
               <artifactId>maven-scm-api</artifactId>
-              <version>1.10.0</version>
+              <version>${maven.scm.version}</version>
             </dependency>
             <dependency>
               <groupId>org.apache.maven.scm</groupId>
               <artifactId>maven-scm-provider-gitexe</artifactId>
-              <version>1.10.0</version>
+              <version>${maven.scm.version}</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -786,7 +787,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-scm-plugin</artifactId>
-          <version>1.10.0</version>
+          <version>${maven.scm.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -836,7 +837,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.2.0</version>
           <executions>
             <execution>
               <id>shade</id>
@@ -956,7 +957,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.5</version>
+          <version>2.7</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -975,9 +976,12 @@
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
-          <version>3.3.2</version>
+          <version>3.3.3</version>
           <configuration>
             <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
+            <args>
+              <arg>-nobootcp</arg>
+            </args>
           </configuration>
           <executions>
             <execution>
@@ -1209,7 +1213,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.1</version>
+            <version>0.8.2</version>
             <executions>
               <execution>
                 <id>jacoco-prepare-agent</id>
@@ -1290,6 +1294,26 @@
             </configuration>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>javadoc-9</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <configuration combine.children="append">
+                <!-- Choose HTML5 output over deprecated HTML 4.01 -->
+                <additionalOptions>-html5</additionalOptions>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
   </profiles>
