@@ -1291,6 +1291,21 @@
           </plugin>
         </plugins>
       </build>
+      <!-- override Travis repos that are failing to connect with less aggressive updatePolicy; remove later -->
+      <repositories>
+        <repository>
+          <id>sonatype</id>
+          <releases>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+        </repository>
+        <repository>
+          <id>sonatype-apache</id>
+          <releases>
+            <updatePolicy>daily</updatePolicy>
+          </releases>
+        </repository>
+      </repositories>
     </profile>
     <profile>
       <id>javadoc-9</id>
