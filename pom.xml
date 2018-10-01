@@ -1147,13 +1147,6 @@
     </site>
   </distributionManagement>
 
-  <repositories>
-    <repository>
-      <id>cloudera</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-    </repository>
-  </repositories>
-
   <profiles>
     <profile>
       <id>cdh515</id>
@@ -1164,6 +1157,12 @@
         <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
         <kafka.version>0.11.0-kafka-3.0.0</kafka.version>
       </properties>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+      </repositories>
     </profile>
     <profile>
       <id>cp33</id>
