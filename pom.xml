@@ -1117,10 +1117,6 @@
       <name>StackOverflow tag</name>
       <archive>https://stackoverflow.com/questions/tagged/oryx</archive>
     </mailingList>
-    <mailingList>
-      <name>Cloudera Community: Data Science and Machine Learning</name>
-      <archive>https://community.cloudera.com/t5/Data-Science-and-Machine/bd-p/Mahout</archive>
-    </mailingList>
   </mailingLists>
   <scm>
     <connection>scm:git:https://github.com/OryxProject/oryx.git</connection>
