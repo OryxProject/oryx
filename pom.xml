@@ -1291,39 +1291,6 @@
           </plugin>
         </plugins>
       </build>
-      <!-- disable Travis repos that are failing to connect with less aggressive updatePolicy; remove later -->
-      <repositories>
-        <repository>
-          <id>sonatype</id>
-          <name>OSS Sonatype repo (releases)</name>
-          <releases>
-            <enabled>false</enabled>
-            <updatePolicy>daily</updatePolicy>
-            <checksumPolicy>warn</checksumPolicy>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-            <updatePolicy>never</updatePolicy>
-            <checksumPolicy>fail</checksumPolicy>
-          </snapshots>
-          <url>https://oss.sonatype.org/content/repositories/releases/</url>
-        </repository>
-        <repository>
-          <id>sonatype-apache</id>
-          <name>Apache repo (releases)</name>
-          <releases>
-            <enabled>false</enabled>
-            <updatePolicy>daily</updatePolicy>
-            <checksumPolicy>warn</checksumPolicy>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-            <updatePolicy>never</updatePolicy>
-            <checksumPolicy>fail</checksumPolicy>
-          </snapshots>
-          <url>https://repository.apache.org/releases/</url>
-        </repository>
-      </repositories>
     </profile>
     <profile>
       <id>javadoc-9</id>
