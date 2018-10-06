@@ -21,8 +21,8 @@ import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.koloboke.collect.set.ObjSet;
-import com.koloboke.collect.set.hash.HashObjSets;
+import org.eclipse.collections.api.set.MutableSet;
+import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import com.cloudera.oryx.api.speed.SpeedModel;
 import com.cloudera.oryx.app.als.FeatureVectors;
@@ -45,9 +45,9 @@ public final class ALSSpeedModel implements SpeedModel {
   private final FeatureVectors X;
   /** Item-feature matrix. */
   private final FeatureVectors Y;
-  private final ObjSet<String> expectedUserIDs;
+  private final MutableSet<String> expectedUserIDs;
   private final AutoReadWriteLock expectedUserIDsLock;
-  private final ObjSet<String> expectedItemIDs;
+  private final MutableSet<String> expectedItemIDs;
   private final AutoReadWriteLock expectedItemIDsLock;
   /** Number of features used in the model. */
   private final int features;
@@ -71,9 +71,9 @@ public final class ALSSpeedModel implements SpeedModel {
     int numPartitions = Runtime.getRuntime().availableProcessors();
     X = new PartitionedFeatureVectors(numPartitions, executor);
     Y = new PartitionedFeatureVectors(numPartitions, executor);
-    expectedUserIDs = HashObjSets.newMutableSet();
+    expectedUserIDs = UnifiedSet.newSet();
     expectedUserIDsLock = new AutoReadWriteLock();
-    expectedItemIDs = HashObjSets.newMutableSet();
+    expectedItemIDs = UnifiedSet.newSet();
     expectedItemIDsLock = new AutoReadWriteLock();
     this.features = features;
     this.implicit = implicit;

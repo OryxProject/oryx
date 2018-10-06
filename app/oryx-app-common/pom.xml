@@ -47,13 +47,12 @@
       <artifactId>hadoop-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.koloboke</groupId>
-      <artifactId>koloboke-api-jdk8</artifactId>
+      <groupId>org.eclipse.collections</groupId>
+      <artifactId>eclipse-collections-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.koloboke</groupId>
-      <artifactId>koloboke-impl-jdk8</artifactId>
-      <scope>runtime</scope>
+      <groupId>org.eclipse.collections</groupId>
+      <artifactId>eclipse-collections</artifactId>
     </dependency>
 
     <dependency>

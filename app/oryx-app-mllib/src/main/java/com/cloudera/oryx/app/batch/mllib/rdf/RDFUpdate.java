@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
-import com.koloboke.collect.map.IntLongMap;
-import com.koloboke.collect.map.hash.HashIntLongMaps;
 import com.typesafe.config.Config;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaRDD;
@@ -61,6 +59,8 @@ import org.dmg.pmml.mining.Segment;
 import org.dmg.pmml.mining.Segmentation;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
+import org.eclipse.collections.api.map.primitive.IntLongMap;
+import org.eclipse.collections.impl.map.mutable.primitive.IntLongHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.JavaConversions;
@@ -162,8 +162,8 @@ public final class RDFUpdate extends MLUpdate<String> {
                                           seed);
     }
 
-    List<Map<Integer,Long>> treeNodeIDCounts = treeNodeExampleCounts(trainPointData, model);
-    Map<Integer,Long> predictorIndexCounts = predictorExampleCounts(trainPointData, model);
+    List<IntLongHashMap> treeNodeIDCounts = treeNodeExampleCounts(trainPointData, model);
+    IntLongHashMap predictorIndexCounts = predictorExampleCounts(trainPointData, model);
 
     return rdfModelToPMML(model,
                           categoricalValueEncodings,
@@ -264,31 +264,30 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  per tree in the model
    * @see #predictorExampleCounts(JavaRDD,RandomForestModel)
    */
-  private static List<Map<Integer,Long>> treeNodeExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
-                                                               RandomForestModel model) {
+  private static List<IntLongHashMap> treeNodeExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
+                                                            RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
         DecisionTreeModel[] trees = model.trees();
-        List<IntLongMap> treeNodeIDCounts = IntStream.range(0, trees.length).
-            mapToObj(i -> HashIntLongMaps.newMutableMap()).collect(Collectors.toList());
+        List<IntLongHashMap> treeNodeIDCounts = IntStream.range(0, trees.length).
+            mapToObj(i -> new IntLongHashMap()).collect(Collectors.toList());
         data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (int i = 0; i < trees.length; i++) {
             DecisionTreeModel tree = trees[i];
-            IntLongMap nodeIDCount = treeNodeIDCounts.get(i);
+            IntLongHashMap nodeIDCount = treeNodeIDCounts.get(i);
             org.apache.spark.mllib.tree.model.Node node = tree.topNode();
             // This logic cloned from Node.predict:
             while (!node.isLeaf()) {
               // Count node ID
-              nodeIDCount.addValue(node.id(), 1);
+              nodeIDCount.addToValue(node.id(), 1);
               Split split = node.split().get();
               int featureIndex = split.feature();
               node = nextNode(featureVector, node, split, featureIndex);
             }
-            nodeIDCount.addValue(node.id(), 1);
+            nodeIDCount.addToValue(node.id(), 1);
           }
         });
-        return Collections.<List<Map<Integer,Long>>>singleton(
-            treeNodeIDCounts.stream().map(HashMap::new).collect(Collectors.toList())).iterator();
+        return Collections.singleton(treeNodeIDCounts).iterator();
       }
     ).reduce((a, b) -> {
         Preconditions.checkArgument(a.size() == b.size());
@@ -307,10 +306,10 @@ public final class RDFUpdate extends MLUpdate<String> {
    *  features, since there are fewer predictors than features. That is, the index will
    *  match the one used in the {@link RandomForestModel}.
    */
-  private static Map<Integer,Long> predictorExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
-                                                          RandomForestModel model) {
+  private static IntLongHashMap predictorExampleCounts(JavaRDD<? extends LabeledPoint> trainPointData,
+                                                       RandomForestModel model) {
     return trainPointData.mapPartitions(data -> {
-        IntLongMap featureIndexCount = HashIntLongMaps.newMutableMap();
+        IntLongHashMap featureIndexCount = new IntLongHashMap();
         data.forEachRemaining(datum -> {
           double[] featureVector = datum.features().toArray();
           for (DecisionTreeModel tree : model.trees()) {
@@ -320,14 +319,12 @@ public final class RDFUpdate extends MLUpdate<String> {
               Split split = node.split().get();
               int featureIndex = split.feature();
               // Count feature
-              featureIndexCount.addValue(featureIndex, 1);
+              featureIndexCount.addToValue(featureIndex, 1);
               node = nextNode(featureVector, node, split, featureIndex);
             }
           }
         });
-        // Clone to avoid problem with Kryo serializing Koloboke
-        return Collections.<Map<Integer,Long>>singleton(
-            new HashMap<>(featureIndexCount)).iterator();
+        return Collections.singleton(featureIndexCount).iterator();
     }).reduce(RDFUpdate::merge);
   }
 
@@ -352,17 +349,12 @@ public final class RDFUpdate extends MLUpdate<String> {
     }
   }
 
-  private static <T> Map<T,Long> merge(Map<T,Long> a, Map<T,Long> b) {
+  private static IntLongHashMap merge(IntLongHashMap a, IntLongHashMap b) {
     if (b.size() > a.size()) {
       return merge(b, a);
     }
-    b.forEach((key, value) -> a.merge(key, value, (x, y) -> x + y));
+    b.forEachKeyValue(a::addToValue);
     return a;
-  }
-
-  private static <T> long get(Map<T,Long> map, T key) {
-    Long count = map.get(key);
-    return count == null ? 0L : count;
   }
 
   private PMML rdfModelToPMML(RandomForestModel rfModel,
@@ -370,8 +362,8 @@ public final class RDFUpdate extends MLUpdate<String> {
                               int maxDepth,
                               int maxSplitCandidates,
                               String impurity,
-                              List<? extends Map<Integer,Long>> nodeIDCounts,
-                              Map<Integer,Long> predictorIndexCounts) {
+                              List<? extends IntLongMap> nodeIDCounts,
+                              IntLongMap predictorIndexCounts) {
 
     boolean classificationTask = rfModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
@@ -422,7 +414,7 @@ public final class RDFUpdate extends MLUpdate<String> {
 
   private TreeModel toTreeModel(DecisionTreeModel dtModel,
                                 CategoricalValueEncodings categoricalValueEncodings,
-                                Map<Integer,Long> nodeIDCounts) {
+                                IntLongMap nodeIDCounts) {
 
     boolean classificationTask = dtModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
@@ -448,7 +440,7 @@ public final class RDFUpdate extends MLUpdate<String> {
       modelNode.setPredicate(predicate);
 
       org.apache.spark.mllib.tree.model.Node treeNode = treeNodePredicate.getFirst();
-      long nodeCount = get(nodeIDCounts, treeNode.id());
+      long nodeCount = nodeIDCounts.get(treeNode.id());
       modelNode.setRecordCount((double) nodeCount);
 
       if (treeNode.isLeaf()) {
@@ -492,7 +484,7 @@ public final class RDFUpdate extends MLUpdate<String> {
         org.apache.spark.mllib.tree.model.Node rightTreeNode = treeNode.rightNode().get();
         org.apache.spark.mllib.tree.model.Node leftTreeNode = treeNode.leftNode().get();
 
-        boolean defaultRight = get(nodeIDCounts, rightTreeNode.id()) > get(nodeIDCounts, leftTreeNode.id());
+        boolean defaultRight = nodeIDCounts.get(rightTreeNode.id()) > nodeIDCounts.get(leftTreeNode.id());
         modelNode.setDefaultChild(defaultRight ? positiveModelNode.getId() : negativeModelNode.getId());
 
         // Right node is "positive", so carries the predicate. It must evaluate first
@@ -528,7 +520,7 @@ public final class RDFUpdate extends MLUpdate<String> {
       // So the predicate will evaluate "not in" this set
       // More ugly casting
       @SuppressWarnings("unchecked")
-      List<Double> javaCategories = (List<Double>) (List<?>)
+      Collection<Double> javaCategories = (Collection<Double>) (Collection<?>)
           JavaConversions.seqAsJavaList(split.categories());
       Set<Integer> negativeEncodings = javaCategories.stream().map(Double::intValue).collect(Collectors.toSet());
 
@@ -548,11 +540,11 @@ public final class RDFUpdate extends MLUpdate<String> {
     }
   }
 
-  private double[] countsToImportances(Map<Integer,Long> predictorIndexCounts) {
+  private double[] countsToImportances(IntLongMap predictorIndexCounts) {
     double[] importances = new double[inputSchema.getNumPredictors()];
-    long total = predictorIndexCounts.values().stream().mapToLong(l -> l).sum();
+    long total = predictorIndexCounts.sum();
     Preconditions.checkArgument(total > 0);
-    predictorIndexCounts.forEach((k, count) -> importances[k] = (double) count / total);
+    predictorIndexCounts.forEachKeyValue((k, count) -> importances[k] = (double) count / total);
     return importances;
   }
 

@@ -14,7 +14,6 @@
  */
 
 /**
- * Collection-related utility methods and support classes, related to the Java Collections API
- * and other collections libraries like Koloboke.
+ * Collection-related utility methods and support classes.
  */
 package com.cloudera.oryx.common.collection;
