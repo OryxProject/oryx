@@ -31,14 +31,13 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.koloboke.function.ObjDoubleToDoubleFunction;
-
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.ToDoubleObjDoubleBiFunction;
 
 /**
  * <p>Responds to a GET request to
@@ -84,7 +83,7 @@ public final class RecommendWithContext extends AbstractALSResource {
     }
 
     Predicate<String> allowedFn = v -> !knownItems.contains(v);
-    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    ToDoubleObjDoubleBiFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getRecommendRescorer(Collections.singletonList(userID),

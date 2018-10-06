@@ -30,14 +30,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.PathSegment;
 
-import com.koloboke.function.ObjDoubleToDoubleFunction;
-
 import com.cloudera.oryx.api.serving.OryxServingException;
 import com.cloudera.oryx.app.als.Rescorer;
 import com.cloudera.oryx.app.als.RescorerProvider;
 import com.cloudera.oryx.app.serving.IDValue;
 import com.cloudera.oryx.app.serving.als.model.ALSServingModel;
 import com.cloudera.oryx.common.collection.Pair;
+import com.cloudera.oryx.common.lang.ToDoubleObjDoubleBiFunction;
 
 /**
  * <p>Responds to a GET request to
@@ -84,7 +83,7 @@ public final class Similarity extends AbstractALSResource {
     }
 
     Predicate<String> allowedFn = v -> !knownItems.contains(v);
-    ObjDoubleToDoubleFunction<String> rescoreFn = null;
+    ToDoubleObjDoubleBiFunction<String> rescoreFn = null;
     RescorerProvider rescorerProvider = getALSServingModel().getRescorerProvider();
     if (rescorerProvider != null) {
       Rescorer rescorer = rescorerProvider.getMostSimilarItemsRescorer(rescorerParams);

@@ -27,8 +27,7 @@ import java.util.function.ToIntBiFunction;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
-import com.koloboke.collect.map.ObjIntMap;
-import com.koloboke.collect.map.hash.HashObjIntMaps;
+import org.eclipse.collections.impl.map.mutable.primitive.ObjectIntHashMap;
 
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -45,7 +44,7 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
   private final FeatureVectorsPartition[] partitions;
   private final ToIntBiFunction<String,float[]> partitioner;
   /** Maps item IDs to their existing partition, if any */
-  private final ObjIntMap<String> partitionMap;
+  private final ObjectIntHashMap<String> partitionMap;
   /** Controls access to yPartitionMap. */
   private final AutoReadWriteLock partitionMapLock;
   private final ExecutorService executor;
@@ -66,7 +65,7 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
     for (int i = 0; i < numPartitions; i++) {
       partitions[i] = new FeatureVectorsPartition();
     }
-    partitionMap = HashObjIntMaps.newMutableMap();
+    partitionMap = ObjectIntHashMap.newMap();
     partitionMapLock = new AutoReadWriteLock();
     this.partitioner = partitioner;
     this.executor = executor;
@@ -152,7 +151,7 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
     // the partitioner might change its answer over time.
     int partition;
     try (AutoLock al = partitionMapLock.autoReadLock()) {
-      partition = partitionMap.getOrDefault(item, Integer.MIN_VALUE);
+      partition = partitionMap.getIfAbsent(item, Integer.MIN_VALUE);
     }
     if (partition < 0) {
       return null;
@@ -165,7 +164,7 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
     int newPartition = partitioner.applyAsInt(item, vector);
     // Exclusive update to mapping -- careful since other locks are acquired inside here
     try (AutoLock al = partitionMapLock.autoWriteLock()) {
-      int existingPartition = partitionMap.getOrDefault(item, Integer.MIN_VALUE);
+      int existingPartition = partitionMap.getIfAbsent(item, Integer.MIN_VALUE);
       if (existingPartition >= 0 && existingPartition != newPartition) {
         // Move from one to the other partition, so first remove old entry
         partitions[existingPartition].removeVector(item);
@@ -221,7 +220,7 @@ public final class PartitionedFeatureVectors implements FeatureVectors {
   @Override
   public String toString() {
     int maxSize = 16;
-    List<String> partitionSizes = new ArrayList<>(maxSize);
+    Collection<String> partitionSizes = new ArrayList<>(maxSize);
     for (int i = 0; i < partitions.length; i++) {
       int size = partitions[i].size();
       if (size > 0) {

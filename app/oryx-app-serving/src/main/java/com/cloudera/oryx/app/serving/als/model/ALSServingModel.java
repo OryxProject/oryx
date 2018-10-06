@@ -18,6 +18,7 @@ package com.cloudera.oryx.app.serving.als.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,14 +29,11 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.koloboke.collect.ObjCursor;
-import com.koloboke.collect.map.ObjIntMap;
-import com.koloboke.collect.map.ObjObjMap;
-import com.koloboke.collect.map.hash.HashObjIntMaps;
-import com.koloboke.collect.map.hash.HashObjObjMaps;
-import com.koloboke.collect.set.ObjSet;
-import com.koloboke.collect.set.hash.HashObjSets;
-import com.koloboke.function.ObjDoubleToDoubleFunction;
+import org.eclipse.collections.api.map.MutableMap;
+import org.eclipse.collections.api.set.MutableSet;
+import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import org.eclipse.collections.impl.map.mutable.primitive.ObjectIntHashMap;
+import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +47,7 @@ import com.cloudera.oryx.common.collection.Pair;
 import com.cloudera.oryx.common.collection.Pairs;
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
+import com.cloudera.oryx.common.lang.ToDoubleObjDoubleBiFunction;
 import com.cloudera.oryx.common.math.Solver;
 
 /**
@@ -68,11 +67,11 @@ public final class ALSServingModel implements ServingModel {
   /** Item-feature matrix. This is partitioned into several maps for parallel access. */
   private final PartitionedFeatureVectors Y;
   /** Remembers items that each user has interacted with*/
-  private final ObjObjMap<String,ObjSet<String>> knownItems; // Right now no corresponding "knownUsers" object
+  private final MutableMap<String,MutableSet<String>> knownItems; // Right now no corresponding "knownUsers" object
   private final AutoReadWriteLock knownItemsLock;
-  private final ObjSet<String> expectedUserIDs;
+  private final MutableSet<String> expectedUserIDs;
   private final AutoReadWriteLock expectedUserIDsLock;
-  private final ObjSet<String> expectedItemIDs;
+  private final MutableSet<String> expectedItemIDs;
   private final AutoReadWriteLock expectedItemIDsLock;
   private final SolverCache cachedYTYSolver;
   /** Number of features used in the model. */
@@ -102,12 +101,12 @@ public final class ALSServingModel implements ServingModel {
         executor,
         (String id, float[] vector) -> lsh.getIndexFor(vector));
 
-    knownItems = HashObjObjMaps.newMutableMap();
+    knownItems = UnifiedMap.newMap();
     knownItemsLock = new AutoReadWriteLock();
 
-    expectedUserIDs = HashObjSets.newMutableSet();
+    expectedUserIDs = UnifiedSet.newSet();
     expectedUserIDsLock = new AutoReadWriteLock();
-    expectedItemIDs = HashObjSets.newMutableSet();
+    expectedItemIDs = UnifiedSet.newSet();
     expectedItemIDsLock = new AutoReadWriteLock();
 
     cachedYTYSolver = new SolverCache(executor, Y);
@@ -161,20 +160,20 @@ public final class ALSServingModel implements ServingModel {
    * @return set of known items for the user (immutable, but thread-safe)
    */
   public Set<String> getKnownItems(String user) {
-    ObjSet<String> knownItems = doGetKnownItems(user);
-    if (knownItems == null) {
+    MutableSet<String> knownItemsForUser = doGetKnownItems(user);
+    if (knownItemsForUser == null) {
       return Collections.emptySet();
     }
-    synchronized (knownItems) {
-      if (knownItems.isEmpty()) {
+    synchronized (knownItemsForUser) {
+      if (knownItemsForUser.isEmpty()) {
         return Collections.emptySet();
       }
       // Must copy since the original object is synchronized
-      return HashObjSets.newImmutableSet(knownItems);
+      return knownItemsForUser.clone().asUnmodifiable();
     }
   }
 
-  private ObjSet<String> doGetKnownItems(String user) {
+  private MutableSet<String> doGetKnownItems(String user) {
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       return knownItems.get(user);
     }
@@ -184,14 +183,15 @@ public final class ALSServingModel implements ServingModel {
    * @return mapping of user IDs to count of items the user has interacted with
    */
   public Map<String,Integer> getUserCounts() {
-    ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
+    Map<String,Integer> counts;
     try (AutoLock al = knownItemsLock.autoReadLock()) {
+      counts = new HashMap<>(knownItems.size());
       knownItems.forEach((userID, ids) -> {
         int numItems;
         synchronized (ids) {
           numItems = ids.size();
         }
-        counts.addValue(userID, numItems);
+        counts.put(userID, numItems);
       });
     }
     return counts;
@@ -201,25 +201,28 @@ public final class ALSServingModel implements ServingModel {
    * @return mapping of item IDs to count of users that have interacted with that item
    */
   public Map<String,Integer> getItemCounts() {
-    ObjIntMap<String> counts = HashObjIntMaps.newUpdatableMap();
+    ObjectIntHashMap<String> counts = ObjectIntHashMap.newMap();
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       knownItems.values().forEach(ids -> {
         synchronized (ids) {
-          ids.forEach(id -> counts.addValue(id, 1));
+          ids.forEach(id -> counts.addToValue(id, 1));
         }
       });
     }
-    return counts;
+    // No way to get Java map from primitive map directly (?)
+    Map<String,Integer> javaCounts = new HashMap<>(counts.size());
+    counts.forEachKeyValue(javaCounts::put);
+    return javaCounts;
   }
 
   void addKnownItems(String user, Collection<String> items) {
     if (!items.isEmpty()) {
-      ObjSet<String> knownItemsForUser = doGetKnownItems(user);
+      MutableSet<String> knownItemsForUser = doGetKnownItems(user);
 
       if (knownItemsForUser == null) {
         try (AutoLock al = knownItemsLock.autoWriteLock()) {
           // Check again
-          knownItemsForUser = knownItems.computeIfAbsent(user, k -> HashObjSets.newMutableSet());
+          knownItemsForUser = knownItems.computeIfAbsent(user, k -> UnifiedSet.newSet());
         }
       }
 
@@ -238,17 +241,17 @@ public final class ALSServingModel implements ServingModel {
     if (userVector == null) {
       return null;
     }
-    Collection<String> knownItems = doGetKnownItems(user);
-    if (knownItems == null) {
+    Collection<String> knownItemsForUser = doGetKnownItems(user);
+    if (knownItemsForUser == null) {
       return null;
     }
-    synchronized (knownItems) {
-      int size = knownItems.size();
+    synchronized (knownItemsForUser) {
+      int size = knownItemsForUser.size();
       if (size == 0) {
         return null;
       }
       List<Pair<String,float[]>> idVectors = new ArrayList<>(size);
-      for (String itemID : knownItems) {
+      for (String itemID : knownItemsForUser) {
         float[] vector = getItemVector(itemID);
         if (vector != null) {
           idVectors.add(new Pair<>(itemID, vector));
@@ -260,7 +263,7 @@ public final class ALSServingModel implements ServingModel {
 
   public Stream<Pair<String,Double>> topN(
       CosineDistanceSensitiveFunction scoreFn,
-      ObjDoubleToDoubleFunction<String> rescoreFn,
+      ToDoubleObjDoubleBiFunction<String> rescoreFn,
       int howMany,
       Predicate<String> allowedPredicate) {
     int[] candidateIndices = lsh.getCandidateIndices(scoreFn.getTargetVector());
@@ -279,7 +282,7 @@ public final class ALSServingModel implements ServingModel {
    * @return all user IDs in the model
    */
   public Collection<String> getAllUserIDs() {
-    Collection<String> allUserIDs = HashObjSets.newMutableSet();
+    Collection<String> allUserIDs = UnifiedSet.newSet(X.size());
     X.addAllIDsTo(allUserIDs);
     return allUserIDs;
   }
@@ -288,7 +291,7 @@ public final class ALSServingModel implements ServingModel {
    * @return all item IDs in the model
    */
   public Collection<String> getAllItemIDs() {
-    Collection<String> allItemIDs = HashObjSets.newMutableSet();
+    Collection<String> allItemIDs = UnifiedSet.newSet(Y.size());
     Y.addAllIDsTo(allItemIDs);
     return allItemIDs;
   }
@@ -345,34 +348,22 @@ public final class ALSServingModel implements ServingModel {
    */
   void retainRecentAndKnownItems(Collection<String> users, Collection<String> items) {
     // Keep all users in the new model, or, that have been added since last model
-    Collection<String> recentUserIDs = HashObjSets.newMutableSet();
+    MutableSet<String> recentUserIDs = UnifiedSet.newSet();
     X.addAllRecentTo(recentUserIDs);
     try (AutoLock al = knownItemsLock.autoWriteLock()) {
-      knownItems.removeIf((key, value) -> !users.contains(key) && !recentUserIDs.contains(key));
+      knownItems.keySet().removeIf(key -> !users.contains(key) && !recentUserIDs.contains(key));
     }
 
     // This will be easier to quickly copy the whole (smallish) set rather than
     // deal with locks below
-    Collection<String> allRecentKnownItems = HashObjSets.newMutableSet();
+    MutableSet<String> allRecentKnownItems = UnifiedSet.newSet();
     Y.addAllRecentTo(allRecentKnownItems);
 
     Predicate<String> notKeptOrRecent = value -> !items.contains(value) && !allRecentKnownItems.contains(value);
     try (AutoLock al = knownItemsLock.autoReadLock()) {
       knownItems.values().forEach(knownItemsForUser -> {
         synchronized (knownItemsForUser) {
-          // knownItemsForUser.removeIf(notKeptOrRecent);
-          // TODO remove this temporary hack workaround and restore above
-          // see https://github.com/OryxProject/oryx/issues/304
-          ObjCursor<?> cursor = knownItemsForUser.cursor();
-          while (cursor.moveNext()) {
-            Object o = cursor.elem();
-            if (!(o instanceof String)) {
-              log.warn("Found non-String collection: {}", o);
-              cursor.remove();
-            } else if (notKeptOrRecent.test((String) o)) {
-              cursor.remove();
-            }
-          }
+          knownItemsForUser.removeIf(notKeptOrRecent);
         }
       });
     }

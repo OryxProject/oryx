@@ -18,10 +18,9 @@ package com.cloudera.oryx.app.als;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
-import com.koloboke.collect.map.ObjObjMap;
-import com.koloboke.collect.map.hash.HashObjObjMaps;
-import com.koloboke.collect.set.ObjSet;
-import com.koloboke.collect.set.hash.HashObjSets;
+import org.eclipse.collections.api.set.MutableSet;
+import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import com.cloudera.oryx.common.lang.AutoLock;
 import com.cloudera.oryx.common.lang.AutoReadWriteLock;
@@ -35,13 +34,13 @@ import com.cloudera.oryx.common.math.VectorMath;
  */
 public final class FeatureVectorsPartition implements FeatureVectors {
 
-  private final ObjObjMap<String,float[]> vectors;
-  private final ObjSet<String> recentIDs;
+  private final UnifiedMap<String,float[]> vectors;
+  private final MutableSet<String> recentIDs;
   private final AutoReadWriteLock lock;
 
   public FeatureVectorsPartition() {
-    vectors = HashObjObjMaps.newMutableMap();
-    recentIDs = HashObjSets.newMutableSet();
+    vectors = UnifiedMap.newMap();
+    recentIDs = UnifiedSet.newSet();
     lock = new AutoReadWriteLock();
   }
 
@@ -101,7 +100,7 @@ public final class FeatureVectorsPartition implements FeatureVectors {
   @Override
   public void retainRecentAndIDs(Collection<String> newModelIDs) {
     try (AutoLock al = lock.autoWriteLock()) {
-      vectors.removeIf((key, value) -> !newModelIDs.contains(key) && !recentIDs.contains(key));
+      vectors.keySet().removeIf(key -> !newModelIDs.contains(key) && !recentIDs.contains(key));
       recentIDs.clear();
     }
   }
