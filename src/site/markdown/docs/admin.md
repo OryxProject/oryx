@@ -2,7 +2,7 @@ title: Docs: Admin
 
 # Cluster Setup
 
-The following are required as of Oryx 2.8.0:
+The following are required as of Oryx 2.9.0:
 
 - Java 8 or later (JRE only is required)
 - Scala 2.11 or later
@@ -18,8 +18,8 @@ This table summarizes the version of several key components targeted by each ver
 
 | Oryx        | Spark | Hadoop  | Suggested CDH   |
 | ----------- | ----- | ------- | --------------- |
+| 2.9.x       | 2.4.x | 3.0+    | 6.0+            |
 | 2.8.x       | 2.4.x | 3.0+    | 6.0+            |
-| 2.7.x       | 2.3.x | 2.7+    | 5.15+           |
 
 Previous versions supported older versions, though are no longer maintained:
 
