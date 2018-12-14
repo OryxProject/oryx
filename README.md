@@ -1,5 +1,8 @@
 <img align="right" src="http://oryx.io/img/OryxLogoMedium.png" />
-rui tang  --test
+rui tang  --test2
+
+
+
 Oryx 2 is a realization of the lambda architecture built on [Apache Spark](http://spark.apache.org) 
 and [Apache Kafka](http://kafka.apache.org), but with specialization for real-time large scale machine 
 learning. It is a framework for building applications, but also includes packaged, end-to-end 
