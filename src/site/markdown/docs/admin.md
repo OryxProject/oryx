@@ -5,7 +5,7 @@ title: Docs: Admin
 The following are required as of Oryx 2.9.0:
 
 - Java 8 or later (JRE only is required)
-- Scala 2.11 or later
+- Scala 2.12 or later
 - A [Apache Hadoop](https://hadoop.apache.org/) cluster running the following components:
     - [Apache Hadoop](https://hadoop.apache.org/) 3.0 or later
     - [Apache Zookeeper](https://zookeeper.apache.org/) 3.4.5 or later
@@ -16,10 +16,10 @@ The following are required as of Oryx 2.9.0:
 
 This table summarizes the version of several key components targeted by each version.
 
-| Oryx        | Spark | Hadoop  | Suggested CDH   |
-| ----------- | ----- | ------- | --------------- |
-| 2.9.x       | 2.4.x | 3.0+    | 6.0+            |
-| 2.8.x       | 2.4.x | 3.0+    | 6.0+            |
+| Oryx        | Scala | Spark | Hadoop  | Suggested CDH   |
+| ----------- | ----- | ----- | ------- | --------------- |
+| 2.9.x       | 2.12  | 2.4.x | 3.0+    | 6.0+            |
+| 2.8.x       | 2.11  | 2.4.x | 3.0+    | 6.0+            |
 
 Previous versions supported older versions, though are no longer maintained:
 

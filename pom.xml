@@ -298,6 +298,12 @@
         <artifactId>jackson-module-scala_${scala.minor.version}</artifactId>
         <version>${jackson.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.thoughtworks.paranamer</groupId>
+        <artifactId>paranamer</artifactId>
+        <version>2.8</version>
+        <scope>runtime</scope>
+      </dependency>
 
       <dependency>
         <groupId>javax.xml.bind</groupId>
@@ -568,8 +574,8 @@
     <!-- Dependency versions -->
     <java.version>1.8</java.version>
     <!-- Match this with what Spark version wants -->
-    <scala.minor.version>2.11</scala.minor.version>
-    <scala.complete.version>${scala.minor.version}.12</scala.complete.version>
+    <scala.minor.version>2.12</scala.minor.version>
+    <scala.complete.version>${scala.minor.version}.8</scala.complete.version>
     <ec.version>10.0.0.M2</ec.version>
     <hadoop.version>3.1.1</hadoop.version>
     <jackson.version>2.8.11</jackson.version>
