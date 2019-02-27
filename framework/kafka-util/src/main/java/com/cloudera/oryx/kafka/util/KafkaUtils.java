@@ -125,7 +125,7 @@ public final class KafkaUtils {
       offsets.forEach((topicAndPartition, offset) -> {
         String topic = topicAndPartition.getFirst();
         int partition = topicAndPartition.getSecond();
-        String partitionOffsetPath = "/consumers/" + groupID + "/offsets/" + topic + "/" + partition;
+        String partitionOffsetPath = "/consumers/" + groupID + "/offsets/" + topic + '/' + partition;
         zkUtils.updatePersistentPath(partitionOffsetPath,
                                      Long.toString(offset),
                                      ZkUtils$.MODULE$.defaultAcls(false, ""));

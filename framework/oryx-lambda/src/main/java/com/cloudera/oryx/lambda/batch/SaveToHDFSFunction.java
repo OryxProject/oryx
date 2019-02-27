@@ -65,7 +65,7 @@ final class SaveToHDFSFunction<K,M> implements VoidFunction2<JavaPairRDD<K,M>,Ti
     if (rdd.isEmpty()) {
       log.info("RDD was empty, not saving to HDFS");
     } else {
-      String file = prefix + "-" + time.milliseconds() + "." + suffix;
+      String file = prefix + '-' + time.milliseconds() + '.' + suffix;
       Path path = new Path(file);
       FileSystem fs = FileSystem.get(path.toUri(), hadoopConf);
       if (fs.exists(path)) {

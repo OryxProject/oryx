@@ -46,7 +46,7 @@ final class UserItemStrength implements Serializable {
 
   @Override
   public String toString() {
-    return user + "," + item + "," + strength;
+    return user + ',' + item + ',' + strength;
   }
 
 }

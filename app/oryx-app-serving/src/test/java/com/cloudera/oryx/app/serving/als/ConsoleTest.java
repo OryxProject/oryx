@@ -25,10 +25,12 @@ public final class ConsoleTest extends AbstractALSServingTest {
 
   @Test
   public void testConsole() {
-    Response response = target("/index.html").request().accept(MediaType.TEXT_HTML).get();
-    Assert.assertEquals("public", response.getHeaderString("Cache-Control"));
-    Assert.assertEquals("SAMEORIGIN", response.getHeaderString("X-Frame-Options"));
-    String html = response.readEntity(String.class);
+    String html;
+    try (Response response = target("/index.html").request().accept(MediaType.TEXT_HTML).get()) {
+      Assert.assertEquals("public", response.getHeaderString("Cache-Control"));
+      Assert.assertEquals("SAMEORIGIN", response.getHeaderString("X-Frame-Options"));
+      html = response.readEntity(String.class);
+    }
     String[] substrings = {
         "DOCTYPE",
         "Oryx Serving Layer",

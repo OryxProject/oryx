@@ -29,8 +29,9 @@ public final class ReadOnlyTest extends AbstractRDFServingTest {
 
   @Test
   public void testNoTrain() {
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(),
-                        target("/train").request().post(Entity.text(TrainTest.TRAIN_DATA)).getStatus());
+    try (Response response = target("/train").request().post(Entity.text(TrainTest.TRAIN_DATA))) {
+      Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
   }
 
   @Override

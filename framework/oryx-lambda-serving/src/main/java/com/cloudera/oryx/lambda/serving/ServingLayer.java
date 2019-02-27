@@ -112,8 +112,8 @@ public final class ServingLayer implements Closeable {
     }
     this.contextPathURIBase = contextPathString;
     this.appResourcesPackages =
-        config.getString("oryx.serving.application-resources") + "," +
-        "com.cloudera.oryx.lambda.serving"; // Always append package for e.g. error page
+        config.getString("oryx.serving.application-resources") +
+        ",com.cloudera.oryx.lambda.serving"; // Always append package for e.g. error page
     // For tests only:
     this.doNotInitTopics = config.getBoolean("oryx.serving.no-init-topics");
   }

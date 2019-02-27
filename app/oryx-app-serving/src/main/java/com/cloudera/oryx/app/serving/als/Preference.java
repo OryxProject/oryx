@@ -65,7 +65,7 @@ public final class Preference extends AbstractALSResource {
   }
 
   private void sendToTopic(String userID, String itemID, String value) {
-    sendInput(userID + "," + itemID + "," + value + "," + System.currentTimeMillis());
+    sendInput(userID + ',' + itemID + ',' + value + ',' + System.currentTimeMillis());
   }
 
   static String validateAndStandardizeStrength(String raw) throws OryxServingException {

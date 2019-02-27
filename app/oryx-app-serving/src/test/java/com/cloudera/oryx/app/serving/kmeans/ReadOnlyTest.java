@@ -29,8 +29,9 @@ public final class ReadOnlyTest extends AbstractKMeansServingTest {
 
   @Test
   public void testNoAdd() {
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(),
-                        target("/add").request().post(Entity.text(AddTest.ADD_DATA)).getStatus());
+    try (Response response = target("/add").request().post(Entity.text(AddTest.ADD_DATA))) {
+      Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
   }
 
   @Override

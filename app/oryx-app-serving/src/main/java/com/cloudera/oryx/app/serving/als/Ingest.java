@@ -110,7 +110,7 @@ public final class Ingest extends AbstractALSResource {
         strength = "1";
         timestamp = System.currentTimeMillis();
       }
-      sendInput(userID + "," + itemID + "," + strength + "," + timestamp);
+      sendInput(userID + ',' + itemID + ',' + strength + ',' + timestamp);
     }
   }
 }

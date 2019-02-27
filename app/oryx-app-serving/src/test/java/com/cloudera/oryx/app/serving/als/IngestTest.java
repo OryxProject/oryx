@@ -43,24 +43,27 @@ public final class IngestTest extends AbstractALSServingTest {
 
   @Test
   public void testSimpleIngest() {
-    checkResponse(target("/ingest").request().post(Entity.text(INGEST_DATA)));
+    try (Response response = target("/ingest").request().post(Entity.text(INGEST_DATA))) {
+      checkResponse(response);
+    }
   }
 
   @Test
   public void testGZippedIngest() {
     byte[] compressed = compress(INGEST_DATA, GZIPOutputStream.class);
-    Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "gzip"));
-    Response response = target("/ingest").request().post(entity);
-    checkResponse(response);
+    Entity<byte[]> entity = Entity.entity(compressed, compressedVariant("gzip"));
+    try (Response response = target("/ingest").request().post(entity)) {
+      checkResponse(response);
+    }
   }
 
   @Test
   public void testDeflateIngest() {
     byte[] compressed = compress(INGEST_DATA, DeflaterOutputStream.class);
-    Entity<byte[]> entity = Entity.entity(
-        compressed, compressedVariant(MediaType.TEXT_PLAIN_TYPE, "deflate"));
-    checkResponse(target("/ingest").request().post(entity));
+    Entity<byte[]> entity = Entity.entity(compressed, compressedVariant("deflate"));
+    try (Response response = target("/ingest").request().post(entity)) {
+      checkResponse(response);
+    }
   }
 
   @Test
@@ -78,8 +81,8 @@ public final class IngestTest extends AbstractALSServingTest {
     checkResponse(getFormPostResponse(INGEST_DATA, "/ingest", ZipOutputStream.class, "zip"));
   }
 
-  private static Variant compressedVariant(MediaType contentType, String contentEncoding) {
-    return Variant.mediaTypes(contentType).encodings(contentEncoding).build().get(0);
+  private static Variant compressedVariant(String contentEncoding) {
+    return Variant.mediaTypes(MediaType.TEXT_PLAIN_TYPE).encodings(contentEncoding).build().get(0);
   }
 
   private static void checkResponse(Response response) {

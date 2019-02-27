@@ -48,7 +48,7 @@ public final class ALSUtilsTest extends OryxTest {
    * @return string like "A0", "B1", ... "A26" ...
    */
   public static String idToStringID(int id) {
-    return Character.toString((char) ('A' + Integer.remainderUnsigned(id, 26))) + Integer.toString(id);
+    return Character.toString((char) ('A' + Integer.remainderUnsigned(id, 26))) + id;
   }
 
   /**

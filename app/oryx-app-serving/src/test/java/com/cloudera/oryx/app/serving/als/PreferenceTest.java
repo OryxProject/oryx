@@ -32,28 +32,32 @@ public final class PreferenceTest extends AbstractALSServingTest {
 
   @Test
   public void testPostJson() {
-    Response response = target("/pref/U1/I1").request()
-        .post(Entity.entity(PREFERENCE_DATA, MediaType.APPLICATION_JSON));
-    checkResponse(response, "U1", "I1", "2.5");
+    try (Response response = target("/pref/U1/I1").request().post(
+        Entity.entity(PREFERENCE_DATA, MediaType.APPLICATION_JSON))) {
+      checkResponse(response, "U1", "I1", "2.5");
+    }
   }
 
   @Test
   public void testPostWithEmptyItemValue() {
-    Response response = target("/pref/U2/I2").request().post(Entity.text(""));
-    checkResponse(response, "U2", "I2", "1");
+    try (Response response = target("/pref/U2/I2").request().post(Entity.text(""))) {
+      checkResponse(response, "U2", "I2", "1");
+    }
   }
 
   @Test
   public void testPostWithBadItemValue() {
-    Response response = target("/pref/U2/I2").request().post(Entity.text("aBc!"));
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    try (Response response = target("/pref/U2/I2").request().post(Entity.text("aBc!"))) {
+      Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    }
   }
 
   @Test
   public void testPostCSV() {
-    Response response = target("/pref/U1/I1").request()
-        .post(Entity.entity(PREFERENCE_DATA, "text/csv"));
-    checkResponse(response, "U1", "I1", "2.5");
+    try (Response response = target("/pref/U1/I1").request().post(
+        Entity.entity(PREFERENCE_DATA, "text/csv"))) {
+      checkResponse(response, "U1", "I1", "2.5");
+    }
   }
 
   @Test

@@ -95,7 +95,6 @@ public final class ALSUpdate extends MLUpdate<String> {
     noKnownItems = config.getBoolean("oryx.als.no-known-items");
     decayFactor = config.getDouble("oryx.als.decay.factor");
     decayZeroThreshold = config.getDouble("oryx.als.decay.zero-threshold");
-    Preconditions.checkArgument(iterations > 0);
     Preconditions.checkArgument(decayFactor > 0.0 && decayFactor <= 1.0);
     Preconditions.checkArgument(decayZeroThreshold >= 0.0);
   }

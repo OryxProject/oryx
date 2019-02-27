@@ -62,12 +62,12 @@ final class FileItemPart implements Part {
 
   @Override
   public void write(String fileName) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("write");
   }
 
   @Override
   public void delete() {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("delete");
   }
 
   @Override

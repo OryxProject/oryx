@@ -17,9 +17,9 @@ package com.cloudera.oryx.example.batch;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,11 +57,11 @@ public final class ExampleBatchLayerUpdate implements BatchLayerUpdate<String,St
 
   public static Map<String,Integer> countDistinctOtherWords(JavaPairRDD<String,String> data) {
     return data.values().flatMapToPair(line -> {
-      Set<String> distinctTokens = new HashSet<>(Arrays.asList(line.split(" ")));
+      Collection<String> distinctTokens = new HashSet<>(Arrays.asList(line.split(" ")));
       return distinctTokens.stream().flatMap(a ->
         distinctTokens.stream().filter(b -> !a.equals(b)).map(b -> new Tuple2<>(a, b))
       ).iterator();
-    }).distinct().mapValues(a -> 1).reduceByKey((c1, c2) -> c1 + c2).collectAsMap();
+    }).distinct().mapValues(a -> 1).reduceByKey(Integer::sum).collectAsMap();
   }
 
 }

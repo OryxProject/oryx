@@ -49,7 +49,7 @@ final class RandomALSDataGenerator implements DatumGenerator<String,String> {
     String userString = ALSUtilsTest.idToStringID(random.nextInt(numUsers));
     String itemString = ALSUtilsTest.idToStringID(random.nextInt(numProducts));
     int rating = random.nextInt(maxRating - minRating + 1) + minRating;
-    String datum = userString + "," +  itemString + "," + rating + "," + System.currentTimeMillis();
+    String datum = userString + ',' +  itemString + ',' + rating + ',' + System.currentTimeMillis();
     return new Pair<>(Integer.toString(id), datum);
   }
 

@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import com.typesafe.config.Config;
@@ -194,11 +195,13 @@ public final class ALSUpdateIT extends AbstractALSIT {
     Collection<String> seenIDs = new HashSet<>();
     for (Path file : IOUtils.listFiles(path, "part-*")) {
       Path uncompressedFile = copyAndUncompress(file);
-      Files.lines(uncompressedFile).forEach(line -> {
-        List<?> update = TextUtils.readJSON(line, List.class);
-        seenIDs.add(update.get(0).toString());
-        assertEquals(FEATURES, TextUtils.convertViaJSON(update.get(1), float[].class).length);
-      });
+      try (Stream<String> lines = Files.lines(uncompressedFile)) {
+        lines.forEach(line -> {
+          List<?> update = TextUtils.readJSON(line, List.class);
+          seenIDs.add(update.get(0).toString());
+          assertEquals(FEATURES, TextUtils.convertViaJSON(update.get(1), float[].class).length);
+        });
+      }
       Files.delete(uncompressedFile);
     }
     assertNotEquals(0, seenIDs.size());

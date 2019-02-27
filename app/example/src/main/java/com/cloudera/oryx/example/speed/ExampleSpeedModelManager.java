@@ -67,7 +67,7 @@ public final class ExampleSpeedModelManager extends AbstractSpeedModelManager<St
         newCount = count + distinctOtherWords.getOrDefault(word, 0);
         distinctOtherWords.put(word, newCount);
       }
-      return word + "," + newCount;
+      return word + ',' + newCount;
     }).collect(Collectors.toList());
   }
 

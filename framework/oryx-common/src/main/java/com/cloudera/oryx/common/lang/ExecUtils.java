@@ -94,7 +94,7 @@ public final class ExecUtils {
                                           int parallelism,
                                           boolean privatePool,
                                           Function<Integer,T> task,
-                                          Collector<T,?,R> collector) {
+                                          Collector<? super T,?,R> collector) {
     Preconditions.checkArgument(numTasks >= 1);
     Preconditions.checkArgument(parallelism >= 1);
     Objects.requireNonNull(task);

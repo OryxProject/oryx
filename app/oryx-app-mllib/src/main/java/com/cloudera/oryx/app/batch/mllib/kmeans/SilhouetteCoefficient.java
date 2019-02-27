@@ -105,7 +105,7 @@ final class SilhouetteCoefficient extends AbstractKMeansEvaluation {
   }
 
   private double clusterDissimilarityForPoint(double[] point,
-                                              List<double[]> clusterPoints,
+                                              Collection<double[]> clusterPoints,
                                               boolean ownCluster) {
     DistanceFn<double[]> distanceFn = getDistanceFn();
     double totalDissimilarity = 0.0;

@@ -29,14 +29,16 @@ public final class ReadOnlyTest extends AbstractALSServingTest {
 
   @Test
   public void testNoIngest() {
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(),
-                        target("/ingest").request().post(Entity.text(IngestTest.INGEST_DATA)).getStatus());
+    try (Response response = target("/ingest").request().post(Entity.text(IngestTest.INGEST_DATA))) {
+      Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
   }
 
   @Test
   public void testNoPreference() {
-    Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(),
-                        target("/pref/U2/I2").request().post(Entity.text("aBc!")).getStatus());
+    try (Response response = target("/pref/U2/I2").request().post(Entity.text("aBc!"))) {
+      Assert.assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+    }
   }
 
   @Override

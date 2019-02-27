@@ -122,7 +122,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
   }
 
   protected final String getGroupID() {
-    return "OryxGroup-" + getLayerName() + "-" + getID();
+    return "OryxGroup-" + getLayerName() + '-' + getID();
   }
 
   protected final String getInputTopicLockMaster() {
@@ -151,7 +151,7 @@ public abstract class AbstractSparkLayer<K,M> implements Closeable {
     if (sparkConf.getOption("spark.app.name").isEmpty()) {
       String appName = "Oryx" + getLayerName();
       if (id != null) {
-        appName = appName + "-" + id;
+        appName = appName + '-' + id;
       }
       log.info("Overriding app name to {} for tests", appName);
       sparkConf.setAppName(appName);

@@ -24,13 +24,15 @@ public final class ReadyTest extends AbstractKMeansServingTest {
 
   @Test
   public void testGet() {
-    Response response = target("/ready").request().get();
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    try (Response response = target("/ready").request().get()) {
+      Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    }
   }
 
   @Test
   public void testHead() {
-    Response response = target("/ready").request().head();
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    try (Response response = target("/ready").request().head()) {
+      Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    }
   }
 }

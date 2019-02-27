@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.common.lang;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,7 +42,7 @@ public final class ExecUtilsTest extends OryxTest {
   }
 
   private static int maxActive(int numTasks, int parallelism, boolean privatePool) {
-    Set<Integer> active = new HashSet<>();
+    Collection<Integer> active = new HashSet<>();
     AtomicInteger maxActive = new AtomicInteger();
     ExecUtils.doInParallel(numTasks, parallelism, privatePool, i -> {
       synchronized (active) {
@@ -68,7 +69,7 @@ public final class ExecUtilsTest extends OryxTest {
   }
 
   private static int maxActiveCollect(int numTasks, int parallelism, boolean privatePool) {
-    Set<Integer> active = new HashSet<>();
+    Collection<Integer> active = new HashSet<>();
     AtomicInteger maxActive = new AtomicInteger();
     Set<Integer> completed = ExecUtils.collectInParallel(numTasks, parallelism, privatePool, i -> {
       synchronized (active) {

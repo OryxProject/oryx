@@ -29,14 +29,14 @@ public final class MockALSInputGenerator implements DatumGenerator<String,String
     String smallID = ALSUtilsTest.idToStringID(1 + id);
     if (id < 5) {
       return new Pair<>(Integer.toString(id),
-                        largeID + "," + smallID + ",1," + System.currentTimeMillis());
+                        largeID + ',' + smallID + ",1," + System.currentTimeMillis());
     } else if (id < 9){
       return new Pair<>(Integer.toString(id),
-                        smallID + "," + largeID + ",1," + System.currentTimeMillis());
+                        smallID + ',' + largeID + ",1," + System.currentTimeMillis());
     } else {
       // Delete
       return new Pair<>(Integer.toString(id),
-                        smallID + "," + largeID + ",," + System.currentTimeMillis());
+                        smallID + ',' + largeID + ",," + System.currentTimeMillis());
     }
   }
 

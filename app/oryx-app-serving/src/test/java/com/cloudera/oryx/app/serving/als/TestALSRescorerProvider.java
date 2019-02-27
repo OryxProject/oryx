@@ -15,6 +15,7 @@
 
 package com.cloudera.oryx.app.serving.als;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.cloudera.oryx.app.als.Rescorer;
@@ -33,7 +34,7 @@ public final class TestALSRescorerProvider implements RescorerProvider {
     }
   };
 
-  private static Rescorer buildRescorer(List<String> args) {
+  private static Rescorer buildRescorer(Collection<String> args) {
     return args == null || args.isEmpty() ? null : TEST_RESCORER;
   }
 

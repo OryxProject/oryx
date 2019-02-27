@@ -98,7 +98,7 @@ public final class SpeedLayer<K,M,U> extends AbstractSparkLayer<K,M> {
 
     KafkaConsumer<String,U> consumer = new KafkaConsumer<>(
         ConfigUtils.keyValueToProperties(
-            "group.id", "OryxGroup-" + getLayerName() + "-" + UUID.randomUUID(),
+            "group.id", "OryxGroup-" + getLayerName() + '-' + UUID.randomUUID(),
             "bootstrap.servers", updateBroker,
             "max.partition.fetch.bytes", maxMessageSize,
             "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer",

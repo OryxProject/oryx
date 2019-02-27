@@ -45,7 +45,7 @@ final class FeaturesALSDataGenerator implements DatumGenerator<String,String> {
     int randProduct = random.nextInt(numProducts);
     // Want product === user mod features
     int product = ((user % features) + (randProduct / features) * features) % numProducts;
-    String datum = ALSUtilsTest.idToStringID(user) + "," + ALSUtilsTest.idToStringID(product) +
+    String datum = ALSUtilsTest.idToStringID(user) + ',' + ALSUtilsTest.idToStringID(product) +
         ",1," + System.currentTimeMillis();
     return new Pair<>(Integer.toString(id), datum);
   }

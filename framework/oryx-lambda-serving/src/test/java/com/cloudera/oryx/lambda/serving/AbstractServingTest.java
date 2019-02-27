@@ -177,7 +177,7 @@ public abstract class AbstractServingTest extends JerseyTest {
     }
     @Override
     public final void consume(Iterator<KeyMessage<String, String>> updateIterator, Configuration hadoopConf) {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("consume");
     }
   }
 

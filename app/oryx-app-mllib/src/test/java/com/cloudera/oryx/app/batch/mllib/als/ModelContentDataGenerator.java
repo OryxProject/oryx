@@ -44,12 +44,12 @@ final class ModelContentDataGenerator implements DatumGenerator<String,String> {
       String userString = ALSUtilsTest.idToStringID(user);
       for (int item = user; item < NUM_USERS_ITEMS; item++) {
         String itemString = ALSUtilsTest.idToStringID(item);
-        data.add(userString + "," + itemString + ",1," + startTime++);
+        data.add(userString + ',' + itemString + ",1," + startTime++);
       }
     }
     for (int userItem = 0; userItem < NUM_USERS_ITEMS; userItem++) {
       String userItemString = ALSUtilsTest.idToStringID(userItem);
-      data.add(userItemString + "," + userItemString + ",," + startTime++);
+      data.add(userItemString + ',' + userItemString + ",," + startTime++);
     }
     data.add("A0,A0,1," + startTime);
   }

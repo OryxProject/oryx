@@ -58,7 +58,7 @@ public final class PredictTest extends AbstractRDFServingTest {
         .readEntity(String.class);
     double expectedValue1 = (1.0 + 2.0 * 100.0) / 3.0;
     double expectedValue2 = (10.0 + 2 * 1000.0) / 3;
-    Assert.assertEquals(expectedValue1 + "\n" + expectedValue2 + "\n", prediction);
+    Assert.assertEquals(expectedValue1 + "\n" + expectedValue2 + '\n', prediction);
   }
 
   private static void checkResponse(Response response) {

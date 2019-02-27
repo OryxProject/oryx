@@ -171,8 +171,8 @@ public final class RDFUpdateIT extends AbstractRDFIT {
       assertInstanceOf(leftChild.getPredicate(), True.class);
       assertEquals(node.getRecordCount().doubleValue(),
                    leftChild.getRecordCount() + rightChild.getRecordCount());
-      assertEquals(node.getId() + "+", rightChild.getId());
-      assertEquals(node.getId() + "-", leftChild.getId());
+      assertEquals(node.getId() + '+', rightChild.getId());
+      assertEquals(node.getId() + '-', leftChild.getId());
       checkNode(rightChild);
       checkNode(leftChild);
     } else {

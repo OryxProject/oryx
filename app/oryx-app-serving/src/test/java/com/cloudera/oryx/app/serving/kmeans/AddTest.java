@@ -37,18 +37,23 @@ public final class AddTest extends AbstractKMeansServingTest {
 
   @Test
   public void testSimpleAdd() {
-    checkResponse(target("/add").request().post(Entity.text(ADD_DATA)));
+    try (Response response = target("/add").request().post(Entity.text(ADD_DATA))) {
+      checkResponse(response);
+    }
   }
 
   @Test
   public void testFormAdd() throws Exception {
-    checkResponse(getFormPostResponse(ADD_DATA, "/add", null, null));
+    try (Response response = getFormPostResponse(ADD_DATA, "/add", null, null)) {
+      checkResponse(response);
+    }
   }
 
   @Test
-  public void testURIAdd() throws Exception {
-    Response response = target("/add/" + ADD_DATA.split("\n")[0]).request().post(Entity.text(""));
-    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+  public void testURIAdd() {
+    try (Response response = target("/add/" + ADD_DATA.split("\n")[0]).request().post(Entity.text(""))) {
+      Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    }
     List<Pair<String,String>> data = MockTopicProducer.getData();
     Assert.assertEquals(1, data.size());
     Assert.assertArrayEquals(EXPECTED_TOPIC[0], data.get(0).getSecond().split(","));

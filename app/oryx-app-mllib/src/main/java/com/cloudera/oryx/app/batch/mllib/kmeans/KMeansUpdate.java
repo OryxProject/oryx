@@ -60,7 +60,6 @@ public final class KMeansUpdate extends MLUpdate<String> {
 
   private final String initializationStrategy;
   private final int maxIterations;
-  private final int numberOfRuns;
   private final List<HyperParamValues<?>> hyperParamValues;
   private final InputSchema inputSchema;
   private final KMeansEvalStrategy evaluationStrategy;
@@ -69,13 +68,11 @@ public final class KMeansUpdate extends MLUpdate<String> {
     super(config);
     initializationStrategy = config.getString("oryx.kmeans.initialization-strategy");
     evaluationStrategy = Enum.valueOf(KMeansEvalStrategy.class, config.getString("oryx.kmeans.evaluation-strategy"));
-    numberOfRuns = config.getInt("oryx.kmeans.runs");
     maxIterations = config.getInt("oryx.kmeans.iterations");
     hyperParamValues = new ArrayList<>();
     hyperParamValues.add(HyperParams.fromConfig(config, "oryx.kmeans.hyperparams.k"));
     inputSchema = new InputSchema(config);
     Preconditions.checkArgument(maxIterations > 0);
-    Preconditions.checkArgument(numberOfRuns > 0);
     Preconditions.checkArgument(
         initializationStrategy.equals(KMeans.K_MEANS_PARALLEL()) ||
             initializationStrategy.equals(KMeans.RANDOM()));
@@ -113,8 +110,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
     log.info("Building KMeans Model with {} clusters", numClusters);
 
     JavaRDD<Vector> trainingData = parsedToVectorRDD(trainData.map(MLFunctions.PARSE_FN));
-    KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations,
-                                           numberOfRuns, initializationStrategy);
+    KMeansModel kMeansModel = KMeans.train(trainingData.rdd(), numClusters, maxIterations, initializationStrategy);
 
     return kMeansModelToPMML(kMeansModel, fetchClusterCountsFromModel(trainingData, kMeansModel));
   }

@@ -65,7 +65,7 @@ public final class ClusterInfo implements Serializable {
 
   @Override
   public synchronized String toString() {
-    return id + " " + Arrays.toString(center) + " " + count;
+    return id + " " + Arrays.toString(center) + ' ' + count;
   }
 
 }

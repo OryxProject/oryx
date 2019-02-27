@@ -38,12 +38,12 @@ public final class ConfigToProperties {
     ConfigObject config = (ConfigObject) ConfigUtils.getDefault().root().get("oryx");
     Map<String,String> keyValueMap = new TreeMap<>();
     add(config, "oryx", keyValueMap);
-    return keyValueMap.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.toList());
+    return keyValueMap.entrySet().stream().map(e -> e.getKey() + '=' + e.getValue()).collect(Collectors.toList());
   }
 
   private static void add(ConfigObject config, String prefix, Map<String,String> values) {
     config.forEach((key, value) -> {
-      String nextPrefix = prefix + "." + key;
+      String nextPrefix = prefix + '.' + key;
       switch (value.valueType()) {
         case OBJECT:
           add((ConfigObject) value, nextPrefix, values);

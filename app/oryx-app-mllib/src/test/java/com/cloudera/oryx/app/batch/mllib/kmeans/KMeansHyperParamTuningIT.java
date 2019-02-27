@@ -50,7 +50,6 @@ public final class KMeansHyperParamTuningIT extends AbstractKMeansIT {
     overlayConfig.put("oryx.batch.streaming.generation-interval-sec", GEN_INTERVAL_SEC);
     overlayConfig.put("oryx.kmeans.hyperparams.k", "[2,100]");
     overlayConfig.put("oryx.kmeans.iterations", 20);
-    overlayConfig.put("oryx.kmeans.runs", 20);
     overlayConfig.put("oryx.input-schema.num-features", NUM_FEATURES);
     overlayConfig.put("oryx.input-schema.categorical-features", "[]");
     overlayConfig.put("oryx.ml.eval.candidates", 3);

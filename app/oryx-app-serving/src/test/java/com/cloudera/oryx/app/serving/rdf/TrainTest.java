@@ -38,7 +38,9 @@ public final class TrainTest extends AbstractRDFServingTest {
 
   @Test
   public void testSimpleTrain() {
-    checkResponse(target("/train").request().post(Entity.text(TRAIN_DATA)));
+    try (Response response = target("/train").request().post(Entity.text(TRAIN_DATA))) {
+      checkResponse(response);
+    }
   }
 
   @Test
@@ -47,10 +49,10 @@ public final class TrainTest extends AbstractRDFServingTest {
   }
 
   @Test
-  public void testURITrain() throws Exception {
-    Response response = target("/train/" + TRAIN_DATA.split("\n")[0])
-        .request().post(Entity.text(""));
-    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+  public void testURITrain() {
+    try (Response response = target("/train/" + TRAIN_DATA.split("\n")[0]).request().post(Entity.text(""))) {
+      Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+    }
     List<Pair<String,String>> data = MockTopicProducer.getData();
     Assert.assertEquals(1, data.size());
     Assert.assertArrayEquals(EXPECTED_TOPIC[0], data.get(0).getSecond().split(","));

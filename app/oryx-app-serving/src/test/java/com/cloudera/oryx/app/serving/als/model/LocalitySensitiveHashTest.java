@@ -160,7 +160,7 @@ public final class LocalitySensitiveHashTest extends OryxTest {
     assertEquals(numHashes, lsh.getNumHashes());
     assertEquals(1L << numHashes, lsh.getNumPartitions());
     assertEquals(maxBitsDiffering, lsh.getMaxBitsDiffering());
-    if (sampleRate == 1.0) {
+    if (sampleRate >= 1.0) {
       assertEquals(lsh.getMaxBitsDiffering(), lsh.getNumHashes());
     }
     long partitionsToTry = 0;

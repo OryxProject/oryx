@@ -46,7 +46,7 @@ public abstract class ALSEndpoint extends Endpoint {
       new ALSEndpoint("/pref", 0.5) {
         @Override
         Invocation makeInvocation(WebTarget target, String user, String item, String strength) {
-          return target.path("/pref/" + user + "/" + item).request()
+          return target.path("/pref/" + user + '/' + item).request()
               .buildPost(Entity.text(strength));
         }
       },
