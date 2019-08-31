@@ -19,7 +19,8 @@ Proceed directly to:
 Developers can consume Oryx 2 as a framework for building custom applications as well. 
 Following the architecture overview below, proceed to 
 [Making an Oryx App](http://oryx.io/docs/developer.html#Making_an_Oryx_App) 
-to learn how to create a new application.
+to learn how to create a new application. You can review a [module diagram](https://sourcespy.com/github/oryx/) 
+as well to understand the project structure.
 
 <img src="http://oryx.io/img/Architecture.png"/>
 

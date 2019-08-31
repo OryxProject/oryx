@@ -59,6 +59,8 @@ Supporting modules like
 [`oryx-api`](https://github.com/OryxProject/oryx/tree/master/framework/oryx-api), and
 [`oryx-app-api`](https://github.com/OryxProject/oryx/tree/master/app/oryx-app-api) are not shown.
 
+See this [module diagram](https://sourcespy.com/github/oryx/) as well to understand the project structure.
+
 # Making an Oryx App
 
 Oryx comes with an "app tier", implementations of actual Batch, Speed and Serving Layer
