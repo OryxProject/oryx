@@ -589,7 +589,7 @@
     <spark.version>2.4.4</spark.version>
     <surefire.version>3.0.0-M4</surefire.version>
     <tomcat.version>9.0.29</tomcat.version>
-    <zookeeper.version>3.4.8</zookeeper.version>
+    <zookeeper.version>3.4.14</zookeeper.version>
     <!-- Build flags -->
     <!-- Set to 'none' for Travis -->
     <shadePhase>package</shadePhase>
