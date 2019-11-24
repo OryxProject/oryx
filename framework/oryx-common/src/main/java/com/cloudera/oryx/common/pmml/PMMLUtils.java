@@ -17,12 +17,14 @@ package com.cloudera.oryx.common.pmml;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -33,10 +35,10 @@ import org.dmg.pmml.Application;
 import org.dmg.pmml.Header;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Timestamp;
-import org.jpmml.model.ImportFilter;
 import org.jpmml.model.JAXBUtil;
 import org.jpmml.model.PMMLUtil;
-import org.xml.sax.InputSource;
+import org.jpmml.model.SAXUtil;
+import org.jpmml.model.filters.ImportFilter;
 import org.xml.sax.SAXException;
 
 /**
@@ -133,10 +135,11 @@ public final class PMMLUtils {
    * @throws IOException if XML can't be unserialized
    */
   public static PMML fromString(String pmmlString) throws IOException {
-    // Emulate PMMLUtil.unmarshal here, but need to accept a Reader
-    InputSource source = new InputSource(new StringReader(pmmlString));
     try {
-      return JAXBUtil.unmarshalPMML(ImportFilter.apply(source));
+      SAXSource transformed = SAXUtil.createFilteredSource(
+        new ByteArrayInputStream(pmmlString.getBytes(StandardCharsets.UTF_8)),
+        new ImportFilter());
+      return JAXBUtil.unmarshalPMML(transformed);
     } catch (JAXBException | SAXException e) {
       throw new IOException(e);
     }

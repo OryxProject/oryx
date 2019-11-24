@@ -160,33 +160,33 @@ public final class RDFUpdateIT extends AbstractRDFIT {
 
   private static void checkNode(Node node) {
     assertNotNull(node.getId());
-    List<ScoreDistribution> scoreDists = node.getScoreDistributions();
-    int numDists = scoreDists.size();
-    if (numDists == 0) {
+    if (!node.hasScoreDistributions()) {
       // Non-leaf
       List<Node> children = node.getNodes();
       assertEquals(2, children.size());
       Node rightChild = children.get(0);
       Node leftChild = children.get(1);
       assertInstanceOf(leftChild.getPredicate(), True.class);
-      assertEquals(node.getRecordCount().doubleValue(),
-                   leftChild.getRecordCount() + rightChild.getRecordCount());
-      assertEquals(node.getId() + '+', rightChild.getId());
-      assertEquals(node.getId() + '-', leftChild.getId());
+      assertEquals(node.getRecordCount().intValue(),
+                   leftChild.getRecordCount().intValue() + rightChild.getRecordCount().intValue());
+      assertEquals(node.getId() + "+", rightChild.getId());
+      assertEquals(node.getId() + "-", leftChild.getId());
       checkNode(rightChild);
       checkNode(leftChild);
     } else {
       // Leaf
+      List<ScoreDistribution> scoreDists = node.getScoreDistributions();
+      int numDists = scoreDists.size();
       assertRange(numDists, 1, 2);
       ScoreDistribution first = scoreDists.get(0);
       if (numDists == 1) {
         assertEquals(1.0, first.getConfidence().doubleValue());
       } else {
-        assertGreater(first.getConfidence(), 0.0);
-        assertLess(first.getConfidence(), 1.0);
+        assertGreater(first.getConfidence().doubleValue(), 0.0);
+        assertLess(first.getConfidence().doubleValue(), 1.0);
         ScoreDistribution second = scoreDists.get(1);
-        assertGreater(second.getConfidence(), 0.0);
-        assertLess(second.getConfidence(), 1.0);
+        assertGreater(second.getConfidence().doubleValue(), 0.0);
+        assertLess(second.getConfidence().doubleValue(), 1.0);
       }
     }
   }

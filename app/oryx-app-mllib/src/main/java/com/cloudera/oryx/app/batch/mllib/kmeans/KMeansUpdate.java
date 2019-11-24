@@ -211,7 +211,7 @@ public final class KMeansUpdate extends MLUpdate<String> {
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         AppPMMLUtils.buildMiningSchema(inputSchema),
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).setMeasure(new SquaredEuclidean()),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE, new SquaredEuclidean()),
         clusteringFields,
         clusters);
   }

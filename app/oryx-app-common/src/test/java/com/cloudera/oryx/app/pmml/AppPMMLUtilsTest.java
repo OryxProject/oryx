@@ -37,6 +37,7 @@ import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
 import org.dmg.pmml.Value;
+import org.dmg.pmml.tree.CountingLeafNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
@@ -50,7 +51,7 @@ import com.cloudera.oryx.common.settings.ConfigUtils;
 public final class AppPMMLUtilsTest extends OryxTest {
 
   private static PMML buildDummyModel() {
-    Node node = new Node().setRecordCount(123.0);
+    Node node = new CountingLeafNode().setRecordCount(123.0);
     TreeModel treeModel = new TreeModel(MiningFunction.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.addModels(treeModel);

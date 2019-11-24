@@ -45,7 +45,6 @@ import org.dmg.pmml.MiningField;
 import org.dmg.pmml.MiningSchema;
 import org.dmg.pmml.OpType;
 import org.dmg.pmml.PMML;
-import org.dmg.pmml.TypeDefinitionField;
 import org.dmg.pmml.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -248,10 +247,11 @@ public final class AppPMMLUtils {
     Map<Integer,Collection<String>> indexToValues = new HashMap<>();
     List<DataField> dataFields = dictionary.getDataFields();
     for (int featureIndex = 0; featureIndex < dataFields.size(); featureIndex++) {
-      TypeDefinitionField field = dataFields.get(featureIndex);
+      DataField field = dataFields.get(featureIndex);
       Collection<Value> values = field.getValues();
       if (values != null && !values.isEmpty()) {
-        Collection<String> categoricalValues = values.stream().map(Value::getValue).collect(Collectors.toList());
+        Collection<String> categoricalValues =
+            values.stream().map(v -> v.getValue().toString()).collect(Collectors.toList());
         indexToValues.put(featureIndex, categoricalValues);
       }
     }

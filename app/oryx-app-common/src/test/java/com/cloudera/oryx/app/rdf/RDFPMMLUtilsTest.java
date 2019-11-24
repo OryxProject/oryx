@@ -39,6 +39,7 @@ import org.dmg.pmml.Value;
 import org.dmg.pmml.mining.MiningModel;
 import org.dmg.pmml.mining.Segment;
 import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.ComplexNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
@@ -139,13 +140,14 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
     double dummyCount = 2.0;
-    Node rootNode = new Node().setId("r").setRecordCount(dummyCount).setPredicate(new True());
+    Node rootNode =
+      new ComplexNode().setId("r").setRecordCount(dummyCount).setPredicate(new True());
 
     double halfCount = dummyCount / 2;
 
-    Node left = new Node().setId("r-").setRecordCount(halfCount).setPredicate(new True());
+    Node left = new ComplexNode().setId("r-").setRecordCount(halfCount).setPredicate(new True());
     left.addScoreDistributions(new ScoreDistribution("apple", halfCount));
-    Node right = new Node().setId("r+").setRecordCount(halfCount)
+    Node right = new ComplexNode().setId("r+").setRecordCount(halfCount)
         .setPredicate(new SimpleSetPredicate(FieldName.create("color"),
                                              SimpleSetPredicate.BooleanOperator.IS_NOT_IN,
                                              new Array(Array.Type.STRING, "red")));
@@ -200,18 +202,20 @@ public final class RDFPMMLUtilsTest extends OryxTest {
     MiningSchema miningSchema = new MiningSchema(miningFields);
 
     double dummyCount = 2.0;
-    Node rootNode = new Node().setId("r").setRecordCount(dummyCount).setPredicate(new True());
+    Node rootNode =
+        new ComplexNode().setId("r").setRecordCount(dummyCount).setPredicate(new True());
 
     double halfCount = dummyCount / 2;
 
-    Node left = new Node()
+    Node left = new ComplexNode()
         .setId("r-")
         .setRecordCount(halfCount)
         .setPredicate(new True())
         .setScore("-2.0");
-    Node right = new Node().setId("r+").setRecordCount(halfCount)
+    Node right = new ComplexNode().setId("r+").setRecordCount(halfCount)
         .setPredicate(new SimplePredicate(FieldName.create("foo"),
-                                          SimplePredicate.Operator.GREATER_THAN).setValue("3.14"))
+                                          SimplePredicate.Operator.GREATER_THAN,
+                                          "3.14"))
         .setScore("2.0");
 
     rootNode.addNodes(right, left);

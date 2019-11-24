@@ -16,7 +16,6 @@
 package com.cloudera.oryx.app.rdf;
 
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -140,7 +139,7 @@ public final class RDFPMMLUtils {
       for (int i = 0; i < trees.length; i++) {
         Segment segment = segments.get(i);
         Preconditions.checkArgument(segment.getPredicate() instanceof True);
-        weights[i] = segment.getWeight();
+        weights[i] = segment.getWeight().doubleValue();
         TreeModel treeModel = (TreeModel) segment.getModel();
         TreeNode root = translateFromPMML(treeModel.getNode(),
                                           categoricalValueEncodings,
@@ -162,9 +161,8 @@ public final class RDFPMMLUtils {
     double[] featureImportances = new double[featureNames.size()];
     for (int i = 0; i < miningFields.size(); i++) {
       MiningField field = miningFields.get(i);
-      Double importance = field.getImportance();
-      if (importance != null) {
-        featureImportances[i] = importance;
+      if (field.getImportance() != null) {
+        featureImportances[i] = field.getImportance().doubleValue();
       }
     }
 
@@ -178,29 +176,28 @@ public final class RDFPMMLUtils {
                                             int targetIndex) {
 
 
-    String id = root.getId();
-    List<Node> children = root.getNodes();
-    if (children.isEmpty()) {
+    String id = root.getId().toString();
+    if (!root.hasNodes()) {
       // Terminal
-      Collection<ScoreDistribution> scoreDistributions = root.getScoreDistributions();
       Prediction prediction;
-      if (scoreDistributions != null && !scoreDistributions.isEmpty()) {
+      if (root.hasScoreDistributions()) {
         // Categorical target
         Map<String,Integer> targetEncoding =
             categoricalValueEncodings.getValueEncodingMap(targetIndex);
         double[] categoryCounts = new double[targetEncoding.size()];
-        for (ScoreDistribution dist : scoreDistributions) {
-          int encoding = targetEncoding.get(dist.getValue());
-          categoryCounts[encoding] = dist.getRecordCount();
+        for (ScoreDistribution dist : root.getScoreDistributions()) {
+          int encoding = targetEncoding.get(dist.getValue().toString());
+          categoryCounts[encoding] = dist.getRecordCount().doubleValue();
         }
         prediction = new CategoricalPrediction(categoryCounts);
       } else {
-        prediction = new NumericPrediction(Double.parseDouble(root.getScore()),
-                                           (int) Math.round(root.getRecordCount()));
+        prediction = new NumericPrediction(Double.parseDouble(root.getScore().toString()),
+                                           root.getRecordCount().intValue());
       }
       return new TerminalNode(id, prediction);
     }
 
+    List<Node> children = root.getNodes();
     Preconditions.checkArgument(children.size() == 2);
     // Decision
     Node child1 = children.get(0);
@@ -227,7 +224,7 @@ public final class RDFPMMLUtils {
       Preconditions.checkArgument(
           operator == SimplePredicate.Operator.GREATER_OR_EQUAL ||
           operator == SimplePredicate.Operator.GREATER_THAN);
-      double threshold = Double.parseDouble(simplePredicate.getValue());
+      double threshold = Double.parseDouble(simplePredicate.getValue().toString());
       // NumericDecision uses >= criteria. Increase threshold by one ulp to implement
       // "> threshold" as ">= (threshold + ulp)"
       if (operator == SimplePredicate.Operator.GREATER_THAN) {
@@ -247,7 +244,8 @@ public final class RDFPMMLUtils {
       int featureNumber = featureNames.indexOf(simpleSetPredicate.getField().getValue());
       Map<String,Integer> valueEncodingMap =
           categoricalValueEncodings.getValueEncodingMap(featureNumber);
-      String[] categories = TextUtils.parseDelimited(simpleSetPredicate.getArray().getValue(), ' ');
+      String[] categories =
+          TextUtils.parseDelimited(simpleSetPredicate.getArray().getValue().toString(), ' ');
       BitSet activeCategories = new BitSet(valueEncodingMap.size());
       if (operator == SimpleSetPredicate.BooleanOperator.IS_IN) {
         for (String category : categories) {

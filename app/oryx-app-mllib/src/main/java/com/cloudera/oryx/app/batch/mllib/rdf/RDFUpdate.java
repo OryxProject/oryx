@@ -57,6 +57,7 @@ import org.dmg.pmml.True;
 import org.dmg.pmml.mining.MiningModel;
 import org.dmg.pmml.mining.Segment;
 import org.dmg.pmml.mining.Segmentation;
+import org.dmg.pmml.tree.ComplexNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.eclipse.collections.api.map.primitive.IntLongMap;
@@ -419,7 +420,7 @@ public final class RDFUpdate extends MLUpdate<String> {
     boolean classificationTask = dtModel.algo().equals(Algo.Classification());
     Preconditions.checkState(classificationTask == inputSchema.isClassification());
 
-    Node root = new Node();
+    Node root = new ComplexNode();
     root.setId("r");
 
     Queue<Node> modelNodes = new ArrayDeque<>();
@@ -477,8 +478,8 @@ public final class RDFUpdate extends MLUpdate<String> {
 
         Split split = treeNode.split().get();
 
-        Node positiveModelNode = new Node().setId(modelNode.getId() + '+');
-        Node negativeModelNode = new Node().setId(modelNode.getId() + '-');
+        Node positiveModelNode = new ComplexNode().setId(modelNode.getId() + "+");
+        Node negativeModelNode = new ComplexNode().setId(modelNode.getId() + "-");
         modelNode.addNodes(positiveModelNode, negativeModelNode);
 
         org.apache.spark.mllib.tree.model.Node rightTreeNode = treeNode.rightNode().get();
@@ -535,8 +536,9 @@ public final class RDFUpdate extends MLUpdate<String> {
 
     } else {
       // For MLlib, left means <= threshold, so right means >
-      return new SimplePredicate(fieldName, SimplePredicate.Operator.GREATER_THAN)
-          .setValue(Double.toString(split.threshold()));
+      return new SimplePredicate(fieldName,
+          SimplePredicate.Operator.GREATER_THAN,
+          Double.toString(split.threshold()));
     }
   }
 

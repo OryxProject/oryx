@@ -5,7 +5,7 @@ title: Docs: Dev
 ## Requirements
 
 - [Git](https://git-scm.com/), or an IDE that supports Git
-- [Apache Maven](https://maven.apache.org/) 3.5.2 or later
+- [Apache Maven](https://maven.apache.org/) 3.6.0 or later
 - [Java JDK](http://openjdk.java.net/projects/jdk8/) (not just JRE) 8 or later
 
 Some or all of these may already be installed on your development machine.

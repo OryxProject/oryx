@@ -22,6 +22,7 @@ import java.util.List;
 import org.dmg.pmml.MiningFunction;
 import org.dmg.pmml.Model;
 import org.dmg.pmml.PMML;
+import org.dmg.pmml.tree.CountingLeafNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import com.cloudera.oryx.common.OryxTest;
 public final class PMMLUtilsTest extends OryxTest {
 
   public static PMML buildDummyModel() {
-    Node node = new Node().setRecordCount(123.0);
+    Node node = new CountingLeafNode().setRecordCount(123.0);
     TreeModel treeModel = new TreeModel(MiningFunction.CLASSIFICATION, null, node);
     PMML pmml = PMMLUtils.buildSkeletonPMML();
     pmml.addModels(treeModel);
@@ -65,7 +66,8 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model = buildDummyModel();
     model.getHeader().setTimestamp(null);
     assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                 "<PMML version=\"4.3\" xmlns=\"http://www.dmg.org/PMML-4_3\">" +
+                 "<PMML version=\"4.3\" xmlns=\"http://www.dmg.org/PMML-4_3\" " +
+                 "xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\">" +
                  "<Header>" +
                  "<Application name=\"Oryx\"/>" +
                  "</Header>" +

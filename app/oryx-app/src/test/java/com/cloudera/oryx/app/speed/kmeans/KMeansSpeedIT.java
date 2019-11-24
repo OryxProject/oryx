@@ -74,7 +74,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
     assertInstanceOf(model, ClusteringModel.class);
 
     ClusteringModel clusteringModel = (ClusteringModel) model;
-    assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters());
+    assertEquals(NUM_CLUSTERS, clusteringModel.getNumberOfClusters().intValue());
     List<Cluster> clusters = clusteringModel.getClusters();
 
     Map<Integer,ClusterInfo> clusterInfos = new HashMap<>();
@@ -94,7 +94,7 @@ public final class KMeansSpeedIT extends AbstractSpeedIT {
       int id = clusterInfo.getID();
       Cluster cluster = clusters.get(id);
 
-      String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue(), ' ');
+      String[] tokens = TextUtils.parseDelimited(cluster.getArray().getValue().toString(), ' ');
       double[] modelCenter = VectorMath.parseVector(tokens);
 
       double[] updatedCenter = clusterInfo.getCenter();

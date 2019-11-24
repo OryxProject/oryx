@@ -105,7 +105,7 @@ public final class KMeansPMMLUtilsTest extends OryxTest {
         ClusteringModel.ModelClass.CENTER_BASED,
         clusters.size(),
         miningSchema,
-        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE).setMeasure(new SquaredEuclidean()),
+        new ComparisonMeasure(ComparisonMeasure.Kind.DISTANCE, new SquaredEuclidean()),
         clusteringFields,
         clusters));
 

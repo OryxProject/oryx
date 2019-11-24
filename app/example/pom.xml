@@ -71,7 +71,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.8.1</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -81,8 +81,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <!-- 3.3.3+ requires Maven 3.5.3+ -->
-        <version>3.3.2</version>
+        <version>4.3.0</version>
         <configuration>
           <checkMultipleScalaVersions>false</checkMultipleScalaVersions>
           <args>

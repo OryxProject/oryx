@@ -149,7 +149,7 @@ public final class ALSSpeedModelManager extends AbstractSpeedModelManager<String
         String[] tokens = MLFunctions.PARSE_FN.call(line);
         String user = tokens[0];
         String item = tokens[1];
-        Double strength = tokens[2].isEmpty() ? Double.NaN : Double.valueOf(tokens[2]);
+        double strength = tokens[2].isEmpty() ? Double.NaN : Double.parseDouble(tokens[2]);
         return new Tuple2<>(new Tuple2<>(user, item), strength);
       } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
         log.warn("Bad input: {}", line);

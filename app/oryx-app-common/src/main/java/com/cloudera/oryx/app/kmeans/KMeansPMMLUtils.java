@@ -75,7 +75,8 @@ public final class KMeansPMMLUtils {
 
     return clusteringModel.getClusters().stream().map(cluster ->
       new ClusterInfo(Integer.parseInt(cluster.getId()),
-                      VectorMath.parseVector(TextUtils.parseDelimited(cluster.getArray().getValue(), ' ')),
+                      VectorMath.parseVector(
+                          TextUtils.parseDelimited(cluster.getArray().getValue().toString(), ' ')),
                       cluster.getSize())
     ).collect(Collectors.toList());
   }

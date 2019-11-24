@@ -115,7 +115,7 @@ public abstract class AbstractAppMLlibIT extends AbstractBatchIT {
           assertEquals("Wrong usage type for feature " + featureName,
                        MiningField.UsageType.ACTIVE,
                        miningField.getUsageType());
-          assertRange(miningField.getImportance(), 0.0, 1.0);
+          assertRange(miningField.getImportance().doubleValue(), 0.0, 1.0);
         }
       } else {
         assertEquals("Wrong usage type for feature " + featureName,
