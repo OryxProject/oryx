@@ -262,7 +262,7 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <!-- Can't update past this or we run into Hadoop incompatibility -->
-        <version>16.0.1</version>
+        <version>27.0.1-jre</version>
       </dependency>
 
       <!-- This is used directly: -->
@@ -486,7 +486,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>5.2.1.RELEASE</version>
+        <version>5.2.4.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -542,7 +542,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.13-rc-1</version>
+        <version>4.13</version>
         <scope>test</scope>
       </dependency>
 
@@ -576,20 +576,20 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.12</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.10</scala.complete.version>
-    <ec.version>10.1.0.M2</ec.version>
-    <hadoop.version>3.2.0</hadoop.version>
-    <jackson.version>2.9.9</jackson.version>
-    <javadoc.plugin.version>3.1.1</javadoc.plugin.version>
-    <jersey.version>2.29.1</jersey.version>
+    <ec.version>10.2.0</ec.version>
+    <hadoop.version>3.2.1</hadoop.version>
+    <jackson.version>2.10.3</jackson.version>
+    <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
+    <jersey.version>2.30.1</jersey.version>
     <kafka.version>2.3.1</kafka.version>
     <maven.scm.version>1.11.2</maven.scm.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.28</slf4j.version>
     <snappy.version>1.1.7.3</snappy.version>
-    <spark.version>2.4.4</spark.version>
+    <spark.version>3.0.0-preview2</spark.version>
     <surefire.version>3.0.0-M4</surefire.version>
-    <tomcat.version>9.0.29</tomcat.version>
-    <zookeeper.version>3.4.14</zookeeper.version>
+    <tomcat.version>9.0.30</tomcat.version>
+    <zookeeper.version>3.5.6</zookeeper.version>
     <!-- Build flags -->
     <!-- Set to 'none' for Travis -->
     <shadePhase>package</shadePhase>
@@ -684,7 +684,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.2.1</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -715,7 +715,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.3</version>
+          <version>3.0.0-M1</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.scm</groupId>
@@ -820,12 +820,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.1.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.2.0</version>
           <configuration>
             <skipIfEmpty>true</skipIfEmpty>
           </configuration>
@@ -840,7 +840,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>3.2.2</version>
           <executions>
             <execution>
               <id>shade</id>
@@ -898,7 +898,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.1.1</version>
           <configuration>
             <configLocation>src/checkstyle/checkstyle.xml</configLocation>
           </configuration>
@@ -972,7 +972,7 @@
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
-          <version>4.3.0</version>
+          <version>4.3.1</version>
           <configuration>
             <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
             <args>
@@ -1139,41 +1139,6 @@
   </distributionManagement>
 
   <profiles>
-    <profile>
-      <id>scala-2.11</id>
-      <properties>
-        <scala.minor.version>2.11</scala.minor.version>
-        <scala.complete.version>${scala.minor.version}.12</scala.complete.version>
-      </properties>
-    </profile>
-    <profile>
-      <id>cdh6</id>
-      <properties>
-        <cdh.version>6.1.0</cdh.version>
-        <hadoop.version>3.0.0-cdh${cdh.version}</hadoop.version>
-        <spark.version>2.4.0-cdh${cdh.version}</spark.version>
-        <zookeeper.version>3.4.5-cdh${cdh.version}</zookeeper.version>
-        <kafka.version>2.0.0-cdh${cdh.version}</kafka.version>
-      </properties>
-      <repositories>
-        <repository>
-          <id>cloudera</id>
-          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        </repository>
-      </repositories>
-    </profile>
-    <profile>
-      <id>cp33</id>
-      <properties>
-        <kafka.version>0.11.0.0-cp1</kafka.version>
-      </properties>
-      <repositories>
-        <repository>
-          <id>confluent</id>
-          <url>https://packages.confluent.io/maven/</url>
-        </repository>
-      </repositories>
-    </profile>
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
