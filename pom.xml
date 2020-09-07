@@ -405,7 +405,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
+        <version>2.7</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
@@ -486,7 +486,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>5.2.4.RELEASE</version>
+        <version>5.2.8.RELEASE</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -576,7 +576,7 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.12</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.10</scala.complete.version>
-    <ec.version>10.2.0</ec.version>
+    <ec.version>10.4.0</ec.version>
     <hadoop.version>3.2.1</hadoop.version>
     <jackson.version>2.10.3</jackson.version>
     <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
@@ -585,10 +585,10 @@
     <maven.scm.version>1.11.2</maven.scm.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.28</slf4j.version>
-    <snappy.version>1.1.7.3</snappy.version>
-    <spark.version>3.0.0-preview2</spark.version>
-    <surefire.version>3.0.0-M4</surefire.version>
-    <tomcat.version>9.0.30</tomcat.version>
+    <snappy.version>1.1.7.7</snappy.version>
+    <spark.version>3.0.1</spark.version>
+    <surefire.version>3.0.0-M5</surefire.version>
+    <tomcat.version>9.0.37</tomcat.version>
     <zookeeper.version>3.5.6</zookeeper.version>
     <!-- Build flags -->
     <!-- Set to 'none' for Travis -->
@@ -770,7 +770,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -780,7 +780,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -840,7 +840,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.2.2</version>
+          <version>3.2.4</version>
           <executions>
             <execution>
               <id>shade</id>
@@ -949,7 +949,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.7</version>
+          <version>2.8.1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -972,7 +972,7 @@
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
-          <version>4.3.1</version>
+          <version>4.4.0</version>
           <configuration>
             <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
             <args>

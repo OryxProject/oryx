@@ -1,5 +1,6 @@
 language: java
-sudo: false
+os: linux
+dist: bionic
 jdk: openjdk8
 install: mvn ${SPARK} -Ptravis -Pnetlib -DskipTests=true -nsu -B install
 script:
