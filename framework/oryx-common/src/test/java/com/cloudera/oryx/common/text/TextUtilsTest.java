@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -120,7 +121,7 @@ public final class TextUtilsTest extends OryxTest {
 
   @Test
   public void testJSONMap() {
-    Map<Object,Object> map = new HashMap<>();
+    Map<Object,Object> map = new LinkedHashMap<>();
     map.put(1, "bar");
     map.put("foo", 2);
     assertEquals("[\"A\",{\"1\":\"bar\",\"foo\":2},\"B\"]",
