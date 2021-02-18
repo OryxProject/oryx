@@ -578,7 +578,7 @@
     <scala.complete.version>${scala.minor.version}.10</scala.complete.version>
     <ec.version>10.4.0</ec.version>
     <hadoop.version>3.2.1</hadoop.version>
-    <jackson.version>2.10.3</jackson.version>
+    <jackson.version>2.12.1</jackson.version>
     <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
     <jersey.version>2.30.1</jersey.version>
     <kafka.version>2.3.1</kafka.version>
