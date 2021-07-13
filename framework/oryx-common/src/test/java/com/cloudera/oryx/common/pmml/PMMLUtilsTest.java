@@ -26,7 +26,9 @@ import org.dmg.pmml.tree.CountingLeafNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.*;
+import org.hamcrest.MatcherAssert;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.is;
 
 import com.cloudera.oryx.common.OryxTest;
 
@@ -66,28 +68,27 @@ public final class PMMLUtilsTest extends OryxTest {
   public void testToString() throws Exception {
     PMML model = buildDummyModel();
     model.getHeader().setTimestamp(null);
-    assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                 "<PMML version=\"4.4\" xmlns=\"http://www.dmg.org/PMML-4_4\" " +
-                 "xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\">" +
-                 "<Header>" +
-                 "<Application name=\"Oryx\"/>" +
-                 "</Header>" +
-                 "<TreeModel functionName=\"classification\">" +
-                 "<Node recordCount=\"123.0\"/>" +
-                 "</TreeModel>" +
-                 "</PMML>"), is(
-                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                 "<PMML version=\"4.3\" xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\" " +
-                 "xmlns=\"http://www.dmg.org/PMML-4_3\">" +
-                 "<Header>" +
-                 "<Application name=\"Oryx\"/>" +
-                 "</Header>" +
-                 "<TreeModel functionName=\"classification\">" +
-                 "<Node recordCount=\"123.0\"/>" +
-                 "</TreeModel>" +
-                 "</PMML>"
-                 )
-    ));
+    MatcherAssert.assertThat(PMMLUtils.toString(model), anyOf(is(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+        "<PMML version=\"4.4\" xmlns=\"http://www.dmg.org/PMML-4_4\" " +
+        "xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\">" +
+        "<Header>" +
+        "<Application name=\"Oryx\"/>" +
+        "</Header>" +
+        "<TreeModel functionName=\"classification\">" +
+        "<Node recordCount=\"123.0\"/>" +
+        "</TreeModel>" +
+        "</PMML>"), is(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+        "<PMML version=\"4.4\" xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\" " +
+        "xmlns=\"http://www.dmg.org/PMML-4_4\">" +
+        "<Header>" +
+        "<Application name=\"Oryx\"/>" +
+        "</Header>" +
+        "<TreeModel functionName=\"classification\">" +
+        "<Node recordCount=\"123.0\"/>" +
+        "</TreeModel>" +
+        "</PMML>")));
   }
 
   @Test
@@ -102,9 +103,9 @@ public final class PMMLUtilsTest extends OryxTest {
 
   @Test
   public void testPreviousPMMLVersion() throws Exception {
-    String pmml42 =
+    String pmml43 =
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
-        "<PMML xmlns=\"http://www.dmg.org/PMML-4_2\" version=\"4.2.1\">\n" +
+        "<PMML xmlns=\"http://www.dmg.org/PMML-4_3\" version=\"4.3\">\n" +
         "    <Header>\n" +
         "        <Application name=\"Oryx\"/>\n" +
         "    </Header>\n" +
@@ -112,7 +113,7 @@ public final class PMMLUtilsTest extends OryxTest {
         "        <Node recordCount=\"123.0\"/>\n" +
         "    </TreeModel>\n" +
         "</PMML>\n";
-    PMML model = PMMLUtils.fromString(pmml42);
+    PMML model = PMMLUtils.fromString(pmml43);
     // Actually transforms to latest version:
     assertEquals(PMMLUtils.VERSION, model.getVersion());
   }
