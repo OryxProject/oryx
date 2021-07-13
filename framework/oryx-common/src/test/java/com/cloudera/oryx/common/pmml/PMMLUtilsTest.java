@@ -26,6 +26,7 @@ import org.dmg.pmml.tree.CountingLeafNode;
 import org.dmg.pmml.tree.Node;
 import org.dmg.pmml.tree.TreeModel;
 import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
 
 import com.cloudera.oryx.common.OryxTest;
 
@@ -74,8 +75,19 @@ public final class PMMLUtilsTest extends OryxTest {
                  "<TreeModel functionName=\"classification\">" +
                  "<Node recordCount=\"123.0\"/>" +
                  "</TreeModel>" +
-                 "</PMML>",
-                 PMMLUtils.toString(model));
+                 "</PMML>"), is(
+                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                 "<PMML version=\"4.3\" xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\" " +
+                 "xmlns=\"http://www.dmg.org/PMML-4_3\">" +
+                 "<Header>" +
+                 "<Application name=\"Oryx\"/>" +
+                 "</Header>" +
+                 "<TreeModel functionName=\"classification\">" +
+                 "<Node recordCount=\"123.0\"/>" +
+                 "</TreeModel>" +
+                 "</PMML>"
+                 )
+    ));
   }
 
   @Test
