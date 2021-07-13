@@ -231,7 +231,7 @@
       <dependency>
         <groupId>com.typesafe</groupId>
         <artifactId>config</artifactId>
-        <version>1.4.0</version>
+        <version>1.4.1</version>
       </dependency>
 
       <dependency>
@@ -255,14 +255,14 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
+        <!-- 1.8+ has an incompatible behavior change -->
         <version>1.7</version>
       </dependency>
 
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <!-- Can't update past this or we run into Hadoop incompatibility -->
-        <version>27.0.1-jre</version>
+        <version>30.1.1-jre</version>
       </dependency>
 
       <!-- This is used directly: -->
@@ -326,7 +326,7 @@
       <dependency>
         <groupId>org.jpmml</groupId>
         <artifactId>pmml-model</artifactId>
-        <version>1.4.15</version>
+        <version>1.5.15</version>
       </dependency>
 
       <dependency>
@@ -486,7 +486,7 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>5.2.8.RELEASE</version>
+        <version>5.3.8</version>
         <scope>test</scope>
         <exclusions>
           <exclusion>
@@ -499,8 +499,7 @@
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <!-- Can't update this dep due to Guava 20 dependencies in 0.9.11+ -->
-        <version>0.9.10</version>
+        <version>0.9.12</version>
         <exclusions>
           <!-- Exclude because it's LGPL licensed -->
           <exclusion>
@@ -576,19 +575,19 @@
     <!-- Match this with what Spark version wants -->
     <scala.minor.version>2.12</scala.minor.version>
     <scala.complete.version>${scala.minor.version}.10</scala.complete.version>
-    <ec.version>10.4.0</ec.version>
+    <ec.version>11.0.0.M2</ec.version>
     <hadoop.version>3.2.1</hadoop.version>
-    <jackson.version>2.10.3</jackson.version>
-    <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
-    <jersey.version>2.30.1</jersey.version>
+    <jackson.version>2.12.4</jackson.version>
+    <javadoc.plugin.version>3.3.0</javadoc.plugin.version>
+    <jersey.version>2.34</jersey.version>
     <kafka.version>2.3.1</kafka.version>
     <maven.scm.version>1.11.2</maven.scm.version>
     <netlib.java.version>1.1.2</netlib.java.version>
     <slf4j.version>1.7.28</slf4j.version>
-    <snappy.version>1.1.7.7</snappy.version>
-    <spark.version>3.0.1</spark.version>
+    <snappy.version>1.1.8.4</snappy.version>
+    <spark.version>3.0.2</spark.version>
     <surefire.version>3.0.0-M5</surefire.version>
-    <tomcat.version>9.0.37</tomcat.version>
+    <tomcat.version>9.0.50</tomcat.version>
     <zookeeper.version>3.5.6</zookeeper.version>
     <!-- Build flags -->
     <!-- Set to 'none' for Travis -->
@@ -715,7 +714,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>3.0.0-M1</version>
+          <version>3.0.0-M4</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.scm</groupId>
@@ -796,13 +795,13 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <!-- site-plugin >= 3.5 is incompatible with most skins -->
-          <version>3.4</version>
+          <version>3.9.1</version>
           <inherited>false</inherited>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.doxia</groupId>
               <artifactId>doxia-module-markdown</artifactId>
-              <version>1.6</version>
+              <version>1.10</version>
             </dependency>
             <dependency>
               <groupId>lt.velykis.maven.skins</groupId>
@@ -820,7 +819,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -898,7 +897,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.1.2</version>
           <configuration>
             <configLocation>src/checkstyle/checkstyle.xml</configLocation>
           </configuration>
@@ -911,6 +910,13 @@
               </goals>
             </execution>
           </executions>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.42</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.rat</groupId>
@@ -972,7 +978,7 @@
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
-          <version>4.4.0</version>
+          <version>4.5.3</version>
           <configuration>
             <scalaCompatVersion>${scala.minor.version}</scalaCompatVersion>
             <args>
@@ -1152,7 +1158,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
+            <version>3.0.1</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -1176,7 +1182,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.5</version>
+            <version>0.8.7</version>
             <executions>
               <execution>
                 <id>jacoco-prepare-agent</id>

@@ -66,7 +66,7 @@ public final class PMMLUtilsTest extends OryxTest {
     PMML model = buildDummyModel();
     model.getHeader().setTimestamp(null);
     assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                 "<PMML version=\"4.3\" xmlns=\"http://www.dmg.org/PMML-4_3\" " +
+                 "<PMML version=\"4.4\" xmlns=\"http://www.dmg.org/PMML-4_4\" " +
                  "xmlns:data=\"http://jpmml.org/jpmml-model/InlineTable\">" +
                  "<Header>" +
                  "<Application name=\"Oryx\"/>" +

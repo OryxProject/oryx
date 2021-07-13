@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
  */
 public final class PMMLUtils {
 
-  public static final String VERSION = "4.3";
+  public static final String VERSION = "4.4";
 
   private PMMLUtils() {}
 
