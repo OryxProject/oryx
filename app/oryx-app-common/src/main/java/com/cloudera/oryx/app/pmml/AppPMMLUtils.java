@@ -142,7 +142,7 @@ public final class AppPMMLUtils {
    */
   public static MiningSchema buildMiningSchema(InputSchema schema, double[] importances) {
     Preconditions.checkArgument(
-        importances == null || (importances.length == schema.getNumPredictors()));
+        importances == null || importances.length == schema.getNumPredictors());
     List<String> featureNames = schema.getFeatureNames();
     List<MiningField> miningFields = new ArrayList<>();
     for (int featureIndex = 0; featureIndex < featureNames.size(); featureIndex++) {
