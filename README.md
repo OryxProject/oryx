@@ -29,3 +29,8 @@ as well to understand the project structure.
 [![Build Status](https://travis-ci.org/OryxProject/oryx.svg?branch=master)](https://travis-ci.org/OryxProject/oryx)
 [![Coverity](https://scan.coverity.com/projects/2697/badge.svg)](https://scan.coverity.com/projects/2697)
 [![codecov.io](https://codecov.io/github/OryxProject/oryx/coverage.svg?branch=master)](https://codecov.io/github/OryxProject/oryx?branch=master)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FOryxProject%2Foryx.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FOryxProject%2Foryx?ref=badge_shield)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FOryxProject%2Foryx.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FOryxProject%2Foryx?ref=badge_large)
